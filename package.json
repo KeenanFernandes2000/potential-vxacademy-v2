@@ -1,0 +1,24 @@
+{
+  "name": "potential-vxacademy-v2",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev:server": "cd server && bun run dev",
+    "dev:client": "cd client && bun run dev",
+    "dev": "concurrently \"bun run dev:server\" \"bun run dev:client\"",
+    "build": "cd client && bun run build",
+    "start": "bun run build && bun run server/index.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "concurrently": "^9.2.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
