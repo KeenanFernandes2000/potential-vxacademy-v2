@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import HomePage from "./pages/homePage";
+import AuthPage from "./pages/authPage";
+import ForgotPasswordPage from "./pages/forgotPasswordPage";
+import ResetPasswordPage from "./pages/resetPasswordPage";
 
 function App() {
   useEffect(() => {
-    fetch("http://localhost:8000/count", {
+    fetch("/api/hello", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -19,16 +23,16 @@ function App() {
   };
 
   return (
-    <>
-      <div className="flex flex-col items-center justify-center h-screen ">
-        <h1 className="text-3xl font-bold underline">Hello world!</h1>
-        <p className="text-gray-500">This is a test</p>
-        <Button onClick={handleClick} className="cursor-pointer">
-          Click me
-        </Button>
-        <p>Count: {count}</p>
+    <Router>
+      <div>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset" element={<ResetPasswordPage />} />
+        </Routes>
       </div>
-    </>
+    </Router>
   );
 }
 
