@@ -1,15 +1,24 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
+interface ApiResponse {
+  message: string;
+}
+
 function App() {
+  const [data, setData] = useState<ApiResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    fetch("http://localhost:8000/count", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ count: 1 }),
-    });
+    fetch("/api")
+      .then((res) => {
+        if (!res.ok) throw new Error("Network response was not ok");
+        return res.json();
+      })
+      .then((data) => setData(data))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
   }, []);
 
   const [count, setCount] = useState(0);
@@ -27,6 +36,9 @@ function App() {
           Click me
         </Button>
         <p>Count: {count}</p>
+        {loading && <p>Loading...</p>}
+        {error && <p>Error: {error}</p>}
+        {data && <p>Data: {data.message as string}</p>}
       </div>
     </>
   );
