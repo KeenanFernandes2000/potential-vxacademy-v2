@@ -166,7 +166,7 @@ export const DashboardNav: React.FC<DashboardNavProps> = ({
               ) : (
                 <Link to="/auth">
                   <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8cc] text-black rounded-xl py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
-                    Get Started
+                    Login
                   </Button>
                 </Link>
               )}
