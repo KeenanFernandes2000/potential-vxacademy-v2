@@ -83,8 +83,6 @@ const AuthPage: React.FC = () => {
 
       {/* Main Content */}
       <div className="flex items-center justify-center p-4 min-h-[calc(100vh-80px)] relative">
-      
-
         <Card className="w-full max-w-lg bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
           <CardHeader className="text-center pb-6">
             <CardTitle className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
@@ -138,14 +136,17 @@ const AuthPage: React.FC = () => {
 
               {/* Forgot Password Link */}
               <div className="flex justify-end">
-                <Link to="/forgot-password" className="text-[#00d8cc] hover:text-[#00b8b0] bg- shadow- text-sm font-medium transition-all duration-300 hover:underline hover:translate-x-1 transform inline-block" >
-                Forgot Password?
+                <Link
+                  to="/forgot-password"
+                  className="text-[#00d8cc] hover:text-[#00b8b0] bg- shadow- text-sm font-medium transition-all duration-300 hover:underline hover:translate-x-1 transform inline-block"
+                >
+                  Forgot Password?
                 </Link>
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full"
+                className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer"
               >
                 Sign In
               </Button>
