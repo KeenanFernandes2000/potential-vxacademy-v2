@@ -13,6 +13,7 @@ import {
   CarouselPrevious,
 } from "../components/ui/carousel";
 import Icon from "../components/ui/icon";
+import { DashboardNav } from "@/components/ui/dashboardNav";
 
 // MUI Icons
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
