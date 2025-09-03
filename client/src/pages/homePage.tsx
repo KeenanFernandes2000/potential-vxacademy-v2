@@ -42,6 +42,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import StarIcon from "@mui/icons-material/Star";
+import { DashboardNav } from "@/components/ui/dashboardNav";
 
 // Layout Primitives
 interface SectionProps {
@@ -172,129 +173,7 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col bg-[#003451] relative overflow-hidden">
       {/* Supergraphic SVG Background in Experience Abu Dhabi Style */}
 
-      {/* Navigation Bar with Glassmorphism */}
-      <nav className="backdrop-blur-xl border-b border-white/10 z-50 sticky top-0 shadow-2xl">
-        <div className="container mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="h-12 w-auto">
-              <img
-                src="/images/vx-academy-logo.svg"
-                alt="VX Academy Logo"
-                className="h-full"
-              />
-            </div>
-          </div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-8">
-            <button
-              onClick={() => scrollToSection("about")}
-              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
-            >
-              About
-            </button>
-            <button
-              onClick={() => scrollToSection("benefits")}
-              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
-            >
-              Why Join
-            </button>
-            <button
-              onClick={() => scrollToSection("training-areas")}
-              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
-            >
-              Training Areas
-            </button>
-
-            <button
-              onClick={() => scrollToSection("for")}
-              className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
-            >
-              Who is it for
-            </button>
-            {user ? (
-              <Link to="/dashboard">
-                <Button className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black rounded-xl px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 transition-all duration-300 hover:scale-105">
-                  My Dashboard
-                </Button>
-              </Link>
-            ) : (
-              <Link to="/auth">
-                <Button className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black rounded-xl px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 rounded-full">
-                  Login
-                </Button>
-              </Link>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="lg:hidden">
-            <button
-              className="text-white/90 hover:text-white transition-colors"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <Icon Component={MenuIcon} size={24} color="currentColor" />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu with Glassmorphism */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden backdrop-blur-xl border-[#00d8cc]/20">
-            <div className="px-4 py-4 space-y-3">
-              <button
-                onClick={() => {
-                  scrollToSection("about");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
-              >
-                About
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection("benefits");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
-              >
-                Why Join
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection("training-areas");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
-              >
-                Training Areas
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection("for");
-                  setIsMobileMenuOpen(false);
-                }}
-                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
-              >
-                Who is it for
-              </button>
-              {user ? (
-                <Link to="/dashboard">
-                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black rounded-xl py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
-                    My Dashboard
-                  </Button>
-                </Link>
-              ) : (
-                <Link to="/auth">
-                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8cc] text-black rounded-xl py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
-                    Get Started
-                  </Button>
-                </Link>
-              )}
-            </div>
-          </div>
-        )}
-      </nav>
+      <DashboardNav user={user} showItems={true} />
 
       {/* Hero Section with Full Background Image */}
       <section
@@ -460,7 +339,7 @@ export default function HomePage() {
             ].map((benefit, index) => (
               <div key={index} className="group">
                 <div
-                  className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 p-6 lg:p-8 hover:bg-[#00d8cc]/20 transition-all duration-500 hover:scale-105 h-full relative overflow-hidden"
+                  className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 p-6 lg:p-8 hover:bg-[#00d8cc]/20 transition-all duration-500 h-full relative overflow-hidden"
                   data-aos="fade-up"
                   data-aos-delay="200"
                 >

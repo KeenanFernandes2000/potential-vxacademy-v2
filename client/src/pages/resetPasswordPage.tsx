@@ -15,8 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CheckCircle } from "lucide-react";
-import Icon from "@/components/ui/icon";
-import MenuIcon from "@mui/icons-material/Menu";
+import { DashboardNav } from "@/components/ui/dashboardNav";
 
 export default function ResetPasswordPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -37,44 +36,12 @@ export default function ResetPasswordPage() {
       className="min-h-screen flex flex-col bg-[#003451] relative overflow-hidden"
       style={{ backgroundColor: "#003451" }}
     >
-      {/* Navigation Bar with Glassmorphism */}
-      <nav className="backdrop-blur-xl border-b border-white/10 z-50 sticky top-0 shadow-2xl">
-        <div className="container mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="h-12 w-auto">
-              <img
-                src="/vx-academy-logo.svg"
-                alt="VX Academy Logo"
-                className="h-full"
-              />
-            </div>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="lg:hidden">
-            <button
-              className="text-white/90 hover:text-white transition-colors"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <Icon Component={MenuIcon} size={24} color="currentColor" />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu with Glassmorphism */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden backdrop-blur-xl border-[#00d8cc]/20">
-            <div className="px-4 py-4 space-y-3">
-              {/* Mobile menu is empty as requested */}
-            </div>
-          </div>
-        )}
-      </nav>
+      <DashboardNav />
 
       {/* Reset Password Form */}
       <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center relative z-10 flex-1">
         <div className="w-full max-w-md lg:max-w-lg">
-          <Card className="shadow-2xl bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 overflow-hidden">
+          <Card className="shadow-2xl bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 overflow-hidden rounded-none">
             <CardHeader className="pb-8 px-8 pt-10 lg:px-10">
               <CardTitle className="text-white text-3xl lg:text-4xl font-bold text-center mb-3">
                 Reset Password

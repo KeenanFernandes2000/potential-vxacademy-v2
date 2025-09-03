@@ -13,6 +13,7 @@ import Icon from "../components/ui/icon";
 
 // MUI Icons
 import MenuIcon from "@mui/icons-material/Menu";
+import { DashboardNav } from "@/components/ui/dashboardNav";
 
 const AuthPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -38,48 +39,7 @@ const AuthPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#003451] relative overflow-hidden">
       {/* Navigation Bar with Glassmorphism */}
-      <nav className="backdrop-blur-xl border-b border-white/10 z-50 sticky top-0 shadow-2xl">
-        <div className="container mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <Link to="/">
-              <div className="h-12 w-auto">
-                <img
-                  src="/vx-academy-logo.svg"
-                  alt="VX Academy Logo"
-                  className="h-full"
-                />
-              </div>
-            </Link>
-            {/* </div> */}
-          </div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-8"></div>
-
-          {/* Mobile Menu Button */}
-          <div className="lg:hidden">
-            <button
-              className="text-white/90 hover:text-white transition-colors"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <Icon Component={MenuIcon} size={24} color="currentColor" />
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu with Glassmorphism */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden backdrop-blur-xl border-[#00d8cc]/20">
-            <div className="px-4 py-4 space-y-3">
-              <Link to="/">
-                <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 transition-all duration-300 hover:scale-105">
-                  Back to Home
-                </Button>
-              </Link>
-            </div>
-          </div>
-        )}
-      </nav>
+      <DashboardNav />
 
       {/* Main Content */}
       <div className="flex items-center justify-center p-4 min-h-[calc(100vh-80px)] relative">
