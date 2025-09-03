@@ -27,6 +27,25 @@ const joinPage = (props: Props) => {
     phone_number: "",
   });
 
+  // EID formatting function
+  const formatEID = (value: string) => {
+    // Remove all non-digit characters
+    const digits = value.replace(/\D/g, "");
+
+    if (digits.length <= 3) {
+      return digits;
+    } else if (digits.length <= 7) {
+      return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    } else if (digits.length <= 14) {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+    } else {
+      return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(
+        7,
+        14
+      )}-${digits.slice(14, 15)}`;
+    }
+  };
+
   // Form 2 state (user)
   const [form2Data, setForm2Data] = useState({
     first_name: "",
@@ -42,25 +61,46 @@ const joinPage = (props: Props) => {
 
   // Check parameters and redirect if needed
   useEffect(() => {
-    if ((!id || id.trim() === "") && (!token || token.trim() === "")) {
-      navigate("/");
+    if (
+      ((!id || id.trim() === "") && (!token || token.trim() === "")) ||
+      (id && id.trim() !== "" && token && token.trim() !== "")
+    ) {
+      navigate("/auth");
     }
   }, [id, token, navigate]);
 
   const handleForm1Change = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm1Data((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    if (name === "eid") {
+      const formattedValue = formatEID(value);
+      setForm1Data((prev) => ({
+        ...prev,
+        [name]: formattedValue,
+      }));
+    } else {
+      setForm1Data((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleForm2Change = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm2Data((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+
+    if (name === "eid") {
+      const formattedValue = formatEID(value);
+      setForm2Data((prev) => ({
+        ...prev,
+        [name]: formattedValue,
+      }));
+    } else {
+      setForm2Data((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleForm1Submit = (e: React.FormEvent) => {
@@ -74,7 +114,7 @@ const joinPage = (props: Props) => {
   };
 
   const renderForm1 = () => (
-    <Card className="w-full max-w-lg bg-[#003451]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
+    <Card className="w-full max-w-lg bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
       <CardHeader className="text-center pb-6">
         <CardTitle className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
           Sub Admin Form
@@ -135,9 +175,10 @@ const joinPage = (props: Props) => {
               id="eid"
               name="eid"
               type="text"
-              placeholder="Enter your EID"
+              placeholder="784-YYYY-XXXXXXX-Z"
               value={form1Data.eid}
               onChange={handleForm1Change}
+              maxLength={19}
               required
               className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
             />
@@ -174,7 +215,7 @@ const joinPage = (props: Props) => {
   );
 
   const renderForm2 = () => (
-    <Card className="w-full max-w-lg bg-[#003451]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
+    <Card className="w-full max-w-lg bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
       <CardHeader className="text-center pb-6">
         <CardTitle className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
           User Form
@@ -333,9 +374,10 @@ const joinPage = (props: Props) => {
               id="eid"
               name="eid"
               type="text"
-              placeholder="Enter your EID"
+              placeholder="784-YYYY-XXXXXXX-Z"
               value={form2Data.eid}
               onChange={handleForm2Change}
+              maxLength={19}
               required
               className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
             />
@@ -372,12 +414,12 @@ const joinPage = (props: Props) => {
   );
 
   const renderContent = () => {
-    if (token && token.trim() !== "") {
-      return renderForm2(); // User Form (takes priority)
-    } else if (id && id.trim() !== "") {
-      return renderForm1(); // Sub Admin Form
+    if (token && token.trim() !== "" && (!id || id.trim() === "")) {
+      return renderForm2();
+    } else if (id && id.trim() !== "" && (!token || token.trim() === "")) {
+      return renderForm1();
     } else {
-      return null; // Will redirect to home
+      return null;
     }
   };
 
