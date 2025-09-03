@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
-import AOS from "aos";
+import { useState, useEffect } from "react";
+import * as AOS from "aos";
 import "aos/dist/aos.css";
 
 import { Button } from "../components/ui/button";
 import Autoplay from "embla-carousel-autoplay";
-import { TestimonialCard } from "../components/ui/testimonialCard";
 import {
   Carousel,
   CarouselContent,
@@ -18,31 +17,16 @@ import Icon from "../components/ui/icon";
 // MUI Icons
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import PeopleIcon from "@mui/icons-material/People";
-import PhoneAndroidIcon from "@mui/icons-material/PhoneAndroid";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
 import SchoolIcon from "@mui/icons-material/School";
 import MenuIcon from "@mui/icons-material/Menu";
-import PersonIcon from "@mui/icons-material/Person";
 import BuildIcon from "@mui/icons-material/Build";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
-import FacebookIcon from "@mui/icons-material/Facebook";
-import TwitterIcon from "@mui/icons-material/Twitter";
-import PinterestIcon from "@mui/icons-material/Pinterest";
-import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import InfoIcon from "@mui/icons-material/Info";
 import GroupsIcon from "@mui/icons-material/Groups";
-import BoltIcon from "@mui/icons-material/Bolt";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import StarIcon from "@mui/icons-material/Star";
-import { DashboardNav } from "@/components/ui/dashboardNav";
 
 // Layout Primitives
 interface SectionProps {
@@ -117,7 +101,7 @@ const MediaBox = ({
   alt?: string;
 }) => (
   <div
-    className={`aspect-[16/10] rounded-xl bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 overflow-hidden ${className}`}
+    className={`aspect-[16/10] rounded-full bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 overflow-hidden ${className}`}
   >
     {imageSrc ? (
       <img src={imageSrc} alt={alt} className="w-full h-full object-cover" />
@@ -265,7 +249,7 @@ export default function HomePage() {
               </div>
               <Link to="/auth">
                 <Button
-                  className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 py-3 font-semibold transition-colors rounded-full shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 hover:scale-105"
+                  className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 py-3 font-semibold transition-colors rounded-full shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 hover:scale-105 cursor-pointer"
                   data-aos="fade-up"
                 >
                   Login
@@ -671,7 +655,7 @@ export default function HomePage() {
             <div className="pt-8">
               <Link to="/auth">
                 <Button
-                  className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-xl py-6 px-16 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold rounded-full backdrop-blur-sm border border-[#00d8cc]/20"
+                  className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-xl py-6 px-16 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold rounded-full backdrop-blur-sm border border-[#00d8cc]/20 cursor-pointer"
                   data-aos="fade-up"
                 >
                   Login

@@ -20,5 +20,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "vite.config.ts", "src/pages/homePage.tsx"]
+  "include": ["src", "vite.config.ts"]
 }

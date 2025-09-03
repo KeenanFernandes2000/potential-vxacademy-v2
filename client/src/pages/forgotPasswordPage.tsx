@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
                   <Button
                     type="button"
                     onClick={handleSendResetLink}
-                    className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black py-5 lg:py-6 font-bold text-lg lg:text-xl shadow-xl backdrop-blur-sm border-2 border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 hover:shadow-[#00d8cc]/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl rounded-full"
+                    className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black py-5 lg:py-6 font-bold text-lg lg:text-xl shadow-xl backdrop-blur-sm border-2 border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 hover:shadow-[#00d8cc]/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl rounded-full cursor-pointer"
                   >
                     Send Reset Link
                   </Button>
@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
                     type="button"
                     variant="ghost"
                     onClick={handleBackToLogin}
-                    className="w-full text-[#00d8cc] hover:text-[#00b8b0] hover:bg-[#00d8cc]/10 py-4 font-medium transition-all duration-300 rounded-full"
+                    className="w-full text-[#00d8cc] hover:text-[#00b8b0] hover:bg-[#00d8cc]/10 py-4 font-medium transition-all duration-300 rounded-full cursor-pointer"
                   >
                     Back to Login
                   </Button>

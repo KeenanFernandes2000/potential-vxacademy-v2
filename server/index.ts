@@ -1,7 +1,12 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8000;
+
+// Create router for /api routes
+const apiRouter = express.Router();
 
 // Enable CORS for all routes
 app.use(
@@ -13,8 +18,12 @@ app.use(
 
 app.use(express.json({ limit: "50mb" }));
 
-app.get("/", (_req, res) => {
-  res.send("Hello, world!");
+// Mount the API router at /api
+app.use("/api", apiRouter);
+
+// Define API routes (without /api prefix)
+apiRouter.get("/", (_req, res) => {
+  res.json({ message: "Hello, world!" });
 });
 
 app.listen(PORT, () => {
