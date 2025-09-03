@@ -9,6 +9,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import HomeNavigation from "@/components/homeNavigation";
 
 type Props = {};
@@ -51,13 +58,52 @@ const joinPage = (props: Props) => {
     first_name: "",
     last_name: "",
     email: "",
-    user_id: "",
     role_category: "",
     role: "",
     seniority: "",
     eid: "",
     phone_number: "",
   });
+
+  // Dummy data arrays for select dropdowns
+  const roleCategories = [
+    "Management",
+    "Technical",
+    "Administrative",
+    "Support",
+    "Sales",
+    "Marketing",
+    "Finance",
+    "Human Resources",
+    "Operations",
+    "Research & Development",
+  ];
+
+  const roles = [
+    "Manager",
+    "Team Lead",
+    "Senior Developer",
+    "Developer",
+    "Analyst",
+    "Coordinator",
+    "Specialist",
+    "Assistant",
+    "Consultant",
+    "Director",
+  ];
+
+  const seniorityLevels = [
+    "Entry Level",
+    "Junior",
+    "Mid-Level",
+    "Senior",
+    "Lead",
+    "Principal",
+    "Expert",
+    "Manager",
+    "Director",
+    "Executive",
+  ];
 
   // Check parameters and redirect if needed
   useEffect(() => {
@@ -101,6 +147,13 @@ const joinPage = (props: Props) => {
         [name]: value,
       }));
     }
+  };
+
+  const handleForm2SelectChange = (name: string, value: string) => {
+    setForm2Data((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleForm1Submit = (e: React.FormEvent) => {
@@ -289,40 +342,31 @@ const joinPage = (props: Props) => {
 
           <div className="space-y-3">
             <label
-              htmlFor="user_id"
-              className="block text-lg font-semibold text-white pl-2"
-            >
-              User ID
-            </label>
-            <Input
-              id="user_id"
-              name="user_id"
-              type="number"
-              placeholder="Enter user ID"
-              value={form2Data.user_id}
-              onChange={handleForm2Change}
-              required
-              className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
-            />
-          </div>
-
-          <div className="space-y-3">
-            <label
               htmlFor="role_category"
               className="block text-lg font-semibold text-white pl-2"
             >
               Role Category
             </label>
-            <Input
-              id="role_category"
-              name="role_category"
-              type="text"
-              placeholder="Enter role category"
+            <Select
               value={form2Data.role_category}
-              onChange={handleForm2Change}
+              onValueChange={(value) =>
+                handleForm2SelectChange("role_category", value)
+              }
               required
-              className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
-            />
+            >
+              <SelectTrigger className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 border-2 hover:border-[#00d8cc]/30 rounded-full text-sm ${form2Data.role_category ? '[&>span]:text-white' : '[&>span]:text-cyan-50/55'} `}>
+                <SelectValue
+                  placeholder="Select role category"
+                />
+              </SelectTrigger>
+              <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
+                {roleCategories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-3">
@@ -332,16 +376,25 @@ const joinPage = (props: Props) => {
             >
               Role
             </label>
-            <Input
-              id="role"
-              name="role"
-              type="text"
-              placeholder="Enter your role"
+            <Select
               value={form2Data.role}
-              onChange={handleForm2Change}
+              onValueChange={(value) => handleForm2SelectChange("role", value)}
               required
-              className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
-            />
+            >
+              <SelectTrigger className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-[#00d8cc]/30 rounded-full ${form2Data.role ? '[&>span]:text-white' : '[&>span]:text-cyan-50/55'}`}>
+                <SelectValue
+                  placeholder="Select your role"
+                  className="text-red-500"
+                />
+              </SelectTrigger>
+              <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
+                {roles.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-3">
@@ -351,16 +404,26 @@ const joinPage = (props: Props) => {
             >
               Seniority
             </label>
-            <Input
-              id="seniority"
-              name="seniority"
-              type="text"
-              placeholder="Enter seniority level"
+            <Select
               value={form2Data.seniority}
-              onChange={handleForm2Change}
+              onValueChange={(value) =>
+                handleForm2SelectChange("seniority", value)
+              }
               required
-              className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
-            />
+            >
+              <SelectTrigger className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-[#00d8cc]/30 rounded-full ${form2Data.seniority ? '[&>span]:text-white' : '[&>span]:text-cyan-50/55'}`}>
+                <SelectValue
+                  placeholder="Select seniority level"
+                />
+              </SelectTrigger>
+              <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
+                {seniorityLevels.map((level) => (
+                  <SelectItem key={level} value={level}>
+                    {level}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-3">
