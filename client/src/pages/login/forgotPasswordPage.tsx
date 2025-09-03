@@ -8,13 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Icon from "@/components/ui/icon";
-import MenuIcon from "@mui/icons-material/Menu";
-import { DashboardNav } from "@/components/ui/dashboardNav";
+import HomeNavigation from "@/components/homeNavigation";
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [email, setEmail] = useState("");
 
   // Simple navigation without form submission
@@ -32,7 +29,7 @@ export default function ForgotPasswordPage() {
       style={{ backgroundColor: "#003451" }}
     >
       {/* Navigation Bar with Glassmorphism */}
-      <DashboardNav />
+      <HomeNavigation />
 
       {/* Forgot Password Form */}
       <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center relative z-10 flex-1">

@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react";
@@ -183,7 +183,7 @@ function CarouselPrevious({
       variant={variant}
       size={size}
       className={cn(
-        "absolute size-8 rounded-full absolute size-8 rounded-full bg-cyan-500 hover:bg-cyan-600 text-white border-cyan-500 hover:border-cyan-600",
+        "absolute size-8 rounded-full bg-cyan-500 hover:bg-cyan-600 text-white border-cyan-500 hover:border-cyan-600",
         orientation === "horizontal"
           ? "top-1/2 -left-12 -translate-y-1/2"
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90",

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "./button";
+import { Button } from "./ui/button";
 
 // Icon components (you can replace these with your actual icon imports)
 const MenuIcon = ({ size, color }: { size: number; color: string }) => (
@@ -21,12 +21,12 @@ const MenuIcon = ({ size, color }: { size: number; color: string }) => (
   </svg>
 );
 
-interface DashboardNavProps {
+interface HomeNavigationProps {
   user?: any; // Replace 'any' with your actual user type
   showItems?: boolean; // Controls visibility of navigation items
 }
 
-export const DashboardNav: React.FC<DashboardNavProps> = ({
+const HomeNavigation: React.FC<HomeNavigationProps> = ({
   user,
   showItems = false,
 }) => {
@@ -92,7 +92,7 @@ export const DashboardNav: React.FC<DashboardNavProps> = ({
                 </Link>
               ) : (
                 <Link to="/auth">
-                  <Button className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black rounded-xl px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 rounded-full">
+                  <Button className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 rounded-full">
                     Login
                   </Button>
                 </Link>
@@ -159,13 +159,13 @@ export const DashboardNav: React.FC<DashboardNavProps> = ({
               </button>
               {user ? (
                 <Link to="/dashboard">
-                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black rounded-xl py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
+                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
                     My Dashboard
                   </Button>
                 </Link>
               ) : (
                 <Link to="/auth">
-                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8cc] text-black rounded-xl py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
+                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8cc] text-black py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
                     Login
                   </Button>
                 </Link>
@@ -177,3 +177,5 @@ export const DashboardNav: React.FC<DashboardNavProps> = ({
     </>
   );
 };
+
+export default HomeNavigation;

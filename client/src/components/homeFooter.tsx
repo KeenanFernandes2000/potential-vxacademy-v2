@@ -4,11 +4,11 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
 
-interface DashboardFooterProps {
+interface HomeFooterProps {
   scrollToSection?: (sectionId: string) => void;
 }
 
-export const DashboardFooter: React.FC<DashboardFooterProps> = ({
+const HomeFooter: React.FC<HomeFooterProps> = ({
   scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -212,4 +212,4 @@ export const DashboardFooter: React.FC<DashboardFooterProps> = ({
   );
 };
 
-export default DashboardFooter;
+export default HomeFooter;

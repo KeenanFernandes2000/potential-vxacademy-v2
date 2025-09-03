@@ -6,21 +6,18 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-} from "../components/ui/card";
-import { Input } from "../components/ui/input";
-import { Button } from "../components/ui/button";
-import Icon from "../components/ui/icon";
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 // MUI Icons
-import MenuIcon from "@mui/icons-material/Menu";
-import { DashboardNav } from "@/components/ui/dashboardNav";
+import HomeNavigation from "@/components/homeNavigation";
 
 const AuthPage: React.FC = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -39,7 +36,7 @@ const AuthPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#003451] relative overflow-hidden">
       {/* Navigation Bar with Glassmorphism */}
-      <DashboardNav />
+      <HomeNavigation />
 
       {/* Main Content */}
       <div className="flex items-center justify-center p-4 min-h-[calc(100vh-80px)] relative">

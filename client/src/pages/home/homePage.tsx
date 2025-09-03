@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import * as AOS from "aos";
 import "aos/dist/aos.css";
 
-import { Button } from "../components/ui/button";
+import { Button } from "@/components/ui/button";
 import Autoplay from "embla-carousel-autoplay";
 import {
   Carousel,
@@ -11,10 +11,10 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "../components/ui/carousel";
-import Icon from "../components/ui/icon";
-import { DashboardNav } from "@/components/ui/dashboardNav";
-import DashboardFooter from "@/components/ui/dashboardfooter";
+} from "@/components/ui/carousel";
+import Icon from "@/components/icon";
+import HomeNavigation from "@/components/homeNavigation";
+import HomeFooter from "@/components/homeFooter";
 
 // MUI Icons
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
@@ -23,9 +23,6 @@ import SmartToyIcon from "@mui/icons-material/SmartToy";
 import SchoolIcon from "@mui/icons-material/School";
 import BuildIcon from "@mui/icons-material/Build";
 import VerifiedIcon from "@mui/icons-material/Verified";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import EmailIcon from "@mui/icons-material/Email";
-import PhoneIcon from "@mui/icons-material/Phone";
 import InfoIcon from "@mui/icons-material/Info";
 import GroupsIcon from "@mui/icons-material/Groups";
 
@@ -158,7 +155,7 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col bg-[#003451] relative overflow-hidden">
       {/* Supergraphic SVG Background in Experience Abu Dhabi Style */}
 
-      <DashboardNav user={user} showItems={true} />
+      <HomeNavigation user={user} showItems={true} />
 
       {/* Hero Section with Full Background Image */}
       <section
@@ -670,7 +667,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer with Horizontal Layout on Mobile */}
-      <DashboardFooter scrollToSection={scrollToSection} />
+      <HomeFooter scrollToSection={scrollToSection} />
     </div>
   );
 }

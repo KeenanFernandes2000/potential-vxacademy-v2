@@ -31,7 +31,7 @@ export const subAdmins = pgTable("sub_admins", {
     .primaryKey()
     .references(() => users.id, { onDelete: "cascade" }),
   jobTitle: text("job_title").notNull(),
-  totalFrontliners: integer("total_frontliners").notNull(),
+  totalFrontliners: integer("total_frontliners"),
   eid: text("eid").notNull().unique(),
   phoneNumber: text("phone_number").notNull(),
 });

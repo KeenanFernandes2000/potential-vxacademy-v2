@@ -15,10 +15,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CheckCircle } from "lucide-react";
-import { DashboardNav } from "@/components/ui/dashboardNav";
+import HomeNavigation from "@/components/homeNavigation";
 
 export default function ResetPasswordPage() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   // No functionality - just UI state for display
@@ -36,7 +35,7 @@ export default function ResetPasswordPage() {
       className="min-h-screen flex flex-col bg-[#003451] relative overflow-hidden"
       style={{ backgroundColor: "#003451" }}
     >
-      <DashboardNav />
+      <HomeNavigation />
 
       {/* Reset Password Form */}
       <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center relative z-10 flex-1">
