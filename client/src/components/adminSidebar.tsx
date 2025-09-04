@@ -11,6 +11,7 @@ import {
   WebAsset,
   School,
   ArrowLeft,
+  Dashboard as DashboardIcon,
 } from "@mui/icons-material";
 
 import {
@@ -35,6 +36,15 @@ const AdminSidebar = () => {
   const [systemOpen, setSystemOpen] = React.useState(true);
   const location = useLocation();
   const { toggleSidebar, state } = useSidebar();
+
+  const mainNavItems = [
+    {
+      title: "Dashboard",
+      icon: DashboardIcon,
+      url: "/admin/dashboard",
+      badge: null,
+    },
+  ];
 
   const assetNavItems = [
     {
@@ -143,6 +153,30 @@ const AdminSidebar = () => {
       </SidebarHeader>
 
       <SidebarContent>
+        {/* Main Navigation */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Main</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {mainNavItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === item.url}
+                  >
+                    <Link to={item.url}>
+                      <item.icon sx={{ fontSize: 16 }} />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
         {/* Assets */}
         <SidebarGroup>
           <SidebarGroupLabel>Assets</SidebarGroupLabel>

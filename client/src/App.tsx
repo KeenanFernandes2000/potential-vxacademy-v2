@@ -3,34 +3,36 @@ import HomePage from "@/pages/home/homePage";
 import AuthPage from "@/pages/login/authPage";
 import ForgotPasswordPage from "@/pages/login/forgotPasswordPage";
 import ResetPasswordPage from "@/pages/login/resetPasswordPage";
-import JoinPage from "./pages/login/joinPage";
+import JoinPage from "@/pages/login/joinPage";
 
 // Admin Pages
-import Dashboard from "./pages/admin/dashboard";
-import SubAdminPage from "./pages/admin/subAdminPage";
-import AssetsPage from "./pages/admin/assetsPage";
-import SubAssetsPage from "./pages/admin/subAssetsPage";
-import OrganizationPage from "./pages/admin/organizationPage";
-import SubOrganizationPage from "./pages/admin/subOrganizationPage";
-import TrainingAreaPage from "./pages/admin/trainingAreaPage";
-import ModulesPage from "./pages/admin/modulesPage";
-import CoursesPage from "./pages/admin/coursesPage";
-import UnitsPage from "./pages/admin/unitsPage";
-import LearningBlockPage from "./pages/admin/learningBlockPage";
-import AssessmentsPage from "./pages/admin/assessmentsPage";
-import QuestionsPage from "./pages/admin/questionsPage";
+import Dashboard from "@/pages/admin/dashboard";
+import SubAdminPage from "@/pages/admin/subAdminPage";
+import AssetsPage from "@/pages/admin/assetsPage";
+import SubAssetsPage from "@/pages/admin/subAssetsPage";
+import OrganizationPage from "@/pages/admin/organizationPage";
+import SubOrganizationPage from "@/pages/admin/subOrganizationPage";
+import TrainingAreaPage from "@/pages/admin/trainingAreaPage";
+import ModulesPage from "@/pages/admin/modulesPage";
+import CoursesPage from "@/pages/admin/coursesPage";
+import UnitsPage from "@/pages/admin/unitsPage";
+import LearningBlockPage from "@/pages/admin/learningBlockPage";
+import AssessmentsPage from "@/pages/admin/assessmentsPage";
+import QuestionsPage from "@/pages/admin/questionsPage";
 
 // Sub-Admin Pages
-import SubAdminLayout from "./pages/sub-admin/subAdminLayout";
-import SubAdminDashboard from "./pages/sub-admin/dashboard";
-import SubAdminUsers from "./pages/sub-admin/users";
-import SubAdminLinks from "./pages/sub-admin/links";
+import SubAdminLayout from "@/pages/sub-admin/subAdminLayout";
+import SubAdminDashboard from "@/pages/sub-admin/dashboard";
+import SubAdminUsers from "@/pages/sub-admin/users";
+import SubAdminLinks from "@/pages/sub-admin/links";
 
 // User Pages
-import UserLayout from "./pages/user/userLayout";
-import UserDashboard from "./pages/user/dashboard";
-import UserCourses from "./pages/user/courses";
-import UserAchievements from "./pages/user/achievements";
+import UserLayout from "@/pages/user/userLayout";
+import UserDashboard from "@/pages/user/dashboard";
+import UserCourses from "@/pages/user/courses";
+import UserAchievements from "@/pages/user/achievements";
+import CourseDetails from "@/pages/user/courseDetails";
+import AssessmentPage from "@/pages/user/assessmentPage";
 
 function App() {
   return (
@@ -75,6 +77,8 @@ function App() {
             <Route path="dashboard" element={<UserDashboard />} />
             <Route path="courses" element={<UserCourses />} />
             <Route path="achievements" element={<UserAchievements />} />
+            <Route path="courses/:id" element={<CourseDetails />} />
+            <Route path="assessment/:id" element={<AssessmentPage />} />
           </Route>
         </Routes>
       </div>
