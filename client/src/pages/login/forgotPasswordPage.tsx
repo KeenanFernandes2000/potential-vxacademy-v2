@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
   };
 
   const handleBackToLogin = () => {
-    navigate("/auth");
+    navigate("/login");
   };
 
   return (

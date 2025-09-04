@@ -1,0 +1,266 @@
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  Group as Users,
+  Description as FileText,
+  Security as Shield,
+  Logout as LogOut,
+  Person as User,
+  ExpandMore as ChevronDown,
+  Quiz as Quiz,
+  WebAsset,
+  School,
+  ArrowLeft,
+} from "@mui/icons-material";
+
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuAction,
+  SidebarSeparator,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { Button } from "./ui/button";
+
+const AdminSidebar = () => {
+  const [lmsOpen, setLmsOpen] = React.useState(true);
+  const [systemOpen, setSystemOpen] = React.useState(true);
+  const location = useLocation();
+  const { toggleSidebar, state } = useSidebar();
+
+  const assetNavItems = [
+    {
+      title: "Assets",
+      icon: WebAsset,
+      url: "/admin/assets",
+      badge: null,
+    },
+    {
+      title: "Sub-Assets",
+      icon: WebAsset,
+      url: "/admin/subassets",
+      badge: null,
+    },
+  ];
+
+  const organizationNavItems = [
+    {
+      title: "Organization",
+      icon: Users,
+      url: "/admin/organization",
+      badge: null,
+    },
+    {
+      title: "Sub-Organization",
+      icon: Users,
+      url: "/admin/sub-organization",
+      badge: null,
+    },
+    {
+      title: "Sub-Admin",
+      icon: Shield,
+      url: "/admin/sub-admin",
+      badge: null,
+    },
+  ];
+
+  const lmsNavItems = [
+    {
+      title: "Training Area",
+      icon: FileText,
+      url: "/admin/training-area",
+      badge: null,
+    },
+    {
+      title: "Modules",
+      icon: FileText,
+      url: "/admin/modules",
+      badge: null,
+    },
+    {
+      title: "Courses",
+      icon: FileText,
+      url: "/admin/courses",
+      badge: null,
+    },
+    {
+      title: "Units",
+      icon: FileText,
+      url: "/admin/units",
+      badge: null,
+    },
+    {
+      title: "Learning Block",
+      icon: FileText,
+      url: "/admin/learning-block",
+      badge: null,
+    },
+    {
+      title: "Assessments",
+      icon: Quiz,
+      url: "/admin/assessments",
+      badge: null,
+    },
+    {
+      title: "Questions",
+      icon: Quiz,
+      url: "/admin/questions",
+      badge: null,
+    },
+  ];
+
+  return (
+    <Sidebar collapsible="icon" className="border-r">
+      <SidebarHeader>
+        <Button
+          onClick={toggleSidebar}
+          className="flex w-full items-center justify-between px-2 py-2 hover:bg-sidebar-accent rounded-md transition-colors bg-transparent text-white"
+        >
+          <div className="flex items-center gap-2">
+            <School sx={{ fontSize: 16, color: "#00d8cc" }} />
+            {state === "expanded" && (
+              <div className="flex flex-col">
+                <h2 className="text-sm font-semibold">VX Academy</h2>
+                <p className="text-xs text-muted-foreground"></p>
+              </div>
+            )}
+          </div>
+
+          {state === "expanded" && (
+            <div className="cursor-pointer">
+              <ArrowLeft />
+            </div>
+          )}
+        </Button>
+      </SidebarHeader>
+
+      <SidebarContent>
+        {/* Assets */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Assets</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {assetNavItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === item.url}
+                  >
+                    <Link to={item.url}>
+                      <item.icon sx={{ fontSize: 16 }} />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        {/* Organization */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Organization</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {organizationNavItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === item.url}
+                  >
+                    <Link to={item.url}>
+                      <item.icon sx={{ fontSize: 16 }} />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        {/* LMS - Collapsible */}
+        <SidebarGroup>
+          <SidebarGroupLabel
+            asChild
+            className="cursor-pointer hover:bg-sidebar-accent"
+            onClick={() => setLmsOpen(!lmsOpen)}
+          >
+            <button className="w-full text-left">
+              <div className="flex items-center justify-between">
+                <span>Content Management</span>
+                <ChevronDown
+                  sx={{
+                    ml: "auto",
+                    transition: "transform 200ms",
+                    transform: lmsOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    fontSize: 16,
+                  }}
+                />
+              </div>
+            </button>
+          </SidebarGroupLabel>
+          {lmsOpen && (
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {lmsNavItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === item.url}
+                    >
+                      <Link to={item.url}>
+                        <item.icon sx={{ fontSize: 16 }} />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          )}
+        </SidebarGroup>
+      </SidebarContent>
+
+      {/* Footer with User Profile */}
+      <SidebarFooter>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="#profile">
+                    <User sx={{ fontSize: 16 }} />
+                    <span>Profile</span>
+                  </Link>
+                </SidebarMenuButton>
+                <SidebarMenuAction asChild>
+                  <Link
+                    to="#logout"
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <LogOut sx={{ fontSize: 16 }} />
+                  </Link>
+                </SidebarMenuAction>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarFooter>
+    </Sidebar>
+  );
+};
+
+export default AdminSidebar;

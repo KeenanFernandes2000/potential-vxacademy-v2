@@ -91,7 +91,7 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
                   </Button>
                 </Link>
               ) : (
-                <Link to="/auth">
+                <Link to="/login">
                   <Button className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 rounded-full">
                     Login
                   </Button>
@@ -164,7 +164,7 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
                   </Button>
                 </Link>
               ) : (
-                <Link to="/auth">
+                <Link to="/login">
                   <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8cc] text-black py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
                     Login
                   </Button>
