@@ -32,80 +32,158 @@ import {
 
 // User types
 export type User = InferSelectModel<typeof users>;
-export type NewUser = InferInsertModel<typeof users>;
+export type NewUser = Omit<
+  InferInsertModel<typeof users>,
+  "id" | "createdAt" | "updatedAt"
+>;
+export type UpdateUser = Partial<Omit<NewUser, "createdAt">>;
 export type SubAdmin = InferSelectModel<typeof subAdmins>;
-export type NewSubAdmin = InferInsertModel<typeof subAdmins>;
+export type NewSubAdmin = Omit<InferInsertModel<typeof subAdmins>, "userId">;
 export type NormalUser = InferSelectModel<typeof normalUsers>;
-export type NewNormalUser = InferInsertModel<typeof normalUsers>;
+export type NewNormalUser = Omit<
+  InferInsertModel<typeof normalUsers>,
+  "userId"
+>;
 
 // Reference types
 export type Asset = InferSelectModel<typeof assets>;
-export type NewAsset = InferInsertModel<typeof assets>;
+export type NewAsset = Omit<InferInsertModel<typeof assets>, "id">;
 export type SubAsset = InferSelectModel<typeof subAssets>;
-export type NewSubAsset = InferInsertModel<typeof subAssets>;
+export type NewSubAsset = Omit<
+  InferInsertModel<typeof subAssets>,
+  "id" | "assetId"
+>;
 export type RoleCategory = InferSelectModel<typeof roleCategories>;
-export type NewRoleCategory = InferInsertModel<typeof roleCategories>;
+export type NewRoleCategory = Omit<
+  InferInsertModel<typeof roleCategories>,
+  "id"
+>;
 export type Role = InferSelectModel<typeof roles>;
-export type NewRole = InferInsertModel<typeof roles>;
+export type NewRole = Omit<InferInsertModel<typeof roles>, "id" | "categoryId">;
 export type SeniorityLevel = InferSelectModel<typeof seniorityLevels>;
-export type NewSeniorityLevel = InferInsertModel<typeof seniorityLevels>;
+export type NewSeniorityLevel = Omit<
+  InferInsertModel<typeof seniorityLevels>,
+  "id"
+>;
 
 // Training types
 export type TrainingArea = InferSelectModel<typeof trainingAreas>;
-export type NewTrainingArea = InferInsertModel<typeof trainingAreas>;
+export type NewTrainingArea = Omit<
+  InferInsertModel<typeof trainingAreas>,
+  "id" | "createdAt" | "updatedAt"
+>;
 export type Module = InferSelectModel<typeof modules>;
-export type NewModule = InferInsertModel<typeof modules>;
+export type NewModule = Omit<
+  InferInsertModel<typeof modules>,
+  "id" | "createdAt" | "updatedAt" | "trainingAreaId"
+>;
 export type Course = InferSelectModel<typeof courses>;
-export type NewCourse = InferInsertModel<typeof courses>;
+export type NewCourse = Omit<
+  InferInsertModel<typeof courses>,
+  "id" | "createdAt" | "updatedAt" | "moduleId"
+>;
 export type Unit = InferSelectModel<typeof units>;
-export type NewUnit = InferInsertModel<typeof units>;
+export type NewUnit = Omit<
+  InferInsertModel<typeof units>,
+  "id" | "createdAt" | "updatedAt"
+>;
 export type CourseUnit = InferSelectModel<typeof courseUnits>;
-export type NewCourseUnit = InferInsertModel<typeof courseUnits>;
+export type NewCourseUnit = Omit<
+  InferInsertModel<typeof courseUnits>,
+  "id" | "createdAt" | "updatedAt" | "courseId" | "unitId"
+>;
 export type LearningBlock = InferSelectModel<typeof learningBlocks>;
-export type NewLearningBlock = InferInsertModel<typeof learningBlocks>;
+export type NewLearningBlock = Omit<
+  InferInsertModel<typeof learningBlocks>,
+  "id" | "createdAt" | "updatedAt" | "unitId"
+>;
 
 // Assessment types
 export type Assessment = InferSelectModel<typeof assessments>;
-export type NewAssessment = InferInsertModel<typeof assessments>;
+export type NewAssessment = Omit<
+  InferInsertModel<typeof assessments>,
+  | "id"
+  | "createdAt"
+  | "updatedAt"
+  | "trainingAreaId"
+  | "moduleId"
+  | "unitId"
+  | "courseId"
+>;
 export type Question = InferSelectModel<typeof questions>;
-export type NewQuestion = InferInsertModel<typeof questions>;
+export type NewQuestion = Omit<
+  InferInsertModel<typeof questions>,
+  "id" | "createdAt" | "updatedAt" | "assessmentId"
+>;
 export type AssessmentAttempt = InferSelectModel<typeof assessmentAttempts>;
-export type NewAssessmentAttempt = InferInsertModel<typeof assessmentAttempts>;
+export type NewAssessmentAttempt = Omit<
+  InferInsertModel<typeof assessmentAttempts>,
+  "id" | "startedAt" | "completedAt" | "userId" | "assessmentId"
+>;
 
 // Gamification types
 export type Badge = InferSelectModel<typeof badges>;
-export type NewBadge = InferInsertModel<typeof badges>;
+export type NewBadge = Omit<
+  InferInsertModel<typeof badges>,
+  "id" | "createdAt" | "updatedAt"
+>;
 export type UserBadge = InferSelectModel<typeof userBadges>;
-export type NewUserBadge = InferInsertModel<typeof userBadges>;
+export type NewUserBadge = Omit<
+  InferInsertModel<typeof userBadges>,
+  "id" | "earnedAt" | "userId" | "badgeId"
+>;
 export type Certificate = InferSelectModel<typeof certificates>;
-export type NewCertificate = InferInsertModel<typeof certificates>;
+export type NewCertificate = Omit<
+  InferInsertModel<typeof certificates>,
+  "id" | "issueDate" | "userId" | "courseId"
+>;
 
 // System types
 export type Notification = InferSelectModel<typeof notifications>;
-export type NewNotification = InferInsertModel<typeof notifications>;
+export type NewNotification = Omit<
+  InferInsertModel<typeof notifications>,
+  "id" | "createdAt" | "userId"
+>;
 export type MediaFile = InferSelectModel<typeof mediaFiles>;
-export type NewMediaFile = InferInsertModel<typeof mediaFiles>;
+export type NewMediaFile = Omit<
+  InferInsertModel<typeof mediaFiles>,
+  "id" | "createdAt" | "uploadedBy"
+>;
 export type CourseEnrollment = InferSelectModel<typeof courseEnrollments>;
-export type NewCourseEnrollment = InferInsertModel<typeof courseEnrollments>;
+export type NewCourseEnrollment = Omit<
+  InferInsertModel<typeof courseEnrollments>,
+  "id" | "enrolledAt" | "userId" | "courseId"
+>;
 
 // Progress types
 export type UserTrainingAreaProgress = InferSelectModel<
   typeof userTrainingAreaProgress
 >;
-export type NewUserTrainingAreaProgress = InferInsertModel<
-  typeof userTrainingAreaProgress
+export type NewUserTrainingAreaProgress = Omit<
+  InferInsertModel<typeof userTrainingAreaProgress>,
+  "id" | "startedAt" | "completedAt" | "userId" | "trainingAreaId"
 >;
 export type UserModuleProgress = InferSelectModel<typeof userModuleProgress>;
-export type NewUserModuleProgress = InferInsertModel<typeof userModuleProgress>;
+export type NewUserModuleProgress = Omit<
+  InferInsertModel<typeof userModuleProgress>,
+  "id" | "startedAt" | "completedAt" | "userId" | "moduleId"
+>;
 export type UserCourseProgress = InferSelectModel<typeof userCourseProgress>;
-export type NewUserCourseProgress = InferInsertModel<typeof userCourseProgress>;
+export type NewUserCourseProgress = Omit<
+  InferInsertModel<typeof userCourseProgress>,
+  "id" | "startedAt" | "completedAt" | "userId" | "courseId"
+>;
 export type UserUnitProgress = InferSelectModel<typeof userUnitProgress>;
-export type NewUserUnitProgress = InferInsertModel<typeof userUnitProgress>;
+export type NewUserUnitProgress = Omit<
+  InferInsertModel<typeof userUnitProgress>,
+  "id" | "startedAt" | "completedAt" | "userId" | "unitId"
+>;
 export type UserLearningBlockProgress = InferSelectModel<
   typeof userLearningBlockProgress
 >;
-export type NewUserLearningBlockProgress = InferInsertModel<
-  typeof userLearningBlockProgress
+export type NewUserLearningBlockProgress = Omit<
+  InferInsertModel<typeof userLearningBlockProgress>,
+  "id" | "startedAt" | "completedAt" | "userId" | "learningBlockId"
 >;
 
 // Enum types

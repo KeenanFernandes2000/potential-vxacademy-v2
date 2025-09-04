@@ -1,4 +1,6 @@
+CREATE TYPE "public"."invitation_type" AS ENUM('new_joiner', 'existing_joiner');--> statement-breakpoint
 CREATE TYPE "public"."progress_status" AS ENUM('not_started', 'in_progress', 'completed');--> statement-breakpoint
+CREATE TYPE "public"."user_type" AS ENUM('admin', 'sub_admin', 'user');--> statement-breakpoint
 CREATE TABLE "assessment_attempts" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
@@ -79,6 +81,15 @@ CREATE TABLE "assets" (
 	CONSTRAINT "assets_name_unique" UNIQUE("name")
 );
 --> statement-breakpoint
+CREATE TABLE "invitations" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"created_by" integer NOT NULL,
+	"type" "invitation_type" NOT NULL,
+	"token_hash" text NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "invitations_token_hash_unique" UNIQUE("token_hash")
+);
+--> statement-breakpoint
 CREATE TABLE "normal_users" (
 	"user_id" integer PRIMARY KEY NOT NULL,
 	"role_category" text NOT NULL,
@@ -87,6 +98,15 @@ CREATE TABLE "normal_users" (
 	"eid" text NOT NULL,
 	"phone_number" text NOT NULL,
 	CONSTRAINT "normal_users_eid_unique" UNIQUE("eid")
+);
+--> statement-breakpoint
+CREATE TABLE "password_resets" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"user_id" integer NOT NULL,
+	"token_hash" text NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
+	"used" boolean DEFAULT false NOT NULL,
+	CONSTRAINT "password_resets_token_hash_unique" UNIQUE("token_hash")
 );
 --> statement-breakpoint
 CREATE TABLE "role_categories" (
@@ -110,7 +130,7 @@ CREATE TABLE "seniority_levels" (
 CREATE TABLE "sub_admins" (
 	"user_id" integer PRIMARY KEY NOT NULL,
 	"job_title" text NOT NULL,
-	"total_frontliners" integer NOT NULL,
+	"total_frontliners" integer,
 	"eid" text NOT NULL,
 	"phone_number" text NOT NULL,
 	CONSTRAINT "sub_admins_eid_unique" UNIQUE("eid")
@@ -131,7 +151,7 @@ CREATE TABLE "users" (
 	"sub_organization" text,
 	"asset" text NOT NULL,
 	"sub_asset" text NOT NULL,
-	"user_type" text NOT NULL,
+	"user_type" "user_type" NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
@@ -302,7 +322,9 @@ ALTER TABLE "certificates" ADD CONSTRAINT "certificates_user_id_users_id_fk" FOR
 ALTER TABLE "certificates" ADD CONSTRAINT "certificates_course_id_courses_id_fk" FOREIGN KEY ("course_id") REFERENCES "public"."courses"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_badges" ADD CONSTRAINT "user_badges_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "user_badges" ADD CONSTRAINT "user_badges_badge_id_badges_id_fk" FOREIGN KEY ("badge_id") REFERENCES "public"."badges"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "invitations" ADD CONSTRAINT "invitations_created_by_sub_admins_user_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."sub_admins"("user_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "normal_users" ADD CONSTRAINT "normal_users_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "password_resets" ADD CONSTRAINT "password_resets_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "roles" ADD CONSTRAINT "roles_category_id_role_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."role_categories"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sub_admins" ADD CONSTRAINT "sub_admins_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sub_assets" ADD CONSTRAINT "sub_assets_asset_id_assets_id_fk" FOREIGN KEY ("asset_id") REFERENCES "public"."assets"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

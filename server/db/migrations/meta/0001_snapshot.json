@@ -1,6 +1,6 @@
 {
-  "id": "afc2cd84-aef8-4adb-b26d-a90cfe846e94",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "87f515dd-d0ff-4f84-8b1f-a6c485942b61",
+  "prevId": "afc2cd84-aef8-4adb-b26d-a90cfe846e94",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1102,6 +1102,12 @@
           "name": "user_type",
           "type": "user_type",
           "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
