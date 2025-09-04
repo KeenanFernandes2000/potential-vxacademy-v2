@@ -245,7 +245,7 @@ export default function HomePage() {
                   the world, and to make every interaction truly unforgettable.
                 </p>
               </div>
-              <Link to="/auth">
+              <Link to="/login">
                 <Button
                   className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 py-3 font-semibold transition-colors rounded-full shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 hover:scale-105 cursor-pointer"
                   data-aos="fade-up"
@@ -653,7 +653,7 @@ export default function HomePage() {
               VX Academy - Excellence in Visitor Experiences
             </h2>
             <div className="pt-8">
-              <Link to="/auth">
+              <Link to="/login">
                 <Button
                   className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-xl py-6 px-16 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold rounded-full backdrop-blur-sm border border-[#00d8cc]/20 cursor-pointer"
                   data-aos="fade-up"

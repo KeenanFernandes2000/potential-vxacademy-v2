@@ -111,7 +111,7 @@ const joinPage = (props: Props) => {
       ((!id || id.trim() === "") && (!token || token.trim() === "")) ||
       (id && id.trim() !== "" && token && token.trim() !== "")
     ) {
-      navigate("/auth");
+      navigate("/login");
     }
   }, [id, token, navigate]);
 
@@ -169,11 +169,11 @@ const joinPage = (props: Props) => {
   const renderForm1 = () => (
     <Card className="w-full max-w-lg bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
       <CardHeader className="text-center pb-6">
-        <CardTitle className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+        <CardTitle className="text-xl md:text-2xl lg:text-5xl font-bold text-white mb-4">
           Sub Admin Form
         </CardTitle>
         <div className="w-24 h-1 bg-[#00d8cc] rounded-full mx-auto mb-4"></div>
-        <CardDescription className="text-lg lg:text-xl text-white/80 leading-relaxed max-w-sm mx-auto">
+        <CardDescription className="text-md lg:text-xl text-white/80 leading-relaxed max-w-sm mx-auto">
           Sub Administrator Registration Form
         </CardDescription>
       </CardHeader>
@@ -260,7 +260,7 @@ const joinPage = (props: Props) => {
             type="submit"
             className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer"
           >
-            Submit Sub Admin Form
+            Submit
           </Button>
         </form>
       </CardContent>
@@ -270,18 +270,18 @@ const joinPage = (props: Props) => {
   const renderForm2 = () => (
     <Card className="w-full max-w-lg bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
       <CardHeader className="text-center pb-6">
-        <CardTitle className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+        <CardTitle className="text-xl md:text-2xl lg:text-5xl font-bold text-white mb-4">
           User Form
         </CardTitle>
         <div className="w-24 h-1 bg-[#00d8cc] rounded-full mx-auto mb-4"></div>
-        <CardDescription className="text-lg lg:text-xl text-white/80 leading-relaxed max-w-sm mx-auto">
+        <CardDescription className="text-md lg:text-xl text-white/80 leading-relaxed max-w-sm mx-auto">
           User Registration Form
         </CardDescription>
       </CardHeader>
 
       <CardContent>
         <form onSubmit={handleForm2Submit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-3">
               <label
                 htmlFor="first_name"
@@ -354,10 +354,14 @@ const joinPage = (props: Props) => {
               }
               required
             >
-              <SelectTrigger className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 border-2 hover:border-[#00d8cc]/30 rounded-full text-sm ${form2Data.role_category ? '[&>span]:text-white' : '[&>span]:text-cyan-50/55'} `}>
-                <SelectValue
-                  placeholder="Select role category"
-                />
+              <SelectTrigger
+                className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 border-2 hover:border-[#00d8cc]/30 rounded-full text-sm ${
+                  form2Data.role_category
+                    ? "[&>span]:text-white"
+                    : "[&>span]:text-cyan-50/55"
+                } `}
+              >
+                <SelectValue placeholder="Select role category" />
               </SelectTrigger>
               <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
                 {roleCategories.map((category) => (
@@ -381,7 +385,13 @@ const joinPage = (props: Props) => {
               onValueChange={(value) => handleForm2SelectChange("role", value)}
               required
             >
-              <SelectTrigger className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-[#00d8cc]/30 rounded-full ${form2Data.role ? '[&>span]:text-white' : '[&>span]:text-cyan-50/55'}`}>
+              <SelectTrigger
+                className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-[#00d8cc]/30 rounded-full ${
+                  form2Data.role
+                    ? "[&>span]:text-white"
+                    : "[&>span]:text-cyan-50/55"
+                }`}
+              >
                 <SelectValue
                   placeholder="Select your role"
                   className="text-red-500"
@@ -411,10 +421,14 @@ const joinPage = (props: Props) => {
               }
               required
             >
-              <SelectTrigger className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-[#00d8cc]/30 rounded-full ${form2Data.seniority ? '[&>span]:text-white' : '[&>span]:text-cyan-50/55'}`}>
-                <SelectValue
-                  placeholder="Select seniority level"
-                />
+              <SelectTrigger
+                className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-[#00d8cc]/30 rounded-full ${
+                  form2Data.seniority
+                    ? "[&>span]:text-white"
+                    : "[&>span]:text-cyan-50/55"
+                }`}
+              >
+                <SelectValue placeholder="Select seniority level" />
               </SelectTrigger>
               <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
                 {seniorityLevels.map((level) => (
@@ -469,7 +483,7 @@ const joinPage = (props: Props) => {
             type="submit"
             className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer"
           >
-            Submit User Form
+            Submit
           </Button>
         </form>
       </CardContent>
