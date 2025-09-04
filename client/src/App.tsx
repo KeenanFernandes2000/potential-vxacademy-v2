@@ -6,6 +6,7 @@ import ResetPasswordPage from "@/pages/login/resetPasswordPage";
 import JoinPage from "./pages/login/joinPage";
 
 // Admin Pages
+import Dashboard from "./pages/admin/dashboard";
 import SubAdminPage from "./pages/admin/subAdminPage";
 import AssetsPage from "./pages/admin/assetsPage";
 import SubAssetsPage from "./pages/admin/subAssetsPage";
@@ -43,6 +44,7 @@ function App() {
           <Route path="/join" element={<JoinPage />} />
 
           {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={<Dashboard />} />
           <Route path="/admin/sub-admin" element={<SubAdminPage />} />
           <Route path="/admin/assets" element={<AssetsPage />} />
           <Route path="/admin/subassets" element={<SubAssetsPage />} />
