@@ -32,7 +32,23 @@ const joinPage = (props: Props) => {
     total_frontliners: "",
     eid: "",
     phone_number: "",
+    password: "",
+    confirm_password: "",
   });
+
+  // Password validation state
+  const [passwordError, setPasswordError] = useState("");
+
+  // Password validation function
+  const validatePasswords = (password: string, confirmPassword: string) => {
+    if (confirmPassword && password !== confirmPassword) {
+      setPasswordError("Passwords do not match");
+    } else if (confirmPassword && password === confirmPassword) {
+      setPasswordError("");
+    } else if (!confirmPassword) {
+      setPasswordError("");
+    }
+  };
 
   // EID formatting function
   const formatEID = (value: string) => {
@@ -58,12 +74,31 @@ const joinPage = (props: Props) => {
     first_name: "",
     last_name: "",
     email: "",
+    password: "",
+    confirm_password: "",
     role_category: "",
     role: "",
     seniority: "",
     eid: "",
     phone_number: "",
   });
+
+  // User form step state
+  const [userFormStep, setUserFormStep] = useState(1);
+
+  // User form password validation state
+  const [userPasswordError, setUserPasswordError] = useState("");
+
+  // User form password validation function
+  const validateUserPasswords = (password: string, confirmPassword: string) => {
+    if (confirmPassword && password !== confirmPassword) {
+      setUserPasswordError("Passwords do not match");
+    } else if (confirmPassword && password === confirmPassword) {
+      setUserPasswordError("");
+    } else if (!confirmPassword) {
+      setUserPasswordError("");
+    }
+  };
 
   // Dummy data arrays for select dropdowns
   const roleCategories = [
@@ -125,10 +160,22 @@ const joinPage = (props: Props) => {
         [name]: formattedValue,
       }));
     } else {
-      setForm1Data((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+      setForm1Data((prev) => {
+        const newData = {
+          ...prev,
+          [name]: value,
+        };
+
+        // Validate passwords in real-time
+        if (name === "password" || name === "confirm_password") {
+          const password = name === "password" ? value : prev.password;
+          const confirmPassword =
+            name === "confirm_password" ? value : prev.confirm_password;
+          validatePasswords(password, confirmPassword);
+        }
+
+        return newData;
+      });
     }
   };
 
@@ -142,10 +189,22 @@ const joinPage = (props: Props) => {
         [name]: formattedValue,
       }));
     } else {
-      setForm2Data((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+      setForm2Data((prev) => {
+        const newData = {
+          ...prev,
+          [name]: value,
+        };
+
+        // Validate passwords in real-time
+        if (name === "password" || name === "confirm_password") {
+          const password = name === "password" ? value : prev.password;
+          const confirmPassword =
+            name === "confirm_password" ? value : prev.confirm_password;
+          validateUserPasswords(password, confirmPassword);
+        }
+
+        return newData;
+      });
     }
   };
 
@@ -158,12 +217,54 @@ const joinPage = (props: Props) => {
 
   const handleForm1Submit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Sub Admin Form submission:", form1Data);
+
+    // Validate password confirmation
+    if (passwordError) {
+      alert("Please fix the password validation errors before submitting.");
+      return;
+    }
+
+    // Check password strength (optional - basic validation)
+    if (form1Data.password.length < 6) {
+      alert("Password must be at least 6 characters long.");
+      return;
+    }
+
   };
 
   const handleForm2Submit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("User Form submission:", form2Data);
+  };
+
+  // User form step navigation functions
+  const handleUserFormNext = () => {
+    // Validate step 1 fields
+    if (
+      !form2Data.first_name ||
+      !form2Data.last_name ||
+      !form2Data.email ||
+      !form2Data.password ||
+      !form2Data.confirm_password
+    ) {
+      alert("Please fill in all required fields before proceeding.");
+      return;
+    }
+
+    if (userPasswordError) {
+      alert("Please fix the password validation errors before proceeding.");
+      return;
+    }
+
+    if (form2Data.password.length < 6) {
+      alert("Password must be at least 6 characters long.");
+      return;
+    }
+
+    setUserFormStep(2);
+  };
+
+  const handleUserFormPrevious = () => {
+    setUserFormStep(1);
   };
 
   const renderForm1 = () => (
@@ -256,6 +357,65 @@ const joinPage = (props: Props) => {
             />
           </div>
 
+          <div className="space-y-3">
+            <label
+              htmlFor="password"
+              className="block text-lg font-semibold text-white pl-2"
+            >
+              Password
+            </label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Enter your password"
+              value={form1Data.password}
+              onChange={handleForm1Change}
+              required
+              className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <label
+              htmlFor="confirm_password"
+              className="block text-lg font-semibold text-white pl-2"
+            >
+              Confirm Password
+            </label>
+            <Input
+              id="confirm_password"
+              name="confirm_password"
+              type="password"
+              placeholder="Confirm your password"
+              value={form1Data.confirm_password}
+              onChange={handleForm1Change}
+              required
+              className={`bg-[#00d8cc]/10 backdrop-blur-sm text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                passwordError
+                  ? "border-red-500/60 focus:border-red-500/80 hover:border-red-500/70"
+                  : form1Data.confirm_password &&
+                    form1Data.password === form1Data.confirm_password
+                  ? "border-green-500/60 focus:border-green-500/80 hover:border-green-500/70"
+                  : "border-[#00d8cc]/20 focus:border-[#00d8cc]/40 hover:border-[#00d8cc]/30"
+              }`}
+            />
+            {passwordError && (
+              <p className="text-red-400 text-sm pl-2 flex items-center gap-2">
+                <span className="text-red-500">⚠</span>
+                {passwordError}
+              </p>
+            )}
+            {form1Data.confirm_password &&
+              form1Data.password === form1Data.confirm_password &&
+              !passwordError && (
+                <p className="text-green-400 text-sm pl-2 flex items-center gap-2">
+                  <span className="text-green-500">✓</span>
+                  Passwords match
+                </p>
+              )}
+          </div>
+
           <Button
             type="submit"
             className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer"
@@ -277,215 +437,323 @@ const joinPage = (props: Props) => {
         <CardDescription className="text-md lg:text-xl text-white/80 leading-relaxed max-w-sm mx-auto">
           User Registration Form
         </CardDescription>
+
+        {/* Step Indicator */}
+        <div className="flex justify-center items-center space-x-4 mt-6">
+          <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+              userFormStep >= 1
+                ? "bg-[#00d8cc] text-black"
+                : "bg-white/20 text-white/60"
+            }`}
+          >
+            1
+          </div>
+          <div
+            className={`w-16 h-1 rounded-full ${
+              userFormStep >= 2 ? "bg-[#00d8cc]" : "bg-white/20"
+            }`}
+          ></div>
+          <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+              userFormStep >= 2
+                ? "bg-[#00d8cc] text-black"
+                : "bg-white/20 text-white/60"
+            }`}
+          >
+            2
+          </div>
+        </div>
       </CardHeader>
 
       <CardContent>
-        <form onSubmit={handleForm2Submit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <label
-                htmlFor="first_name"
-                className="block text-lg font-semibold text-white pl-2"
-              >
-                First Name
-              </label>
-              <Input
-                id="first_name"
-                name="first_name"
-                type="text"
-                placeholder="Enter first name"
-                value={form2Data.first_name}
-                onChange={handleForm2Change}
-                required
-                className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <label
-                htmlFor="last_name"
-                className="block text-lg font-semibold text-white pl-2"
-              >
-                Last Name
-              </label>
-              <Input
-                id="last_name"
-                name="last_name"
-                type="text"
-                placeholder="Enter last name"
-                value={form2Data.last_name}
-                onChange={handleForm2Change}
-                required
-                className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <label
-              htmlFor="email"
-              className="block text-lg font-semibold text-white pl-2"
-            >
-              Email
-            </label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="Enter your email address"
-              value={form2Data.email}
-              onChange={handleForm2Change}
-              required
-              className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
-            />
-          </div>
-
-          <div className="space-y-3">
-            <label
-              htmlFor="role_category"
-              className="block text-lg font-semibold text-white pl-2"
-            >
-              Role Category
-            </label>
-            <Select
-              value={form2Data.role_category}
-              onValueChange={(value) =>
-                handleForm2SelectChange("role_category", value)
-              }
-              required
-            >
-              <SelectTrigger
-                className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 border-2 hover:border-[#00d8cc]/30 rounded-full text-sm ${
-                  form2Data.role_category
-                    ? "[&>span]:text-white"
-                    : "[&>span]:text-cyan-50/55"
-                } `}
-              >
-                <SelectValue placeholder="Select role category" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
-                {roleCategories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-3">
-            <label
-              htmlFor="role"
-              className="block text-lg font-semibold text-white pl-2"
-            >
-              Role
-            </label>
-            <Select
-              value={form2Data.role}
-              onValueChange={(value) => handleForm2SelectChange("role", value)}
-              required
-            >
-              <SelectTrigger
-                className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-[#00d8cc]/30 rounded-full ${
-                  form2Data.role
-                    ? "[&>span]:text-white"
-                    : "[&>span]:text-cyan-50/55"
-                }`}
-              >
-                <SelectValue
-                  placeholder="Select your role"
-                  className="text-red-500"
+        {userFormStep === 1 ? (
+          // Step 1: Basic Information
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <label
+                  htmlFor="first_name"
+                  className="block text-lg font-semibold text-white pl-2"
+                >
+                  First Name
+                </label>
+                <Input
+                  id="first_name"
+                  name="first_name"
+                  type="text"
+                  placeholder="Enter first name"
+                  value={form2Data.first_name}
+                  onChange={handleForm2Change}
+                  required
+                  className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
                 />
-              </SelectTrigger>
-              <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
-                {roles.map((role) => (
-                  <SelectItem key={role} value={role}>
-                    {role}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              </div>
 
-          <div className="space-y-3">
-            <label
-              htmlFor="seniority"
-              className="block text-lg font-semibold text-white pl-2"
-            >
-              Seniority
-            </label>
-            <Select
-              value={form2Data.seniority}
-              onValueChange={(value) =>
-                handleForm2SelectChange("seniority", value)
-              }
-              required
-            >
-              <SelectTrigger
-                className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-[#00d8cc]/30 rounded-full ${
-                  form2Data.seniority
-                    ? "[&>span]:text-white"
-                    : "[&>span]:text-cyan-50/55"
-                }`}
+              <div className="space-y-3">
+                <label
+                  htmlFor="last_name"
+                  className="block text-lg font-semibold text-white pl-2"
+                >
+                  Last Name
+                </label>
+                <Input
+                  id="last_name"
+                  name="last_name"
+                  type="text"
+                  placeholder="Enter last name"
+                  value={form2Data.last_name}
+                  onChange={handleForm2Change}
+                  required
+                  className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <label
+                htmlFor="email"
+                className="block text-lg font-semibold text-white pl-2"
               >
-                <SelectValue placeholder="Select seniority level" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
-                {seniorityLevels.map((level) => (
-                  <SelectItem key={level} value={level}>
-                    {level}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                Email
+              </label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="Enter your email address"
+                value={form2Data.email}
+                onChange={handleForm2Change}
+                required
+                className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+              />
+            </div>
 
-          <div className="space-y-3">
-            <label
-              htmlFor="eid"
-              className="block text-lg font-semibold text-white pl-2"
+            <div className="space-y-3">
+              <label
+                htmlFor="password"
+                className="block text-lg font-semibold text-white pl-2"
+              >
+                Password
+              </label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Enter your password"
+                value={form2Data.password}
+                onChange={handleForm2Change}
+                required
+                className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <label
+                htmlFor="confirm_password"
+                className="block text-lg font-semibold text-white pl-2"
+              >
+                Confirm Password
+              </label>
+              <Input
+                id="confirm_password"
+                name="confirm_password"
+                type="password"
+                placeholder="Confirm your password"
+                value={form2Data.confirm_password}
+                onChange={handleForm2Change}
+                required
+                className={`bg-[#00d8cc]/10 backdrop-blur-sm text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                  userPasswordError
+                    ? "border-red-500/60 focus:border-red-500/80 hover:border-red-500/70"
+                    : form2Data.confirm_password &&
+                      form2Data.password === form2Data.confirm_password
+                    ? "border-green-500/60 focus:border-green-500/80 hover:border-green-500/70"
+                    : "border-[#00d8cc]/20 focus:border-[#00d8cc]/40 hover:border-[#00d8cc]/30"
+                }`}
+              />
+              {userPasswordError && (
+                <p className="text-red-400 text-sm pl-2 flex items-center gap-2">
+                  <span className="text-red-500">⚠</span>
+                  {userPasswordError}
+                </p>
+              )}
+              {form2Data.confirm_password &&
+                form2Data.password === form2Data.confirm_password &&
+                !userPasswordError && (
+                  <p className="text-green-400 text-sm pl-2 flex items-center gap-2">
+                    <span className="text-green-500">✓</span>
+                    Passwords match
+                  </p>
+                )}
+            </div>
+
+            <Button
+              type="button"
+              onClick={handleUserFormNext}
+              className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer"
             >
-              EID
-            </label>
-            <Input
-              id="eid"
-              name="eid"
-              type="text"
-              placeholder="784-YYYY-XXXXXXX-Z"
-              value={form2Data.eid}
-              onChange={handleForm2Change}
-              maxLength={19}
-              required
-              className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
-            />
+              Next Step
+            </Button>
           </div>
+        ) : (
+          // Step 2: Professional Information
+          <form onSubmit={handleForm2Submit} className="space-y-6">
+            <div className="space-y-3">
+              <label
+                htmlFor="role_category"
+                className="block text-lg font-semibold text-white pl-2"
+              >
+                Role Category
+              </label>
+              <Select
+                value={form2Data.role_category}
+                onValueChange={(value) =>
+                  handleForm2SelectChange("role_category", value)
+                }
+                required
+              >
+                <SelectTrigger
+                  className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 border-2 hover:border-[#00d8cc]/30 rounded-full text-sm ${
+                    form2Data.role_category
+                      ? "[&>span]:text-white"
+                      : "[&>span]:text-cyan-50/55"
+                  } `}
+                >
+                  <SelectValue placeholder="Select role category" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
+                  {roleCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="space-y-3">
-            <label
-              htmlFor="phone_number"
-              className="block text-lg font-semibold text-white pl-2"
-            >
-              Phone Number
-            </label>
-            <Input
-              id="phone_number"
-              name="phone_number"
-              type="tel"
-              placeholder="Enter your phone number"
-              value={form2Data.phone_number}
-              onChange={handleForm2Change}
-              required
-              className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
-            />
-          </div>
+            <div className="space-y-3">
+              <label
+                htmlFor="role"
+                className="block text-lg font-semibold text-white pl-2"
+              >
+                Role
+              </label>
+              <Select
+                value={form2Data.role}
+                onValueChange={(value) =>
+                  handleForm2SelectChange("role", value)
+                }
+                required
+              >
+                <SelectTrigger
+                  className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-[#00d8cc]/30 rounded-full ${
+                    form2Data.role
+                      ? "[&>span]:text-white"
+                      : "[&>span]:text-cyan-50/55"
+                  }`}
+                >
+                  <SelectValue placeholder="Select your role" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
+                  {roles.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {role}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <Button
-            type="submit"
-            className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer"
-          >
-            Submit
-          </Button>
-        </form>
+            <div className="space-y-3">
+              <label
+                htmlFor="seniority"
+                className="block text-lg font-semibold text-white pl-2"
+              >
+                Seniority
+              </label>
+              <Select
+                value={form2Data.seniority}
+                onValueChange={(value) =>
+                  handleForm2SelectChange("seniority", value)
+                }
+                required
+              >
+                <SelectTrigger
+                  className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-[#00d8cc]/30 rounded-full ${
+                    form2Data.seniority
+                      ? "[&>span]:text-white"
+                      : "[&>span]:text-cyan-50/55"
+                  }`}
+                >
+                  <SelectValue placeholder="Select seniority level" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
+                  {seniorityLevels.map((level) => (
+                    <SelectItem key={level} value={level}>
+                      {level}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3">
+              <label
+                htmlFor="eid"
+                className="block text-lg font-semibold text-white pl-2"
+              >
+                EID
+              </label>
+              <Input
+                id="eid"
+                name="eid"
+                type="text"
+                placeholder="784-YYYY-XXXXXXX-Z"
+                value={form2Data.eid}
+                onChange={handleForm2Change}
+                maxLength={19}
+                required
+                className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <label
+                htmlFor="phone_number"
+                className="block text-lg font-semibold text-white pl-2"
+              >
+                Phone Number
+              </label>
+              <Input
+                id="phone_number"
+                name="phone_number"
+                type="tel"
+                placeholder="Enter your phone number"
+                value={form2Data.phone_number}
+                onChange={handleForm2Change}
+                required
+                className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+              />
+            </div>
+
+            <div className="flex space-x-4">
+              <Button
+                type="button"
+                onClick={handleUserFormPrevious}
+                className="flex-1 bg-white/20 hover:bg-white/30 text-white text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-white/20 rounded-full cursor-pointer"
+              >
+                Previous
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer"
+              >
+                Submit
+              </Button>
+            </div>
+          </form>
+        )}
       </CardContent>
     </Card>
   );
