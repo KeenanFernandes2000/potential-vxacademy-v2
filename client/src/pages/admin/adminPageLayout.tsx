@@ -25,7 +25,7 @@ const AdminPageLayout: React.FC<AdminPageLayoutProps> = ({
 
         {/* Main Content Area */}
         <SidebarInset className="max-w-[80%]">
-          <div className="flex flex-col h-full w-[80%]">
+          <div className="flex flex-col h-full">
             <main className="flex-1 p-6">
               <div className="space-y-6">
                 <header className="flex items-center justify-between">
