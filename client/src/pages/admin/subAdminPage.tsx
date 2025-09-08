@@ -155,13 +155,11 @@ const SubAdminPage = () => {
   };
 
   const columns = [
-    "Name",
-    "Email",
-    "Organization",
-    "Role",
-    "Created Date",
-    "Last Login",
-    "Status",
+    "User ID",
+    "Job Title",
+    "Total Frontliners",
+    "EID",
+    "Phone Number",
     "Actions",
   ];
 

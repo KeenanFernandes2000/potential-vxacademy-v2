@@ -4,6 +4,7 @@ import AuthPage from "@/pages/login/authPage";
 import ForgotPasswordPage from "@/pages/login/forgotPasswordPage";
 import ResetPasswordPage from "@/pages/login/resetPasswordPage";
 import JoinPage from "@/pages/login/joinPage";
+import ProfilePage from "@/pages/profile";
 
 // Admin Pages
 import Dashboard from "@/pages/admin/dashboard";
@@ -80,6 +81,7 @@ function App() {
             <Route path="courses/:id" element={<CourseDetails />} />
             <Route path="assessment/:id" element={<AssessmentPage />} />
           </Route>
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </div>
     </Router>

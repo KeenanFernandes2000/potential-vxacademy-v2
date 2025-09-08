@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
-import AdminTableLayout from "@/components/AdminTableLayout";
+import AdminTableLayout from "@/components/adminTableLayout";
 
 // Mock data for assets
 const mockAssets = [
@@ -113,7 +113,7 @@ const AssetsPage = () => {
     );
   };
 
-  const columns = ["Name", "Type", "Size", "Created Date", "Status", "Actions"];
+  const columns = ["Name", "Actions"];
 
   return (
     <AdminPageLayout
