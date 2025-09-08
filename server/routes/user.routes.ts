@@ -1,99 +1,71 @@
-import express from "express";
-const router = express.Router();
+import { createAsyncRouter } from "../utils/asyncErrorHandling";
+const router = createAsyncRouter();
 import { userControllers } from "../controller/user.controllers";
-import asyncHandler from "../utils/asyncErrorHandling";
-import passport from "../middleware/passport";
 import { authorizeRoles } from "../middleware/userTypeAuth";
+import passport from "../middleware/passport";
+
+// JWT Authentication Middleware
+const authenticateJWT = passport.authenticate("jwt", { session: false });
+// authenticateJWT,authorizeRoles("admin"), -> add this to the routes that you want to protect
 
 // ==================== AUTHENTICATION FUNCTIONS ====================
 router.post("/login", userControllers.login); // logout function shoudl be on client side only
 
 // ==================== PASSWORD RESET FUNCTIONS ====================
-router.post(
-  "/password-reset/request",
-  asyncHandler(userControllers.requestPasswordReset)
-);
+router.post("/password-reset/request", userControllers.requestPasswordReset);
 router.get(
   "/password-reset/verify/:token",
-  asyncHandler(userControllers.verifyPasswordResetToken)
+  userControllers.verifyPasswordResetToken
 );
-router.post(
-  "/password-reset/reset",
-  asyncHandler(userControllers.resetPassword)
-);
-
-// JWT Authentication Middleware
-// const authenticateJWT = passport.authenticate("jwt", { session: false });
-// authenticateJWT,authorizeRoles("admin"), -> add this to the routes that you want to protect
+router.post("/password-reset/reset", userControllers.resetPassword);
 
 // ==================== USER CRUD FUNCTIONS ====================
-router.get("/", asyncHandler(userControllers.getAllUsers));
-router.get("/:id", asyncHandler(userControllers.getUserById));
-router.post("/", asyncHandler(userControllers.create));
-router.put("/:id", asyncHandler(userControllers.updateUser));
-router.delete("/:id", asyncHandler(userControllers.deleteUser));
+router.get("/", userControllers.getAllUsers);
+router.get("/:id", userControllers.getUserById);
+router.post("/", userControllers.create);
+router.put("/:id", userControllers.updateUser);
+router.delete("/:id", userControllers.deleteUser);
 
 // ==================== ASSETS CRD FUNCTIONS ====================
-router.get("/assets", asyncHandler(userControllers.getAllAssets));
-router.post("/assets", asyncHandler(userControllers.createAsset));
-router.delete("/assets/:id", asyncHandler(userControllers.deleteAsset));
+router.get("/assets", userControllers.getAllAssets);
+router.post("/assets", userControllers.createAsset);
+router.delete("/assets/:id", userControllers.deleteAsset);
 
 // ==================== ROLE CATEGORIES CRD FUNCTIONS ====================
-router.get(
-  "/role-categories",
-  asyncHandler(userControllers.getAllRoleCategories)
-);
-router.post(
-  "/role-categories",
-  asyncHandler(userControllers.createRoleCategory)
-);
-router.delete(
-  "/role-categories/:id",
-  asyncHandler(userControllers.deleteRoleCategory)
-);
+router.get("/role-categories", userControllers.getAllRoleCategories);
+router.post("/role-categories", userControllers.createRoleCategory);
+router.delete("/role-categories/:id", userControllers.deleteRoleCategory);
 
 // ==================== ROLES CRD FUNCTIONS ====================
-router.get("/roles", asyncHandler(userControllers.getAllRoles));
-router.post("/roles", asyncHandler(userControllers.createRole));
-router.delete("/roles/:id", asyncHandler(userControllers.deleteRole));
+router.get("/roles", userControllers.getAllRoles);
+router.post("/roles", userControllers.createRole);
+router.delete("/roles/:id", userControllers.deleteRole);
 
 // ==================== SENIORITY LEVELS CRD FUNCTIONS ====================
-router.get(
-  "/seniority-levels",
-  asyncHandler(userControllers.getAllSeniorityLevels)
-);
-router.post(
-  "/seniority-levels",
-  asyncHandler(userControllers.createSeniorityLevel)
-);
-router.delete(
-  "/seniority-levels/:id",
-  asyncHandler(userControllers.deleteSeniorityLevel)
-);
+router.get("/seniority-levels", userControllers.getAllSeniorityLevels);
+router.post("/seniority-levels", userControllers.createSeniorityLevel);
+router.delete("/seniority-levels/:id", userControllers.deleteSeniorityLevel);
 
 // ==================== SUB-ADMIN CREATION & REGISTRATION FUNCTIONS ====================
 router.post(
   "/sub-admins/register/:id",
-  asyncHandler(userControllers.completeSubAdminRegistration)
+  userControllers.completeSubAdminRegistration
 );
 router.get(
   "/sub-admins/registration/:id",
-  asyncHandler(userControllers.getSubAdminRegistrationDetails)
+  userControllers.getSubAdminRegistrationDetails
 );
 
 // ==================== INVITATION FUNCTIONS ====================
-router.post("/invitations", asyncHandler(userControllers.createInvitation));
-router.get(
-  "/invitations/verify/:token",
-  asyncHandler(userControllers.getInvitationByToken)
-);
+router.post("/invitations", userControllers.createInvitation);
+router.get("/invitations/verify/:token", userControllers.getInvitationByToken);
 router.get(
   "/invitations/creator/:createdBy",
-  asyncHandler(userControllers.getInvitationsByCreator)
+  userControllers.getInvitationsByCreator
 );
 router.delete(
   "/invitations/token/:token",
-  asyncHandler(userControllers.deleteInvitationByToken)
+  userControllers.deleteInvitationByToken
 );
 
 export default router;

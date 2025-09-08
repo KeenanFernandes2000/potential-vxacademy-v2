@@ -156,8 +156,9 @@ export type NewNotification = Omit<
 export type MediaFile = InferSelectModel<typeof mediaFiles>;
 export type NewMediaFile = Omit<
   InferInsertModel<typeof mediaFiles>,
-  "id" | "createdAt" | "uploadedBy"
+  "id" | "createdAt"
 >;
+export type UpdateMediaFile = Partial<Omit<NewMediaFile, "uploadedBy">>;
 export type CourseEnrollment = InferSelectModel<typeof courseEnrollments>;
 export type NewCourseEnrollment = Omit<
   InferInsertModel<typeof courseEnrollments>,

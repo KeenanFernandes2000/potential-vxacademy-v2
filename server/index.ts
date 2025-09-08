@@ -1,8 +1,10 @@
 import express from "express";
 import cors from "cors";
 import usersRouter from "./routes/user.routes";
+import mediaRouter from "./routes/media.routes";
 import errorHandling from "./middleware/errorHandling";
 import passport from "passport";
+import path from "path";
 
 const app = express();
 const PORT = process.env.PORT as string;
@@ -22,10 +24,14 @@ app.use(express.json({ limit: "50mb" }));
 
 app.use(passport.initialize());
 
+// Serve uploaded files statically
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // Mount the API router at /api
 app.use("/api", apiRouter);
 
 apiRouter.use("/users", usersRouter);
+apiRouter.use("/media", mediaRouter);
 
 app.use(errorHandling);
 
