@@ -3,43 +3,46 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
-import AdminTableLayout from "@/components/AdminTableLayout";
+import AdminTableLayout from "@/components/adminTableLayout";
 
 // Mock data for questions
 const mockQuestions = [
   {
     id: 1,
-    question: "What is the purpose of React hooks?",
-    type: "Multiple Choice",
-    assessment: "React Fundamentals Quiz",
-    difficulty: "Medium",
-    points: 5,
+    questionText: "What is the purpose of React hooks?",
+    questionType: "mcq",
+    assessmentId: 1,
+    options: [
+      "To manage state and side effects",
+      "To create components",
+      "To handle events",
+      "To style components",
+    ],
     correctAnswer: "To manage state and side effects in functional components",
-    createdDate: "2024-01-15",
-    status: "Active",
+    order: 1,
+    createdAt: "2024-01-15",
   },
   {
     id: 2,
-    question: "Explain the difference between props and state in React.",
-    type: "Essay",
-    assessment: "React Fundamentals Quiz",
-    difficulty: "Hard",
-    points: 10,
+    questionText: "Explain the difference between props and state in React.",
+    questionType: "essay",
+    assessmentId: 1,
+    options: null,
     correctAnswer:
       "Props are read-only data passed down from parent components, while state is mutable data managed within a component.",
-    createdDate: "2024-01-16",
-    status: "Active",
+    order: 2,
+    createdAt: "2024-01-16",
   },
   {
     id: 3,
-    question: "Which Python library is commonly used for data manipulation?",
-    type: "Multiple Choice",
-    assessment: "Python Data Analysis Project",
-    difficulty: "Easy",
-    points: 3,
+    questionText:
+      "Which Python library is commonly used for data manipulation?",
+    questionType: "mcq",
+    assessmentId: 2,
+    options: ["Pandas", "NumPy", "Matplotlib", "Scikit-learn"],
     correctAnswer: "Pandas",
-    createdDate: "2024-01-10",
-    status: "Draft",
+    order: 1,
+    createdAt: "2024-01-10",
   },
 ];
 
@@ -53,10 +56,9 @@ const QuestionsPage = () => {
     } else {
       const filtered = questions.filter(
         (question) =>
-          question.question.toLowerCase().includes(query.toLowerCase()) ||
-          question.type.toLowerCase().includes(query.toLowerCase()) ||
-          question.assessment.toLowerCase().includes(query.toLowerCase()) ||
-          question.difficulty.toLowerCase().includes(query.toLowerCase())
+          question.questionText.toLowerCase().includes(query.toLowerCase()) ||
+          question.questionType.toLowerCase().includes(query.toLowerCase()) ||
+          question.assessmentId.toString().includes(query.toLowerCase())
       );
       setFilteredQuestions(filtered);
     }
@@ -65,14 +67,13 @@ const QuestionsPage = () => {
   const handleCreateQuestion = (formData: any) => {
     const newQuestion = {
       id: questions.length + 1,
-      question: formData.question,
-      type: formData.type,
-      assessment: formData.assessment,
-      difficulty: formData.difficulty,
-      points: parseInt(formData.points),
+      questionText: formData.questionText,
+      questionType: formData.questionType,
+      assessmentId: parseInt(formData.assessmentId),
+      options: formData.options ? JSON.parse(formData.options) : null,
       correctAnswer: formData.correctAnswer,
-      createdDate: new Date().toISOString().split("T")[0],
-      status: "Draft",
+      order: parseInt(formData.order),
+      createdAt: new Date().toISOString().split("T")[0],
     };
     setQuestions([...questions, newQuestion]);
     setFilteredQuestions([...questions, newQuestion]);
@@ -80,82 +81,73 @@ const QuestionsPage = () => {
 
   const CreateQuestionForm = () => {
     const [formData, setFormData] = useState({
-      question: "",
-      type: "",
-      assessment: "",
-      difficulty: "",
-      points: "",
+      questionText: "",
+      questionType: "",
+      assessmentId: "",
+      options: "",
       correctAnswer: "",
+      order: "",
     });
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       handleCreateQuestion(formData);
       setFormData({
-        question: "",
-        type: "",
-        assessment: "",
-        difficulty: "",
-        points: "",
+        questionText: "",
+        questionType: "",
+        assessmentId: "",
+        options: "",
         correctAnswer: "",
+        order: "",
       });
     };
 
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="question">Question</Label>
+          <Label htmlFor="questionText">Question Text</Label>
           <Input
-            id="question"
-            value={formData.question}
+            id="questionText"
+            value={formData.questionText}
             onChange={(e) =>
-              setFormData({ ...formData, question: e.target.value })
+              setFormData({ ...formData, questionText: e.target.value })
             }
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="type">Question Type</Label>
+          <Label htmlFor="questionType">Question Type</Label>
           <Input
-            id="type"
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="assessment">Assessment</Label>
-          <Input
-            id="assessment"
-            value={formData.assessment}
+            id="questionType"
+            value={formData.questionType}
             onChange={(e) =>
-              setFormData({ ...formData, assessment: e.target.value })
+              setFormData({ ...formData, questionType: e.target.value })
             }
+            placeholder="mcq, essay, etc."
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="difficulty">Difficulty</Label>
+          <Label htmlFor="assessmentId">Assessment ID</Label>
           <Input
-            id="difficulty"
-            value={formData.difficulty}
-            onChange={(e) =>
-              setFormData({ ...formData, difficulty: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="points">Points</Label>
-          <Input
-            id="points"
+            id="assessmentId"
             type="number"
-            min="1"
-            value={formData.points}
+            value={formData.assessmentId}
             onChange={(e) =>
-              setFormData({ ...formData, points: e.target.value })
+              setFormData({ ...formData, assessmentId: e.target.value })
             }
             required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="options">Options (JSON array for MCQ)</Label>
+          <Input
+            id="options"
+            value={formData.options}
+            onChange={(e) =>
+              setFormData({ ...formData, options: e.target.value })
+            }
+            placeholder='["Option 1", "Option 2", "Option 3", "Option 4"]'
           />
         </div>
         <div className="space-y-2">
@@ -169,6 +161,19 @@ const QuestionsPage = () => {
             required
           />
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="order">Order</Label>
+          <Input
+            id="order"
+            type="number"
+            min="1"
+            value={formData.order}
+            onChange={(e) =>
+              setFormData({ ...formData, order: e.target.value })
+            }
+            required
+          />
+        </div>
         <div className="flex justify-end gap-2">
           <Button type="submit">Create Question</Button>
         </div>
@@ -177,14 +182,13 @@ const QuestionsPage = () => {
   };
 
   const columns = [
-    "Question",
-    "Type",
-    "Assessment",
-    "Difficulty",
-    "Points",
+    "Question Text",
+    "Question Type",
+    "Assessment ID",
+    "Options",
     "Correct Answer",
-    "Created Date",
-    "Status",
+    "Order",
+    "Created At",
     "Actions",
   ];
 

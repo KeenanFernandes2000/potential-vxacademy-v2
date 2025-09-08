@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
-import AdminTableLayout from "@/components/AdminTableLayout";
+import AdminTableLayout from "@/components/adminTableLayout";
 
 // Mock data for sub-organizations
 const mockSubOrganizations = [
@@ -173,14 +173,14 @@ const SubOrganizationPage = () => {
   };
 
   const columns = [
-    "Name",
-    "Parent Organization",
-    "Type",
-    "Location",
-    "Contact Email",
-    "Users",
-    "Created Date",
-    "Status",
+    "Sub Organization",
+    "Asset",
+    "Sub Asset",
+    "User Type",
+    "Email",
+    "First Name",
+    "Last Name",
+    "Created At",
     "Actions",
   ];
 

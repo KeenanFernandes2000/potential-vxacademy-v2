@@ -76,7 +76,7 @@ const Courses = () => {
   const navigate = useNavigate();
 
   const handleCourseStart = (courseId: number) => {
-    navigate(`/courses/${courseId}`);
+    navigate(`/user/courses/${courseId}`);
   };
 
   return (

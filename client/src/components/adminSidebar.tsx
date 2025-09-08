@@ -32,10 +32,22 @@ import {
 import { Button } from "./ui/button";
 
 const AdminSidebar = () => {
+  const [mainOpen, setMainOpen] = React.useState(true);
+  const [assetsOpen, setAssetsOpen] = React.useState(true);
+  const [organizationOpen, setOrganizationOpen] = React.useState(true);
   const [lmsOpen, setLmsOpen] = React.useState(true);
-  const [systemOpen, setSystemOpen] = React.useState(true);
   const location = useLocation();
   const { toggleSidebar, state } = useSidebar();
+
+  // When sidebar is collapsed (icon mode), open all dropdowns
+  React.useEffect(() => {
+    if (state === "collapsed") {
+      setMainOpen(true);
+      setAssetsOpen(true);
+      setOrganizationOpen(true);
+      setLmsOpen(true);
+    }
+  }, [state]);
 
   const mainNavItems = [
     {
@@ -153,74 +165,134 @@ const AdminSidebar = () => {
       </SidebarHeader>
 
       <SidebarContent>
-        {/* Main Navigation */}
+        {/* Main Navigation - Collapsible */}
         <SidebarGroup>
-          <SidebarGroupLabel>Main</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {mainNavItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname === item.url}
-                  >
-                    <Link to={item.url}>
-                      <item.icon sx={{ fontSize: 16 }} />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
+          <SidebarGroupLabel
+            asChild
+            className="cursor-pointer hover:bg-sidebar-accent"
+            onClick={() => setMainOpen(!mainOpen)}
+          >
+            <button className="w-full text-left">
+              <div className="flex items-center justify-between">
+                <span>Main</span>
+                <ChevronDown
+                  sx={{
+                    ml: "auto",
+                    transition: "transform 200ms",
+                    transform: mainOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    fontSize: 16,
+                  }}
+                />
+              </div>
+            </button>
+          </SidebarGroupLabel>
+          {mainOpen && (
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {mainNavItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === item.url}
+                    >
+                      <Link to={item.url}>
+                        <item.icon sx={{ fontSize: 16 }} />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          )}
         </SidebarGroup>
 
         <SidebarSeparator />
 
-        {/* Assets */}
+        {/* Assets - Collapsible */}
         <SidebarGroup>
-          <SidebarGroupLabel>Assets</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {assetNavItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname === item.url}
-                  >
-                    <Link to={item.url}>
-                      <item.icon sx={{ fontSize: 16 }} />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
+          <SidebarGroupLabel
+            asChild
+            className="cursor-pointer hover:bg-sidebar-accent"
+            onClick={() => setAssetsOpen(!assetsOpen)}
+          >
+            <button className="w-full text-left">
+              <div className="flex items-center justify-between">
+                <span>Assets</span>
+                <ChevronDown
+                  sx={{
+                    ml: "auto",
+                    transition: "transform 200ms",
+                    transform: assetsOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    fontSize: 16,
+                  }}
+                />
+              </div>
+            </button>
+          </SidebarGroupLabel>
+          {assetsOpen && (
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {assetNavItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === item.url}
+                    >
+                      <Link to={item.url}>
+                        <item.icon sx={{ fontSize: 16 }} />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          )}
         </SidebarGroup>
 
         <SidebarSeparator />
 
-        {/* Organization */}
+        {/* Organization - Collapsible */}
         <SidebarGroup>
-          <SidebarGroupLabel>Organization</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {organizationNavItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={location.pathname === item.url}
-                  >
-                    <Link to={item.url}>
-                      <item.icon sx={{ fontSize: 16 }} />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
+          <SidebarGroupLabel
+            asChild
+            className="cursor-pointer hover:bg-sidebar-accent"
+            onClick={() => setOrganizationOpen(!organizationOpen)}
+          >
+            <button className="w-full text-left">
+              <div className="flex items-center justify-between">
+                <span>Organization</span>
+                <ChevronDown
+                  sx={{
+                    ml: "auto",
+                    transition: "transform 200ms",
+                    transform: organizationOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    fontSize: 16,
+                  }}
+                />
+              </div>
+            </button>
+          </SidebarGroupLabel>
+          {organizationOpen && (
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {organizationNavItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === item.url}
+                    >
+                      <Link to={item.url}>
+                        <item.icon sx={{ fontSize: 16 }} />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          )}
         </SidebarGroup>
 
         <SidebarSeparator />
@@ -275,7 +347,7 @@ const AdminSidebar = () => {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="#profile">
+                  <Link to="/profile">
                     <User sx={{ fontSize: 16 }} />
                     <span>Profile</span>
                   </Link>

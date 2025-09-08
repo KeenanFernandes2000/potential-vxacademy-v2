@@ -46,8 +46,8 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
   return (
     <div className="space-y-4">
       {/* Search and Create Section */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex items-center gap-4 justify-between w-full">
+        <div className="relative flex-1 w-full">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-white/60" />
           <Input
             type="text"
@@ -80,7 +80,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       </div>
 
       {/* Table */}
-      <div className="rounded-md border bg-white/10 backdrop-blur-sm border-white/20 max-w-[80%]">
+      <div className="rounded-md border bg-white/10 backdrop-blur-sm border-white/20 w-full">
         <Table>
           <TableHeader>
             <TableRow className="border-white/20">

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
-import AdminTableLayout from "@/components/AdminTableLayout";
+import AdminTableLayout from "@/components/adminTableLayout";
 
 // Mock data for modules
 const mockModules = [
@@ -149,12 +149,10 @@ const ModulesPage = () => {
   const columns = [
     "Name",
     "Description",
-    "Training Area",
-    "Duration",
-    "Units",
-    "Students",
-    "Created Date",
-    "Status",
+    "Training Area ID",
+    "Image URL",
+    "Created At",
+    "Updated At",
     "Actions",
   ];
 

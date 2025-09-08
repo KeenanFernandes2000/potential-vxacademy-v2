@@ -3,45 +3,69 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
-import AdminTableLayout from "@/components/AdminTableLayout";
+import AdminTableLayout from "@/components/adminTableLayout";
 
 // Mock data for assessments
 const mockAssessments = [
   {
     id: 1,
-    name: "React Fundamentals Quiz",
+    title: "React Fundamentals Quiz",
     description: "Test knowledge of React basics and component structure",
-    course: "Complete React Development",
-    type: "Quiz",
-    duration: "30 minutes",
+    trainingAreaId: 1,
+    moduleId: 1,
+    unitId: 1,
+    courseId: 1,
+    placement: "end",
+    isGraded: true,
+    showCorrectAnswers: false,
     passingScore: 70,
-    questionCount: 15,
-    createdDate: "2024-01-15",
-    status: "Active",
+    hasTimeLimit: true,
+    timeLimit: 30,
+    maxRetakes: 3,
+    hasCertificate: false,
+    certificateTemplate: null,
+    xpPoints: 50,
+    createdAt: "2024-01-15",
   },
   {
     id: 2,
-    name: "Python Data Analysis Project",
+    title: "Python Data Analysis Project",
     description: "Hands-on project using Python for data analysis",
-    course: "Data Analysis with Python",
-    type: "Project",
-    duration: "2 hours",
+    trainingAreaId: 2,
+    moduleId: 2,
+    unitId: 2,
+    courseId: 2,
+    placement: "end",
+    isGraded: true,
+    showCorrectAnswers: true,
     passingScore: 80,
-    questionCount: 0,
-    createdDate: "2024-01-10",
-    status: "Active",
+    hasTimeLimit: false,
+    timeLimit: null,
+    maxRetakes: 2,
+    hasCertificate: true,
+    certificateTemplate: "python_certificate",
+    xpPoints: 100,
+    createdAt: "2024-01-10",
   },
   {
     id: 3,
-    name: "Leadership Skills Assessment",
+    title: "Leadership Skills Assessment",
     description: "Evaluate leadership and management capabilities",
-    course: "Team Leadership Workshop",
-    type: "Case Study",
-    duration: "45 minutes",
+    trainingAreaId: 3,
+    moduleId: 3,
+    unitId: 3,
+    courseId: 3,
+    placement: "middle",
+    isGraded: true,
+    showCorrectAnswers: false,
     passingScore: 75,
-    questionCount: 8,
-    createdDate: "2024-01-20",
-    status: "Draft",
+    hasTimeLimit: true,
+    timeLimit: 45,
+    maxRetakes: 1,
+    hasCertificate: false,
+    certificateTemplate: null,
+    xpPoints: 75,
+    createdAt: "2024-01-20",
   },
 ];
 
@@ -56,10 +80,9 @@ const AssessmentsPage = () => {
     } else {
       const filtered = assessments.filter(
         (assessment) =>
-          assessment.name.toLowerCase().includes(query.toLowerCase()) ||
+          assessment.title.toLowerCase().includes(query.toLowerCase()) ||
           assessment.description.toLowerCase().includes(query.toLowerCase()) ||
-          assessment.course.toLowerCase().includes(query.toLowerCase()) ||
-          assessment.type.toLowerCase().includes(query.toLowerCase())
+          assessment.placement.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredAssessments(filtered);
     }
@@ -68,15 +91,23 @@ const AssessmentsPage = () => {
   const handleCreateAssessment = (formData: any) => {
     const newAssessment = {
       id: assessments.length + 1,
-      name: formData.name,
+      title: formData.title,
       description: formData.description,
-      course: formData.course,
-      type: formData.type,
-      duration: formData.duration,
+      trainingAreaId: parseInt(formData.trainingAreaId),
+      moduleId: parseInt(formData.moduleId),
+      unitId: parseInt(formData.unitId),
+      courseId: parseInt(formData.courseId),
+      placement: formData.placement,
+      isGraded: formData.isGraded === "true",
+      showCorrectAnswers: formData.showCorrectAnswers === "true",
       passingScore: parseInt(formData.passingScore),
-      questionCount: 0,
-      createdDate: new Date().toISOString().split("T")[0],
-      status: "Draft",
+      hasTimeLimit: formData.hasTimeLimit === "true",
+      timeLimit: formData.timeLimit ? parseInt(formData.timeLimit) : null,
+      maxRetakes: parseInt(formData.maxRetakes),
+      hasCertificate: formData.hasCertificate === "true",
+      certificateTemplate: formData.certificateTemplate || null,
+      xpPoints: parseInt(formData.xpPoints),
+      createdAt: new Date().toISOString().split("T")[0],
     };
     setAssessments([...assessments, newAssessment]);
     setFilteredAssessments([...assessments, newAssessment]);
@@ -180,15 +211,18 @@ const AssessmentsPage = () => {
   };
 
   const columns = [
-    "Name",
+    "Title",
     "Description",
-    "Course",
-    "Type",
-    "Duration",
+    "Training Area ID",
+    "Module ID",
+    "Unit ID",
+    "Course ID",
+    "Placement",
     "Passing Score",
-    "Questions",
-    "Created Date",
-    "Status",
+    "Time Limit",
+    "Max Retakes",
+    "XP Points",
+    "Created At",
     "Actions",
   ];
 

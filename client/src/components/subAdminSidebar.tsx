@@ -7,6 +7,7 @@ import {
   Logout as LogOut,
   Person as User,
   School,
+  ArrowLeft,
 } from "@mui/icons-material";
 
 import {
@@ -52,11 +53,17 @@ const SubAdminSidebar = () => {
             <School sx={{ fontSize: 16, color: "#00d8cc" }} />
             {state === "expanded" && (
               <div className="flex flex-col">
-                <h2 className="text-sm font-semibold">Sub Admin</h2>
+                <h2 className="text-sm font-semibold">VX Academy</h2>
                 <p className="text-xs text-muted-foreground"></p>
               </div>
             )}
           </div>
+
+          {state === "expanded" && (
+            <div className="cursor-pointer">
+              <ArrowLeft />
+            </div>
+          )}
         </Button>
       </SidebarHeader>
 
@@ -89,7 +96,7 @@ const SubAdminSidebar = () => {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="#profile">
+                  <Link to="/profile">
                     <User sx={{ fontSize: 16 }} />
                     <span>Profile</span>
                   </Link>

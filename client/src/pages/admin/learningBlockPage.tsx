@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
-import AdminTableLayout from "@/components/AdminTableLayout";
+import AdminTableLayout from "@/components/adminTableLayout";
 
 // Mock data for learning blocks
 const mockLearningBlocks = [
@@ -171,14 +171,16 @@ const LearningBlockPage = () => {
   };
 
   const columns = [
-    "Name",
-    "Description",
-    "Unit",
+    "Title",
     "Type",
-    "Duration",
-    "Difficulty",
-    "Created Date",
-    "Status",
+    "Unit ID",
+    "Content",
+    "Video URL",
+    "Image URL",
+    "Order",
+    "XP Points",
+    "Created At",
+    "Updated At",
     "Actions",
   ];
 

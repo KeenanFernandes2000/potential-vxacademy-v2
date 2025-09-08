@@ -155,13 +155,15 @@ const OrganizationPage = () => {
   };
 
   const columns = [
-    "Name",
-    "Type",
-    "Location",
-    "Contact Email",
-    "Users",
-    "Created Date",
-    "Status",
+    "Organization",
+    "Sub Organization",
+    "Asset",
+    "Sub Asset",
+    "User Type",
+    "Email",
+    "First Name",
+    "Last Name",
+    "Created At",
     "Actions",
   ];
 
