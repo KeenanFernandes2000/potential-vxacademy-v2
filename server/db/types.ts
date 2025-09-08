@@ -8,6 +8,8 @@ import {
   roleCategories,
   roles,
   seniorityLevels,
+  passwordResets,
+  invitations,
   trainingAreas,
   modules,
   courses,
@@ -43,6 +45,13 @@ export type NormalUser = InferSelectModel<typeof normalUsers>;
 export type NewNormalUser = Omit<
   InferInsertModel<typeof normalUsers>,
   "userId"
+>;
+
+// Password reset types
+export type PasswordReset = InferSelectModel<typeof passwordResets>;
+export type NewPasswordReset = Omit<
+  InferInsertModel<typeof passwordResets>,
+  "id"
 >;
 
 // Reference types
@@ -186,5 +195,13 @@ export type NewUserLearningBlockProgress = Omit<
   "id" | "startedAt" | "completedAt" | "userId" | "learningBlockId"
 >;
 
+// Invitation types
+export type Invitation = InferSelectModel<typeof invitations>;
+export type NewInvitation = Omit<
+  InferInsertModel<typeof invitations>,
+  "id" | "createdAt"
+>;
+
 // Enum types
 export type ProgressStatus = "not_started" | "in_progress" | "completed";
+export type InvitationType = "new_joiner" | "existing_joiner";

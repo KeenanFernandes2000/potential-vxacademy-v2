@@ -8,6 +8,20 @@ import { authorizeRoles } from "../middleware/userTypeAuth";
 // ==================== AUTHENTICATION FUNCTIONS ====================
 router.post("/login", userControllers.login); // logout function shoudl be on client side only
 
+// ==================== PASSWORD RESET FUNCTIONS ====================
+router.post(
+  "/password-reset/request",
+  asyncHandler(userControllers.requestPasswordReset)
+);
+router.get(
+  "/password-reset/verify/:token",
+  asyncHandler(userControllers.verifyPasswordResetToken)
+);
+router.post(
+  "/password-reset/reset",
+  asyncHandler(userControllers.resetPassword)
+);
+
 // JWT Authentication Middleware
 // const authenticateJWT = passport.authenticate("jwt", { session: false });
 // authenticateJWT,authorizeRoles("admin"), -> add this to the routes that you want to protect
@@ -55,6 +69,31 @@ router.post(
 router.delete(
   "/seniority-levels/:id",
   asyncHandler(userControllers.deleteSeniorityLevel)
+);
+
+// ==================== SUB-ADMIN CREATION & REGISTRATION FUNCTIONS ====================
+router.post(
+  "/sub-admins/register/:id",
+  asyncHandler(userControllers.completeSubAdminRegistration)
+);
+router.get(
+  "/sub-admins/registration/:id",
+  asyncHandler(userControllers.getSubAdminRegistrationDetails)
+);
+
+// ==================== INVITATION FUNCTIONS ====================
+router.post("/invitations", asyncHandler(userControllers.createInvitation));
+router.get(
+  "/invitations/verify/:token",
+  asyncHandler(userControllers.getInvitationByToken)
+);
+router.get(
+  "/invitations/creator/:createdBy",
+  asyncHandler(userControllers.getInvitationsByCreator)
+);
+router.delete(
+  "/invitations/token/:token",
+  asyncHandler(userControllers.deleteInvitationByToken)
 );
 
 export default router;

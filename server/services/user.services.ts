@@ -1,7 +1,23 @@
-import { eq } from "drizzle-orm";
+import { eq, and, lt, gt } from "drizzle-orm";
 import { db } from "../db/connection";
-import { users, subAdmins, normalUsers } from "../db/schema/users";
-import type { User, NewUser, UpdateUser } from "../db/types";
+import {
+  users,
+  subAdmins,
+  normalUsers,
+  passwordResets,
+  invitations,
+} from "../db/schema/users";
+import type {
+  User,
+  NewUser,
+  UpdateUser,
+  PasswordReset,
+  NewPasswordReset,
+  Invitation,
+  NewInvitation,
+  InvitationType,
+} from "../db/types";
+import crypto from "crypto";
 
 export class UserService {
   /**
@@ -21,6 +37,19 @@ export class UserService {
     }
 
     return result[0];
+  }
+
+  /**
+   * Get user by ID (basic info only)
+   */
+  static async getUserById(id: number): Promise<User | null> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
+
+    return user || null;
   }
 
   /**
@@ -185,5 +214,320 @@ export class UserService {
       .update(users)
       .set({ lastLogin: new Date() })
       .where(eq(users.id, id));
+  }
+
+  /**
+   * Update user's password
+   */
+  static async updateSubAdminPasswordRegistration(
+    id: number,
+    passwordHash: string
+  ): Promise<void> {
+    await db
+      .update(users)
+      .set({
+        passwordHash: passwordHash,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id));
+  }
+}
+
+export class InvitationService {
+  /**
+   * Hash a token for database storage
+   */
+  private static hashToken(token: string): string {
+    return crypto.createHash("sha256").update(token).digest("hex");
+  }
+
+  /**
+   * Create a new invitation link
+   */
+  static async createInvitation(
+    createdBy: number,
+    type: InvitationType
+  ): Promise<{ token: string }> {
+    // Generate a unique token
+    const token = crypto.randomBytes(32).toString("hex");
+    const tokenHash = this.hashToken(token);
+
+    // Verify that the creator is a sub-admin
+    const [subAdmin] = await db
+      .select()
+      .from(subAdmins)
+      .where(eq(subAdmins.userId, createdBy))
+      .limit(1);
+
+    if (!subAdmin) {
+      throw new Error("Only sub-admins can create invitations");
+    }
+
+    const invitationData: NewInvitation = {
+      createdBy,
+      type,
+      tokenHash,
+    };
+
+    const [newInvitation] = await db
+      .insert(invitations)
+      .values(invitationData)
+      .returning();
+
+    if (!newInvitation) {
+      throw new Error("Failed to create invitation");
+    }
+
+    return {
+      token, // Return the unhashed token for the link
+    };
+  }
+
+  /**
+   * Get invitation by token and return with sub-admin details
+   */
+  static async getInvitationByToken(token: string): Promise<{
+    invitation: Invitation;
+    subAdminDetails: {
+      user: User;
+      subAdmin: any;
+    };
+  } | null> {
+    const tokenHash = this.hashToken(token);
+
+    // Get invitation with sub-admin details
+    const [invitation] = await db
+      .select()
+      .from(invitations)
+      .where(eq(invitations.tokenHash, tokenHash))
+      .limit(1);
+
+    if (!invitation) {
+      return null;
+    }
+
+    // Get sub-admin details
+    const [subAdminUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, invitation.createdBy))
+      .limit(1);
+
+    const [subAdminDetails] = await db
+      .select()
+      .from(subAdmins)
+      .where(eq(subAdmins.userId, invitation.createdBy))
+      .limit(1);
+
+    if (!subAdminUser || !subAdminDetails) {
+      throw new Error("Sub-admin details not found");
+    }
+
+    return {
+      invitation,
+      subAdminDetails: {
+        user: subAdminUser,
+        subAdmin: subAdminDetails,
+      },
+    };
+  }
+
+  /**
+   * Get all invitations created by a sub-admin
+   */
+  static async getInvitationsByCreator(
+    createdBy: number
+  ): Promise<Invitation[]> {
+    return await db
+      .select()
+      .from(invitations)
+      .where(eq(invitations.createdBy, createdBy));
+  }
+
+  /**
+   * Delete an invitation by token
+   */
+  static async deleteInvitationByToken(token: string): Promise<boolean> {
+    const tokenHash = this.hashToken(token);
+
+    const result = await db
+      .delete(invitations)
+      .where(eq(invitations.tokenHash, tokenHash))
+      .returning({ id: invitations.id });
+
+    return result.length > 0;
+  }
+}
+
+export class PasswordResetService {
+  /**
+   * Hash a token for database storage
+   */
+  private static hashToken(token: string): string {
+    return crypto.createHash("sha256").update(token).digest("hex");
+  }
+
+  /**
+   * Create a new password reset request
+   */
+  static async createPasswordResetRequest(
+    email: string
+  ): Promise<{ token: string } | null> {
+    // Check if user exists
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email.toLowerCase().trim()))
+      .limit(1);
+
+    if (!user) {
+      // For security, we don't reveal if email exists or not
+      return null;
+    }
+
+    // Generate a unique token
+    const token = crypto.randomBytes(32).toString("hex");
+    const tokenHash = this.hashToken(token);
+
+    // Set expiration to 1 hour from now
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    // Clean up any existing unused password reset tokens for this user
+    await db
+      .delete(passwordResets)
+      .where(
+        and(eq(passwordResets.userId, user.id), eq(passwordResets.used, false))
+      );
+
+    // Create new password reset record
+    const passwordResetData: NewPasswordReset = {
+      userId: user.id,
+      tokenHash,
+      expiresAt,
+      used: false,
+    };
+
+    const [newPasswordReset] = await db
+      .insert(passwordResets)
+      .values(passwordResetData)
+      .returning();
+
+    if (!newPasswordReset) {
+      throw new Error("Failed to create password reset request");
+    }
+
+    return {
+      token, // Return the unhashed token for the email link
+    };
+  }
+
+  /**
+   * Verify password reset token and return user info
+   */
+  static async verifyPasswordResetToken(token: string): Promise<{
+    passwordReset: PasswordReset;
+    user: User;
+  } | null> {
+    const tokenHash = this.hashToken(token);
+
+    // Get password reset record with user details
+    const [passwordReset] = await db
+      .select()
+      .from(passwordResets)
+      .where(
+        and(
+          eq(passwordResets.tokenHash, tokenHash),
+          eq(passwordResets.used, false),
+          gt(passwordResets.expiresAt, new Date()) // Token not expired
+        )
+      )
+      .limit(1);
+
+    if (!passwordReset) {
+      return null;
+    }
+
+    // Get user details
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, passwordReset.userId))
+      .limit(1);
+
+    if (!user) {
+      throw new Error("User not found for password reset");
+    }
+
+    return {
+      passwordReset,
+      user,
+    };
+  }
+
+  /**
+   * Reset password using token
+   */
+  static async resetPassword(
+    token: string,
+    newPasswordHash: string
+  ): Promise<boolean> {
+    const tokenHash = this.hashToken(token);
+
+    // First verify the token is valid
+    const verification = await this.verifyPasswordResetToken(token);
+    if (!verification) {
+      return false;
+    }
+
+    const { passwordReset, user } = verification;
+
+    try {
+      // Start transaction - update password and mark token as used
+      await db.transaction(async (tx) => {
+        // Update user password
+        await tx
+          .update(users)
+          .set({
+            passwordHash: newPasswordHash,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, user.id));
+
+        // Mark password reset token as used
+        await tx
+          .update(passwordResets)
+          .set({ used: true })
+          .where(eq(passwordResets.id, passwordReset.id));
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Clean up expired password reset tokens
+   */
+  static async cleanupExpiredTokens(): Promise<number> {
+    const result = await db
+      .delete(passwordResets)
+      .where(lt(passwordResets.expiresAt, new Date()))
+      .returning({ id: passwordResets.id });
+
+    return result.length;
+  }
+
+  /**
+   * Get password reset request by user ID (for admin purposes)
+   */
+  static async getPasswordResetsByUserId(
+    userId: number
+  ): Promise<PasswordReset[]> {
+    return await db
+      .select()
+      .from(passwordResets)
+      .where(eq(passwordResets.userId, userId));
   }
 }

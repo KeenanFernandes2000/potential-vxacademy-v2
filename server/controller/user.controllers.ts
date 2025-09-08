@@ -1,6 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
-import { UserService } from "../services/user.services";
-import type { NewUser, UpdateUser } from "../db/types";
+import {
+  UserService,
+  InvitationService,
+  PasswordResetService,
+} from "../services/user.services";
+import type { NewUser, UpdateUser, InvitationType } from "../db/types";
 import type { CustomError } from "../middleware/errorHandling";
 import { db } from "../db/connection";
 import {
@@ -9,12 +13,14 @@ import {
   roleCategories,
   roles,
   seniorityLevels,
+  passwordResets,
   subAdmins,
   normalUsers,
 } from "../db/schema/users";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import passport from "../middleware/passport";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
@@ -187,12 +193,20 @@ const validateUpdateUserInput = (
   };
 };
 
-const validateSubAdminInput = (
+const validateSubAdminRegistrationInput = (
   data: any
 ): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  // Required fields validation
+  // Required fields for sub-admin registration completion
+  if (
+    !data.password ||
+    typeof data.password !== "string" ||
+    data.password.length < 6
+  ) {
+    errors.push("Password is required and must be at least 6 characters long");
+  }
+
   if (
     !data.jobTitle ||
     typeof data.jobTitle !== "string" ||
@@ -218,11 +232,15 @@ const validateSubAdminInput = (
   }
 
   // Optional field validation
-  if (
-    data.totalFrontliners !== undefined &&
-    (typeof data.totalFrontliners !== "number" || data.totalFrontliners < 0)
-  ) {
-    errors.push("Total frontliners must be a non-negative number if provided");
+  if (data.totalFrontliners !== undefined && data.totalFrontliners !== null) {
+    if (
+      typeof data.totalFrontliners !== "number" ||
+      data.totalFrontliners < 0
+    ) {
+      errors.push(
+        "Total frontliners must be a non-negative number if provided"
+      );
+    }
   }
 
   return {
@@ -371,6 +389,54 @@ const validateUpdateNormalUserInput = (
     ) {
       errors.push("Phone number must be a non-empty string");
     }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+};
+
+const validatePasswordResetRequestInput = (
+  data: any
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+
+  if (!data.email || typeof data.email !== "string") {
+    errors.push("Email is required and must be a string");
+  } else {
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      errors.push("Email must be a valid email address");
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+};
+
+const validatePasswordResetInput = (
+  data: any
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+
+  if (
+    !data.token ||
+    typeof data.token !== "string" ||
+    data.token.trim().length === 0
+  ) {
+    errors.push("Reset token is required and must be a non-empty string");
+  }
+
+  if (
+    !data.password ||
+    typeof data.password !== "string" ||
+    data.password.length < 6
+  ) {
+    errors.push("Password is required and must be at least 6 characters long");
   }
 
   return {
@@ -621,10 +687,13 @@ export class userControllers {
   // ==================== SUB-ADMIN CU FUNCTIONS ====================
 
   /**
-   * Register a user as a sub-admin
-   * POST /users/:id/register-sub-admin
+   * Complete sub-admin registration (sub-admin completes their profile)
+   * POST /sub-admins/register/:id
    */
-  static async registerSubAdmin(req: Request, res: Response): Promise<void> {
+  static async completeSubAdminRegistration(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     const userId = parseInt(req.params.id as string);
 
     if (isNaN(userId) || userId <= 0) {
@@ -632,20 +701,24 @@ export class userControllers {
     }
 
     // Validate input data
-    const validation = validateSubAdminInput(req.body);
+    const validation = validateSubAdminRegistrationInput(req.body);
     if (!validation.isValid) {
       throw createError("Validation failed", 400, validation.errors);
     }
 
-    const { jobTitle, totalFrontliners, eid, phoneNumber } = req.body;
+    const { password, jobTitle, totalFrontliners, eid, phoneNumber } = req.body;
 
-    // Check if user exists
-    const existingUser = await UserService.userExists(userId);
+    // Check if user exists and is a sub-admin
+    const existingUser = await UserService.getUserById(userId);
     if (!existingUser) {
       throw createError("User not found", 404);
     }
 
-    // Check if user is already registered as sub-admin
+    if (existingUser.userType !== "sub_admin") {
+      throw createError("User is not a sub-admin", 400);
+    }
+
+    // Check if sub-admin is already registered (has sub-admin details)
     const [existingSubAdmin] = await db
       .select()
       .from(subAdmins)
@@ -653,7 +726,7 @@ export class userControllers {
       .limit(1);
 
     if (existingSubAdmin) {
-      throw createError("User is already registered as a sub-admin", 409);
+      throw createError("Sub-admin registration is already completed", 409);
     }
 
     // Check if EID is already taken
@@ -667,6 +740,15 @@ export class userControllers {
       throw createError("EID is already taken by another sub-admin", 409);
     }
 
+    // Update password and create sub-admin record
+    const newPasswordHash = await bcrypt.hash(password, 10);
+
+    // Update user password
+    await UserService.updateSubAdminPasswordRegistration(
+      userId,
+      newPasswordHash
+    );
+
     // Create sub-admin record
     const [newSubAdmin] = await db
       .insert(subAdmins)
@@ -679,13 +761,26 @@ export class userControllers {
       })
       .returning();
 
-    // Update the main users table timestamp
-    await UserService.updateUserTimestamp(userId);
+    // Generate JWT token for auto-login after registration
+    const token = jwt.sign(
+      { id: existingUser.id, email: existingUser.email },
+      JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: "User registered as sub-admin successfully",
-      data: newSubAdmin,
+      message: "Sub-admin registration completed successfully",
+      token,
+      data: {
+        user: {
+          id: existingUser.id,
+          email: existingUser.email,
+          firstName: existingUser.firstName,
+          lastName: existingUser.lastName,
+          userType: existingUser.userType,
+        },
+      },
     });
   }
 
@@ -753,6 +848,53 @@ export class userControllers {
       success: true,
       message: "Sub-admin updated successfully",
       data: updatedSubAdmin,
+    });
+  }
+
+  /**
+   * Get sub-admin registration details by ID (for the registration form)
+   * GET /sub-admins/registration/:id
+   */
+  static async getSubAdminRegistrationDetails(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const userId = parseInt(req.params.id as string);
+
+    if (isNaN(userId) || userId <= 0) {
+      throw createError("Invalid user ID", 400);
+    }
+
+    // Get user details
+    const user = await UserService.getUserById(userId);
+    if (!user) {
+      throw createError("User not found", 404);
+    }
+
+    if (user.userType !== "sub_admin") {
+      throw createError("User is not a sub-admin", 400);
+    }
+
+    // Check if sub-admin is already registered
+    const [existingSubAdmin] = await db
+      .select()
+      .from(subAdmins)
+      .where(eq(subAdmins.userId, userId))
+      .limit(1);
+
+    if (existingSubAdmin) {
+      throw createError("Sub-admin registration is already completed", 409);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Sub-admin details retrieved successfully",
+      data: {
+        organization: user.organization,
+        subOrganization: user.subOrganization,
+        asset: user.asset,
+        subAsset: user.subAsset,
+      },
     });
   }
 
@@ -1512,5 +1654,261 @@ export class userControllers {
       success: true,
       message: "Seniority level deleted successfully",
     });
+  }
+
+  // ==================== INVITATION FUNCTIONS ====================
+
+  /**
+   * Create a new invitation link
+   * POST /invitations
+   */
+  static async createInvitation(req: Request, res: Response): Promise<void> {
+    const { type } = req.body;
+    const createdBy = parseInt(req.body.createdBy as string);
+
+    // Validate invitation type
+    if (!type || !["new_joiner", "existing_joiner"].includes(type)) {
+      throw createError(
+        "Type is required and must be either 'new_joiner' or 'existing_joiner'",
+        400
+      );
+    }
+
+    // Validate creator ID
+    if (isNaN(createdBy) || createdBy <= 0) {
+      throw createError("Valid creator ID is required", 400);
+    }
+
+    const result = await InvitationService.createInvitation(
+      createdBy,
+      type as InvitationType
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Invitation created successfully",
+      data: {
+        invitationLink: `${process.env.FRONTEND_URL}/join?token=${result.token}`,
+      },
+    });
+  }
+
+  /**
+   * Get invitation by token with sub-admin details
+   * GET /invitations/verify/:token
+   */
+  static async getInvitationByToken(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const { token } = req.params;
+
+    if (!token || typeof token !== "string" || token.trim().length === 0) {
+      throw createError("Valid token is required", 400);
+    }
+
+    const result = await InvitationService.getInvitationByToken(token.trim());
+
+    if (!result) {
+      throw createError("Invalid or expired invitation token", 404);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Invitation retrieved successfully",
+      data: {
+        subAdmin: {
+          organization: result.subAdminDetails.user.organization,
+          subOrganization: result.subAdminDetails.user.subOrganization,
+          asset: result.subAdminDetails.user.asset,
+          subAsset: result.subAdminDetails.user.subAsset,
+        },
+      },
+    });
+  }
+
+  /**
+   * Get all invitations created by a sub-admin
+   * GET /invitations/creator/:createdBy
+   */
+  static async getInvitationsByCreator(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const createdBy = parseInt(req.params.createdBy as string);
+
+    if (isNaN(createdBy) || createdBy <= 0) {
+      throw createError("Valid creator ID is required", 400);
+    }
+
+    try {
+      const invitations = await InvitationService.getInvitationsByCreator(
+        createdBy
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Invitations retrieved successfully",
+        data: {
+          invitations,
+        },
+      });
+    } catch (error: any) {
+      throw createError(error.message || "Failed to retrieve invitations", 500);
+    }
+  }
+
+  /**
+   * Delete an invitation by token
+   * DELETE /invitations/token/:token
+   */
+  static async deleteInvitationByToken(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const { token } = req.params;
+
+    if (!token || typeof token !== "string" || token.trim().length === 0) {
+      throw createError("Valid token is required", 400);
+    }
+
+    const deleted = await InvitationService.deleteInvitationByToken(
+      token.trim()
+    );
+
+    if (!deleted) {
+      throw createError("Invitation not found", 404);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Invitation deleted successfully",
+    });
+  }
+
+  // ==================== PASSWORD RESET FUNCTIONS ====================
+
+  /**
+   * Request password reset (send reset link to email)
+   * POST /password-reset/request
+   */
+  static async requestPasswordReset(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const validation = validatePasswordResetRequestInput(req.body);
+
+    if (!validation.isValid) {
+      throw createError("Validation failed", 400, validation.errors);
+    }
+
+    const { email } = req.body;
+
+    try {
+      const result = await PasswordResetService.createPasswordResetRequest(
+        email
+      );
+
+      // Always return success for security (don't reveal if email exists)
+      res.status(200).json({
+        success: true,
+        message:
+          "If an account with this email exists, a password reset link has been sent.",
+      });
+
+      // In a real application, you would send an email here with the reset link
+      // Example: await EmailService.sendPasswordResetEmail(email, result?.token);
+      if (result?.token) {
+        console.log(`Password reset token for ${email}: ${result.token}`);
+        console.log(
+          `Reset link: ${
+            process.env.FRONTEND_URL || "http://localhost:3000"
+          }/reset-password?token=${result.token}`
+        );
+      }
+    } catch (error: any) {
+      console.error("Password reset request error:", error);
+      throw createError("Failed to process password reset request", 500);
+    }
+  }
+
+  /**
+   * Verify password reset token
+   * GET /password-reset/verify/:token
+   */
+  static async verifyPasswordResetToken(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const { token } = req.params;
+
+    if (!token || typeof token !== "string" || token.trim().length === 0) {
+      throw createError("Valid token is required", 400);
+    }
+
+    try {
+      const result = await PasswordResetService.verifyPasswordResetToken(
+        token.trim()
+      );
+
+      if (!result) {
+        throw createError("Invalid or expired password reset token", 400);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Password reset token is valid",
+        data: {
+          email: result.user.email,
+          firstName: result.user.firstName,
+          lastName: result.user.lastName,
+        },
+      });
+    } catch (error: any) {
+      console.error("Password reset token verification error:", error);
+      if (error.statusCode) {
+        throw error;
+      }
+      throw createError("Failed to verify password reset token", 500);
+    }
+  }
+
+  /**
+   * Reset password using token
+   * POST /password-reset/reset
+   */
+  static async resetPassword(req: Request, res: Response): Promise<void> {
+    const validation = validatePasswordResetInput(req.body);
+
+    if (!validation.isValid) {
+      throw createError("Validation failed", 400, validation.errors);
+    }
+
+    const { token, password } = req.body;
+
+    try {
+      // Hash the new password
+      const newPasswordHash = await bcrypt.hash(password, 10);
+
+      const success = await PasswordResetService.resetPassword(
+        token.trim(),
+        newPasswordHash
+      );
+
+      if (!success) {
+        throw createError("Invalid or expired password reset token", 400);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Password has been reset successfully",
+      });
+    } catch (error: any) {
+      console.error("Password reset error:", error);
+      if (error.statusCode) {
+        throw error;
+      }
+      throw createError("Failed to reset password", 500);
+    }
   }
 }
