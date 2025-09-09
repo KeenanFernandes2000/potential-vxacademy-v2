@@ -18,7 +18,7 @@ const api = {
   async getAllUsers(token: string) {
     try {
       const baseUrl = import.meta.env.VITE_BACKEND_URL;
-      const response = await fetch(`${baseUrl}/api/users/`, {
+      const response = await fetch(`${baseUrl}/api/users/users`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -41,7 +41,7 @@ const api = {
   async createUser(userData: any, token: string) {
     try {
       const baseUrl = import.meta.env.VITE_BACKEND_URL;
-      const response = await fetch(`${baseUrl}/api/users/`, {
+      const response = await fetch(`${baseUrl}/api/users/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -65,7 +65,7 @@ const api = {
   async updateUser(userId: number, userData: any, token: string) {
     try {
       const baseUrl = import.meta.env.VITE_BACKEND_URL;
-      const response = await fetch(`${baseUrl}/api/users/${userId}`, {
+      const response = await fetch(`${baseUrl}/api/users/users/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -89,7 +89,7 @@ const api = {
   async deleteUser(userId: number, token: string) {
     try {
       const baseUrl = import.meta.env.VITE_BACKEND_URL;
-      const response = await fetch(`${baseUrl}/api/users/${userId}`, {
+      const response = await fetch(`${baseUrl}/api/users/users/${userId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
