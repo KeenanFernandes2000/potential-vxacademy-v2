@@ -1,4 +1,4 @@
-import { eq, and, lt, gt } from "drizzle-orm";
+import { eq, and, lt, gt, ne } from "drizzle-orm";
 import { db } from "../db/connection";
 import {
   users,
@@ -6,6 +6,7 @@ import {
   normalUsers,
   passwordResets,
   invitations,
+  organizations,
 } from "../db/schema/users";
 import type {
   User,
@@ -16,6 +17,9 @@ import type {
   Invitation,
   NewInvitation,
   InvitationType,
+  Organization,
+  NewOrganization,
+  UpdateOrganization,
 } from "../db/types";
 import crypto from "crypto";
 
@@ -230,6 +234,99 @@ export class UserService {
         updatedAt: new Date(),
       })
       .where(eq(users.id, id));
+  }
+
+  // ==================== ORGANIZATION CRUD FUNCTIONS ====================
+
+  /**
+   * Create a new organization
+   */
+  static async createOrganization(
+    organizationData: NewOrganization
+  ): Promise<Organization> {
+    const result = await db
+      .insert(organizations)
+      .values(organizationData)
+      .returning();
+
+    if (!result[0]) {
+      throw new Error("Failed to create organization");
+    }
+
+    return result[0];
+  }
+
+  /**
+   * Get all organizations
+   */
+  static async getAllOrganizations(): Promise<Organization[]> {
+    return await db.select().from(organizations);
+  }
+
+  /**
+   * Get organization by ID
+   */
+  static async getOrganizationById(id: number): Promise<Organization | null> {
+    const [organization] = await db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, id))
+      .limit(1);
+
+    return organization || null;
+  }
+
+  /**
+   * Update organization
+   */
+  static async updateOrganization(
+    id: number,
+    updateData: UpdateOrganization
+  ): Promise<Organization | null> {
+    const [updatedOrganization] = await db
+      .update(organizations)
+      .set(updateData)
+      .where(eq(organizations.id, id))
+      .returning();
+
+    return updatedOrganization || null;
+  }
+
+  /**
+   * Delete organization
+   */
+  static async deleteOrganization(id: number): Promise<boolean> {
+    const result = await db
+      .delete(organizations)
+      .where(eq(organizations.id, id))
+      .returning({ id: organizations.id });
+
+    return result.length > 0;
+  }
+
+  /**
+   * Check if organization name exists
+   */
+  static async organizationNameExists(
+    name: string,
+    excludeId?: number
+  ): Promise<boolean> {
+    let whereCondition = eq(organizations.name, name);
+
+    if (excludeId) {
+      whereCondition = and(
+        eq(organizations.name, name),
+        ne(organizations.id, excludeId)
+      );
+    }
+
+    const result = await db
+      .select({ id: organizations.id })
+      .from(organizations)
+      .where(whereCondition)
+      .limit(1);
+
+    return result.length > 0;
   }
 }
 

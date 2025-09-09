@@ -5,6 +5,7 @@ import {
   normalUsers,
   assets,
   subAssets,
+  organizations,
   roleCategories,
   roles,
   seniorityLevels,
@@ -28,7 +29,7 @@ import {
   userTrainingAreaProgress,
   userModuleProgress,
   userCourseProgress,
-  userUnitProgress,
+  userCourseUnitProgress,
   userLearningBlockProgress,
 } from "./schema";
 
@@ -75,59 +76,79 @@ export type NewSeniorityLevel = Omit<
   "id"
 >;
 
+// Organization types
+export type Organization = InferSelectModel<typeof organizations>;
+export type NewOrganization = Omit<
+  InferInsertModel<typeof organizations>,
+  "id"
+>;
+export type UpdateOrganization = Partial<NewOrganization>;
+
 // Training types
 export type TrainingArea = InferSelectModel<typeof trainingAreas>;
 export type NewTrainingArea = Omit<
   InferInsertModel<typeof trainingAreas>,
   "id" | "createdAt" | "updatedAt"
 >;
+export type UpdateTrainingArea = Partial<Omit<NewTrainingArea, "createdAt">>;
+
 export type Module = InferSelectModel<typeof modules>;
 export type NewModule = Omit<
   InferInsertModel<typeof modules>,
-  "id" | "createdAt" | "updatedAt" | "trainingAreaId"
+  "id" | "createdAt" | "updatedAt"
 >;
+export type UpdateModule = Partial<Omit<NewModule, "createdAt">>;
+
 export type Course = InferSelectModel<typeof courses>;
 export type NewCourse = Omit<
   InferInsertModel<typeof courses>,
-  "id" | "createdAt" | "updatedAt" | "moduleId"
+  "id" | "createdAt" | "updatedAt"
 >;
+export type UpdateCourse = Partial<Omit<NewCourse, "createdAt">>;
+
 export type Unit = InferSelectModel<typeof units>;
 export type NewUnit = Omit<
   InferInsertModel<typeof units>,
   "id" | "createdAt" | "updatedAt"
 >;
+export type UpdateUnit = Partial<Omit<NewUnit, "createdAt">>;
+
 export type CourseUnit = InferSelectModel<typeof courseUnits>;
 export type NewCourseUnit = Omit<
   InferInsertModel<typeof courseUnits>,
-  "id" | "createdAt" | "updatedAt" | "courseId" | "unitId"
+  "id" | "createdAt" | "updatedAt"
 >;
+export type UpdateCourseUnit = Partial<Omit<NewCourseUnit, "createdAt">>;
+
 export type LearningBlock = InferSelectModel<typeof learningBlocks>;
 export type NewLearningBlock = Omit<
   InferInsertModel<typeof learningBlocks>,
-  "id" | "createdAt" | "updatedAt" | "unitId"
+  "id" | "createdAt" | "updatedAt"
 >;
+export type UpdateLearningBlock = Partial<Omit<NewLearningBlock, "createdAt">>;
 
 // Assessment types
 export type Assessment = InferSelectModel<typeof assessments>;
 export type NewAssessment = Omit<
   InferInsertModel<typeof assessments>,
-  | "id"
-  | "createdAt"
-  | "updatedAt"
-  | "trainingAreaId"
-  | "moduleId"
-  | "unitId"
-  | "courseId"
+  "id" | "createdAt" | "updatedAt"
 >;
+export type UpdateAssessment = Partial<Omit<NewAssessment, "createdAt">>;
+
 export type Question = InferSelectModel<typeof questions>;
 export type NewQuestion = Omit<
   InferInsertModel<typeof questions>,
-  "id" | "createdAt" | "updatedAt" | "assessmentId"
+  "id" | "createdAt" | "updatedAt"
 >;
+export type UpdateQuestion = Partial<Omit<NewQuestion, "createdAt">>;
+
 export type AssessmentAttempt = InferSelectModel<typeof assessmentAttempts>;
 export type NewAssessmentAttempt = Omit<
   InferInsertModel<typeof assessmentAttempts>,
-  "id" | "startedAt" | "completedAt" | "userId" | "assessmentId"
+  "id" | "startedAt" | "completedAt"
+>;
+export type UpdateAssessmentAttempt = Partial<
+  Omit<NewAssessmentAttempt, "userId" | "assessmentId">
 >;
 
 // Gamification types
@@ -183,10 +204,12 @@ export type NewUserCourseProgress = Omit<
   InferInsertModel<typeof userCourseProgress>,
   "id" | "startedAt" | "completedAt" | "userId" | "courseId"
 >;
-export type UserUnitProgress = InferSelectModel<typeof userUnitProgress>;
-export type NewUserUnitProgress = Omit<
-  InferInsertModel<typeof userUnitProgress>,
-  "id" | "startedAt" | "completedAt" | "userId" | "unitId"
+export type UserCourseUnitProgress = InferSelectModel<
+  typeof userCourseUnitProgress
+>;
+export type NewUserCourseUnitProgress = Omit<
+  InferInsertModel<typeof userCourseUnitProgress>,
+  "id" | "startedAt" | "completedAt" | "userId" | "courseUnitId"
 >;
 export type UserLearningBlockProgress = InferSelectModel<
   typeof userLearningBlockProgress

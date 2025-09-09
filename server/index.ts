@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import usersRouter from "./routes/user.routes";
 import mediaRouter from "./routes/media.routes";
+import trainingRouter from "./routes/training.routes";
+import assessmentRouter from "./routes/assessment.routes";
+import progressRouter from "./routes/progress.routes";
 import errorHandling from "./middleware/errorHandling";
 import passport from "passport";
 import path from "path";
@@ -32,6 +35,9 @@ app.use("/api", apiRouter);
 
 apiRouter.use("/users", usersRouter);
 apiRouter.use("/media", mediaRouter);
+apiRouter.use("/training", trainingRouter);
+apiRouter.use("/assessments", assessmentRouter);
+apiRouter.use("/progress", progressRouter);
 
 app.use(errorHandling);
 
