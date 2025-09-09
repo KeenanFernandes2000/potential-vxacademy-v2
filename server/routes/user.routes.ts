@@ -26,25 +26,47 @@ router.post("/", userControllers.create);
 router.put("/:id", userControllers.updateUser);
 router.delete("/:id", userControllers.deleteUser);
 
-// ==================== ASSETS CRD FUNCTIONS ====================
+// ==================== ASSETS CRUD FUNCTIONS ====================
 router.get("/assets", userControllers.getAllAssets);
+router.get("/assets/:id", userControllers.getAssetById);
 router.post("/assets", userControllers.createAsset);
+router.put("/assets/:id", userControllers.updateAsset);
 router.delete("/assets/:id", userControllers.deleteAsset);
 
-// ==================== ROLE CATEGORIES CRD FUNCTIONS ====================
+// ==================== SUB ASSETS CRUD FUNCTIONS ====================
+router.get("/sub-assets", userControllers.getAllSubAssets);
+router.get("/sub-assets/:id", userControllers.getSubAssetById);
+router.post("/sub-assets", userControllers.createSubAsset);
+router.put("/sub-assets/:id", userControllers.updateSubAsset);
+router.delete("/sub-assets/:id", userControllers.deleteSubAsset);
+
+// ==================== ROLE CATEGORIES CRUD FUNCTIONS ====================
 router.get("/role-categories", userControllers.getAllRoleCategories);
+router.get("/role-categories/:id", userControllers.getRoleCategoryById);
 router.post("/role-categories", userControllers.createRoleCategory);
+router.put("/role-categories/:id", userControllers.updateRoleCategory);
 router.delete("/role-categories/:id", userControllers.deleteRoleCategory);
 
-// ==================== ROLES CRD FUNCTIONS ====================
+// ==================== ROLES CRUD FUNCTIONS ====================
 router.get("/roles", userControllers.getAllRoles);
+router.get("/roles/:id", userControllers.getRoleById);
 router.post("/roles", userControllers.createRole);
+router.put("/roles/:id", userControllers.updateRole);
 router.delete("/roles/:id", userControllers.deleteRole);
 
-// ==================== SENIORITY LEVELS CRD FUNCTIONS ====================
+// ==================== SENIORITY LEVELS CRUD FUNCTIONS ====================
 router.get("/seniority-levels", userControllers.getAllSeniorityLevels);
+router.get("/seniority-levels/:id", userControllers.getSeniorityLevelById);
 router.post("/seniority-levels", userControllers.createSeniorityLevel);
+router.put("/seniority-levels/:id", userControllers.updateSeniorityLevel);
 router.delete("/seniority-levels/:id", userControllers.deleteSeniorityLevel);
+
+// ==================== ORGANIZATIONS CRUD FUNCTIONS ====================
+router.get("/organizations", userControllers.getAllOrganizations);
+router.get("/organizations/:id", userControllers.getOrganizationById);
+router.post("/organizations", userControllers.createOrganization);
+router.put("/organizations/:id", userControllers.updateOrganization);
+router.delete("/organizations/:id", userControllers.deleteOrganization);
 
 // ==================== SUB-ADMIN CREATION & REGISTRATION FUNCTIONS ====================
 router.post(

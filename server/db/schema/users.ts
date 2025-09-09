@@ -64,6 +64,11 @@ export const subAssets = pgTable("sub_assets", {
   name: text("name").notNull(),
 });
 
+export const organizations = pgTable("organizations", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+});
+
 export const roleCategories = pgTable("role_categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),

@@ -5,6 +5,7 @@ import {
   normalUsers,
   assets,
   subAssets,
+  organizations,
   roleCategories,
   roles,
   seniorityLevels,
@@ -74,6 +75,14 @@ export type NewSeniorityLevel = Omit<
   InferInsertModel<typeof seniorityLevels>,
   "id"
 >;
+
+// Organization types
+export type Organization = InferSelectModel<typeof organizations>;
+export type NewOrganization = Omit<
+  InferInsertModel<typeof organizations>,
+  "id"
+>;
+export type UpdateOrganization = Partial<NewOrganization>;
 
 // Training types
 export type TrainingArea = InferSelectModel<typeof trainingAreas>;

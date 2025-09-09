@@ -4,12 +4,19 @@ import {
   InvitationService,
   PasswordResetService,
 } from "../services/user.services";
-import type { NewUser, UpdateUser, InvitationType } from "../db/types";
+import type {
+  NewUser,
+  UpdateUser,
+  InvitationType,
+  NewOrganization,
+  UpdateOrganization,
+} from "../db/types";
 import type { CustomError } from "../middleware/errorHandling";
 import { db } from "../db/connection";
 import {
   assets,
   subAssets,
+  organizations,
   roleCategories,
   roles,
   seniorityLevels,
@@ -1119,6 +1126,60 @@ export class userControllers {
   }
 
   /**
+   * Update asset by ID
+   * PUT /assets/:id
+   */
+  static async updateAsset(req: Request, res: Response): Promise<void> {
+    const assetId = parseInt(req.params.id as string);
+    const { name } = req.body;
+
+    if (isNaN(assetId) || assetId <= 0) {
+      throw createError("Invalid asset ID", 400);
+    }
+
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      throw createError(
+        "Asset name is required and must be a non-empty string",
+        400
+      );
+    }
+
+    // Check if asset exists
+    const [existingAsset] = await db
+      .select()
+      .from(assets)
+      .where(eq(assets.id, assetId))
+      .limit(1);
+
+    if (!existingAsset) {
+      throw createError("Asset not found", 404);
+    }
+
+    // Check if asset name already exists (excluding current asset)
+    const [duplicateAsset] = await db
+      .select()
+      .from(assets)
+      .where(eq(assets.name, name.trim()))
+      .limit(1);
+
+    if (duplicateAsset && duplicateAsset.id !== assetId) {
+      throw createError("Asset with this name already exists", 409);
+    }
+
+    const [updatedAsset] = await db
+      .update(assets)
+      .set({ name: name.trim() })
+      .where(eq(assets.id, assetId))
+      .returning();
+
+    res.status(200).json({
+      success: true,
+      message: "Asset updated successfully",
+      data: updatedAsset,
+    });
+  }
+
+  /**
    * Delete asset by ID
    * DELETE /assets/:id
    */
@@ -1244,6 +1305,67 @@ export class userControllers {
   }
 
   /**
+   * Update sub asset by ID
+   * PUT /sub-assets/:id
+   */
+  static async updateSubAsset(req: Request, res: Response): Promise<void> {
+    const subAssetId = parseInt(req.params.id as string);
+    const { name, assetId } = req.body;
+
+    if (isNaN(subAssetId) || subAssetId <= 0) {
+      throw createError("Invalid sub asset ID", 400);
+    }
+
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      throw createError(
+        "Sub asset name is required and must be a non-empty string",
+        400
+      );
+    }
+
+    if (!assetId || typeof assetId !== "number" || assetId <= 0) {
+      throw createError("Valid asset ID is required", 400);
+    }
+
+    // Check if sub asset exists
+    const [existingSubAsset] = await db
+      .select()
+      .from(subAssets)
+      .where(eq(subAssets.id, subAssetId))
+      .limit(1);
+
+    if (!existingSubAsset) {
+      throw createError("Sub asset not found", 404);
+    }
+
+    // Check if parent asset exists
+    const [parentAsset] = await db
+      .select()
+      .from(assets)
+      .where(eq(assets.id, assetId))
+      .limit(1);
+
+    if (!parentAsset) {
+      throw createError("Parent asset not found", 404);
+    }
+
+    const [updatedSubAsset] = await db
+      .update(subAssets)
+      .set({
+        name: name.trim(),
+        assetId: assetId,
+      })
+      .where(eq(subAssets.id, subAssetId))
+      .returning();
+
+    res.status(200).json({
+      success: true,
+      message: "Sub asset updated successfully",
+      data: updatedSubAsset,
+    });
+  }
+
+  /**
    * Delete sub asset by ID
    * DELETE /sub-assets/:id
    */
@@ -1278,6 +1400,202 @@ export class userControllers {
       success: true,
       message: "Sub asset deleted successfully",
     });
+  }
+
+  // ==================== ORGANIZATION CRUD FUNCTIONS ====================
+
+  /**
+   * Create a new organization
+   */
+  static async createOrganization(req: Request, res: Response): Promise<void> {
+    const { name } = req.body;
+
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      throw createError(
+        "Organization name is required and must be a non-empty string",
+        400
+      );
+    }
+
+    // Check if organization name already exists
+    const nameExists = await UserService.organizationNameExists(name);
+    if (nameExists) {
+      throw createError("Organization name already exists", 409);
+    }
+
+    try {
+      const organizationData: NewOrganization = {
+        name: name.trim(),
+      };
+
+      const newOrganization = await UserService.createOrganization(
+        organizationData
+      );
+
+      res.status(201).json({
+        success: true,
+        message: "Organization created successfully",
+        data: newOrganization,
+      });
+    } catch (error: any) {
+      console.error("Create organization error:", error);
+      if (error.statusCode) {
+        throw error;
+      }
+      throw createError("Failed to create organization", 500);
+    }
+  }
+
+  /**
+   * Get all organizations
+   */
+  static async getAllOrganizations(req: Request, res: Response): Promise<void> {
+    try {
+      const allOrganizations = await UserService.getAllOrganizations();
+
+      res.status(200).json({
+        success: true,
+        message: "Organizations retrieved successfully",
+        data: allOrganizations,
+      });
+    } catch (error: any) {
+      console.error("Get all organizations error:", error);
+      throw createError("Failed to retrieve organizations", 500);
+    }
+  }
+
+  /**
+   * Get organization by ID
+   */
+  static async getOrganizationById(req: Request, res: Response): Promise<void> {
+    const organizationId = parseInt(req.params.id as string);
+
+    if (isNaN(organizationId) || organizationId <= 0) {
+      throw createError("Invalid organization ID", 400);
+    }
+
+    try {
+      const organization = await UserService.getOrganizationById(
+        organizationId
+      );
+
+      if (!organization) {
+        throw createError("Organization not found", 404);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Organization retrieved successfully",
+        data: organization,
+      });
+    } catch (error: any) {
+      console.error("Get organization by ID error:", error);
+      if (error.statusCode) {
+        throw error;
+      }
+      throw createError("Failed to retrieve organization", 500);
+    }
+  }
+
+  /**
+   * Update organization
+   */
+  static async updateOrganization(req: Request, res: Response): Promise<void> {
+    const organizationId = parseInt(req.params.id as string);
+    const { name } = req.body;
+
+    if (isNaN(organizationId) || organizationId <= 0) {
+      throw createError("Invalid organization ID", 400);
+    }
+
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      throw createError(
+        "Organization name is required and must be a non-empty string",
+        400
+      );
+    }
+
+    // Check if organization exists
+    const existingOrganization = await UserService.getOrganizationById(
+      organizationId
+    );
+    if (!existingOrganization) {
+      throw createError("Organization not found", 404);
+    }
+
+    // Check if organization name already exists (excluding current organization)
+    const nameExists = await UserService.organizationNameExists(
+      name,
+      organizationId
+    );
+    if (nameExists) {
+      throw createError("Organization name already exists", 409);
+    }
+
+    try {
+      const updateData: UpdateOrganization = {
+        name: name.trim(),
+      };
+
+      const updatedOrganization = await UserService.updateOrganization(
+        organizationId,
+        updateData
+      );
+
+      if (!updatedOrganization) {
+        throw createError("Failed to update organization", 500);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Organization updated successfully",
+        data: updatedOrganization,
+      });
+    } catch (error: any) {
+      console.error("Update organization error:", error);
+      if (error.statusCode) {
+        throw error;
+      }
+      throw createError("Failed to update organization", 500);
+    }
+  }
+
+  /**
+   * Delete organization
+   */
+  static async deleteOrganization(req: Request, res: Response): Promise<void> {
+    const organizationId = parseInt(req.params.id as string);
+
+    if (isNaN(organizationId) || organizationId <= 0) {
+      throw createError("Invalid organization ID", 400);
+    }
+
+    // Check if organization exists
+    const existingOrganization = await UserService.getOrganizationById(
+      organizationId
+    );
+    if (!existingOrganization) {
+      throw createError("Organization not found", 404);
+    }
+
+    try {
+      const deleted = await UserService.deleteOrganization(organizationId);
+
+      if (!deleted) {
+        throw createError("Failed to delete organization", 500);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Organization deleted successfully",
+      });
+    } catch (error: any) {
+      console.error("Delete organization error:", error);
+      if (error.statusCode) {
+        throw error;
+      }
+      throw createError("Failed to delete organization", 500);
+    }
   }
 
   // ==================== ROLE CATEGORIES CRD FUNCTIONS ====================
@@ -1361,6 +1679,60 @@ export class userControllers {
       success: true,
       message: "Role category retrieved successfully",
       data: roleCategory,
+    });
+  }
+
+  /**
+   * Update role category by ID
+   * PUT /role-categories/:id
+   */
+  static async updateRoleCategory(req: Request, res: Response): Promise<void> {
+    const roleCategoryId = parseInt(req.params.id as string);
+    const { name } = req.body;
+
+    if (isNaN(roleCategoryId) || roleCategoryId <= 0) {
+      throw createError("Invalid role category ID", 400);
+    }
+
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      throw createError(
+        "Role category name is required and must be a non-empty string",
+        400
+      );
+    }
+
+    // Check if role category exists
+    const [existingRoleCategory] = await db
+      .select()
+      .from(roleCategories)
+      .where(eq(roleCategories.id, roleCategoryId))
+      .limit(1);
+
+    if (!existingRoleCategory) {
+      throw createError("Role category not found", 404);
+    }
+
+    // Check if role category name already exists (excluding current role category)
+    const [duplicateRoleCategory] = await db
+      .select()
+      .from(roleCategories)
+      .where(eq(roleCategories.name, name.trim()))
+      .limit(1);
+
+    if (duplicateRoleCategory && duplicateRoleCategory.id !== roleCategoryId) {
+      throw createError("Role category with this name already exists", 409);
+    }
+
+    const [updatedRoleCategory] = await db
+      .update(roleCategories)
+      .set({ name: name.trim() })
+      .where(eq(roleCategories.id, roleCategoryId))
+      .returning();
+
+    res.status(200).json({
+      success: true,
+      message: "Role category updated successfully",
+      data: updatedRoleCategory,
     });
   }
 
@@ -1490,6 +1862,67 @@ export class userControllers {
   }
 
   /**
+   * Update role by ID
+   * PUT /roles/:id
+   */
+  static async updateRole(req: Request, res: Response): Promise<void> {
+    const roleId = parseInt(req.params.id as string);
+    const { name, categoryId } = req.body;
+
+    if (isNaN(roleId) || roleId <= 0) {
+      throw createError("Invalid role ID", 400);
+    }
+
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      throw createError(
+        "Role name is required and must be a non-empty string",
+        400
+      );
+    }
+
+    if (!categoryId || typeof categoryId !== "number" || categoryId <= 0) {
+      throw createError("Valid category ID is required", 400);
+    }
+
+    // Check if role exists
+    const [existingRole] = await db
+      .select()
+      .from(roles)
+      .where(eq(roles.id, roleId))
+      .limit(1);
+
+    if (!existingRole) {
+      throw createError("Role not found", 404);
+    }
+
+    // Check if parent category exists
+    const [parentCategory] = await db
+      .select()
+      .from(roleCategories)
+      .where(eq(roleCategories.id, categoryId))
+      .limit(1);
+
+    if (!parentCategory) {
+      throw createError("Parent role category not found", 404);
+    }
+
+    const [updatedRole] = await db
+      .update(roles)
+      .set({
+        name: name.trim(),
+        categoryId: categoryId,
+      })
+      .where(eq(roles.id, roleId))
+      .returning();
+
+    res.status(200).json({
+      success: true,
+      message: "Role updated successfully",
+      data: updatedRole,
+    });
+  }
+
+  /**
    * Delete role by ID
    * DELETE /roles/:id
    */
@@ -1613,6 +2046,66 @@ export class userControllers {
       success: true,
       message: "Seniority level retrieved successfully",
       data: seniorityLevel,
+    });
+  }
+
+  /**
+   * Update seniority level by ID
+   * PUT /seniority-levels/:id
+   */
+  static async updateSeniorityLevel(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const seniorityLevelId = parseInt(req.params.id as string);
+    const { name } = req.body;
+
+    if (isNaN(seniorityLevelId) || seniorityLevelId <= 0) {
+      throw createError("Invalid seniority level ID", 400);
+    }
+
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      throw createError(
+        "Seniority level name is required and must be a non-empty string",
+        400
+      );
+    }
+
+    // Check if seniority level exists
+    const [existingSeniorityLevel] = await db
+      .select()
+      .from(seniorityLevels)
+      .where(eq(seniorityLevels.id, seniorityLevelId))
+      .limit(1);
+
+    if (!existingSeniorityLevel) {
+      throw createError("Seniority level not found", 404);
+    }
+
+    // Check if seniority level name already exists (excluding current seniority level)
+    const [duplicateSeniorityLevel] = await db
+      .select()
+      .from(seniorityLevels)
+      .where(eq(seniorityLevels.name, name.trim()))
+      .limit(1);
+
+    if (
+      duplicateSeniorityLevel &&
+      duplicateSeniorityLevel.id !== seniorityLevelId
+    ) {
+      throw createError("Seniority level with this name already exists", 409);
+    }
+
+    const [updatedSeniorityLevel] = await db
+      .update(seniorityLevels)
+      .set({ name: name.trim() })
+      .where(eq(seniorityLevels.id, seniorityLevelId))
+      .returning();
+
+    res.status(200).json({
+      success: true,
+      message: "Seniority level updated successfully",
+      data: updatedSeniorityLevel,
     });
   }
 
