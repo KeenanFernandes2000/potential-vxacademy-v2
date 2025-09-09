@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Card,
   CardHeader,
@@ -9,15 +9,19 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 // MUI Icons
 import HomeNavigation from "@/components/homeNavigation";
 
 const AuthPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { login, isLoading } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const [error, setError] = useState("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -27,10 +31,22 @@ const AuthPage: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login attempt:", formData);
+    setError("");
+
+    try {
+      const result = await login(formData.email, formData.password);
+
+      if (result.success) {
+        // Redirect to home route which will automatically redirect based on user type
+        navigate("/", { replace: true });
+      } else {
+        setError(result.message || "Login failed. Please try again.");
+      }
+    } catch (error: any) {
+      setError("Login failed. Please try again.");
+    }
   };
 
   return (
@@ -52,6 +68,12 @@ const AuthPage: React.FC = () => {
           </CardHeader>
 
           <CardContent>
+            {error && (
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-200 text-sm">
+                {error}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-3">
                 <label
@@ -68,6 +90,7 @@ const AuthPage: React.FC = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
+                  disabled={isLoading}
                   className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
                 />
               </div>
@@ -87,6 +110,7 @@ const AuthPage: React.FC = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   required
+                  disabled={isLoading}
                   className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
                 />
               </div>
@@ -95,7 +119,7 @@ const AuthPage: React.FC = () => {
               <div className="flex justify-end">
                 <Link
                   to="/forgot-password"
-                  className="text-[#00d8cc] hover:text-[#00b8b0] bg- shadow- text-sm font-medium transition-all duration-300 hover:underline hover:translate-x-1 transform inline-block"
+                  className="text-[#00d8cc] hover:text-[#00b8b0] text-sm font-medium transition-all duration-300 hover:underline hover:translate-x-1 transform inline-block"
                 >
                   Forgot Password?
                 </Link>
@@ -103,9 +127,10 @@ const AuthPage: React.FC = () => {
 
               <Button
                 type="submit"
-                className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer"
+                disabled={isLoading}
+                className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Sign In
+                {isLoading ? "Signing In..." : "Sign In"}
               </Button>
             </form>
           </CardContent>

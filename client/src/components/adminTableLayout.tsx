@@ -22,7 +22,7 @@ interface AdminTableLayoutProps {
   searchPlaceholder?: string;
   createButtonText?: string;
   createForm: ReactNode;
-  tableData: any[];
+  tableData: Record<string, string | number | ReactNode>[];
   columns: string[];
   onSearch?: (query: string) => void;
 }
@@ -54,14 +54,14 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
             placeholder={searchPlaceholder}
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
-            className="pl-8 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#00d8cc] focus:ring-[#00d8cc]"
+            className="pl-8 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#00d8cc] focus:ring-[#00d8cc] rounded-full"
           />
         </div>
 
         <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
           <DialogTrigger asChild>
             <Button
-              className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black font-semibold"
+              className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black font-semibold rounded-full"
               style={{ minWidth: "120px", height: "40px" }}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -80,7 +80,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       </div>
 
       {/* Table */}
-      <div className="rounded-md border bg-white/10 backdrop-blur-sm border-white/20 w-full">
+      <div className="border bg-white/10 backdrop-blur-sm border-white/20 w-full">
         <Table>
           <TableHeader>
             <TableRow className="border-white/20">
@@ -99,7 +99,9 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
               >
                 {Object.values(row).map((cell, cellIndex) => (
                   <TableCell key={cellIndex} className="text-white/90">
-                    {String(cell)}
+                    {typeof cell === "string" || typeof cell === "number"
+                      ? String(cell)
+                      : cell}
                   </TableCell>
                 ))}
               </TableRow>

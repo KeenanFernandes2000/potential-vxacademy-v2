@@ -12,6 +12,8 @@ import {
   School,
   ArrowLeft,
   Dashboard as DashboardIcon,
+  AdminPanelSettings as RoleIcon,
+  Category as CategoryIcon,
 } from "@mui/icons-material";
 
 import {
@@ -34,6 +36,7 @@ import { Button } from "./ui/button";
 const AdminSidebar = () => {
   const [mainOpen, setMainOpen] = React.useState(true);
   const [assetsOpen, setAssetsOpen] = React.useState(true);
+  const [roleManagementOpen, setRoleManagementOpen] = React.useState(true);
   const [organizationOpen, setOrganizationOpen] = React.useState(true);
   const [lmsOpen, setLmsOpen] = React.useState(true);
   const location = useLocation();
@@ -44,6 +47,7 @@ const AdminSidebar = () => {
     if (state === "collapsed") {
       setMainOpen(true);
       setAssetsOpen(true);
+      setRoleManagementOpen(true);
       setOrganizationOpen(true);
       setLmsOpen(true);
     }
@@ -69,6 +73,21 @@ const AdminSidebar = () => {
       title: "Sub-Assets",
       icon: WebAsset,
       url: "/admin/subassets",
+      badge: null,
+    },
+  ];
+
+  const roleManagementNavItems = [
+    {
+      title: "Roles",
+      icon: RoleIcon,
+      url: "/admin/roles",
+      badge: null,
+    },
+    {
+      title: "Role Categories",
+      icon: CategoryIcon,
+      url: "/admin/role-categories",
       badge: null,
     },
   ];
@@ -253,6 +272,52 @@ const AdminSidebar = () => {
 
         <SidebarSeparator />
 
+        {/* Role Management - Collapsible */}
+        <SidebarGroup>
+          <SidebarGroupLabel
+            asChild
+            className="cursor-pointer hover:bg-sidebar-accent"
+            onClick={() => setRoleManagementOpen(!roleManagementOpen)}
+          >
+            <button className="w-full text-left">
+              <div className="flex items-center justify-between">
+                <span>Role Management</span>
+                <ChevronDown
+                  sx={{
+                    ml: "auto",
+                    transition: "transform 200ms",
+                    transform: roleManagementOpen
+                      ? "rotate(180deg)"
+                      : "rotate(0deg)",
+                    fontSize: 16,
+                  }}
+                />
+              </div>
+            </button>
+          </SidebarGroupLabel>
+          {roleManagementOpen && (
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {roleManagementNavItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === item.url}
+                    >
+                      <Link to={item.url}>
+                        <item.icon sx={{ fontSize: 16 }} />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          )}
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
         {/* Organization - Collapsible */}
         <SidebarGroup>
           <SidebarGroupLabel
@@ -267,7 +332,9 @@ const AdminSidebar = () => {
                   sx={{
                     ml: "auto",
                     transition: "transform 200ms",
-                    transform: organizationOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    transform: organizationOpen
+                      ? "rotate(180deg)"
+                      : "rotate(0deg)",
                     fontSize: 16,
                   }}
                 />

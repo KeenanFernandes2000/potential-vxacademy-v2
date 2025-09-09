@@ -18,6 +18,35 @@ import {
 } from "@/components/ui/select";
 import HomeNavigation from "@/components/homeNavigation";
 
+// API object for sub-admin registration
+const api = {
+  async completeSubAdminRegistration(id: string, registrationData: any) {
+    try {
+      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/sub-admins/register/${id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(registrationData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to complete sub-admin registration:", error);
+      throw error;
+    }
+  },
+};
+
 type Props = {};
 
 const joinPage = (props: Props) => {
@@ -88,6 +117,9 @@ const joinPage = (props: Props) => {
 
   // User form password validation state
   const [userPasswordError, setUserPasswordError] = useState("");
+
+  // Loading states
+  const [isLoading, setIsLoading] = useState(false);
 
   // User form password validation function
   const validateUserPasswords = (password: string, confirmPassword: string) => {
@@ -215,7 +247,7 @@ const joinPage = (props: Props) => {
     }));
   };
 
-  const handleForm1Submit = (e: React.FormEvent) => {
+  const handleForm1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validate password confirmation
@@ -230,6 +262,49 @@ const joinPage = (props: Props) => {
       return;
     }
 
+    // Check if all required fields are filled
+    if (!form1Data.job_title || !form1Data.eid || !form1Data.phone_number) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+
+    // Check if id is present
+    if (!id || id.trim() === "") {
+      alert("Invalid registration link. Please contact your administrator.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Prepare registration data
+      const registrationData = {
+        jobTitle: form1Data.job_title,
+        totalFrontliners: parseInt(form1Data.total_frontliners) || 0,
+        eid: form1Data.eid,
+        phoneNumber: form1Data.phone_number,
+        password: form1Data.password,
+      };
+
+      const response = await api.completeSubAdminRegistration(
+        id,
+        registrationData
+      );
+
+      if (response.success) {
+        alert("Registration completed successfully! You can now log in.");
+        navigate("/login");
+      } else {
+        alert(
+          `Registration failed: ${response.message || "Please try again."}`
+        );
+      }
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      alert("Registration failed. Please try again or contact support.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleForm2Submit = (e: React.FormEvent) => {
@@ -418,9 +493,10 @@ const joinPage = (props: Props) => {
 
           <Button
             type="submit"
-            className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer"
+            disabled={isLoading}
+            className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
-            Submit
+            {isLoading ? "Submitting..." : "Submit"}
           </Button>
         </form>
       </CardContent>

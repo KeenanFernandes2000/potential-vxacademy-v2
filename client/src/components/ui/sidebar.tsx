@@ -4,8 +4,10 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -555,6 +557,27 @@ function SidebarMenuAction({
   showOnHover?: boolean;
 }) {
   const Comp = asChild ? Slot : "button";
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  // Handle logout functionality
+  const handleClick = (event: React.MouseEvent) => {
+    // Check if this is a logout action
+    if (asChild && props.children) {
+      const child = props.children as React.ReactElement;
+      if (child.props?.to === "#logout" || child.props?.href === "#logout") {
+        event.preventDefault();
+        logout();
+        navigate("/login", { replace: true });
+        return;
+      }
+    }
+
+    // Call original onClick if provided
+    if (props.onClick) {
+      props.onClick(event);
+    }
+  };
 
   return (
     <Comp
@@ -572,6 +595,7 @@ function SidebarMenuAction({
           "peer-data-[active=true]/menu-button:text-sidebar-accent-foreground group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 data-[state=open]:opacity-100 md:opacity-0",
         className
       )}
+      onClick={handleClick}
       {...props}
     />
   );

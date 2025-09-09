@@ -1,10 +1,15 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
+import AuthRedirect from "@/components/AuthRedirect";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import HomePage from "@/pages/home/homePage";
 import AuthPage from "@/pages/login/authPage";
 import ForgotPasswordPage from "@/pages/login/forgotPasswordPage";
 import ResetPasswordPage from "@/pages/login/resetPasswordPage";
 import JoinPage from "@/pages/login/joinPage";
 import ProfilePage from "@/pages/profile";
+import UnauthorizedPage from "@/pages/errors/UnauthorizedPage";
+import NotFoundPage from "@/pages/errors/NotFoundPage";
 
 // Admin Pages
 import Dashboard from "@/pages/admin/dashboard";
@@ -20,6 +25,8 @@ import UnitsPage from "@/pages/admin/unitsPage";
 import LearningBlockPage from "@/pages/admin/learningBlockPage";
 import AssessmentsPage from "@/pages/admin/assessmentsPage";
 import QuestionsPage from "@/pages/admin/questionsPage";
+import RolesPage from "@/pages/admin/rolesPage";
+import RoleCategoriesPage from "@/pages/admin/roleCategoriesPage";
 
 // Sub-Admin Pages
 import SubAdminLayout from "@/pages/sub-admin/subAdminLayout";
@@ -37,54 +44,255 @@ import AssessmentPage from "@/pages/user/assessmentPage";
 
 function App() {
   return (
-    <Router>
-      <div>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<AuthPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset" element={<ResetPasswordPage />} />
-          <Route path="/join" element={<JoinPage />} />
+    <AuthProvider>
+      <Router>
+        <div>
+          <Routes>
+            <Route path="/" element={<AuthRedirect />} />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/login" element={<AuthPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/join" element={<JoinPage />} />
 
-          {/* Admin Routes */}
-          <Route path="/admin/dashboard" element={<Dashboard />} />
-          <Route path="/admin/sub-admin" element={<SubAdminPage />} />
-          <Route path="/admin/assets" element={<AssetsPage />} />
-          <Route path="/admin/subassets" element={<SubAssetsPage />} />
-          <Route path="/admin/organization" element={<OrganizationPage />} />
-          <Route
-            path="/admin/sub-organization"
-            element={<SubOrganizationPage />}
-          />
-          <Route path="/admin/training-area" element={<TrainingAreaPage />} />
-          <Route path="/admin/modules" element={<ModulesPage />} />
-          <Route path="/admin/courses" element={<CoursesPage />} />
-          <Route path="/admin/units" element={<UnitsPage />} />
-          <Route path="/admin/learning-block" element={<LearningBlockPage />} />
-          <Route path="/admin/assessments" element={<AssessmentsPage />} />
-          <Route path="/admin/questions" element={<QuestionsPage />} />
+            {/* Admin Routes */}
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/sub-admin"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <SubAdminPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/assets"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <AssetsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/subassets"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <SubAssetsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/organization"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <OrganizationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/sub-organization"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <SubOrganizationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/training-area"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <TrainingAreaPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/modules"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <ModulesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/courses"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <CoursesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/units"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <UnitsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/learning-block"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <LearningBlockPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/assessments"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <AssessmentsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/questions"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <QuestionsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/roles"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <RolesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/role-categories"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <RoleCategoriesPage />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Sub-Admin Routes */}
-          <Route path="/sub-admin" element={<SubAdminLayout />}>
-            <Route index element={<SubAdminDashboard />} />
-            <Route path="dashboard" element={<SubAdminDashboard />} />
-            <Route path="users" element={<SubAdminUsers />} />
-            <Route path="links" element={<SubAdminLinks />} />
-          </Route>
+            {/* Sub-Admin Routes */}
+            <Route
+              path="/sub-admin"
+              element={
+                <ProtectedRoute requiredUserType="sub_admin">
+                  <SubAdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route
+                index
+                element={
+                  <ProtectedRoute requiredUserType="sub_admin">
+                    <SubAdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="dashboard"
+                element={
+                  <ProtectedRoute requiredUserType="sub_admin">
+                    <SubAdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="users"
+                element={
+                  <ProtectedRoute requiredUserType="sub_admin">
+                    <SubAdminUsers />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="links"
+                element={
+                  <ProtectedRoute requiredUserType="sub_admin">
+                    <SubAdminLinks />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
 
-          {/* User Routes */}
-          <Route path="/user" element={<UserLayout />}>
-            <Route index element={<UserDashboard />} />
-            <Route path="dashboard" element={<UserDashboard />} />
-            <Route path="courses" element={<UserCourses />} />
-            <Route path="achievements" element={<UserAchievements />} />
-            <Route path="courses/:id" element={<CourseDetails />} />
-            <Route path="assessment/:id" element={<AssessmentPage />} />
-          </Route>
-          <Route path="/profile" element={<ProfilePage />} />
-        </Routes>
-      </div>
-    </Router>
+            {/* User Routes */}
+            <Route
+              path="/user"
+              element={
+                <ProtectedRoute requiredUserType="user">
+                  <UserLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route
+                index
+                element={
+                  <ProtectedRoute requiredUserType="user">
+                    <UserDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="dashboard"
+                element={
+                  <ProtectedRoute requiredUserType="user">
+                    <UserDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="courses"
+                element={
+                  <ProtectedRoute requiredUserType="user">
+                    <UserCourses />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="achievements"
+                element={
+                  <ProtectedRoute requiredUserType="user">
+                    <UserAchievements />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="courses/:id"
+                element={
+                  <ProtectedRoute requiredUserType="user">
+                    <CourseDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="assessment/:id"
+                element={
+                  <ProtectedRoute requiredUserType="user">
+                    <AssessmentPage />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Catch-all route for 404 */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

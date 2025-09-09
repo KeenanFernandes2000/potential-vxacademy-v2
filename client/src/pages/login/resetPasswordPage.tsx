@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,21 +15,223 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CheckCircle } from "lucide-react";
+import {
+  CheckCircle,
+  ErrorOutline,
+  Visibility,
+  VisibilityOff,
+} from "@mui/icons-material";
 import HomeNavigation from "@/components/homeNavigation";
 
-export default function ResetPasswordPage() {
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+// API object for this page
+const api = {
+  async verifyPasswordResetToken(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/password-reset/verify/${token}`,
+        {
+          method: "GET",
+        }
+      );
 
-  // No functionality - just UI state for display
-  const handleUpdatePassword = () => {
-    setShowSuccessDialog(true);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to verify password reset token:", error);
+      throw error;
+    }
+  },
+
+  async resetPassword(token: string, password: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/password-reset/reset`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            token: token,
+            password: password,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to reset password:", error);
+      throw error;
+    }
+  },
+};
+
+export default function ResetPasswordPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(true);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [error, setError] = useState("");
+  const [userInfo, setUserInfo] = useState<{
+    email: string;
+    firstName: string;
+    lastName: string;
+  } | null>(null);
+
+  // Verify token on component mount
+  useEffect(() => {
+    const verifyToken = async () => {
+      if (!token) {
+        setError("Invalid or missing reset token");
+        setIsVerifying(false);
+        return;
+      }
+
+      try {
+        const response = await api.verifyPasswordResetToken(token);
+
+        if (response.success) {
+          setUserInfo(response.data);
+        } else {
+          setError(response.message || "Invalid or expired reset token");
+        }
+      } catch (error: any) {
+        setError("Failed to verify reset token. Please try again.");
+      } finally {
+        setIsVerifying(false);
+      }
+    };
+
+    verifyToken();
+  }, [token]);
+
+  const handleUpdatePassword = async () => {
+    if (!password.trim()) {
+      setError("Please enter a new password");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (!token) {
+      setError("Invalid reset token");
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await api.resetPassword(token, password);
+
+      if (response.success) {
+        setShowSuccessDialog(true);
+      } else {
+        setError(
+          response.message || "Failed to reset password. Please try again."
+        );
+      }
+    } catch (error: any) {
+      setError("Network error. Please check your connection and try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleContinueToLogin = () => {
     setShowSuccessDialog(false);
-    // No actual navigation
+    navigate("/login");
   };
+
+  // Show loading state while verifying token
+  if (isVerifying) {
+    return (
+      <div
+        className="min-h-screen flex flex-col bg-[#003451] relative overflow-hidden"
+        style={{ backgroundColor: "#003451" }}
+      >
+        <HomeNavigation />
+        <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center relative z-10 flex-1">
+          <div className="w-full max-w-md lg:max-w-lg">
+            <Card className="shadow-2xl bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 overflow-hidden rounded-none">
+              <CardContent className="px-8 lg:px-10 py-20">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00d8cc] mx-auto mb-4"></div>
+                  <p className="text-white/80 text-lg">
+                    Verifying reset token...
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if token verification failed
+  if (error && !userInfo) {
+    return (
+      <div
+        className="min-h-screen flex flex-col bg-[#003451] relative overflow-hidden"
+        style={{ backgroundColor: "#003451" }}
+      >
+        <HomeNavigation />
+        <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center relative z-10 flex-1">
+          <div className="w-full max-w-md lg:max-w-lg">
+            <Card className="shadow-2xl bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 overflow-hidden rounded-none">
+              <CardHeader className="pb-8 px-8 pt-10 lg:px-10">
+                <CardTitle className="text-white text-3xl lg:text-4xl font-bold text-center mb-3">
+                  Invalid Reset Link
+                </CardTitle>
+                <CardDescription className="text-white/80 text-center text-lg leading-relaxed">
+                  This password reset link is invalid or has expired
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="px-8 lg:px-10 pb-10">
+                <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-6">
+                  <ErrorOutline className="!h-4 !w-4 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+                <Button
+                  onClick={() => navigate("/forgot-password")}
+                  className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black py-5 lg:py-6 font-bold text-lg lg:text-xl shadow-xl backdrop-blur-sm border-2 border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 hover:shadow-[#00d8cc]/25 rounded-full"
+                >
+                  Request New Reset Link
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -46,7 +249,16 @@ export default function ResetPasswordPage() {
                 Reset Password
               </CardTitle>
               <CardDescription className="text-white/80 text-center text-lg leading-relaxed">
-                Enter your new password below
+                {userInfo ? (
+                  <>
+                    Reset password for{" "}
+                    <span className="text-[#00d8cc] font-semibold">
+                      {userInfo.email}
+                    </span>
+                  </>
+                ) : (
+                  "Enter your new password below"
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent className="px-8 lg:px-10 pb-10">
@@ -55,31 +267,82 @@ export default function ResetPasswordPage() {
                   <label className="text-white font-semibold text-base tracking-wide pl-2">
                     New Password
                   </label>
-                  <input
-                    placeholder="Enter your new password"
-                    className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full w-full px-4 outline-none"
-                    type="password"
-                  />
+                  <div className="relative">
+                    <input
+                      placeholder="Enter your new password"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        setError(""); // Clear error when user types
+                      }}
+                      className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full w-full px-4 pr-12 outline-none"
+                      type={showPassword ? "text" : "password"}
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
+                      disabled={isLoading}
+                    >
+                      {showPassword ? (
+                        <VisibilityOff className="!h-5 !w-5" />
+                      ) : (
+                        <Visibility className="!h-5 !w-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
                   <label className="text-white font-semibold text-base tracking-wide pl-2">
                     Confirm New Password
                   </label>
-                  <input
-                    placeholder="Confirm your new password"
-                    className="bg-[#00d8cc]/20 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full w-full px-4 outline-none"
-                    type="password"
-                  />
+                  <div className="relative">
+                    <input
+                      placeholder="Confirm your new password"
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        setError(""); // Clear error when user types
+                      }}
+                      className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full w-full px-4 pr-12 outline-none"
+                      type={showConfirmPassword ? "text" : "password"}
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
+                      disabled={isLoading}
+                    >
+                      {showConfirmPassword ? (
+                        <VisibilityOff className="!h-5 !w-5" />
+                      ) : (
+                        <Visibility className="!h-5 !w-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
+
+                {/* Error Message */}
+                {error && (
+                  <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                    <ErrorOutline className="!h-4 !w-4 flex-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
 
                 <div className="pt-4 space-y-4">
                   <Button
                     type="button"
                     onClick={handleUpdatePassword}
+                    disabled={isLoading}
                     className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black py-5 lg:py-6 font-bold text-lg lg:text-xl shadow-xl backdrop-blur-sm border-2 border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 hover:shadow-[#00d8cc]/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl rounded-full"
                   >
-                    Update Password
+                    {isLoading ? "Updating Password..." : "Update Password"}
                   </Button>
                 </div>
               </div>
@@ -96,12 +359,12 @@ export default function ResetPasswordPage() {
               Password Updated Successfully!
             </DialogTitle>
             <DialogDescription className="text-white/80 text-center text-lg mt-4">
-              Your password has been reset. You can now log in with your new
-              password.
+              Your password has been reset successfully. You can now log in with
+              your new password.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center mt-6">
-            <CheckCircle className="h-16 w-16 text-[#00d8cc]" />
+            <CheckCircle className="!h-16 !w-16 text-[#00d8cc]" />
           </div>
           <div className="flex justify-center mt-6">
             <Button

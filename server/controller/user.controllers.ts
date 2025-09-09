@@ -1288,7 +1288,7 @@ export class userControllers {
    */
   static async createRoleCategory(req: Request, res: Response): Promise<void> {
     const { name } = req.body;
-
+    console.log("Creating role category:", req.body);
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       throw createError(
         "Role category name is required and must be a non-empty string",
