@@ -20,11 +20,11 @@ router.get(
 router.post("/password-reset/reset", userControllers.resetPassword);
 
 // ==================== USER CRUD FUNCTIONS ====================
-router.get("/", userControllers.getAllUsers);
-router.get("/:id", userControllers.getUserById);
-router.post("/", userControllers.create);
-router.put("/:id", userControllers.updateUser);
-router.delete("/:id", userControllers.deleteUser);
+router.get("/users", userControllers.getAllUsers);
+router.get("/users/:id", userControllers.getUserById);
+router.post("/users", userControllers.create);
+router.put("/users/:id", userControllers.updateUser);
+router.delete("/users/:id", userControllers.deleteUser);
 
 // ==================== ASSETS CRUD FUNCTIONS ====================
 router.get("/assets", userControllers.getAllAssets);
