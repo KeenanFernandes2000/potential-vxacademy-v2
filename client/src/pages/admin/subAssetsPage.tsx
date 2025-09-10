@@ -505,6 +505,7 @@ const SubAssetsPage = () => {
   };
 
   const columns = [
+    'ID',
     "Name",
     "Parent Asset",
     "Size",

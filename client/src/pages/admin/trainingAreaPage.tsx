@@ -12,6 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import InsertImage from "@/components/insertImage";
+import { Image as ImageIcon } from "lucide-react";
 
 // API object for training area operations
 const api = {
@@ -125,9 +127,6 @@ interface TrainingAreaData
   extends Record<string, string | number | React.ReactNode> {
   id: number;
   name: string;
-  description: string;
-  image_url: string;
-  createdDate: string;
   actions: React.ReactNode;
 }
 
@@ -160,11 +159,6 @@ const TrainingAreaPage = () => {
           response.data?.map((trainingArea: any) => ({
             id: trainingArea.id,
             name: trainingArea.name,
-            description: trainingArea.description || "N/A",
-            image_url: trainingArea.image_url || "N/A",
-            createdDate: trainingArea.created_at
-              ? new Date(trainingArea.created_at).toISOString().split("T")[0]
-              : "N/A",
             actions: (
               <div className="flex gap-1">
                 <Button
@@ -207,10 +201,8 @@ const TrainingAreaPage = () => {
     if (!query) {
       setFilteredTrainingAreas(trainingAreas);
     } else {
-      const filtered = trainingAreas.filter(
-        (area) =>
-          area.name.toLowerCase().includes(query.toLowerCase()) ||
-          area.description.toLowerCase().includes(query.toLowerCase())
+      const filtered = trainingAreas.filter((area) =>
+        area.name.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredTrainingAreas(filtered);
     }
@@ -229,7 +221,7 @@ const TrainingAreaPage = () => {
       const trainingAreaData = {
         name: formData.name,
         description: formData.description,
-        image_url: formData.image_url,
+        imageUrl: formData.image_url,
       };
 
       const response = await api.createTrainingArea(trainingAreaData, token);
@@ -262,7 +254,7 @@ const TrainingAreaPage = () => {
       const trainingAreaData = {
         name: formData.name,
         description: formData.description,
-        image_url: formData.image_url,
+        imageUrl: formData.image_url,
       };
 
       const response = await api.updateTrainingArea(
@@ -330,11 +322,6 @@ const TrainingAreaPage = () => {
       updatedResponse.data?.map((trainingArea: any) => ({
         id: trainingArea.id,
         name: trainingArea.name,
-        description: trainingArea.description || "N/A",
-        image_url: trainingArea.image_url || "N/A",
-        createdDate: trainingArea.created_at
-          ? new Date(trainingArea.created_at).toISOString().split("T")[0]
-          : "N/A",
         actions: (
           <div className="flex gap-1">
             <Button
@@ -369,6 +356,7 @@ const TrainingAreaPage = () => {
       description: "",
       image_url: "",
     });
+    const [showInsertImage, setShowInsertImage] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -376,47 +364,58 @@ const TrainingAreaPage = () => {
       setFormData({ name: "", description: "", image_url: "" });
     };
 
+    const handleImageInsert = (imageUrl: string) => {
+      setFormData({ ...formData, image_url: imageUrl });
+    };
+
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Training Area Name *</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
-            required
+      <div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Training Area Name *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="rounded-full"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description *</Label>
+            <Input
+              id="description"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              className="rounded-full"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Image</Label>
+            <InsertImage
+              onImageInsert={handleImageInsert}
+              onClose={() => setShowInsertImage(false)}
+              currentImageUrl={formData.image_url}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="submit" disabled={isLoading} className="rounded-full">
+              {isLoading ? "Creating..." : "Create Training Area"}
+            </Button>
+          </div>
+        </form>
+        {showInsertImage && (
+          <InsertImage
+            onImageInsert={handleImageInsert}
+            onClose={() => setShowInsertImage(false)}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="description">Description *</Label>
-          <Input
-            id="description"
-            value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            className="rounded-full"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="image_url">Image URL</Label>
-          <Input
-            id="image_url"
-            value={formData.image_url}
-            onChange={(e) =>
-              setFormData({ ...formData, image_url: e.target.value })
-            }
-            className="rounded-full"
-          />
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoading} className="rounded-full">
-            {isLoading ? "Creating..." : "Create Training Area"}
-          </Button>
-        </div>
-      </form>
+        )}
+      </div>
     );
   };
 
@@ -426,74 +425,74 @@ const TrainingAreaPage = () => {
       description: selectedTrainingArea?.description || "",
       image_url: selectedTrainingArea?.image_url || "",
     });
+    const [showInsertImage, setShowInsertImage] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       await handleUpdateTrainingArea(formData);
     };
 
+    const handleImageInsert = (imageUrl: string) => {
+      setFormData({ ...formData, image_url: imageUrl });
+    };
+
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="edit_name">Training Area Name *</Label>
-          <Input
-            id="edit_name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit_description">Description *</Label>
-          <Input
-            id="edit_description"
-            value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            className="rounded-full"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit_image_url">Image URL</Label>
-          <Input
-            id="edit_image_url"
-            value={formData.image_url}
-            onChange={(e) =>
-              setFormData({ ...formData, image_url: e.target.value })
-            }
-            className="rounded-full"
-          />
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setIsEditModalOpen(false);
-              setSelectedTrainingArea(null);
-            }}
-            className="rounded-full"
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading} className="rounded-full">
-            {isLoading ? "Updating..." : "Update Training Area"}
-          </Button>
-        </div>
-      </form>
+      <div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="edit_name">Training Area Name *</Label>
+            <Input
+              id="edit_name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="rounded-full"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit_description">Description *</Label>
+            <Input
+              id="edit_description"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              className="rounded-full"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Image</Label>
+            <InsertImage
+              onImageInsert={handleImageInsert}
+              onClose={() => setShowInsertImage(false)}
+              currentImageUrl={formData.image_url}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setSelectedTrainingArea(null);
+              }}
+              className="rounded-full"
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading} className="rounded-full">
+              {isLoading ? "Updating..." : "Update Training Area"}
+            </Button>
+          </div>
+        </form>
+      </div>
     );
   };
 
-  const columns = [
-    "Name",
-    "Description",
-    "Image URL",
-    "Created Date",
-    "Actions",
-  ];
+  const columns = ["ID", "Name", "Actions"];
 
   return (
     <AdminPageLayout
@@ -516,7 +515,7 @@ const TrainingAreaPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-[#003451] border-white/20 text-white">
+        <DialogContent className="max-w-2xl bg-[#003451] border-white/20 text-white">
           <DialogHeader>
             <DialogTitle className="text-white">Edit Training Area</DialogTitle>
           </DialogHeader>

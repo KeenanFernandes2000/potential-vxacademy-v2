@@ -163,14 +163,6 @@ const OrganizationPage = () => {
           response.data?.map((organization: any) => ({
             id: organization.id,
             name: organization.name,
-            type: organization.type || "N/A",
-            location: organization.location || "N/A",
-            contactEmail: organization.contactEmail || "N/A",
-            createdDate: organization.createdAt
-              ? new Date(organization.createdAt).toISOString().split("T")[0]
-              : "N/A",
-            status: organization.status || "Active",
-            userCount: organization.userCount || 0,
             actions: (
               <div className="flex gap-1">
                 <Button
@@ -558,13 +550,8 @@ const OrganizationPage = () => {
   };
 
   const columns = [
+    "ID",
     "Name",
-    "Type",
-    "Location",
-    "Contact Email",
-    "Created Date",
-    "Status",
-    "User Count",
     "Actions",
   ];
 

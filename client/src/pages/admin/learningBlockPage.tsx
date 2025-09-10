@@ -292,7 +292,7 @@ const LearningBlockPage = () => {
         unitId: parseInt(formData.unit_id),
         type: formData.type,
         title: formData.title,
-        content: formData.content || '',
+        content: formData.content || "",
         videoUrl: formData.video_url || "",
         imageUrl: formData.image_url || "",
         interactiveData: formData.interactive_data || "",
@@ -824,10 +824,12 @@ const LearningBlockPage = () => {
     "Title",
     "Unit",
     "Type",
+    "Content",
+    "Video URL",
+    "Image URL",
     "Order",
     "XP Points",
     "Created Date",
-    "Status",
     "Actions",
   ];
 

@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import InsertImage from "@/components/insertImage";
 
 // API object for course operations
 const api = {
@@ -151,19 +152,10 @@ const api = {
 interface CourseData
   extends Record<string, string | number | boolean | React.ReactNode> {
   id: number;
-  module_id: number;
   name: string;
-  description: string;
-  image_url: string;
-  internal_note: string;
-  course_type: string;
+  module_name: string;
   duration: number;
-  show_duration: boolean;
   level: string;
-  show_level: boolean;
-  estimated_duration: string;
-  difficulty_level: string;
-  createdDate: string;
   actions: React.ReactNode;
 }
 
@@ -197,46 +189,42 @@ const CoursesPage = () => {
 
         // Transform data to match our display format
         const transformedCourses =
-          coursesResponse.data?.map((course: any) => ({
-            id: course.id,
-            module_id: course.module_id || 0,
-            name: course.name,
-            description: course.description || "N/A",
-            image_url: course.image_url || "N/A",
-            internal_note: course.internal_note || "N/A",
-            course_type: course.course_type || "free",
-            duration: course.duration || 0,
-            show_duration: course.show_duration || true,
-            level: course.level || "beginner",
-            show_level: course.show_level || true,
-            estimated_duration: course.estimated_duration || "N/A",
-            difficulty_level: course.difficulty_level || "N/A",
-            createdDate: course.created_at
-              ? new Date(course.created_at).toISOString().split("T")[0]
-              : "N/A",
-            actions: (
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-                  onClick={() => handleEditCourse(course)}
-                  title="Edit"
-                >
-                  <Edit sx={{ fontSize: 16 }} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-                  onClick={() => handleDeleteCourse(course.id)}
-                  title="Delete"
-                >
-                  <Delete sx={{ fontSize: 16 }} />
-                </Button>
-              </div>
-            ),
-          })) || [];
+          coursesResponse.data?.map((course: any) => {
+            // Find the module for this course
+            const module = modulesResponse.data?.find(
+              (m: any) => m.id === course.moduleId
+            );
+
+            return {
+              id: course.id,
+              name: course.name,
+              module_name: module?.name || "N/A",
+              duration: course.duration || 0,
+              level: course.level || "beginner",
+              actions: (
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                    onClick={() => handleEditCourse(course)}
+                    title="Edit"
+                  >
+                    <Edit sx={{ fontSize: 16 }} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                    onClick={() => handleDeleteCourse(course.id)}
+                    title="Delete"
+                  >
+                    <Delete sx={{ fontSize: 16 }} />
+                  </Button>
+                </div>
+              ),
+            };
+          }) || [];
 
         setCourses(transformedCourses);
         setFilteredCourses(transformedCourses);
@@ -256,12 +244,8 @@ const CoursesPage = () => {
     if (!query) {
       setFilteredCourses(courses);
     } else {
-      const filtered = courses.filter(
-        (course: any) =>
-          course.name.toLowerCase().includes(query.toLowerCase()) ||
-          course.description.toLowerCase().includes(query.toLowerCase()) ||
-          course.courseType?.toLowerCase().includes(query.toLowerCase()) ||
-          course.level.toLowerCase().includes(query.toLowerCase())
+      const filtered = courses.filter((course: any) =>
+        course.name.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredCourses(filtered);
     }
@@ -393,49 +377,53 @@ const CoursesPage = () => {
 
   const refreshCourseList = async () => {
     if (!token) return;
-    const updatedResponse = await api.getAllCourses(token);
+
+    // Fetch both courses and modules to ensure we have the latest data
+    const [updatedCoursesResponse, updatedModulesResponse] = await Promise.all([
+      api.getAllCourses(token),
+      api.getAllModules(token),
+    ]);
+
+    // Update modules state
+    setModules(updatedModulesResponse.data || []);
 
     const transformedCourses =
-      updatedResponse.data?.map((course: any) => ({
-        id: course.id,
-        moduleId: course.moduleId || 0,
-        name: course.name,
-        description: course.description || "N/A",
-        imageUrl: course.imageUrl || "N/A",
-        internalNote: course.internalNote || "N/A",
-        courseType: course.courseType || "N/A",
-        duration: course.duration || 0,
-        showDuration: course.showDuration || false,
-        level: course.level || "N/A",
-        showLevel: course.showLevel || false,
-        estimatedDuration: course.estimatedDuration || "N/A",
-        difficultyLevel: course.difficultyLevel || "N/A",
-        createdAt: course.createdAt
-          ? new Date(course.createdAt).toISOString().split("T")[0]
-          : "N/A",
-        actions: (
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-              onClick={() => handleEditCourse(course)}
-              title="Edit"
-            >
-              <Edit sx={{ fontSize: 16 }} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-              onClick={() => handleDeleteCourse(course.id)}
-              title="Delete"
-            >
-              <Delete sx={{ fontSize: 16 }} />
-            </Button>
-          </div>
-        ),
-      })) || [];
+      updatedCoursesResponse.data?.map((course: any) => {
+        // Find the module for this course
+        const module = updatedModulesResponse.data?.find(
+          (m: any) => m.id === course.module_id
+        );
+
+        return {
+          id: course.id,
+          name: course.name,
+          module_name: module?.name || "N/A",
+          duration: course.duration || 0,
+          level: course.level || "beginner",
+          actions: (
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                onClick={() => handleEditCourse(course)}
+                title="Edit"
+              >
+                <Edit sx={{ fontSize: 16 }} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                onClick={() => handleDeleteCourse(course.id)}
+                title="Delete"
+              >
+                <Delete sx={{ fontSize: 16 }} />
+              </Button>
+            </div>
+          ),
+        };
+      }) || [];
 
     setCourses(transformedCourses);
     setFilteredCourses(transformedCourses);
@@ -456,6 +444,7 @@ const CoursesPage = () => {
       estimated_duration: "",
       difficulty_level: "beginner",
     });
+    const [showInsertImage, setShowInsertImage] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -474,6 +463,10 @@ const CoursesPage = () => {
         estimated_duration: "",
         difficulty_level: "beginner",
       });
+    };
+
+    const handleImageInsert = (imageUrl: string) => {
+      setFormData({ ...formData, image_url: imageUrl });
     };
 
     return (
@@ -523,14 +516,11 @@ const CoursesPage = () => {
           </select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="image_url">Image URL</Label>
-          <Input
-            id="image_url"
-            value={formData.image_url}
-            onChange={(e) =>
-              setFormData({ ...formData, image_url: e.target.value })
-            }
-            className="rounded-full"
+          <Label>Image</Label>
+          <InsertImage
+            onImageInsert={handleImageInsert}
+            onClose={() => setShowInsertImage(false)}
+            currentImageUrl={formData.image_url}
           />
         </div>
         <div className="space-y-2">
@@ -672,10 +662,15 @@ const CoursesPage = () => {
       estimatedDuration: selectedCourse?.estimatedDuration || "",
       difficultyLevel: selectedCourse?.difficultyLevel || "beginner",
     });
+    const [showInsertImage, setShowInsertImage] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       await handleUpdateCourse(formData);
+    };
+
+    const handleImageInsert = (imageUrl: string) => {
+      setFormData({ ...formData, imageUrl: imageUrl });
     };
 
     return (
@@ -719,14 +714,11 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_imageUrl">Image URL</Label>
-          <Input
-            id="edit_imageUrl"
-            value={formData.imageUrl}
-            onChange={(e) =>
-              setFormData({ ...formData, imageUrl: e.target.value })
-            }
-            className="rounded-full"
+          <Label>Image</Label>
+          <InsertImage
+            onImageInsert={handleImageInsert}
+            onClose={() => setShowInsertImage(false)}
+            currentImageUrl={formData.imageUrl}
           />
         </div>
         <div className="space-y-2">
@@ -864,19 +856,7 @@ const CoursesPage = () => {
     );
   };
 
-  const columns = [
-    "Name",
-    "Description",
-    "Module ID",
-    "Course Type",
-    "Duration (min)",
-    "Level",
-    "Difficulty Level",
-    "Show Duration",
-    "Show Level",
-    "Created At",
-    "Actions",
-  ];
+  const columns = ["ID", "Name", "Module Name", "Duration", "Level", "Actions"];
 
   return (
     <AdminPageLayout

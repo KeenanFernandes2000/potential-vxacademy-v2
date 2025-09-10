@@ -16,7 +16,7 @@ const api = {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          // "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -149,7 +149,6 @@ const RolesPage = () => {
           rolesResponse.data?.map((role: any) => ({
             id: role.id,
             name: role.name,
-            categoryId: role.categoryId,
             categoryName: categoryMap.get(role.categoryId) || "Unknown",
             actions: (
               <div className="flex gap-1">
@@ -347,7 +346,7 @@ const RolesPage = () => {
     );
   };
 
-  const columns = ["Role Name", "Category", "Actions"];
+  const columns = ["ID", "Role Name", "Category", "Actions"];
 
   return (
     <AdminPageLayout

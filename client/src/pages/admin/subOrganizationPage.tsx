@@ -40,48 +40,13 @@ const api = {
 };
 
 // Mock data for sub-organizations
-const mockSubOrganizations = [
-  {
-    id: 1,
-    name: "VX Academy - Engineering Dept",
-    parentOrg: "VX Academy Main",
-    type: "Department",
-    location: "New York, NY",
-    contactEmail: "engineering@vxacademy.com",
-    createdDate: "2024-01-02",
-    status: "Active",
-    userCount: 120,
-  },
-  {
-    id: 2,
-    name: "TechCorp - Sales Division",
-    parentOrg: "TechCorp Training",
-    type: "Division",
-    location: "San Francisco, CA",
-    contactEmail: "sales@techcorp.com",
-    createdDate: "2024-01-06",
-    status: "Active",
-    userCount: 85,
-  },
-  {
-    id: 3,
-    name: "University - Computer Science",
-    parentOrg: "University of Learning",
-    type: "Department",
-    location: "Boston, MA",
-    contactEmail: "cs@university.edu",
-    createdDate: "2024-01-11",
-    status: "Pending",
-    userCount: 0,
-  },
-];
 
 const SubOrganizationPage = () => {
   const { token } = useAuth();
-  const [subOrganizations, setSubOrganizations] =
-    useState(mockSubOrganizations);
-  const [filteredSubOrganizations, setFilteredSubOrganizations] =
-    useState(mockSubOrganizations);
+  // const [subOrganizations, setSubOrganizations] =
+  //   useState(mockSubOrganizations);
+  // const [filteredSubOrganizations, setFilteredSubOrganizations] =
+  //   useState(mockSubOrganizations);
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [isLoadingOrganizations, setIsLoadingOrganizations] = useState(false);
 
@@ -107,33 +72,18 @@ const SubOrganizationPage = () => {
   }, [token]);
 
   const handleSearch = (query: string) => {
-    if (!query) {
-      setFilteredSubOrganizations(subOrganizations);
-    } else {
-      const filtered = subOrganizations.filter(
-        (subOrg) =>
-          subOrg.name.toLowerCase().includes(query.toLowerCase()) ||
-          subOrg.parentOrg.toLowerCase().includes(query.toLowerCase()) ||
-          subOrg.type.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredSubOrganizations(filtered);
-    }
+    // Empty search function for now
   };
 
   const handleCreateSubOrganization = (formData: any) => {
-    const newSubOrganization = {
-      id: subOrganizations.length + 1,
-      name: formData.name,
-      parentOrg: formData.parentOrg,
-      type: "N/A",
-      location: "N/A",
-      contactEmail: "N/A",
-      createdDate: new Date().toISOString().split("T")[0],
-      status: "Pending",
-      userCount: 0,
-    };
-    setSubOrganizations([...subOrganizations, newSubOrganization]);
-    setFilteredSubOrganizations([...subOrganizations, newSubOrganization]);
+    // const newSubOrganization = {
+    //   id: subOrganizations.length + 1,
+    //   name: formData.name,
+    //   parentOrg: formData.parentOrg,
+    //   createdDate: new Date().toISOString().split("T")[0],
+    // };
+    // setSubOrganizations([...subOrganizations, newSubOrganization]);
+    // setFilteredSubOrganizations([...subOrganizations, newSubOrganization]);
   };
 
   const CreateSubOrganizationForm = () => {
@@ -170,23 +120,23 @@ const SubOrganizationPage = () => {
             onValueChange={(value) =>
               setFormData({ ...formData, parentOrg: value })
             }
-            disabled={isLoadingOrganizations}
+            // disabled={isLoadingOrganizations}
           >
             <SelectTrigger className="rounded-full w-full">
-              <SelectValue
+              {/* <SelectValue
                 placeholder={
                   isLoadingOrganizations
                     ? "Loading organizations..."
                     : "Select parent organization"
                 }
-              />
+              /> */}
             </SelectTrigger>
             <SelectContent>
-              {organizations.map((org) => (
+              {/* {organizations.map((org) => (
                 <SelectItem key={org.id} value={org.name}>
                   {org.name}
                 </SelectItem>
-              ))}
+              ))} */}
             </SelectContent>
           </Select>
         </div>
@@ -199,17 +149,7 @@ const SubOrganizationPage = () => {
     );
   };
 
-  const columns = [
-    "Sub Organization",
-    "Asset",
-    "Sub Asset",
-    "User Type",
-    "Email",
-    "First Name",
-    "Last Name",
-    "Created At",
-    "Actions",
-  ];
+  const columns = ["Name", "Parent Organization", "Created At", "Actions"];
 
   return (
     <AdminPageLayout
@@ -220,7 +160,7 @@ const SubOrganizationPage = () => {
         searchPlaceholder="Search sub-organizations..."
         createButtonText="Create Sub-Organization"
         createForm={<CreateSubOrganizationForm />}
-        tableData={filteredSubOrganizations}
+        tableData={[]}
         columns={columns}
         onSearch={handleSearch}
       />

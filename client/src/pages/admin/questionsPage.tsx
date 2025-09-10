@@ -158,13 +158,13 @@ const api = {
 interface QuestionData
   extends Record<string, string | number | string[] | null | React.ReactNode> {
   id: number;
-  questionText: string;
-  questionType: string;
-  assessmentId: number;
+  question_text: string;
+  question_type: string;
+  assessment_id: number;
   options: string[] | null;
-  correctAnswer: string;
+  correct_answer: string;
   order: number;
-  createdAt: string;
+  created_at: string;
   actions: React.ReactNode;
 }
 
@@ -215,15 +215,21 @@ const QuestionsPage = () => {
         const transformedQuestions =
           response.data?.map((question: any) => ({
             id: question.id,
-            questionText: question.questionText,
-            questionType: question.questionType || "N/A",
-            assessmentId: question.assessmentId || 0,
+            question_text:
+              question.question_text || question.questionText || "N/A",
+            question_type:
+              question.question_type || question.questionType || "N/A",
+            assessment_id: question.assessment_id || question.assessmentId || 0,
             options: question.options || null,
-            correctAnswer: question.correctAnswer || "N/A",
+            correct_answer:
+              question.correct_answer || question.correctAnswer || "N/A",
             order: question.order || 0,
-            createdAt: question.createdAt
-              ? new Date(question.createdAt).toISOString().split("T")[0]
-              : "N/A",
+            created_at:
+              question.created_at || question.createdAt
+                ? new Date(question.created_at || question.createdAt)
+                    .toISOString()
+                    .split("T")[0]
+                : "N/A",
             actions: (
               <div className="flex gap-1">
                 <Button
@@ -411,15 +417,19 @@ const QuestionsPage = () => {
     const transformedQuestions =
       updatedResponse.data?.map((question: any) => ({
         id: question.id,
-        questionText: question.questionText,
-        questionType: question.questionType || "N/A",
-        assessmentId: question.assessmentId || 0,
+        question_text: question.question_text || question.questionText || "N/A",
+        question_type: question.question_type || question.questionType || "N/A",
+        assessment_id: question.assessment_id || question.assessmentId || 0,
         options: question.options || null,
-        correctAnswer: question.correctAnswer || "N/A",
+        correct_answer:
+          question.correct_answer || question.correctAnswer || "N/A",
         order: question.order || 0,
-        createdAt: question.createdAt
-          ? new Date(question.createdAt).toISOString().split("T")[0]
-          : "N/A",
+        created_at:
+          question.created_at || question.createdAt
+            ? new Date(question.created_at || question.createdAt)
+                .toISOString()
+                .split("T")[0]
+            : "N/A",
         actions: (
           <div className="flex gap-1">
             <Button

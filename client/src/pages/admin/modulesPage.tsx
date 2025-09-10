@@ -12,6 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import InsertImage from "@/components/insertImage";
+import { Image as ImageIcon } from "lucide-react";
 
 // API object for module operations
 const api = {
@@ -143,10 +145,7 @@ const api = {
 interface ModuleData extends Record<string, string | number | React.ReactNode> {
   id: number;
   name: string;
-  description: string;
-  training_area_id: number;
-  image_url: string;
-  createdDate: string;
+  training_area_name: string;
   actions: React.ReactNode;
 }
 
@@ -180,38 +179,40 @@ const ModulesPage = () => {
 
         // Transform data to match our display format
         const transformedModules =
-          modulesResponse.data?.map((module: any) => ({
-            id: module.id,
-            name: module.name,
-            description: module.description || "N/A",
-            training_area_id: module.training_area_id || 0,
-            image_url: module.image_url || "N/A",
-            createdDate: module.created_at
-              ? new Date(module.created_at).toISOString().split("T")[0]
-              : "N/A",
-            actions: (
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-                  onClick={() => handleEditModule(module)}
-                  title="Edit"
-                >
-                  <Edit sx={{ fontSize: 16 }} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-                  onClick={() => handleDeleteModule(module.id)}
-                  title="Delete"
-                >
-                  <Delete sx={{ fontSize: 16 }} />
-                </Button>
-              </div>
-            ),
-          })) || [];
+          modulesResponse.data?.map((module: any) => {
+            // Find the training area for this module
+            const trainingArea = trainingAreasResponse.data?.find(
+              (ta: any) => ta.id === module.trainingAreaId
+            );
+
+            return {
+              id: module.id,
+              name: module.name,
+              training_area_name: trainingArea?.name || "N/A",
+              actions: (
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                    onClick={() => handleEditModule(module)}
+                    title="Edit"
+                  >
+                    <Edit sx={{ fontSize: 16 }} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                    onClick={() => handleDeleteModule(module.id)}
+                    title="Delete"
+                  >
+                    <Delete sx={{ fontSize: 16 }} />
+                  </Button>
+                </div>
+              ),
+            };
+          }) || [];
 
         setModules(transformedModules);
         setFilteredModules(transformedModules);
@@ -231,10 +232,8 @@ const ModulesPage = () => {
     if (!query) {
       setFilteredModules(modules);
     } else {
-      const filtered = modules.filter(
-        (module) =>
-          module.name.toLowerCase().includes(query.toLowerCase()) ||
-          module.description.toLowerCase().includes(query.toLowerCase())
+      const filtered = modules.filter((module) =>
+        module.name.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredModules(filtered);
     }
@@ -353,41 +352,40 @@ const ModulesPage = () => {
     const updatedResponse = await api.getAllModules(token);
 
     const transformedModules =
-      updatedResponse.data?.map((module: any) => ({
-        id: module.id,
-        name: module.name,
-        description: module.description || "N/A",
-        trainingArea: module.trainingArea || "N/A",
-        duration: module.duration || "N/A",
-        unitCount: module.unitCount || 0,
-        studentCount: module.studentCount || 0,
-        createdDate: module.createdAt
-          ? new Date(module.createdAt).toISOString().split("T")[0]
-          : "N/A",
-        status: module.status || "Active",
-        actions: (
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-              onClick={() => handleEditModule(module)}
-              title="Edit"
-            >
-              <Edit sx={{ fontSize: 16 }} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-              onClick={() => handleDeleteModule(module.id)}
-              title="Delete"
-            >
-              <Delete sx={{ fontSize: 16 }} />
-            </Button>
-          </div>
-        ),
-      })) || [];
+      updatedResponse.data?.map((module: any) => {
+        // Find the training area for this module
+        const trainingArea = trainingAreas.find(
+          (ta: any) => ta.id === module.training_area_id
+        );
+
+        return {
+          id: module.id,
+          name: module.name,
+          training_area_name: trainingArea?.name || "N/A",
+          actions: (
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                onClick={() => handleEditModule(module)}
+                title="Edit"
+              >
+                <Edit sx={{ fontSize: 16 }} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                onClick={() => handleDeleteModule(module.id)}
+                title="Delete"
+              >
+                <Delete sx={{ fontSize: 16 }} />
+              </Button>
+            </div>
+          ),
+        };
+      }) || [];
 
     setModules(transformedModules);
     setFilteredModules(transformedModules);
@@ -400,6 +398,7 @@ const ModulesPage = () => {
       training_area_id: "",
       image_url: "",
     });
+    const [showInsertImage, setShowInsertImage] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -412,66 +411,71 @@ const ModulesPage = () => {
       });
     };
 
+    const handleImageInsert = (imageUrl: string) => {
+      setFormData({ ...formData, image_url: imageUrl });
+    };
+
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Module Name *</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="description">Description *</Label>
-          <Input
-            id="description"
-            value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            className="rounded-full"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="training_area_id">Training Area *</Label>
-          <select
-            id="training_area_id"
-            value={formData.training_area_id}
-            onChange={(e) =>
-              setFormData({ ...formData, training_area_id: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-            required
-          >
-            <option value="">Select a training area</option>
-            {trainingAreas.map((area) => (
-              <option key={area.id} value={area.id}>
-                {area.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="image_url">Image URL</Label>
-          <Input
-            id="image_url"
-            value={formData.image_url}
-            onChange={(e) =>
-              setFormData({ ...formData, image_url: e.target.value })
-            }
-            className="rounded-full"
-          />
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoading} className="rounded-full">
-            {isLoading ? "Creating..." : "Create Module"}
-          </Button>
-        </div>
-      </form>
+      <div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Module Name *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="rounded-full"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description *</Label>
+            <Input
+              id="description"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
+              className="rounded-full"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="training_area_id">Training Area *</Label>
+            <select
+              id="training_area_id"
+              value={formData.training_area_id}
+              onChange={(e) =>
+                setFormData({ ...formData, training_area_id: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-full bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
+              required
+            >
+              <option value="">Select a training area</option>
+              {trainingAreas.map((area) => (
+                <option key={area.id} value={area.id}>
+                  {area.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label>Image</Label>
+            <InsertImage
+              onImageInsert={handleImageInsert}
+              onClose={() => setShowInsertImage(false)}
+              currentImageUrl={formData.image_url}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="submit" disabled={isLoading} className="rounded-full">
+              {isLoading ? "Creating..." : "Create Module"}
+            </Button>
+          </div>
+        </form>
+      </div>
     );
   };
 
@@ -481,11 +485,17 @@ const ModulesPage = () => {
       description: selectedModule?.description || "",
       trainingArea: selectedModule?.trainingArea || "",
       duration: selectedModule?.duration || "",
+      image_url: selectedModule?.image_url || "",
     });
+    const [showInsertImage, setShowInsertImage] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       await handleUpdateModule(formData);
+    };
+
+    const handleImageInsert = (imageUrl: string) => {
+      setFormData({ ...formData, image_url: imageUrl });
     };
 
     return (
@@ -536,6 +546,14 @@ const ModulesPage = () => {
             required
           />
         </div>
+        <div className="space-y-2">
+          <Label>Image</Label>
+          <InsertImage
+            onImageInsert={handleImageInsert}
+            onClose={() => setShowInsertImage(false)}
+            currentImageUrl={formData.image_url}
+          />
+        </div>
         <div className="flex justify-end gap-2">
           <Button
             type="button"
@@ -556,14 +574,7 @@ const ModulesPage = () => {
     );
   };
 
-  const columns = [
-    "Name",
-    "Description",
-    "Training Area ID",
-    "Image URL",
-    "Created Date",
-    "Actions",
-  ];
+  const columns = ["ID", "Name", "Training Area", "Actions"];
 
   return (
     <AdminPageLayout
