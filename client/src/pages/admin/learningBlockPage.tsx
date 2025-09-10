@@ -217,7 +217,7 @@ const LearningBlockPage = () => {
               content: learningBlock.content || "N/A",
               video_url: learningBlock.video_url || "N/A",
               image_url: learningBlock.image_url || "N/A",
-              interactive_data: learningBlock.interactive_data || null,
+              interactive_data: learningBlock.interactive_data || "",
               order: learningBlock.order || 1,
               xp_points: learningBlock.xp_points || 10,
               createdDate: learningBlock.createdAt
@@ -292,7 +292,7 @@ const LearningBlockPage = () => {
         unitId: parseInt(formData.unit_id),
         type: formData.type,
         title: formData.title,
-        content: formData.content || null,
+        content: formData.content || '',
         videoUrl: formData.video_url || "",
         imageUrl: formData.image_url || "",
         interactiveData: formData.interactive_data || "",

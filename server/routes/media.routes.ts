@@ -37,6 +37,7 @@ router.delete(
   MediaController.deleteMediaFile
 );
 
+
 // ==================== MEDIA FILE READ FUNCTIONS ====================
 router.get("/:id", MediaController.getMediaFileById);
 router.get("/", authenticateJWT, MediaController.getAllMediaFiles);

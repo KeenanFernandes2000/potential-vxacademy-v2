@@ -8,7 +8,6 @@ import ForgotPasswordPage from "@/pages/login/forgotPasswordPage";
 import ResetPasswordPage from "@/pages/login/resetPasswordPage";
 import JoinPage from "@/pages/login/joinPage";
 import ProfilePage from "@/pages/profile";
-import UnauthorizedPage from "@/pages/errors/UnauthorizedPage";
 import NotFoundPage from "@/pages/errors/NotFoundPage";
 
 // Admin Pages
@@ -41,6 +40,7 @@ import UserCourses from "@/pages/user/courses";
 import UserAchievements from "@/pages/user/achievements";
 import CourseDetails from "@/pages/user/courseDetails";
 import AssessmentPage from "@/pages/user/assessmentPage";
+import MediaPage from "./pages/admin/mediaPage";
 
 function App() {
   return (
@@ -173,6 +173,15 @@ function App() {
               element={
                 <ProtectedRoute requiredUserType="admin">
                   <RoleCategoriesPage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/media"
+              element={
+                <ProtectedRoute requiredUserType="admin">
+                  <MediaPage />
                 </ProtectedRoute>
               }
             />

@@ -1,7 +1,10 @@
 import React from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AccessTime as Clock, PlayArrowRounded as Play } from "@mui/icons-material";
+import {
+  AccessTime as Clock,
+  PlayArrowRounded as Play,
+} from "@mui/icons-material";
 
 interface CourseCardProps {
   title: string;
@@ -37,27 +40,32 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
   return (
     <Card className="w-full max-w-sm bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 overflow-hidden rounded-none py-0">
-      {/* Course Image */}
-      {image && (
-        <div className="relative w-full">
+      {/* Course Image or Initials Fallback */}
+      <div className="relative w-full h-48">
+        {image && image !== "null" ? (
           <img src={image} alt={title} className="w-full h-full object-cover" />
-          {/* Duration overlay on image */}
-          <div className="absolute top-2 right-2 bg-black/50 text-white px-2 flex items-center">
-            <Clock className="w-3 h-3 mr-1" />
-            <span className="text-xs">{duration}</span>
-          </div>
-        </div>
-      )}
-
-      <CardContent className="px-4">
-        {/* Duration - Top Right (only show if no image) */}
-        {!image && (
-          <div className="flex justify-end items-center mb-2">
-            <Clock className="w-4 h-4 text-gray-400 mr-1" />
-            <span className="text-sm text-gray-400">{duration}</span>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="w-20 h-20 bg-[#00d8cc] backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30">
+              <span className="text-2xl font-bold text-black">
+                {title
+                  .split(" ")
+                  .map((word) => word.charAt(0))
+                  .join("")
+                  .toUpperCase()
+                  .slice(0, 2)}
+              </span>
+            </div>
           </div>
         )}
+        {/* Duration overlay */}
+        {duration && (<div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 flex items-center">
+          <Clock className="w-3 h-3" />
+          <span className="ml-1 text-xs">{duration}</span>
+        </div>)}
+      </div>
 
+      <CardContent className="px-4">
         {/* Difficulty Tag */}
         <div className="mb-1">
           <span
@@ -70,10 +78,14 @@ const CourseCard: React.FC<CourseCardProps> = ({
         </div>
 
         {/* Course Title */}
-        <h3 className="text-xl font-bold text-black mb-1">{title}</h3>
+        <h3 className="text-xl font-bold text-black mb-1 line-clamp-1 h-6 overflow-hidden">
+          {title}
+        </h3>
 
         {/* Course Description */}
-        <p className="text-sm text-gray-500  line-clamp-3">{description}</p>
+        <p className="text-sm text-gray-500 line-clamp-3 h-16 overflow-hidden">
+          {description}
+        </p>
       </CardContent>
 
       <CardFooter className="px-4 pb-4">

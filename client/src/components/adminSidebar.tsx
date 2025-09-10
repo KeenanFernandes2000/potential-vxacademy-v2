@@ -60,6 +60,12 @@ const AdminSidebar = () => {
       url: "/admin/dashboard",
       badge: null,
     },
+    {
+      title: "Media",
+      icon: WebAsset,
+      url: "/admin/media",
+      badge: null,
+    },
   ];
 
   const assetNavItems = [

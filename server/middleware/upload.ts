@@ -110,7 +110,10 @@ const storage = multer.diskStorage({
 // File size limits (in bytes)
 const limits = {
   fileSize: 50 * 1024 * 1024, // 50MB max file size
-  files: 5, // Max 5 files per request
+  files: 10, // Max 10 files per request
+  fieldSize: 50 * 1024 * 1024, // 50MB max field size
+  fieldNameSize: 100, // Max field name size
+  fields: 10, // Max number of fields
 };
 
 // Multer configuration
