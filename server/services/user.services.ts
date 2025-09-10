@@ -311,14 +311,9 @@ export class UserService {
     name: string,
     excludeId?: number
   ): Promise<boolean> {
-    let whereCondition = eq(organizations.name, name);
-
-    if (excludeId) {
-      whereCondition = and(
-        eq(organizations.name, name),
-        ne(organizations.id, excludeId)
-      );
-    }
+    const whereCondition = excludeId
+      ? and(eq(organizations.name, name), ne(organizations.id, excludeId))
+      : eq(organizations.name, name);
 
     const result = await db
       .select({ id: organizations.id })

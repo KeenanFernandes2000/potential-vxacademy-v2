@@ -8,6 +8,7 @@ import progressRouter from "./routes/progress.routes";
 import errorHandling from "./middleware/errorHandling";
 import passport from "passport";
 import path from "path";
+import { db } from "./db/connection";
 
 const app = express();
 const PORT = process.env.PORT as string;
@@ -18,7 +19,7 @@ const apiRouter = express.Router();
 // Enable CORS for all routes
 app.use(
   cors({
-    origin: "http://localhost:5000", // Allow requests from your React app
+    origin: process.env.FRONTEND_URL, // Allow requests from your React app
     credentials: true, // Allow credentials if needed
   })
 );
@@ -39,8 +40,41 @@ apiRouter.use("/training", trainingRouter);
 apiRouter.use("/assessments", assessmentRouter);
 apiRouter.use("/progress", progressRouter);
 
+// Health check endpoint
+apiRouter.get("/health", async (req, res) => {
+  try {
+    await db.execute("SELECT 1");
+    res.status(200).json({
+      status: "healthy",
+      database: "connected",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "unhealthy",
+      database: "disconnected",
+      error: error instanceof Error ? error.message : "Unknown error",
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
 app.use(errorHandling);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// Test database connection before starting server
+async function startServer() {
+  try {
+    // Test database connection with a simple query
+    await db.execute("SELECT 1");
+    console.log("✅ Database connection successful");
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("❌ Database connection failed:", error);
+    process.exit(1);
+  }
+}
+
+startServer();

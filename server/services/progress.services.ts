@@ -188,7 +188,7 @@ export class LearningBlockProgressService {
       .values({
         userId,
         courseUnitId,
-        status,
+        status: status as "not_started" | "in_progress" | "completed",
         completionPercentage: completionPercentage.toString(),
         startedAt: new Date(),
         completedAt: status === "completed" ? new Date() : new Date(),
@@ -199,7 +199,7 @@ export class LearningBlockProgressService {
           userCourseUnitProgress.courseUnitId,
         ],
         set: {
-          status,
+          status: status as "not_started" | "in_progress" | "completed",
           completionPercentage: completionPercentage.toString(),
           completedAt: status === "completed" ? new Date() : sql`completed_at`,
         },
@@ -257,7 +257,7 @@ export class LearningBlockProgressService {
       .values({
         userId,
         courseId,
-        status,
+        status: status as "not_started" | "in_progress" | "completed",
         completionPercentage: completionPercentage.toString(),
         startedAt: new Date(),
         completedAt: status === "completed" ? new Date() : new Date(),
@@ -265,7 +265,7 @@ export class LearningBlockProgressService {
       .onConflictDoUpdate({
         target: [userCourseProgress.userId, userCourseProgress.courseId],
         set: {
-          status,
+          status: status as "not_started" | "in_progress" | "completed",
           completionPercentage: completionPercentage.toString(),
           completedAt: status === "completed" ? new Date() : sql`completed_at`,
         },
@@ -329,7 +329,7 @@ export class LearningBlockProgressService {
       .values({
         userId,
         moduleId,
-        status,
+        status: status as "not_started" | "in_progress" | "completed",
         completionPercentage: completionPercentage.toString(),
         startedAt: new Date(),
         completedAt: status === "completed" ? new Date() : new Date(),
@@ -337,7 +337,7 @@ export class LearningBlockProgressService {
       .onConflictDoUpdate({
         target: [userModuleProgress.userId, userModuleProgress.moduleId],
         set: {
-          status,
+          status: status as "not_started" | "in_progress" | "completed",
           completionPercentage: completionPercentage.toString(),
           completedAt: status === "completed" ? new Date() : sql`completed_at`,
         },
@@ -405,7 +405,7 @@ export class LearningBlockProgressService {
       .values({
         userId,
         trainingAreaId,
-        status,
+        status: status as "not_started" | "in_progress" | "completed",
         completionPercentage: completionPercentage.toString(),
         startedAt: new Date(),
         completedAt: status === "completed" ? new Date() : new Date(),
@@ -416,7 +416,7 @@ export class LearningBlockProgressService {
           userTrainingAreaProgress.trainingAreaId,
         ],
         set: {
-          status,
+          status: status as "not_started" | "in_progress" | "completed",
           completionPercentage: completionPercentage.toString(),
           completedAt: status === "completed" ? new Date() : sql`completed_at`,
         },

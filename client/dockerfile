@@ -1,0 +1,24 @@
+# ---------- frontend build ----------
+FROM oven/bun:1 AS build
+
+WORKDIR /app
+
+# copy root + all workspace manifests
+COPY bun.lock package.json ./
+COPY server/package.json ./server/
+COPY client/package.json ./client/
+
+# install ALL deps (need devDeps for vite/tailwind build)
+RUN bun install
+
+# now copy only client source
+COPY client ./client
+
+RUN bun run build
+
+# ---------- frontend runtime ----------
+FROM nginx:alpine AS frontend
+COPY --from=build /app/client/dist /usr/share/nginx/html
+
+EXPOSE 5000
+CMD ["nginx", "-g", "daemon off;"]

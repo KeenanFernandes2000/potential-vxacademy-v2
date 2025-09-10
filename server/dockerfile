@@ -1,0 +1,18 @@
+# ---------- backend ----------
+FROM oven/bun:1-slim AS backend
+
+WORKDIR /app
+
+# copy manifests so bun install works with workspaces
+COPY bun.lock package.json ./
+COPY server/package.json ./server/
+COPY client/package.json ./client/
+
+# install production deps only
+RUN bun install --production
+
+# copy backend source
+COPY server ./server
+
+EXPOSE 8000
+CMD ["bun", "run", "server/index.ts"]
