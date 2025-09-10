@@ -25,6 +25,7 @@ import {
   VideoLibrary,
   Image,
   TextFields,
+  Lock,
 } from "@mui/icons-material";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -50,6 +51,7 @@ interface Assessment {
   passingScore: number;
   maxRetakes: number;
   attemptsUsed: number;
+  order?: number;
 }
 
 interface AssessmentAttempt {
@@ -181,16 +183,33 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
     },
   };
 
-  // Set initial selected content to first learning block
+  // Set initial selected content to first accessible learning block
   React.useEffect(() => {
-    if (units.length > 0 && units[0].learningBlocks.length > 0) {
-      const firstBlock = units[0].learningBlocks[0];
-      setSelectedContent({
-        type: "learningBlock",
-        id: firstBlock.id,
-        title: firstBlock.title,
-        content: firstBlock.content,
+    if (units.length > 0) {
+      const allContent = getAllContentInOrder();
+      const firstAccessibleContent = allContent.find((content) => {
+        if (content.type === "learningBlock") {
+          return isLearningBlockAccessible(content.item, content.unitOrder);
+        } else if (content.type === "assessment") {
+          return isAssessmentAccessible(content.item, content.unitOrder);
+        }
+        return false;
       });
+
+      if (firstAccessibleContent) {
+        setSelectedContent({
+          type: firstAccessibleContent.type,
+          id: firstAccessibleContent.item.id,
+          title: firstAccessibleContent.item.title,
+          content:
+            firstAccessibleContent.item.content ||
+            firstAccessibleContent.item.description,
+          assessment:
+            firstAccessibleContent.type === "assessment"
+              ? firstAccessibleContent.item
+              : undefined,
+        });
+      }
     }
   }, [units]);
 
@@ -294,6 +313,125 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
   // Helper function to check if the current learning block is completed
   const isCurrentLearningBlockCompleted = (): boolean => {
     return getCurrentLearningBlockStatus() === "completed";
+  };
+
+  // Helper function to get all content items (learning blocks and assessments) in order
+  const getAllContentInOrder = (): Array<{
+    type: "learningBlock" | "assessment";
+    item: any;
+    unitOrder: number;
+    itemOrder: number;
+  }> => {
+    const allContent: Array<{
+      type: "learningBlock" | "assessment";
+      item: any;
+      unitOrder: number;
+      itemOrder: number;
+    }> = [];
+
+    units.forEach((unit) => {
+      // Add learning blocks
+      unit.learningBlocks.forEach((block) => {
+        allContent.push({
+          type: "learningBlock",
+          item: block,
+          unitOrder: unit.order,
+          itemOrder: block.order,
+        });
+      });
+
+      // Add assessments
+      unit.assessments.forEach((assessment) => {
+        allContent.push({
+          type: "assessment",
+          item: assessment,
+          unitOrder: unit.order,
+          itemOrder: assessment.order || 999, // Assessments without order go to end
+        });
+      });
+    });
+
+    // Sort by unit order first, then by item order
+    return allContent.sort((a, b) => {
+      if (a.unitOrder !== b.unitOrder) {
+        return a.unitOrder - b.unitOrder;
+      }
+      return a.itemOrder - b.itemOrder;
+    });
+  };
+
+  // Helper function to check if a learning block is accessible
+  const isLearningBlockAccessible = (
+    block: LearningBlock,
+    unitOrder: number
+  ): boolean => {
+    const allContent = getAllContentInOrder();
+    const currentIndex = allContent.findIndex(
+      (content) =>
+        content.type === "learningBlock" && content.item.id === block.id
+    );
+
+    // First item is always accessible
+    if (currentIndex === 0) return true;
+
+    // Check if previous item is completed
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      const prevContent = allContent[i];
+
+      if (prevContent.type === "learningBlock") {
+        if (prevContent.item.status !== "completed") {
+          return false;
+        }
+      } else if (prevContent.type === "assessment") {
+        // For assessments, check if they have a passing attempt
+        const hasPassingAttempt =
+          prevContent.item.status === "passed" ||
+          (prevContent.item.attemptsUsed > 0 &&
+            prevContent.item.status === "completed");
+        if (!hasPassingAttempt) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
+  // Helper function to check if an assessment is accessible
+  const isAssessmentAccessible = (
+    assessment: Assessment,
+    unitOrder: number
+  ): boolean => {
+    const allContent = getAllContentInOrder();
+    const currentIndex = allContent.findIndex(
+      (content) =>
+        content.type === "assessment" && content.item.id === assessment.id
+    );
+
+    // First item is always accessible
+    if (currentIndex === 0) return true;
+
+    // Check if previous item is completed
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      const prevContent = allContent[i];
+
+      if (prevContent.type === "learningBlock") {
+        if (prevContent.item.status !== "completed") {
+          return false;
+        }
+      } else if (prevContent.type === "assessment") {
+        // For assessments, check if they have a passing attempt
+        const hasPassingAttempt =
+          prevContent.item.status === "passed" ||
+          (prevContent.item.attemptsUsed > 0 &&
+            prevContent.item.status === "completed");
+        if (!hasPassingAttempt) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   };
 
   const getStatusIcon = (status: string) => {
@@ -731,52 +869,100 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                 <AccordionContent className="px-4 pb-4">
                   <div className="space-y-2 pl-4">
                     {/* Learning Blocks */}
-                    {unit.learningBlocks.map((block) => (
-                      <div
-                        key={block.id}
-                        className={`flex items-center justify-between p-2 cursor-pointer transition-colors ${
-                          selectedContent?.id === block.id &&
-                          selectedContent?.type === "learningBlock"
-                            ? "bg-green-100 text-green-800 border-l-4 border-green-500"
-                            : "hover:bg-gray-50"
-                        }`}
-                        onClick={() =>
-                          handleContentSelect("learningBlock", block)
-                        }
-                      >
-                        <div className="flex items-center text-gray-700">
-                          {getContentIcon(block.type)}
-                          <span className="ml-2 text-sm text-gray-700">
-                            {block.title}
-                          </span>
+                    {unit.learningBlocks.map((block) => {
+                      const isAccessible = isLearningBlockAccessible(
+                        block,
+                        unit.order
+                      );
+                      return (
+                        <div
+                          key={block.id}
+                          className={`flex items-center justify-between p-2 transition-colors ${
+                            !isAccessible
+                              ? "opacity-50 cursor-not-allowed"
+                              : selectedContent?.id === block.id &&
+                                selectedContent?.type === "learningBlock"
+                              ? "bg-green-100 text-green-800 border-l-4 border-green-500"
+                              : "hover:bg-gray-50 cursor-pointer"
+                          }`}
+                          onClick={() => {
+                            if (isAccessible) {
+                              handleContentSelect("learningBlock", block);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center text-gray-700">
+                            {!isAccessible ? (
+                              <Lock className="w-4 h-4 text-gray-400" />
+                            ) : (
+                              getContentIcon(block.type)
+                            )}
+                            <span
+                              className={`ml-2 text-sm ${
+                                !isAccessible
+                                  ? "text-gray-400"
+                                  : "text-gray-700"
+                              }`}
+                            >
+                              {block.title}
+                            </span>
+                          </div>
+                          {!isAccessible ? (
+                            <Lock className="w-4 h-4 text-gray-400" />
+                          ) : (
+                            getStatusIcon(block.status)
+                          )}
                         </div>
-                        {getStatusIcon(block.status)}
-                      </div>
-                    ))}
+                      );
+                    })}
 
                     {/* Assessments */}
-                    {unit.assessments.map((assessment) => (
-                      <div
-                        key={assessment.id}
-                        className={`flex items-center justify-between p-2 cursor-pointer transition-colors ${
-                          selectedContent?.id === assessment.id &&
-                          selectedContent?.type === "assessment"
-                            ? "bg-green-100 text-green-800 border-l-4 border-green-500"
-                            : "hover:bg-gray-50"
-                        }`}
-                        onClick={() =>
-                          handleContentSelect("assessment", assessment)
-                        }
-                      >
-                        <div className="flex items-center">
-                          <HelpOutline className="w-4 h-4 text-gray-700" />
-                          <span className="ml-2 text-sm text-gray-700">
-                            {assessment.title}
-                          </span>
+                    {unit.assessments.map((assessment) => {
+                      const isAccessible = isAssessmentAccessible(
+                        assessment,
+                        unit.order
+                      );
+                      return (
+                        <div
+                          key={assessment.id}
+                          className={`flex items-center justify-between p-2 transition-colors ${
+                            !isAccessible
+                              ? "opacity-50 cursor-not-allowed"
+                              : selectedContent?.id === assessment.id &&
+                                selectedContent?.type === "assessment"
+                              ? "bg-green-100 text-green-800 border-l-4 border-green-500"
+                              : "hover:bg-gray-50 cursor-pointer"
+                          }`}
+                          onClick={() => {
+                            if (isAccessible) {
+                              handleContentSelect("assessment", assessment);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center">
+                            {!isAccessible ? (
+                              <Lock className="w-4 h-4 text-gray-400" />
+                            ) : (
+                              <HelpOutline className="w-4 h-4 text-gray-700" />
+                            )}
+                            <span
+                              className={`ml-2 text-sm ${
+                                !isAccessible
+                                  ? "text-gray-400"
+                                  : "text-gray-700"
+                              }`}
+                            >
+                              {assessment.title}
+                            </span>
+                          </div>
+                          {!isAccessible ? (
+                            <Lock className="w-4 h-4 text-gray-400" />
+                          ) : (
+                            getStatusIcon(assessment.status)
+                          )}
                         </div>
-                        {getStatusIcon(assessment.status)}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -964,7 +1150,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                       </div>
                     )}
 
-                  {/* Start Assessment Button - Hide if there are passed attempts */}
+                  {/* Start Assessment Button - Hide if there are passed attempts or if not accessible */}
                   {(!Array.isArray(assessmentAttempts) ||
                     assessmentAttempts.length === 0 ||
                     assessmentAttempts[0]?.passed !== true) && (
@@ -977,13 +1163,30 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                         disabled={
                           selectedContent.assessment.maxRetakes -
                             selectedContent.assessment.attemptsUsed ===
-                          0
+                            0 ||
+                          !isAssessmentAccessible(
+                            selectedContent.assessment!,
+                            units.find((unit) =>
+                              unit.assessments.some(
+                                (a) => a.id === selectedContent.assessment!.id
+                              )
+                            )?.order || 1
+                          )
                         }
                       >
                         {selectedContent.assessment.maxRetakes -
                           selectedContent.assessment.attemptsUsed ===
                         0
                           ? "No Attempts Remaining"
+                          : !isAssessmentAccessible(
+                              selectedContent.assessment!,
+                              units.find((unit) =>
+                                unit.assessments.some(
+                                  (a) => a.id === selectedContent.assessment!.id
+                                )
+                              )?.order || 1
+                            )
+                          ? "Complete Previous Content First"
                           : "Start Assessment"}
                       </Button>
                     </div>
