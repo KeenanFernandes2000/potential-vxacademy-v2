@@ -151,6 +151,7 @@ const Courses = () => {
   };
 
   // Helper function to get course progress
+  // Progress data comes from /api/progress/courses/:userId endpoint
   const getCourseProgress = (courseId: number): number => {
     return userProgress[courseId] || 0;
   };
@@ -184,13 +185,30 @@ const Courses = () => {
         }
 
         // Fetch user progress
-        const progressResponse = await api.getUserProgress(user.id, token);
-        if (progressResponse.success && progressResponse.data) {
-          const progressMap: { [courseId: number]: number } = {};
-          progressResponse.data.courseProgress?.forEach((progress: any) => {
-            progressMap[progress.courseId] = progress.progressPercentage || 0;
-          });
-          setUserProgress(progressMap);
+        try {
+          const progressResponse = await api.getUserProgress(user.id, token);
+          if (progressResponse.success && progressResponse.data) {
+            const progressMap: { [courseId: number]: number } = {};
+            // The backend returns an array of course progress objects directly
+            if (Array.isArray(progressResponse.data)) {
+              progressResponse.data.forEach((progress: any) => {
+                if (
+                  progress.courseId &&
+                  progress.completionPercentage !== undefined
+                ) {
+                  progressMap[progress.courseId] =
+                    parseFloat(progress.completionPercentage) || 0;
+                }
+              });
+            }
+            setUserProgress(progressMap);
+          }
+        } catch (progressError) {
+          console.warn(
+            "Failed to fetch user progress, continuing without progress data:",
+            progressError
+          );
+          // Continue without progress data - courses will show 0% progress
         }
 
         // Fetch modules for each training area

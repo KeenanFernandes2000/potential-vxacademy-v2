@@ -11,7 +11,7 @@ interface CourseCardProps {
   description: string;
   duration: string; // e.g., "0h 10m"
   difficulty: "beginner" | "intermediate" | "advanced";
-  progress: number; // 0-100
+  progress: number; // 0-100, comes from backend progress API
   image?: string;
   onStart?: () => void;
 }
@@ -59,10 +59,12 @@ const CourseCard: React.FC<CourseCardProps> = ({
           </div>
         )}
         {/* Duration overlay */}
-        {duration && (<div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 flex items-center">
-          <Clock className="w-3 h-3" />
-          <span className="ml-1 text-xs">{duration}</span>
-        </div>)}
+        {duration && (
+          <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 flex items-center">
+            <Clock className="w-3 h-3" />
+            <span className="ml-1 text-xs">{duration}</span>
+          </div>
+        )}
       </div>
 
       <CardContent className="px-4">
