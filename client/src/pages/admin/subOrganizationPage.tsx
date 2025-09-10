@@ -1,9 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
+import { useAuth } from "@/hooks/useAuth";
+
+// API object for organization operations
+const api = {
+  async getAllOrganizations(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const response = await fetch(`${baseUrl}/api/users/organizations`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch organizations:", error);
+      throw error;
+    }
+  },
+};
 
 // Mock data for sub-organizations
 const mockSubOrganizations = [
@@ -43,10 +77,34 @@ const mockSubOrganizations = [
 ];
 
 const SubOrganizationPage = () => {
+  const { token } = useAuth();
   const [subOrganizations, setSubOrganizations] =
     useState(mockSubOrganizations);
   const [filteredSubOrganizations, setFilteredSubOrganizations] =
     useState(mockSubOrganizations);
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [isLoadingOrganizations, setIsLoadingOrganizations] = useState(false);
+
+  // Fetch organizations from database on component mount
+  useEffect(() => {
+    const fetchOrganizations = async () => {
+      if (!token) {
+        return;
+      }
+
+      try {
+        setIsLoadingOrganizations(true);
+        const response = await api.getAllOrganizations(token);
+        setOrganizations(response.data || []);
+      } catch (error) {
+        console.error("Error fetching organizations:", error);
+      } finally {
+        setIsLoadingOrganizations(false);
+      }
+    };
+
+    fetchOrganizations();
+  }, [token]);
 
   const handleSearch = (query: string) => {
     if (!query) {
@@ -67,9 +125,9 @@ const SubOrganizationPage = () => {
       id: subOrganizations.length + 1,
       name: formData.name,
       parentOrg: formData.parentOrg,
-      type: formData.type,
-      location: formData.location,
-      contactEmail: formData.contactEmail,
+      type: "N/A",
+      location: "N/A",
+      contactEmail: "N/A",
       createdDate: new Date().toISOString().split("T")[0],
       status: "Pending",
       userCount: 0,
@@ -82,10 +140,6 @@ const SubOrganizationPage = () => {
     const [formData, setFormData] = useState({
       name: "",
       parentOrg: "",
-      type: "",
-      location: "",
-      contactEmail: "",
-      description: "",
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -94,79 +148,52 @@ const SubOrganizationPage = () => {
       setFormData({
         name: "",
         parentOrg: "",
-        type: "",
-        location: "",
-        contactEmail: "",
-        description: "",
       });
     };
 
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Sub-Organization Name</Label>
+          <Label htmlFor="name">Sub-Organization Name *</Label>
           <Input
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className="rounded-full"
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="parentOrg">Parent Organization</Label>
-          <Input
-            id="parentOrg"
+          <Label htmlFor="parentOrg">Parent Organization *</Label>
+          <Select
             value={formData.parentOrg}
-            onChange={(e) =>
-              setFormData({ ...formData, parentOrg: e.target.value })
+            onValueChange={(value) =>
+              setFormData({ ...formData, parentOrg: value })
             }
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="type">Organization Type</Label>
-          <Input
-            id="type"
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="location">Location</Label>
-          <Input
-            id="location"
-            value={formData.location}
-            onChange={(e) =>
-              setFormData({ ...formData, location: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="contactEmail">Contact Email</Label>
-          <Input
-            id="contactEmail"
-            type="email"
-            value={formData.contactEmail}
-            onChange={(e) =>
-              setFormData({ ...formData, contactEmail: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Input
-            id="description"
-            value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-          />
+            disabled={isLoadingOrganizations}
+          >
+            <SelectTrigger className="rounded-full w-full">
+              <SelectValue
+                placeholder={
+                  isLoadingOrganizations
+                    ? "Loading organizations..."
+                    : "Select parent organization"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {organizations.map((org) => (
+                <SelectItem key={org.id} value={org.name}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex justify-end gap-2">
-          <Button type="submit">Create Sub-Organization</Button>
+          <Button type="submit" className="rounded-full">
+            Create Sub-Organization
+          </Button>
         </div>
       </form>
     );
