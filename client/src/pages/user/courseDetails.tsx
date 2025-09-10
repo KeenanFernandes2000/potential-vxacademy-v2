@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "@mui/icons-material";
 import CourseDetailsCard from "@/components/CourseDetailsCard";
-import CourseContentLayout from "@/pages/user/CourseContentLayout";
+import CourseContentLayout from "@/pages/user/courseContentLayout";
 
 // Mock course data - in a real app, this would come from an API
 const mockCourseData = {
@@ -119,7 +119,6 @@ const CourseDetails = () => {
 
   const courseId = parseInt(id || "1");
   const course = mockCourseData[courseId as keyof typeof mockCourseData];
-
 
   if (!course) {
     return (

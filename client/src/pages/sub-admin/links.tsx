@@ -4,45 +4,36 @@ import { useAuth } from "@/hooks/useAuth";
 
 // API object with all endpoints
 const api = {
-  baseUrl: import.meta.env.VITE_BACKEND_URL,
-
-  async makeRequest(endpoint: string, options: RequestInit = {}) {
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    return response.json();
-  },
-
   async sendInvitation(
     token: string,
     type: "new_joiner" | "existing_joiner",
     userId: number
   ) {
-    return this.makeRequest("/api/users/invitations", {
+    const baseUrl = import.meta.env.VITE_BACKEND_URL;
+    const response = await fetch(`${baseUrl}/api/users/invitations`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ type, createdBy: userId }),
     });
+    const data = await response.json();
+    return data;
   },
 
   async getInvitationsByCreator(token: string, createdBy: number) {
-    return this.makeRequest(`/api/users/invitations/creator/${createdBy}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const baseUrl = import.meta.env.VITE_BACKEND_URL;
+    const response = await fetch(
+      `${baseUrl}/api/users/invitations/creator/${createdBy}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await response.json();
+    return data;
   },
 };
 
