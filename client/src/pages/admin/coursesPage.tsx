@@ -49,7 +49,7 @@ const api = {
 
   async getAllModules(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/modules`, {
         method: "GET",
         headers: {
@@ -72,7 +72,7 @@ const api = {
 
   async getAllCourses(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/courses`, {
         method: "GET",
         headers: {
@@ -95,7 +95,7 @@ const api = {
 
   async createCourse(courseData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/courses`, {
         method: "POST",
         headers: {
@@ -119,7 +119,7 @@ const api = {
 
   async updateCourse(courseId: number, courseData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/courses/${courseId}`,
         {
@@ -146,7 +146,7 @@ const api = {
 
   async deleteCourse(courseId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/courses/${courseId}`,
         {

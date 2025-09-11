@@ -64,7 +64,6 @@ app.use(errorHandling);
 // Test database connection before starting server
 async function startServer() {
   try {
-    // Test database connection with a simple query
     await db.execute("SELECT 1");
     console.log("✅ Database connection successful");
 

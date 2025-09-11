@@ -15,7 +15,7 @@ interface InsertImageProps {
 const api = {
   async uploadMediaFile(file: File, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const formData = new FormData();
       formData.append("file", file);
 
@@ -103,7 +103,7 @@ const InsertImage: React.FC<InsertImageProps> = ({
 
       if (response.success && response.data) {
         // Get the full URL for the uploaded image
-        const fullImageUrl = `${import.meta.env.VITE_BACKEND_URL}${
+        const fullImageUrl = `${import.meta.env.VITE_API_URL}${
           response.data.url
         }`;
         onImageInsert(fullImageUrl);
@@ -199,11 +199,7 @@ const InsertImage: React.FC<InsertImageProps> = ({
       )}
 
       {/* Tabs */}
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="w-full"
-      >
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2  h-9">
           <TabsTrigger
             value="upload"

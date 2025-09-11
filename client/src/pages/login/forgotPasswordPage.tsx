@@ -22,7 +22,7 @@ import HomeNavigation from "@/components/homeNavigation";
 const api = {
   async requestPasswordReset(email: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/users/password-reset/request`,
         {

@@ -25,7 +25,7 @@ import {
 const api = {
   async getAllTrainingAreas(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/training-areas`, {
         method: "GET",
         headers: {
@@ -48,7 +48,7 @@ const api = {
 
   async getAllModules(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/modules`, {
         method: "GET",
         headers: {
@@ -71,7 +71,7 @@ const api = {
 
   async getAllCourses(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/courses`, {
         method: "GET",
         headers: {
@@ -94,7 +94,7 @@ const api = {
 
   async getAllUnits(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/units`, {
         method: "GET",
         headers: {
@@ -117,7 +117,7 @@ const api = {
 
   async getAllAssessments(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/assessments/assessments`, {
         method: "GET",
         headers: {
@@ -140,7 +140,7 @@ const api = {
 
   async createAssessment(assessmentData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       console.log("Creating assessment with data:", assessmentData);
       console.log("Using token:", token ? "Token present" : "No token");
 
@@ -175,7 +175,7 @@ const api = {
     token: string
   ) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/assessments/assessments/${assessmentId}`,
         {
@@ -202,7 +202,7 @@ const api = {
 
   async deleteAssessment(assessmentId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/assessments/assessments/${assessmentId}`,
         {

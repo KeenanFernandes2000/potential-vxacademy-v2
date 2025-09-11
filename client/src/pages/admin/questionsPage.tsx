@@ -25,7 +25,7 @@ import {
 const api = {
   async getAllAssessments(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/assessments/assessments`, {
         method: "GET",
         headers: {
@@ -48,7 +48,7 @@ const api = {
 
   async getAllQuestions(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/assessments/questions`, {
         method: "GET",
         headers: {
@@ -71,7 +71,7 @@ const api = {
 
   async createQuestion(questionData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       console.log("Creating question with data:", questionData);
       console.log("Using token:", token ? "Token present" : "No token");
 
@@ -102,7 +102,7 @@ const api = {
 
   async updateQuestion(questionId: number, questionData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/assessments/questions/${questionId}`,
         {
@@ -129,7 +129,7 @@ const api = {
 
   async deleteQuestion(questionId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/assessments/questions/${questionId}`,
         {

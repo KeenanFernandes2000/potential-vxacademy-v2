@@ -19,7 +19,7 @@ import { Image as ImageIcon } from "lucide-react";
 const api = {
   async getAllTrainingAreas(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/training-areas`, {
         method: "GET",
         headers: {
@@ -42,7 +42,7 @@ const api = {
 
   async getAllModules(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/modules`, {
         method: "GET",
         headers: {
@@ -65,7 +65,7 @@ const api = {
 
   async createModule(moduleData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/modules`, {
         method: "POST",
         headers: {
@@ -89,7 +89,7 @@ const api = {
 
   async updateModule(moduleId: number, moduleData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/modules/${moduleId}`,
         {
@@ -116,7 +116,7 @@ const api = {
 
   async deleteModule(moduleId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/modules/${moduleId}`,
         {

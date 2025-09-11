@@ -17,7 +17,7 @@ import {
 const api = {
   async getAllOrganizations(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/organizations`, {
         method: "GET",
         headers: {
@@ -40,7 +40,7 @@ const api = {
 
   async createOrganization(organizationData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/organizations`, {
         method: "POST",
         headers: {
@@ -68,7 +68,7 @@ const api = {
     token: string
   ) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/users/organizations/${organizationId}`,
         {
@@ -95,7 +95,7 @@ const api = {
 
   async deleteOrganization(organizationId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/users/organizations/${organizationId}`,
         {

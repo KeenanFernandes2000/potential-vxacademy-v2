@@ -132,7 +132,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
       token: string
     ) {
       try {
-        const baseUrl = import.meta.env.VITE_BACKEND_URL;
+        const baseUrl = import.meta.env.VITE_API_URL;
         const response = await fetch(
           `${baseUrl}/api/assessments/users/${userId}/assessments/${assessmentId}/attempts`,
           {
@@ -158,7 +158,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
 
     async getAssessmentQuestions(assessmentId: number, token: string) {
       try {
-        const baseUrl = import.meta.env.VITE_BACKEND_URL;
+        const baseUrl = import.meta.env.VITE_API_URL;
         const response = await fetch(
           `${baseUrl}/api/assessments/assessments/${assessmentId}/questions`,
           {

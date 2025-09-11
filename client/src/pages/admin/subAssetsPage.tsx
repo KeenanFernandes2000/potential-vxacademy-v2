@@ -17,7 +17,7 @@ import {
 const api = {
   async getAllSubAssets(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/sub-assets`, {
         method: "GET",
         headers: {
@@ -40,7 +40,7 @@ const api = {
 
   async getAllAssets(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/assets`, {
         method: "GET",
         headers: {
@@ -63,7 +63,7 @@ const api = {
 
   async createSubAsset(subAssetData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/sub-assets`, {
         method: "POST",
         headers: {
@@ -87,7 +87,7 @@ const api = {
 
   async updateSubAsset(subAssetId: number, subAssetData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/users/sub-assets/${subAssetId}`,
         {
@@ -114,7 +114,7 @@ const api = {
 
   async deleteSubAsset(subAssetId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/users/sub-assets/${subAssetId}`,
         {
@@ -505,7 +505,7 @@ const SubAssetsPage = () => {
   };
 
   const columns = [
-    'ID',
+    "ID",
     "Name",
     "Parent Asset",
     "Size",

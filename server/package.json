@@ -1,13 +1,6 @@
 {
   "name": "server",
   "main": "index.ts",
-  "scripts": {
-    "dev": "bun run --watch index.ts",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio",
-    "db:push": "drizzle-kit push"
-  },
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
@@ -33,7 +26,6 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
     "@types/pg": "^8.15.5",
-    "@types/uuid": "^10.0.0",
-    "drizzle-kit": "^0.31.4"
+    "@types/uuid": "^10.0.0"
   }
 }

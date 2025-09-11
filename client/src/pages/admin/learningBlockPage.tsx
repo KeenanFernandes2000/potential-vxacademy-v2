@@ -25,7 +25,7 @@ import {
 const api = {
   async getAllUnits(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/units`, {
         method: "GET",
         headers: {
@@ -48,7 +48,7 @@ const api = {
 
   async getAllLearningBlocks(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/learning-blocks`, {
         method: "GET",
         headers: {
@@ -71,7 +71,7 @@ const api = {
 
   async createLearningBlock(learningBlockData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/learning-blocks`, {
         method: "POST",
         headers: {
@@ -99,7 +99,7 @@ const api = {
     token: string
   ) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/learning-blocks/${learningBlockId}`,
         {
@@ -126,7 +126,7 @@ const api = {
 
   async deleteLearningBlock(learningBlockId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/learning-blocks/${learningBlockId}`,
         {
