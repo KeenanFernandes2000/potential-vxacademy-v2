@@ -46,7 +46,6 @@ export const courses = pgTable("courses", {
   description: text("description"),
   imageUrl: text("image_url"),
   internalNote: text("internal_note"),
-  courseType: text("course_type").notNull().default("free"),
   duration: integer("duration").notNull(),
   showDuration: boolean("show_duration").notNull().default(true),
   level: text("level").notNull().default("beginner"),
