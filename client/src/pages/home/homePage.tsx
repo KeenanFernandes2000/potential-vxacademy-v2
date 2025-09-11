@@ -155,7 +155,7 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col bg-[#003451] relative overflow-hidden">
       {/* Supergraphic SVG Background in Experience Abu Dhabi Style */}
 
-      <HomeNavigation user={user} showItems={true} />
+      <HomeNavigation showItems={true} />
 
       {/* Hero Section with Full Background Image */}
       <section

@@ -31,6 +31,7 @@ interface AuthContextType {
   ) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   updateUser: (userData: User) => void;
+  userExists: () => boolean;
 }
 
 // Create the context
@@ -140,6 +141,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem("userData", JSON.stringify(userData));
   };
 
+  // Simple check if user exists
+  const userExists = (): boolean => {
+    return user !== null && user !== undefined;
+  };
+
   const value: AuthContextType = {
     user,
     token,
@@ -148,6 +154,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     updateUser,
+    userExists,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

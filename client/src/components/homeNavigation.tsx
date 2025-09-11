@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 // Icon components (you can replace these with your actual icon imports)
 const MenuIcon = ({ size, color }: { size: number; color: string }) => (
@@ -22,15 +23,30 @@ const MenuIcon = ({ size, color }: { size: number; color: string }) => (
 );
 
 interface HomeNavigationProps {
-  user?: any; // Replace 'any' with your actual user type
   showItems?: boolean; // Controls visibility of navigation items
 }
 
 const HomeNavigation: React.FC<HomeNavigationProps> = ({
-  user,
   showItems = false,
 }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { userExists, user } = useAuth();
+
+  // Get the appropriate dashboard path based on user type
+  const getDashboardPath = () => {
+    if (!userExists()) return "/login";
+
+    switch (user?.userType) {
+      case "admin":
+        return "/admin/dashboard";
+      case "sub_admin":
+        return "/sub-admin/dashboard";
+      case "user":
+        return "/user/dashboard";
+      default:
+        return "/login";
+    }
+  };
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -84,8 +100,8 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
               >
                 Who is it for
               </button>
-              {user ? (
-                <Link to="/dashboard">
+              {userExists() ? (
+                <Link to={getDashboardPath()}>
                   <Button className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black rounded-xl px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 transition-all duration-300 hover:scale-105">
                     My Dashboard
                   </Button>
@@ -157,15 +173,15 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
               >
                 Who is it for
               </button>
-              {user ? (
-                <Link to="/dashboard">
+              {userExists() ? (
+                <Link to={getDashboardPath()}>
                   <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
                     My Dashboard
                   </Button>
                 </Link>
               ) : (
                 <Link to="/login">
-                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8cc] text-black py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
+                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
                     Login
                   </Button>
                 </Link>
