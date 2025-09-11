@@ -48,8 +48,8 @@ function App() {
       <Router>
         <div>
           <Routes>
-            <Route path="/" element={<AuthRedirect />} />
-            <Route path="/home" element={<HomePage />} />
+            {/* <Route path="/" element={<AuthRedirect />} /> */}
+            <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<AuthPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
