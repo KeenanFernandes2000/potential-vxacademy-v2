@@ -112,6 +112,9 @@ const joinPage = (props: Props) => {
     phone_number: "",
   });
 
+  // Custom role state for "Other" option
+  const [customRole, setCustomRole] = useState("");
+
   // User form step state
   const [userFormStep, setUserFormStep] = useState(1);
 
@@ -157,6 +160,7 @@ const joinPage = (props: Props) => {
     "Assistant",
     "Consultant",
     "Director",
+    "Other",
   ];
 
   const seniorityLevels = [
@@ -245,6 +249,11 @@ const joinPage = (props: Props) => {
       ...prev,
       [name]: value,
     }));
+
+    // Clear custom role when a different role is selected
+    if (name === "role" && value !== "Other") {
+      setCustomRole("");
+    }
   };
 
   const handleForm1Submit = async (e: React.FormEvent) => {
@@ -309,6 +318,20 @@ const joinPage = (props: Props) => {
 
   const handleForm2Submit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate custom role when "Other" is selected
+    if (form2Data.role === "Other" && !customRole.trim()) {
+      alert("Please specify your role when 'Other' is selected.");
+      return;
+    }
+
+    // Prepare the final role value
+    const finalRole =
+      form2Data.role === "Other" ? customRole.trim() : form2Data.role;
+
+    // Here you would typically submit the form with the final role value
+    console.log("Form submitted with role:", finalRole);
+    console.log("Form data:", { ...form2Data, role: finalRole });
   };
 
   // User form step navigation functions
@@ -739,6 +762,28 @@ const joinPage = (props: Props) => {
                   ))}
                 </SelectContent>
               </Select>
+
+              {/* Custom role input - only show when "Other" is selected */}
+              {form2Data.role === "Other" && (
+                <div className="space-y-3 mt-4">
+                  <label
+                    htmlFor="custom_role"
+                    className="block text-lg font-semibold text-white pl-2"
+                  >
+                    Specify Your Role
+                  </label>
+                  <Input
+                    id="custom_role"
+                    name="custom_role"
+                    type="text"
+                    placeholder="Enter your specific role"
+                    value={customRole}
+                    onChange={(e) => setCustomRole(e.target.value)}
+                    required
+                    className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-3">
