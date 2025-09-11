@@ -19,6 +19,7 @@ export const users = pgTable("users", {
   subAsset: text("sub_asset").notNull(),
   userType: userTypeEnum("user_type").notNull(),
   passwordHash: text("password_hash").notNull(),
+  xp: integer("xp").notNull().default(0),
   lastLogin: timestamp("last_login", { withTimezone: true })
     .notNull()
     .defaultNow(),
