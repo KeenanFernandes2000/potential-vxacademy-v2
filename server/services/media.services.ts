@@ -167,9 +167,17 @@ export class MediaService {
    * Generate file URL from file path
    */
   static generateFileUrl(filePath: string): string {
-    // Convert file path to URL path
-    const relativePath = filePath.replace(/\\/g, "/");
-    return `/${relativePath}`;
+    // Convert file path to URL path and extract only the uploads directory and below
+    const normalizedPath = filePath.replace(/\\/g, "/");
+    const uploadsIndex = normalizedPath.indexOf("/uploads/");
+
+    if (uploadsIndex !== -1) {
+      // Extract everything from /uploads/ onwards
+      return normalizedPath.substring(uploadsIndex);
+    }
+
+    // Fallback: if uploads not found, return the path as is with leading slash
+    return `/${normalizedPath}`;
   }
 
   /**
