@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 const api = {
   async getAssessmentById(assessmentId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/assessments/assessments/${assessmentId}`,
         {
@@ -34,7 +34,7 @@ const api = {
 
   async getQuestionsByAssessment(assessmentId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/assessments/assessments/${assessmentId}/questions`,
         {
@@ -64,7 +64,7 @@ const api = {
     token: string
   ) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/assessments/users/${userId}/assessments/${assessmentId}/attempts`,
         {
@@ -90,7 +90,7 @@ const api = {
 
   async createAssessmentAttempt(attemptData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/assessments/assessment-attempts`,
         {

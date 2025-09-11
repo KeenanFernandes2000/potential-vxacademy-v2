@@ -19,7 +19,7 @@ import { Image as ImageIcon } from "lucide-react";
 const api = {
   async getAllTrainingAreas(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/training-areas`, {
         method: "GET",
         headers: {
@@ -42,7 +42,7 @@ const api = {
 
   async createTrainingArea(trainingAreaData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/training-areas`, {
         method: "POST",
         headers: {
@@ -70,7 +70,7 @@ const api = {
     token: string
   ) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/training-areas/${trainingAreaId}`,
         {
@@ -97,7 +97,7 @@ const api = {
 
   async deleteTrainingArea(trainingAreaId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/training-areas/${trainingAreaId}`,
         {

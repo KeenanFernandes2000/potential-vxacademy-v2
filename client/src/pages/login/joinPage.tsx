@@ -22,7 +22,7 @@ import HomeNavigation from "@/components/homeNavigation";
 const api = {
   async completeSubAdminRegistration(id: string, registrationData: any) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/users/sub-admins/register/${id}`,
         {

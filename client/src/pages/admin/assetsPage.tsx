@@ -17,7 +17,7 @@ import {
 const api = {
   async getAllAssets(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/assets`, {
         method: "GET",
         headers: {
@@ -40,7 +40,7 @@ const api = {
 
   async createAsset(assetData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/assets`, {
         method: "POST",
         headers: {
@@ -64,7 +64,7 @@ const api = {
 
   async updateAsset(assetId: number, assetData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/assets/${assetId}`, {
         method: "PUT",
         headers: {
@@ -88,7 +88,7 @@ const api = {
 
   async deleteAsset(assetId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/assets/${assetId}`, {
         method: "DELETE",
         headers: {

@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 const api = {
   async getAllOrganizations(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/organizations`, {
         method: "GET",
         headers: {

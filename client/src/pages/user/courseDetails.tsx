@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 const api = {
   async getCourseById(courseId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/courses/${courseId}`,
         {
@@ -36,7 +36,7 @@ const api = {
 
   async getCourseUnitsByCourse(courseId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/course-units/course/${courseId}`,
         {
@@ -62,7 +62,7 @@ const api = {
 
   async getLearningBlocksByUnit(unitId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/learning-blocks/unit/${unitId}`,
         {
@@ -88,7 +88,7 @@ const api = {
 
   async getUserLearningBlockProgress(userId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/progress/learning-blocks/${userId}`,
         {
@@ -114,7 +114,7 @@ const api = {
 
   async getAssessmentsByUnit(unitId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/assessments/assessments/units/${unitId}`,
         {
@@ -144,7 +144,7 @@ const api = {
     token: string
   ) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/assessments/users/${userId}/assessments/${assessmentId}/attempts`,
         {
@@ -174,7 +174,7 @@ const api = {
     token: string
   ) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/progress/learning-blocks/complete`,
         {

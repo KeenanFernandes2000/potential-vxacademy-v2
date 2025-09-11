@@ -11,7 +11,7 @@ import { Delete } from "@mui/icons-material";
 const api = {
   async getAllRoles(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/roles`, {
         method: "GET",
         headers: {
@@ -34,7 +34,7 @@ const api = {
 
   async getAllRoleCategories(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/role-categories`, {
         method: "GET",
         headers: {
@@ -57,7 +57,7 @@ const api = {
 
   async createRole(roleData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/roles`, {
         method: "POST",
         headers: {
@@ -81,7 +81,7 @@ const api = {
 
   async deleteRole(roleId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/roles/${roleId}`, {
         method: "DELETE",
         headers: {

@@ -49,7 +49,7 @@ interface MediaFile {
 const api = {
   async getAllMediaFiles(token: string, limit?: number, offset?: number) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const params = new URLSearchParams();
       if (limit) params.append("limit", limit.toString());
       if (offset) params.append("offset", offset.toString());
@@ -79,7 +79,7 @@ const api = {
 
   async uploadMediaFile(file: File, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const formData = new FormData();
       formData.append("file", file);
 
@@ -105,7 +105,7 @@ const api = {
 
   async uploadMultipleMediaFiles(files: FileList, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const formData = new FormData();
 
       Array.from(files).forEach((file) => {
@@ -134,7 +134,7 @@ const api = {
 
   async deleteMediaFile(id: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/media/${id}`, {
         method: "DELETE",
         headers: {
@@ -157,7 +157,7 @@ const api = {
 
   async downloadMediaFile(id: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/media/${id}`, {
         method: "GET",
         headers: {
@@ -424,7 +424,7 @@ const MediaPage: React.FC = () => {
 
   const handleCopyUrl = async (file: MediaFile) => {
     try {
-      const fullUrl = `${import.meta.env.VITE_BACKEND_URL}${file.url}`;
+      const fullUrl = `${import.meta.env.VITE_API_URL}${file.url}`;
       await navigator.clipboard.writeText(fullUrl);
       // You could add a toast notification here
       console.log("URL copied to clipboard");
@@ -679,9 +679,7 @@ const MediaPage: React.FC = () => {
                       {file.mimeType.startsWith("image/") ? (
                         <>
                           <img
-                            src={`${import.meta.env.VITE_BACKEND_URL}${
-                              file.url
-                            }`}
+                            src={`${import.meta.env.VITE_API_URL}${file.url}`}
                             alt={file.originalName}
                             className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                             onError={(e) => {
@@ -815,7 +813,7 @@ const MediaPage: React.FC = () => {
                     <div className="bg-gray-50 rounded-lg p-4 min-h-[300px] flex items-center justify-center">
                       {previewFile.mimeType.startsWith("image/") ? (
                         <img
-                          src={`${import.meta.env.VITE_BACKEND_URL}${
+                          src={`${import.meta.env.VITE_API_URL}${
                             previewFile.url
                           }`}
                           alt={previewFile.originalName}

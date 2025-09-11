@@ -49,7 +49,7 @@ interface CourseWithProgress extends Course {
 const api = {
   async getAllTrainingAreas() {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/training-areas`);
 
       if (!response.ok) {
@@ -66,7 +66,7 @@ const api = {
 
   async getModulesByTrainingArea(trainingAreaId: number) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/modules/training-area/${trainingAreaId}`
       );
@@ -85,7 +85,7 @@ const api = {
 
   async getCoursesByModule(moduleId: number) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/courses/module/${moduleId}`
       );
@@ -104,7 +104,7 @@ const api = {
 
   async getUserProgress(userId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/progress/courses/${userId}`,
         {

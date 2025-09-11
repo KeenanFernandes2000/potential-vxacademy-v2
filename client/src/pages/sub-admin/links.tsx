@@ -9,7 +9,7 @@ const api = {
     type: "new_joiner" | "existing_joiner",
     userId: number
   ) {
-    const baseUrl = import.meta.env.VITE_BACKEND_URL;
+    const baseUrl = import.meta.env.VITE_API_URL;
     const response = await fetch(`${baseUrl}/api/users/invitations`, {
       method: "POST",
       headers: {
@@ -22,7 +22,7 @@ const api = {
   },
 
   async getInvitationsByCreator(token: string, createdBy: number) {
-    const baseUrl = import.meta.env.VITE_BACKEND_URL;
+    const baseUrl = import.meta.env.VITE_API_URL;
     const response = await fetch(
       `${baseUrl}/api/users/invitations/creator/${createdBy}`,
       {

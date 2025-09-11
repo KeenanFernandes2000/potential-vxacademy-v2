@@ -50,7 +50,7 @@ const Dashboard = () => {
       if (!user || !token) return;
 
       try {
-        const baseUrl = import.meta.env.VITE_BACKEND_URL;
+        const baseUrl = import.meta.env.VITE_API_URL;
 
         // Fetch user progress
         const progressResponse = await fetch(
