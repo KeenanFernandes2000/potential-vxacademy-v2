@@ -184,7 +184,7 @@ interface DropdownConfig {
 interface AdminTableLayoutProps {
   searchPlaceholder?: string;
   createButtonText?: string;
-  createForm: ReactNode;
+  createForm?: ReactNode;
   tableData: Record<string, string | number | ReactNode>[];
   columns: string[];
   onSearch?: (query: string) => void;
@@ -588,25 +588,27 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
           />
         </div>
 
-        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-          <DialogTrigger asChild>
-            <Button
-              className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black font-semibold rounded-full"
-              style={{ minWidth: "120px", height: "40px" }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {createButtonText}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl bg-[#003451] border-white/20 text-white">
-            <DialogHeader>
-              <DialogTitle className="text-white">
+        {createForm && createButtonText && (
+          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+            <DialogTrigger asChild>
+              <Button
+                className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black font-semibold rounded-full"
+                style={{ minWidth: "120px", height: "40px" }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
                 {createButtonText}
-              </DialogTitle>
-            </DialogHeader>
-            {createForm}
-          </DialogContent>
-        </Dialog>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl bg-[#003451] border-white/20 text-white">
+              <DialogHeader>
+                <DialogTitle className="text-white">
+                  {createButtonText}
+                </DialogTitle>
+              </DialogHeader>
+              {createForm}
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
       {/* Conditional Dropdowns Section */}
       <div className="flex items-center gap-4 w-full">

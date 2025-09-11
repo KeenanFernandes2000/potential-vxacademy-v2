@@ -14,6 +14,10 @@ interface User {
   firstName: string;
   lastName: string;
   userType: "admin" | "sub_admin" | "user";
+  organization?: string;
+  subOrganization?: string;
+  asset?: string;
+  subAsset?: string;
 }
 
 interface AuthContextType {
