@@ -18,14 +18,5 @@ export default defineConfig(({ mode }) => {
       __APP_ENV__: JSON.stringify(env),
       "import.meta.env.VITE_API_URL": JSON.stringify(env.VITE_API_URL),
     },
-    server: {
-      port: 5000, // 👈 set your port here
-      proxy: {
-        "/api": {
-          target: "http://localhost:8000",
-          changeOrigin: true,
-        },
-      },
-    },
   };
 });
