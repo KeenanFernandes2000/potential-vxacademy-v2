@@ -9,16 +9,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import AdminPageLayout from "@/pages/admin/adminPageLayout";
-import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { MoreVert, Edit, Delete } from "@mui/icons-material";
+import { Edit, Delete, Search } from "@mui/icons-material";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 // API object for user operations
 const api = {
@@ -135,6 +141,7 @@ const Users = () => {
   const [error, setError] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Fetch users from database on component mount
   useEffect(() => {
@@ -503,29 +510,71 @@ const Users = () => {
   ];
 
   return (
-    <AdminPageLayout
-      title="User Management"
-      description="Manage users within your organization and assets"
-    >
+    <div className="space-y-6">
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-white">
+            User Management
+          </h1>
+          <p className="text-white/80 mt-2">
+            Manage users within your organization and assets
+          </p>
+        </div>
+      </header>
+
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
           {error}
         </div>
       )}
-      <AdminTableLayout
-        searchPlaceholder="Search users..."
-        tableData={filteredUsers}
-        columns={columns}
-        onSearch={handleSearch}
-        enableColumnFiltering={false}
-        dropdownConfig={{
-          showTrainingArea: false,
-          showModule: false,
-          showCourse: false,
-          showUnit: false,
-          showAssessment: false,
-        }}
-      />
+
+      {/* Search Bar */}
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
+          <Input
+            placeholder="Search users..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              handleSearch(e.target.value);
+            }}
+            className="pl-10 rounded-full bg-[#00d8cc]/30 border-white/20 text-white placeholder:text-white/60 w-full"
+          />
+        </div>
+      </div>
+
+      {/* User Table */}
+      <div className="border bg-white/10 backdrop-blur-sm border-white/20 w-full rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-white/20">
+              {columns.map((column) => (
+                <TableHead key={column} className="text-white font-semibold">
+                  {column}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredUsers.map((user, index) => (
+              <TableRow
+                key={index}
+                className="border-white/20 hover:bg-white/5"
+              >
+                <TableCell className="text-white/90">{user.id}</TableCell>
+                <TableCell className="text-white/90">
+                  {user.firstName}
+                </TableCell>
+                <TableCell className="text-white/90">{user.lastName}</TableCell>
+                <TableCell className="text-white/90">{user.email}</TableCell>
+                <TableCell className="text-white/90">{user.userType}</TableCell>
+                <TableCell className="text-white/90">{user.actions}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
@@ -536,7 +585,7 @@ const Users = () => {
           <EditUserForm />
         </DialogContent>
       </Dialog>
-    </AdminPageLayout>
+    </div>
   );
 };
 
