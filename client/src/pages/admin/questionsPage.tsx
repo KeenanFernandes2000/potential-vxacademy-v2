@@ -158,13 +158,9 @@ const api = {
 interface QuestionData
   extends Record<string, string | number | string[] | null | React.ReactNode> {
   id: number;
-  question_text: string;
   question_type: string;
-  assessment_id: number;
-  options: string[] | null;
+  assessment_name: string;
   correct_answer: string;
-  order: number;
-  created_at: string;
   actions: React.ReactNode;
 }
 
@@ -213,46 +209,44 @@ const QuestionsPage = () => {
 
         // Transform data to match our display format
         const transformedQuestions =
-          response.data?.map((question: any) => ({
-            id: question.id,
-            question_text:
-              question.question_text || question.questionText || "N/A",
-            question_type:
-              question.question_type || question.questionType || "N/A",
-            assessment_id: question.assessment_id || question.assessmentId || 0,
-            options: question.options || null,
-            correct_answer:
-              question.correct_answer || question.correctAnswer || "N/A",
-            order: question.order || 0,
-            created_at:
-              question.created_at || question.createdAt
-                ? new Date(question.created_at || question.createdAt)
-                    .toISOString()
-                    .split("T")[0]
-                : "N/A",
-            actions: (
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-                  onClick={() => handleEditQuestion(question)}
-                  title="Edit"
-                >
-                  <Edit sx={{ fontSize: 16 }} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-                  onClick={() => handleDeleteQuestion(question.id)}
-                  title="Delete"
-                >
-                  <Delete sx={{ fontSize: 16 }} />
-                </Button>
-              </div>
-            ),
-          })) || [];
+          response.data?.map((question: any) => {
+            // Find the assessment for this question
+            const assessment = assessments.find(
+              (a: any) =>
+                a.id === (question.assessment_id || question.assessmentId)
+            );
+
+            return {
+              id: question.id,
+              question_type:
+                question.question_type || question.questionType || "N/A",
+              assessment_name: assessment?.title || "N/A",
+              correct_answer:
+                question.correct_answer || question.correctAnswer || "N/A",
+              actions: (
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                    onClick={() => handleEditQuestion(question)}
+                    title="Edit"
+                  >
+                    <Edit sx={{ fontSize: 16 }} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                    onClick={() => handleDeleteQuestion(question.id)}
+                    title="Delete"
+                  >
+                    <Delete sx={{ fontSize: 16 }} />
+                  </Button>
+                </div>
+              ),
+            };
+          }) || [];
 
         setQuestions(transformedQuestions);
         setFilteredQuestions(transformedQuestions);
@@ -274,9 +268,12 @@ const QuestionsPage = () => {
     } else {
       const filtered = questions.filter(
         (question) =>
-          question.questionText.toLowerCase().includes(query.toLowerCase()) ||
-          question.questionType.toLowerCase().includes(query.toLowerCase()) ||
-          question.assessmentId.toString().includes(query.toLowerCase())
+          question.id.toString().includes(query) ||
+          question.question_type.toLowerCase().includes(query.toLowerCase()) ||
+          question.assessment_name
+            .toLowerCase()
+            .includes(query.toLowerCase()) ||
+          question.correct_answer.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredQuestions(filtered);
     }
@@ -415,44 +412,43 @@ const QuestionsPage = () => {
     const updatedResponse = await api.getAllQuestions(token);
 
     const transformedQuestions =
-      updatedResponse.data?.map((question: any) => ({
-        id: question.id,
-        question_text: question.question_text || question.questionText || "N/A",
-        question_type: question.question_type || question.questionType || "N/A",
-        assessment_id: question.assessment_id || question.assessmentId || 0,
-        options: question.options || null,
-        correct_answer:
-          question.correct_answer || question.correctAnswer || "N/A",
-        order: question.order || 0,
-        created_at:
-          question.created_at || question.createdAt
-            ? new Date(question.created_at || question.createdAt)
-                .toISOString()
-                .split("T")[0]
-            : "N/A",
-        actions: (
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-              onClick={() => handleEditQuestion(question)}
-              title="Edit"
-            >
-              <Edit sx={{ fontSize: 16 }} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-              onClick={() => handleDeleteQuestion(question.id)}
-              title="Delete"
-            >
-              <Delete sx={{ fontSize: 16 }} />
-            </Button>
-          </div>
-        ),
-      })) || [];
+      updatedResponse.data?.map((question: any) => {
+        // Find the assessment for this question
+        const assessment = assessments.find(
+          (a: any) => a.id === (question.assessment_id || question.assessmentId)
+        );
+
+        return {
+          id: question.id,
+          question_type:
+            question.question_type || question.questionType || "N/A",
+          assessment_name: assessment?.title || "N/A",
+          correct_answer:
+            question.correct_answer || question.correctAnswer || "N/A",
+          actions: (
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                onClick={() => handleEditQuestion(question)}
+                title="Edit"
+              >
+                <Edit sx={{ fontSize: 16 }} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                onClick={() => handleDeleteQuestion(question.id)}
+                title="Delete"
+              >
+                <Delete sx={{ fontSize: 16 }} />
+              </Button>
+            </div>
+          ),
+        };
+      }) || [];
 
     setQuestions(transformedQuestions);
     setFilteredQuestions(transformedQuestions);
@@ -885,13 +881,10 @@ const QuestionsPage = () => {
   };
 
   const columns = [
-    "Question Text",
+    "ID",
     "Question Type",
-    "Assessment ID",
-    "Options",
+    "Assessment Name",
     "Correct Answer",
-    "Order",
-    "Created At",
     "Actions",
   ];
 
@@ -906,7 +899,7 @@ const QuestionsPage = () => {
         </div>
       )}
       <AdminTableLayout
-        searchPlaceholder="Search questions..."
+        searchPlaceholder="Search by ID, question type, assessment name, or correct answer..."
         createButtonText="Create Question"
         createForm={<CreateQuestionForm />}
         tableData={filteredQuestions}

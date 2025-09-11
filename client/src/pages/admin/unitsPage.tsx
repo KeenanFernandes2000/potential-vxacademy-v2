@@ -250,16 +250,8 @@ interface UnitData
   extends Record<string, string | number | boolean | React.ReactNode> {
   id: number;
   name: string;
-  course_id: number;
-  course_name: string;
-  description: string;
-  internal_note: string;
   order: number;
-  duration: number;
-  show_duration: boolean;
   xp_points: number;
-  createdDate: string;
-  status: string;
   courseUnitId: number | null;
   actions: React.ReactNode;
 }
@@ -311,20 +303,9 @@ const UnitsPage = () => {
 
             return {
               id: unit.id,
-              name: unit.name,
-              course_id: courseUnit?.courseId || 0,
-              course_name: course?.name || "N/A",
-              description: unit.description || "N/A",
-              internal_note: unit.internal_note || "N/A",
               order: unit.order || 1,
-              duration: unit.duration || 30,
-              show_duration: unit.show_duration || true,
+              name: unit.name,
               xp_points: unit.xp_points || 100,
-              createdDate: unit.createdAt
-                ? new Date(unit.createdAt).toISOString().split("T")[0]
-                : "N/A",
-              status: unit.status || "Active",
-              courseUnitId: courseUnit?.id || null,
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -371,8 +352,7 @@ const UnitsPage = () => {
       const filtered = units.filter(
         (unit) =>
           unit.name.toLowerCase().includes(query.toLowerCase()) ||
-          unit.description.toLowerCase().includes(query.toLowerCase()) ||
-          unit.internal_note.toLowerCase().includes(query.toLowerCase())
+          unit.id.toString().includes(query)
       );
       setFilteredUnits(filtered);
     }
@@ -591,20 +571,9 @@ const UnitsPage = () => {
 
         return {
           id: unit.id,
-          name: unit.name,
-          course_id: courseUnit?.courseId || 0,
-          course_name: course?.name || "N/A",
-          description: unit.description || "N/A",
-          internal_note: unit.internal_note || "N/A",
           order: unit.order || 1,
-          duration: unit.duration || 30,
-          show_duration: unit.show_duration || true,
+          name: unit.name,
           xp_points: unit.xp_points || 100,
-          createdDate: unit.createdAt
-            ? new Date(unit.createdAt).toISOString().split("T")[0]
-            : "N/A",
-          status: unit.status || "Active",
-          courseUnitId: courseUnit?.id || null,
           actions: (
             <div className="flex gap-1">
               <Button
@@ -935,19 +904,7 @@ const UnitsPage = () => {
     );
   };
 
-  const columns = [
-    "Name",
-    "Course",
-    "Description",
-    "Internal Note",
-    "Order",
-    "Duration",
-    "Show Duration",
-    "XP Points",
-    "Created Date",
-    "Status",
-    "Actions",
-  ];
+  const columns = ["ID", "Order", "Name", "XP Points", "Actions"];
 
   return (
     <AdminPageLayout
@@ -960,7 +917,7 @@ const UnitsPage = () => {
         </div>
       )}
       <AdminTableLayout
-        searchPlaceholder="Search units..."
+        searchPlaceholder="Search by ID or name"
         createButtonText="Create Unit"
         createForm={<CreateUnitForm />}
         tableData={filteredUnits}

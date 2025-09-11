@@ -232,26 +232,8 @@ interface AssessmentData
   extends Record<string, string | number | boolean | null | React.ReactNode> {
   id: number;
   title: string;
-  description: string;
-  training_area_id: number;
-  training_area_name: string;
-  module_id: number;
-  module_name: string;
-  unit_id: number;
-  unit_name: string;
-  course_id: number;
-  course_name: string;
   placement: string;
-  is_graded: boolean;
-  show_correct_answers: boolean;
   passing_score: number;
-  has_time_limit: boolean;
-  time_limit: string;
-  max_retakes: number;
-  has_certificate: boolean;
-  certificate_template: string;
-  xp_points: number;
-  created_at: string;
   actions: React.ReactNode;
 }
 
@@ -316,41 +298,9 @@ const AssessmentsPage = () => {
           response.data?.map((assessment: any) => ({
             id: assessment.id,
             title: assessment.title,
-            description: assessment.description || "N/A",
-            training_area_id:
-              assessment.training_area_id || assessment.trainingAreaId || 0,
-            training_area_name: "N/A", // Will be resolved if needed
-            module_id: assessment.module_id || assessment.moduleId || 0,
-            module_name: "N/A", // Will be resolved if needed
-            unit_id: assessment.unit_id || assessment.unitId || 0,
-            unit_name: "N/A", // Will be resolved if needed
-            course_id: assessment.course_id || assessment.courseId || 0,
-            course_name: "N/A", // Will be resolved if needed
             placement: assessment.placement || "N/A",
-            is_graded: assessment.is_graded || assessment.isGraded || false,
-            show_correct_answers:
-              assessment.show_correct_answers ||
-              assessment.showCorrectAnswers ||
-              false,
             passing_score:
               assessment.passing_score || assessment.passingScore || 0,
-            has_time_limit:
-              assessment.has_time_limit || assessment.hasTimeLimit || false,
-            time_limit: assessment.time_limit || assessment.timeLimit || "N/A",
-            max_retakes: assessment.max_retakes || assessment.maxRetakes || 0,
-            has_certificate:
-              assessment.has_certificate || assessment.hasCertificate || false,
-            certificate_template:
-              assessment.certificate_template ||
-              assessment.certificateTemplate ||
-              "",
-            xp_points: assessment.xp_points || assessment.xpPoints || 0,
-            created_at:
-              assessment.created_at || assessment.createdAt
-                ? new Date(assessment.created_at || assessment.createdAt)
-                    .toISOString()
-                    .split("T")[0]
-                : "N/A",
             actions: (
               <div className="flex gap-1">
                 <Button
@@ -395,9 +345,10 @@ const AssessmentsPage = () => {
     } else {
       const filtered = assessments.filter(
         (assessment) =>
+          assessment.id.toString().includes(query) ||
           assessment.title.toLowerCase().includes(query.toLowerCase()) ||
-          assessment.description.toLowerCase().includes(query.toLowerCase()) ||
-          assessment.placement.toLowerCase().includes(query.toLowerCase())
+          assessment.placement.toLowerCase().includes(query.toLowerCase()) ||
+          assessment.passing_score.toString().includes(query)
       );
       setFilteredAssessments(filtered);
     }
@@ -573,40 +524,8 @@ const AssessmentsPage = () => {
       updatedResponse.data?.map((assessment: any) => ({
         id: assessment.id,
         title: assessment.title,
-        description: assessment.description || "N/A",
-        training_area_id:
-          assessment.training_area_id || assessment.trainingAreaId || 0,
-        training_area_name: "N/A", // Will be resolved if needed
-        module_id: assessment.module_id || assessment.moduleId || 0,
-        module_name: "N/A", // Will be resolved if needed
-        unit_id: assessment.unit_id || assessment.unitId || 0,
-        unit_name: "N/A", // Will be resolved if needed
-        course_id: assessment.course_id || assessment.courseId || 0,
-        course_name: "N/A", // Will be resolved if needed
         placement: assessment.placement || "N/A",
-        is_graded: assessment.is_graded || assessment.isGraded || false,
-        show_correct_answers:
-          assessment.show_correct_answers ||
-          assessment.showCorrectAnswers ||
-          false,
         passing_score: assessment.passing_score || assessment.passingScore || 0,
-        has_time_limit:
-          assessment.has_time_limit || assessment.hasTimeLimit || false,
-        time_limit: assessment.time_limit || assessment.timeLimit || "N/A",
-        max_retakes: assessment.max_retakes || assessment.maxRetakes || 0,
-        has_certificate:
-          assessment.has_certificate || assessment.hasCertificate || false,
-        certificate_template:
-          assessment.certificate_template ||
-          assessment.certificateTemplate ||
-          "",
-        xp_points: assessment.xp_points || assessment.xpPoints || 0,
-        created_at:
-          assessment.created_at || assessment.createdAt
-            ? new Date(assessment.created_at || assessment.createdAt)
-                .toISOString()
-                .split("T")[0]
-            : "N/A",
         actions: (
           <div className="flex gap-1">
             <Button
@@ -1249,25 +1168,7 @@ const AssessmentsPage = () => {
     );
   };
 
-  const columns = [
-    "Title",
-    "Description",
-    "Training Area",
-    "Module",
-    "Unit",
-    "Course",
-    "Placement",
-    "Is Graded",
-    "Show Correct Answers",
-    "Passing Score",
-    "Has Time Limit",
-    "Time Limit",
-    "Max Retakes",
-    "Has Certificate",
-    "XP Points",
-    "Created At",
-    "Actions",
-  ];
+  const columns = ["ID", "Title", "Placement", "Passing Score", "Actions"];
 
   return (
     <AdminPageLayout
@@ -1280,7 +1181,7 @@ const AssessmentsPage = () => {
         </div>
       )}
       <AdminTableLayout
-        searchPlaceholder="Search assessments..."
+        searchPlaceholder="Search by ID, title, placement, or passing score..."
         createButtonText="Create Assessment"
         createForm={<CreateAssessmentForm />}
         tableData={filteredAssessments}

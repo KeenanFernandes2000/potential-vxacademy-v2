@@ -155,18 +155,9 @@ const api = {
 interface LearningBlockData
   extends Record<string, string | number | boolean | React.ReactNode> {
   id: number;
-  unit_id: number;
-  unit_name: string;
-  type: string;
   title: string;
-  content: string;
-  video_url: string;
-  image_url: string;
-  interactive_data: any;
-  order: number;
-  xp_points: number;
-  createdDate: string;
-  status: string;
+  type: string;
+  unit_name: string;
   actions: React.ReactNode;
 }
 
@@ -205,25 +196,14 @@ const LearningBlockPage = () => {
           learningBlocksResponse.data?.map((learningBlock: any) => {
             // Find the unit for this learning block
             const unit = unitsResponse.data?.find(
-              (u: any) => u.id === learningBlock.unit_id
+              (u: any) => u.id === learningBlock.unitId
             );
 
             return {
               id: learningBlock.id,
-              unit_id: learningBlock.unit_id || 0,
-              unit_name: unit?.name || "N/A",
-              type: learningBlock.type || "N/A",
               title: learningBlock.title || "N/A",
-              content: learningBlock.content || "N/A",
-              video_url: learningBlock.video_url || "N/A",
-              image_url: learningBlock.image_url || "N/A",
-              interactive_data: learningBlock.interactive_data || "",
-              order: learningBlock.order || 1,
-              xp_points: learningBlock.xp_points || 10,
-              createdDate: learningBlock.createdAt
-                ? new Date(learningBlock.createdAt).toISOString().split("T")[0]
-                : "N/A",
-              status: learningBlock.status || "Active",
+              type: learningBlock.type || "N/A",
+              unit_name: unit?.name || "N/A",
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -269,10 +249,10 @@ const LearningBlockPage = () => {
     } else {
       const filtered = learningBlocks.filter(
         (block) =>
+          block.id.toString().includes(query) ||
           block.title.toLowerCase().includes(query.toLowerCase()) ||
-          block.content.toLowerCase().includes(query.toLowerCase()) ||
-          block.unit_name.toLowerCase().includes(query.toLowerCase()) ||
-          block.type.toLowerCase().includes(query.toLowerCase())
+          block.type.toLowerCase().includes(query.toLowerCase()) ||
+          block.unit_name.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredLearningBlocks(filtered);
     }
@@ -409,25 +389,14 @@ const LearningBlockPage = () => {
       learningBlocksResponse.data?.map((learningBlock: any) => {
         // Find the unit for this learning block
         const unit = unitsResponse.data?.find(
-          (u: any) => u.id === learningBlock.unit_id
+          (u: any) => u.id === learningBlock.unitId
         );
 
         return {
           id: learningBlock.id,
-          unit_id: learningBlock.unit_id || 0,
-          unit_name: unit?.name || "N/A",
-          type: learningBlock.type || "N/A",
           title: learningBlock.title || "N/A",
-          content: learningBlock.content || "N/A",
-          video_url: learningBlock.video_url || "N/A",
-          image_url: learningBlock.image_url || "N/A",
-          interactive_data: learningBlock.interactive_data || "",
-          order: learningBlock.order || 1,
-          xp_points: learningBlock.xp_points || 10,
-          createdDate: learningBlock.createdAt
-            ? new Date(learningBlock.createdAt).toISOString().split("T")[0]
-            : "N/A",
-          status: learningBlock.status || "Active",
+          type: learningBlock.type || "N/A",
+          unit_name: unit?.name || "N/A",
           actions: (
             <div className="flex gap-1">
               <Button
@@ -820,18 +789,7 @@ const LearningBlockPage = () => {
     );
   };
 
-  const columns = [
-    "Title",
-    "Unit",
-    "Type",
-    "Content",
-    "Video URL",
-    "Image URL",
-    "Order",
-    "XP Points",
-    "Created Date",
-    "Actions",
-  ];
+  const columns = ["ID", "Title", "Type", "Unit Name", "Actions"];
 
   return (
     <AdminPageLayout
@@ -844,7 +802,7 @@ const LearningBlockPage = () => {
         </div>
       )}
       <AdminTableLayout
-        searchPlaceholder="Search learning blocks..."
+        searchPlaceholder="Search by ID, title, type, or unit name..."
         createButtonText="Create Learning Block"
         createForm={<CreateLearningBlockForm />}
         tableData={filteredLearningBlocks}
