@@ -480,7 +480,7 @@ const CoursesPage = () => {
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -492,7 +492,7 @@ const CoursesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -504,7 +504,7 @@ const CoursesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, module_id: e.target.value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
             required
           >
             <option value="">Select a module</option>
@@ -531,7 +531,7 @@ const CoursesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, internal_note: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           />
         </div>
         <div className="space-y-2">
@@ -542,7 +542,7 @@ const CoursesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, course_type: e.target.value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
             required
           >
             <option value="free">Free</option>
@@ -558,7 +558,7 @@ const CoursesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, duration: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -586,7 +586,7 @@ const CoursesPage = () => {
               setFormData({ ...formData, level: e.target.value })
             }
             placeholder="beginner, intermediate, advanced"
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -615,7 +615,7 @@ const CoursesPage = () => {
               setFormData({ ...formData, estimated_duration: e.target.value })
             }
             placeholder="e.g., 40"
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             min="0"
             step="0.5"
           />
@@ -628,7 +628,7 @@ const CoursesPage = () => {
               setFormData({ ...formData, difficulty_level: value })
             }
           >
-            <SelectTrigger className="rounded-full w-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select difficulty level" />
             </SelectTrigger>
             <SelectContent>
@@ -684,7 +684,7 @@ const CoursesPage = () => {
             id="edit_name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -696,7 +696,7 @@ const CoursesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -709,7 +709,7 @@ const CoursesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, moduleId: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -729,7 +729,7 @@ const CoursesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, internalNote: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           />
         </div>
         <div className="space-y-2">
@@ -741,7 +741,7 @@ const CoursesPage = () => {
               setFormData({ ...formData, courseType: e.target.value })
             }
             placeholder="free, premium, etc."
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -754,7 +754,7 @@ const CoursesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, duration: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -782,7 +782,7 @@ const CoursesPage = () => {
               setFormData({ ...formData, level: e.target.value })
             }
             placeholder="beginner, intermediate, advanced"
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -813,7 +813,7 @@ const CoursesPage = () => {
               setFormData({ ...formData, estimatedDuration: e.target.value })
             }
             placeholder="e.g., 40"
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             min="0"
             step="0.5"
           />
@@ -826,7 +826,7 @@ const CoursesPage = () => {
               setFormData({ ...formData, difficultyLevel: value })
             }
           >
-            <SelectTrigger className="rounded-full w-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select difficulty level" />
             </SelectTrigger>
             <SelectContent>
@@ -844,7 +844,7 @@ const CoursesPage = () => {
               setIsEditModalOpen(false);
               setSelectedCourse(null);
             }}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           >
             Cancel
           </Button>

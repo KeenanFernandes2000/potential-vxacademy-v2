@@ -609,7 +609,7 @@ const AssessmentsPage = () => {
               }
               required
             >
-              <SelectTrigger className="rounded-full">
+              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
                 <SelectValue placeholder="Select training area" />
               </SelectTrigger>
               <SelectContent>
@@ -630,7 +630,7 @@ const AssessmentsPage = () => {
                 setFormData({ ...formData, module_id: value })
               }
             >
-              <SelectTrigger className="rounded-full">
+              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
                 <SelectValue placeholder="Select module" />
               </SelectTrigger>
               <SelectContent>
@@ -651,7 +651,7 @@ const AssessmentsPage = () => {
                 setFormData({ ...formData, unit_id: value })
               }
             >
-              <SelectTrigger className="rounded-full">
+              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
                 <SelectValue placeholder="Select unit" />
               </SelectTrigger>
               <SelectContent>
@@ -672,7 +672,7 @@ const AssessmentsPage = () => {
                 setFormData({ ...formData, course_id: value })
               }
             >
-              <SelectTrigger className="rounded-full">
+              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
                 <SelectValue placeholder="Select course" />
               </SelectTrigger>
               <SelectContent>
@@ -694,7 +694,7 @@ const AssessmentsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, title: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -707,7 +707,7 @@ const AssessmentsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           />
         </div>
 
@@ -720,7 +720,7 @@ const AssessmentsPage = () => {
             }
             required
           >
-            <SelectTrigger className="rounded-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select placement" />
             </SelectTrigger>
             <SelectContent>
@@ -788,7 +788,7 @@ const AssessmentsPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, passing_score: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
             />
           </div>
 
@@ -802,7 +802,7 @@ const AssessmentsPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, time_limit: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               disabled={!formData.has_time_limit}
             />
           </div>
@@ -817,7 +817,7 @@ const AssessmentsPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, max_retakes: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
             />
           </div>
 
@@ -831,7 +831,7 @@ const AssessmentsPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, xp_points: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
             />
           </div>
         </div>
@@ -848,7 +848,7 @@ const AssessmentsPage = () => {
                   certificate_template: e.target.value,
                 })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
             />
           </div>
         )}
@@ -899,7 +899,7 @@ const AssessmentsPage = () => {
               }
               required
             >
-              <SelectTrigger className="rounded-full">
+              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
                 <SelectValue placeholder="Select training area" />
               </SelectTrigger>
               <SelectContent>
@@ -920,7 +920,7 @@ const AssessmentsPage = () => {
                 setFormData({ ...formData, module_id: value })
               }
             >
-              <SelectTrigger className="rounded-full">
+              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
                 <SelectValue placeholder="Select module" />
               </SelectTrigger>
               <SelectContent>
@@ -941,7 +941,7 @@ const AssessmentsPage = () => {
                 setFormData({ ...formData, unit_id: value })
               }
             >
-              <SelectTrigger className="rounded-full">
+              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
                 <SelectValue placeholder="Select unit" />
               </SelectTrigger>
               <SelectContent>
@@ -962,7 +962,7 @@ const AssessmentsPage = () => {
                 setFormData({ ...formData, course_id: value })
               }
             >
-              <SelectTrigger className="rounded-full">
+              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
                 <SelectValue placeholder="Select course" />
               </SelectTrigger>
               <SelectContent>
@@ -984,7 +984,7 @@ const AssessmentsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, title: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -997,7 +997,7 @@ const AssessmentsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           />
         </div>
 
@@ -1010,7 +1010,7 @@ const AssessmentsPage = () => {
             }
             required
           >
-            <SelectTrigger className="rounded-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select placement" />
             </SelectTrigger>
             <SelectContent>
@@ -1081,7 +1081,7 @@ const AssessmentsPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, passing_score: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
             />
           </div>
 
@@ -1095,7 +1095,7 @@ const AssessmentsPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, time_limit: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               disabled={!formData.has_time_limit}
             />
           </div>
@@ -1110,7 +1110,7 @@ const AssessmentsPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, max_retakes: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
             />
           </div>
 
@@ -1124,7 +1124,7 @@ const AssessmentsPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, xp_points: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
             />
           </div>
         </div>
@@ -1143,7 +1143,7 @@ const AssessmentsPage = () => {
                   certificate_template: e.target.value,
                 })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
             />
           </div>
         )}
@@ -1156,7 +1156,7 @@ const AssessmentsPage = () => {
               setIsEditModalOpen(false);
               setSelectedAssessment(null);
             }}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           >
             Cancel
           </Button>

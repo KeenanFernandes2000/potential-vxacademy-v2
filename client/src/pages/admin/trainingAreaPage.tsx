@@ -379,7 +379,7 @@ const TrainingAreaPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               required
             />
           </div>
@@ -391,7 +391,7 @@ const TrainingAreaPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               required
             />
           </div>
@@ -447,7 +447,7 @@ const TrainingAreaPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               required
             />
           </div>
@@ -459,7 +459,7 @@ const TrainingAreaPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               required
             />
           </div>
@@ -479,7 +479,7 @@ const TrainingAreaPage = () => {
                 setIsEditModalOpen(false);
                 setSelectedTrainingArea(null);
               }}
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
             >
               Cancel
             </Button>

@@ -426,7 +426,7 @@ const ModulesPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               required
             />
           </div>
@@ -438,7 +438,7 @@ const ModulesPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               required
             />
           </div>
@@ -450,7 +450,7 @@ const ModulesPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, training_area_id: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-full bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
               required
             >
               <option value="">Select a training area</option>
@@ -506,7 +506,7 @@ const ModulesPage = () => {
             id="edit_name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -518,7 +518,7 @@ const ModulesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -530,7 +530,7 @@ const ModulesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, trainingArea: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -542,7 +542,7 @@ const ModulesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, duration: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -562,7 +562,7 @@ const ModulesPage = () => {
               setIsEditModalOpen(false);
               setSelectedModule(null);
             }}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           >
             Cancel
           </Button>

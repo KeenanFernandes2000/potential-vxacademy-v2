@@ -641,7 +641,7 @@ const UnitsPage = () => {
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -653,7 +653,7 @@ const UnitsPage = () => {
               setFormData({ ...formData, course_id: value })
             }
           >
-            <SelectTrigger className="rounded-full w-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select a course" />
             </SelectTrigger>
             <SelectContent>
@@ -673,7 +673,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           />
         </div>
         <div className="space-y-2">
@@ -684,7 +684,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, internal_note: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           />
         </div>
         <div className="space-y-2">
@@ -696,7 +696,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, order: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             min="1"
             required
           />
@@ -710,7 +710,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, duration: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             min="1"
             required
           />
@@ -739,7 +739,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, xp_points: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             min="0"
             required
           />
@@ -781,7 +781,7 @@ const UnitsPage = () => {
             id="edit_name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -793,7 +793,7 @@ const UnitsPage = () => {
               setFormData({ ...formData, course_id: value })
             }
           >
-            <SelectTrigger className="rounded-full w-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select a course" />
             </SelectTrigger>
             <SelectContent>
@@ -813,7 +813,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           />
         </div>
         <div className="space-y-2">
@@ -824,7 +824,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, internal_note: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           />
         </div>
         <div className="space-y-2">
@@ -836,7 +836,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, order: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             min="1"
             required
           />
@@ -850,7 +850,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, duration: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             min="1"
             required
           />
@@ -879,7 +879,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, xp_points: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             min="0"
             required
           />
@@ -892,7 +892,7 @@ const UnitsPage = () => {
               setIsEditModalOpen(false);
               setSelectedUnit(null);
             }}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           >
             Cancel
           </Button>

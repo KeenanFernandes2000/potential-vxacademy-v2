@@ -478,7 +478,7 @@ const LearningBlockPage = () => {
               setFormData({ ...formData, unit_id: value })
             }
           >
-            <SelectTrigger className="rounded-full w-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select a unit" />
             </SelectTrigger>
             <SelectContent>
@@ -496,7 +496,7 @@ const LearningBlockPage = () => {
             value={formData.type}
             onValueChange={(value) => setFormData({ ...formData, type: value })}
           >
-            <SelectTrigger className="rounded-full w-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
             <SelectContent>
@@ -515,7 +515,7 @@ const LearningBlockPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, title: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -536,7 +536,7 @@ const LearningBlockPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, video_url: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               required
             />
           </div>
@@ -550,7 +550,7 @@ const LearningBlockPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, image_url: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               required
             />
           </div>
@@ -564,7 +564,7 @@ const LearningBlockPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, interactive_data: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               placeholder='{"type": "quiz", "questions": []}'
               required
             />
@@ -579,7 +579,7 @@ const LearningBlockPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, order: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             min="1"
             required
           />
@@ -593,7 +593,7 @@ const LearningBlockPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, xp_points: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             min="0"
             required
           />
@@ -647,7 +647,7 @@ const LearningBlockPage = () => {
               setFormData({ ...formData, unit_id: value })
             }
           >
-            <SelectTrigger className="rounded-full w-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select a unit" />
             </SelectTrigger>
             <SelectContent>
@@ -665,7 +665,7 @@ const LearningBlockPage = () => {
             value={formData.type}
             onValueChange={(value) => setFormData({ ...formData, type: value })}
           >
-            <SelectTrigger className="rounded-full w-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
             <SelectContent>
@@ -684,7 +684,7 @@ const LearningBlockPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, title: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -705,7 +705,7 @@ const LearningBlockPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, video_url: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               required
             />
           </div>
@@ -719,7 +719,7 @@ const LearningBlockPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, image_url: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               required
             />
           </div>
@@ -735,7 +735,7 @@ const LearningBlockPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, interactive_data: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               placeholder='{"type": "quiz", "questions": []}'
               required
             />
@@ -750,7 +750,7 @@ const LearningBlockPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, order: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             min="1"
             required
           />
@@ -764,7 +764,7 @@ const LearningBlockPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, xp_points: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             min="0"
             required
           />
@@ -777,7 +777,7 @@ const LearningBlockPage = () => {
               setIsEditModalOpen(false);
               setSelectedLearningBlock(null);
             }}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           >
             Cancel
           </Button>

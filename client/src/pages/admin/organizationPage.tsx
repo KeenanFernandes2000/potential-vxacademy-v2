@@ -398,7 +398,7 @@ const OrganizationPage = () => {
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -408,7 +408,7 @@ const OrganizationPage = () => {
             id="type"
             value={formData.type}
             onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -420,7 +420,7 @@ const OrganizationPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, location: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -433,7 +433,7 @@ const OrganizationPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, contactEmail: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -445,7 +445,7 @@ const OrganizationPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           />
         </div>
         <div className="flex justify-end gap-2">
@@ -479,7 +479,7 @@ const OrganizationPage = () => {
             id="edit_name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -489,7 +489,7 @@ const OrganizationPage = () => {
             id="edit_type"
             value={formData.type}
             onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -501,7 +501,7 @@ const OrganizationPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, location: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -514,7 +514,7 @@ const OrganizationPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, contactEmail: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -526,7 +526,7 @@ const OrganizationPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           />
         </div>
         <div className="flex justify-end gap-2">
@@ -537,7 +537,7 @@ const OrganizationPage = () => {
               setIsEditModalOpen(false);
               setSelectedOrganization(null);
             }}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           >
             Cancel
           </Button>
@@ -549,11 +549,7 @@ const OrganizationPage = () => {
     );
   };
 
-  const columns = [
-    "ID",
-    "Name",
-    "Actions",
-  ];
+  const columns = ["ID", "Name", "Actions"];
 
   return (
     <AdminPageLayout

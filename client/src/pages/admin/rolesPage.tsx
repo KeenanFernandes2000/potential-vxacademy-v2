@@ -314,7 +314,7 @@ const RolesPage = () => {
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -326,7 +326,7 @@ const RolesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, categoryId: e.target.value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
             required
           >
             <option value="">Select a category</option>

@@ -516,7 +516,7 @@ const QuestionsPage = () => {
             }
             required
           >
-            <SelectTrigger className="rounded-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select assessment" />
             </SelectTrigger>
             <SelectContent>
@@ -540,7 +540,7 @@ const QuestionsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, question_text: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -558,7 +558,7 @@ const QuestionsPage = () => {
             }
             required
           >
-            <SelectTrigger className="rounded-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select question type" />
             </SelectTrigger>
             <SelectContent>
@@ -577,7 +577,7 @@ const QuestionsPage = () => {
                   value={option}
                   onChange={(e) => handleMcqOptionChange(index, e.target.value)}
                   placeholder={`Option ${index + 1}`}
-                  className="rounded-full"
+                  className="rounded-full bg-[#00d8cc]/30"
                 />
                 {mcqOptions.length > 2 && (
                   <Button
@@ -585,7 +585,7 @@ const QuestionsPage = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => removeMcqOption(index)}
-                    className="rounded-full"
+                    className="rounded-full bg-[#00d8cc]/30"
                   >
                     Remove
                   </Button>
@@ -596,7 +596,7 @@ const QuestionsPage = () => {
               type="button"
               variant="outline"
               onClick={addMcqOption}
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
             >
               Add Option
             </Button>
@@ -650,7 +650,7 @@ const QuestionsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, order: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -721,7 +721,7 @@ const QuestionsPage = () => {
             }
             required
           >
-            <SelectTrigger className="rounded-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select assessment" />
             </SelectTrigger>
             <SelectContent>
@@ -745,7 +745,7 @@ const QuestionsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, question_text: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -763,7 +763,7 @@ const QuestionsPage = () => {
             }
             required
           >
-            <SelectTrigger className="rounded-full">
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
               <SelectValue placeholder="Select question type" />
             </SelectTrigger>
             <SelectContent>
@@ -782,7 +782,7 @@ const QuestionsPage = () => {
                   value={option}
                   onChange={(e) => handleMcqOptionChange(index, e.target.value)}
                   placeholder={`Option ${index + 1}`}
-                  className="rounded-full"
+                  className="rounded-full bg-[#00d8cc]/30"
                 />
                 {mcqOptions.length > 2 && (
                   <Button
@@ -790,7 +790,7 @@ const QuestionsPage = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => removeMcqOption(index)}
-                    className="rounded-full"
+                    className="rounded-full bg-[#00d8cc]/30"
                   >
                     Remove
                   </Button>
@@ -801,7 +801,7 @@ const QuestionsPage = () => {
               type="button"
               variant="outline"
               onClick={addMcqOption}
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
             >
               Add Option
             </Button>
@@ -855,7 +855,7 @@ const QuestionsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, order: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -868,7 +868,7 @@ const QuestionsPage = () => {
               setIsEditModalOpen(false);
               setSelectedQuestion(null);
             }}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           >
             Cancel
           </Button>
