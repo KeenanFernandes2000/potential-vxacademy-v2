@@ -42,8 +42,6 @@ import CourseDetails from "@/pages/user/courseDetails";
 import AssessmentPage from "@/pages/user/assessmentPage";
 import MediaPage from "./pages/admin/mediaPage";
 
-console.log(import.meta.env.VITE_API_URL); // "/api"
-
 function App() {
   return (
     <AuthProvider>
