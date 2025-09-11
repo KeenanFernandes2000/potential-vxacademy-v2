@@ -13,11 +13,16 @@
     "dev": "concurrently \"bun run dev:server\" \"bun run dev:client\"",
     "docker": "docker compose --env-file .env.docker up --build -d",
     "docker:down": "docker compose down",
-    "build": "cd client && bun run build"
+    "build": "cd client && bun run build",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "db:push": "drizzle-kit push"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "drizzle-kit": "^0.31.4"
   },
   "peerDependencies": {
     "typescript": "^5"
