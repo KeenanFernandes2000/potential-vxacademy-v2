@@ -23,6 +23,52 @@ import {
 
 // API object for unit operations
 const api = {
+  async getAllTrainingAreas(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const response = await fetch(`${baseUrl}/api/training/training-areas`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch training areas:", error);
+      throw error;
+    }
+  },
+
+  async getAllModules(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const response = await fetch(`${baseUrl}/api/training/modules`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch modules:", error);
+      throw error;
+    }
+  },
+
   async getAllCourses(token: string) {
     try {
       const baseUrl = import.meta.env.VITE_BACKEND_URL;
@@ -261,6 +307,8 @@ const UnitsPage = () => {
   const [units, setUnits] = useState<UnitData[]>([]);
   const [filteredUnits, setFilteredUnits] = useState<UnitData[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
+  const [modules, setModules] = useState<any[]>([]);
+  const [trainingAreas, setTrainingAreas] = useState<any[]>([]);
   const [courseUnits, setCourseUnits] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -278,14 +326,23 @@ const UnitsPage = () => {
 
       try {
         setIsLoading(true);
-        const [unitsResponse, coursesResponse, courseUnitsResponse] =
-          await Promise.all([
-            api.getAllUnits(token),
-            api.getAllCourses(token),
-            api.getAllCourseUnits(token),
-          ]);
+        const [
+          unitsResponse,
+          coursesResponse,
+          modulesResponse,
+          trainingAreasResponse,
+          courseUnitsResponse,
+        ] = await Promise.all([
+          api.getAllUnits(token),
+          api.getAllCourses(token),
+          api.getAllModules(token),
+          api.getAllTrainingAreas(token),
+          api.getAllCourseUnits(token),
+        ]);
 
         setCourses(coursesResponse.data || []);
+        setModules(modulesResponse.data || []);
+        setTrainingAreas(trainingAreasResponse.data || []);
         setCourseUnits(courseUnitsResponse.data || []);
 
         // Transform data to match our display format
@@ -300,12 +357,23 @@ const UnitsPage = () => {
                   (c: any) => c.id === courseUnit.courseId
                 )
               : null;
+            const module = course
+              ? modulesResponse.data?.find((m: any) => m.id === course.moduleId)
+              : null;
+            const trainingArea = module
+              ? trainingAreasResponse.data?.find(
+                  (ta: any) => ta.id === module.trainingAreaId
+                )
+              : null;
 
             return {
               id: unit.id,
               order: unit.order || 1,
               name: unit.name,
               xp_points: unit.xp_points || 100,
+              trainingAreaId: trainingArea?.id, // Keep for filtering
+              moduleId: module?.id, // Keep for filtering
+              courseId: course?.id, // Keep for filtering
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -549,14 +617,23 @@ const UnitsPage = () => {
 
   const refreshUnitList = async () => {
     if (!token) return;
-    const [unitsResponse, coursesResponse, courseUnitsResponse] =
-      await Promise.all([
-        api.getAllUnits(token),
-        api.getAllCourses(token),
-        api.getAllCourseUnits(token),
-      ]);
+    const [
+      unitsResponse,
+      coursesResponse,
+      modulesResponse,
+      trainingAreasResponse,
+      courseUnitsResponse,
+    ] = await Promise.all([
+      api.getAllUnits(token),
+      api.getAllCourses(token),
+      api.getAllModules(token),
+      api.getAllTrainingAreas(token),
+      api.getAllCourseUnits(token),
+    ]);
 
     setCourses(coursesResponse.data || []);
+    setModules(modulesResponse.data || []);
+    setTrainingAreas(trainingAreasResponse.data || []);
     setCourseUnits(courseUnitsResponse.data || []);
 
     const transformedUnits =
@@ -568,12 +645,23 @@ const UnitsPage = () => {
         const course = courseUnit
           ? coursesResponse.data?.find((c: any) => c.id === courseUnit.courseId)
           : null;
+        const module = course
+          ? modulesResponse.data?.find((m: any) => m.id === course.moduleId)
+          : null;
+        const trainingArea = module
+          ? trainingAreasResponse.data?.find(
+              (ta: any) => ta.id === module.trainingAreaId
+            )
+          : null;
 
         return {
           id: unit.id,
           order: unit.order || 1,
           name: unit.name,
           xp_points: unit.xp_points || 100,
+          trainingAreaId: trainingArea?.id, // Keep for filtering
+          moduleId: module?.id, // Keep for filtering
+          courseId: course?.id, // Keep for filtering
           actions: (
             <div className="flex gap-1">
               <Button
@@ -904,7 +992,16 @@ const UnitsPage = () => {
     );
   };
 
-  const columns = ["ID", "Order", "Name", "XP Points", "Actions"];
+  const columns = [
+    "ID",
+    "Order",
+    "Name",
+    "XP Points",
+    "Training Area ID",
+    "Module ID",
+    "Course ID",
+    "Actions",
+  ];
 
   return (
     <AdminPageLayout
@@ -923,6 +1020,18 @@ const UnitsPage = () => {
         tableData={filteredUnits}
         columns={columns}
         onSearch={handleSearch}
+        enableColumnFiltering={true}
+        columnFilterConfig={{
+          trainingAreaId: "trainingAreaId",
+          moduleId: "moduleId",
+          courseId: "courseId",
+        }}
+        dropdownConfig={{
+          showTrainingArea: true,
+          showModule: true,
+          showCourse: true,
+          showUnit: false,
+        }}
       />
 
       {/* Edit Modal */}

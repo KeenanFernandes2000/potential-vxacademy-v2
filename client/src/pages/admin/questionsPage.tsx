@@ -223,6 +223,7 @@ const QuestionsPage = () => {
               assessment_name: assessment?.title || "N/A",
               correct_answer:
                 question.correct_answer || question.correctAnswer || "N/A",
+              assessmentId: question.assessment_id || question.assessmentId, // Keep for filtering
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -425,6 +426,7 @@ const QuestionsPage = () => {
           assessment_name: assessment?.title || "N/A",
           correct_answer:
             question.correct_answer || question.correctAnswer || "N/A",
+          assessmentId: question.assessment_id || question.assessmentId, // Keep for filtering
           actions: (
             <div className="flex gap-1">
               <Button
@@ -885,6 +887,7 @@ const QuestionsPage = () => {
     "Question Type",
     "Assessment Name",
     "Correct Answer",
+    "Assessment ID",
     "Actions",
   ];
 
@@ -905,6 +908,17 @@ const QuestionsPage = () => {
         tableData={filteredQuestions}
         columns={columns}
         onSearch={handleSearch}
+        enableColumnFiltering={true}
+        columnFilterConfig={{
+          assessmentId: "assessmentId",
+        }}
+        dropdownConfig={{
+          showTrainingArea: false,
+          showModule: false,
+          showCourse: false,
+          showUnit: false,
+          showAssessment: true,
+        }}
       />
 
       {/* Edit Modal */}

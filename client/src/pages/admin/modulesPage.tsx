@@ -189,6 +189,7 @@ const ModulesPage = () => {
               id: module.id,
               name: module.name,
               training_area_name: trainingArea?.name || "N/A",
+              trainingAreaId: module.trainingAreaId, // Keep for filtering
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -362,6 +363,7 @@ const ModulesPage = () => {
           id: module.id,
           name: module.name,
           training_area_name: trainingArea?.name || "N/A",
+          trainingAreaId: module.trainingAreaId, // Keep for filtering
           actions: (
             <div className="flex gap-1">
               <Button
@@ -574,7 +576,13 @@ const ModulesPage = () => {
     );
   };
 
-  const columns = ["ID", "Name", "Training Area", "Actions"];
+  const columns = [
+    "ID",
+    "Name",
+    "Training Area",
+    "Training Area ID",
+    "Actions",
+  ];
 
   return (
     <AdminPageLayout
@@ -593,6 +601,16 @@ const ModulesPage = () => {
         tableData={filteredModules}
         columns={columns}
         onSearch={handleSearch}
+        enableColumnFiltering={true}
+        columnFilterConfig={{
+          trainingAreaId: "trainingAreaId",
+        }}
+        dropdownConfig={{
+          showTrainingArea: true,
+          showModule: false,
+          showCourse: false,
+          showUnit: false,
+        }}
       />
 
       {/* Edit Modal */}

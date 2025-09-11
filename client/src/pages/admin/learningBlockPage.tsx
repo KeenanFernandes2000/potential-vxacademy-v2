@@ -204,6 +204,7 @@ const LearningBlockPage = () => {
               title: learningBlock.title || "N/A",
               type: learningBlock.type || "N/A",
               unit_name: unit?.name || "N/A",
+              unitId: learningBlock.unitId, // Keep for filtering
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -397,6 +398,7 @@ const LearningBlockPage = () => {
           title: learningBlock.title || "N/A",
           type: learningBlock.type || "N/A",
           unit_name: unit?.name || "N/A",
+          unitId: learningBlock.unitId, // Keep for filtering
           actions: (
             <div className="flex gap-1">
               <Button
@@ -789,7 +791,7 @@ const LearningBlockPage = () => {
     );
   };
 
-  const columns = ["ID", "Title", "Type", "Unit Name", "Actions"];
+  const columns = ["ID", "Title", "Type", "Unit Name", "Unit ID", "Actions"];
 
   return (
     <AdminPageLayout
@@ -808,6 +810,16 @@ const LearningBlockPage = () => {
         tableData={filteredLearningBlocks}
         columns={columns}
         onSearch={handleSearch}
+        enableColumnFiltering={true}
+        columnFilterConfig={{
+          unitId: "unitId",
+        }}
+        dropdownConfig={{
+          showTrainingArea: false,
+          showModule: false,
+          showCourse: false,
+          showUnit: true,
+        }}
       />
 
       {/* Edit Modal */}

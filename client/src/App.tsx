@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
-import AuthRedirect from "@/components/AuthRedirect";
+import AuthRedirect from "@/components/authRedirect";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import HomePage from "@/pages/home/homePage";
 import AuthPage from "@/pages/login/authPage";

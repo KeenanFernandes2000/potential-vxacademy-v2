@@ -510,6 +510,13 @@ const TrainingAreaPage = () => {
         createForm={<CreateTrainingAreaForm />}
         tableData={filteredTrainingAreas}
         columns={columns}
+        enableColumnFiltering={false}
+        dropdownConfig={{
+          showTrainingArea: false,
+          showModule: false,
+          showCourse: false,
+          showUnit: false,
+        }}
         onSearch={handleSearch}
       />
 

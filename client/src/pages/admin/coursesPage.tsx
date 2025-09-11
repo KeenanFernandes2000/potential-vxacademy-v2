@@ -24,6 +24,29 @@ import InsertImage from "@/components/insertImage";
 
 // API object for course operations
 const api = {
+  async getAllTrainingAreas(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const response = await fetch(`${baseUrl}/api/training/training-areas`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch training areas:", error);
+      throw error;
+    }
+  },
+
   async getAllModules(token: string) {
     try {
       const baseUrl = import.meta.env.VITE_BACKEND_URL;
@@ -164,6 +187,7 @@ const CoursesPage = () => {
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<CourseData[]>([]);
   const [modules, setModules] = useState<any[]>([]);
+  const [trainingAreas, setTrainingAreas] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -180,12 +204,15 @@ const CoursesPage = () => {
 
       try {
         setIsLoading(true);
-        const [coursesResponse, modulesResponse] = await Promise.all([
-          api.getAllCourses(token),
-          api.getAllModules(token),
-        ]);
+        const [coursesResponse, modulesResponse, trainingAreasResponse] =
+          await Promise.all([
+            api.getAllCourses(token),
+            api.getAllModules(token),
+            api.getAllTrainingAreas(token),
+          ]);
 
         setModules(modulesResponse.data || []);
+        setTrainingAreas(trainingAreasResponse.data || []);
 
         // Transform data to match our display format
         const transformedCourses =
@@ -194,6 +221,12 @@ const CoursesPage = () => {
             const module = modulesResponse.data?.find(
               (m: any) => m.id === course.moduleId
             );
+            // Find the training area for this module
+            const trainingArea = module
+              ? trainingAreasResponse.data?.find(
+                  (ta: any) => ta.id === module.trainingAreaId
+                )
+              : null;
 
             return {
               id: course.id,
@@ -201,6 +234,8 @@ const CoursesPage = () => {
               module_name: module?.name || "N/A",
               duration: course.duration || 0,
               level: course.level || "beginner",
+              trainingAreaId: trainingArea?.id, // Keep for filtering
+              moduleId: course.moduleId, // Keep for filtering
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -379,13 +414,19 @@ const CoursesPage = () => {
     if (!token) return;
 
     // Fetch both courses and modules to ensure we have the latest data
-    const [updatedCoursesResponse, updatedModulesResponse] = await Promise.all([
+    const [
+      updatedCoursesResponse,
+      updatedModulesResponse,
+      updatedTrainingAreasResponse,
+    ] = await Promise.all([
       api.getAllCourses(token),
       api.getAllModules(token),
+      api.getAllTrainingAreas(token),
     ]);
 
-    // Update modules state
+    // Update modules and training areas state
     setModules(updatedModulesResponse.data || []);
+    setTrainingAreas(updatedTrainingAreasResponse.data || []);
 
     const transformedCourses =
       updatedCoursesResponse.data?.map((course: any) => {
@@ -393,6 +434,12 @@ const CoursesPage = () => {
         const module = updatedModulesResponse.data?.find(
           (m: any) => m.id === course.module_id
         );
+        // Find the training area for this module
+        const trainingArea = module
+          ? updatedTrainingAreasResponse.data?.find(
+              (ta: any) => ta.id === module.trainingAreaId
+            )
+          : null;
 
         return {
           id: course.id,
@@ -400,6 +447,8 @@ const CoursesPage = () => {
           module_name: module?.name || "N/A",
           duration: course.duration || 0,
           level: course.level || "beginner",
+          trainingAreaId: trainingArea?.id, // Keep for filtering
+          moduleId: course.moduleId, // Keep for filtering
           actions: (
             <div className="flex gap-1">
               <Button
@@ -856,7 +905,16 @@ const CoursesPage = () => {
     );
   };
 
-  const columns = ["ID", "Name", "Module Name", "Duration", "Level", "Actions"];
+  const columns = [
+    "ID",
+    "Name",
+    "Module Name",
+    "Duration",
+    "Level",
+    "Training Area ID",
+    "Module ID",
+    "Actions",
+  ];
 
   return (
     <AdminPageLayout
@@ -875,6 +933,17 @@ const CoursesPage = () => {
         tableData={filteredCourses}
         columns={columns}
         onSearch={handleSearch}
+        enableColumnFiltering={true}
+        columnFilterConfig={{
+          trainingAreaId: "trainingAreaId",
+          moduleId: "moduleId",
+        }}
+        dropdownConfig={{
+          showTrainingArea: true,
+          showModule: true,
+          showCourse: false,
+          showUnit: false,
+        }}
       />
 
       {/* Edit Modal */}

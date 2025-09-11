@@ -301,6 +301,10 @@ const AssessmentsPage = () => {
             placement: assessment.placement || "N/A",
             passing_score:
               assessment.passing_score || assessment.passingScore || 0,
+            trainingAreaId: assessment.trainingAreaId, // Keep for filtering
+            moduleId: assessment.moduleId, // Keep for filtering
+            courseId: assessment.courseId, // Keep for filtering
+            unitId: assessment.unitId, // Keep for filtering
             actions: (
               <div className="flex gap-1">
                 <Button
@@ -526,6 +530,10 @@ const AssessmentsPage = () => {
         title: assessment.title,
         placement: assessment.placement || "N/A",
         passing_score: assessment.passing_score || assessment.passingScore || 0,
+        trainingAreaId: assessment.trainingAreaId, // Keep for filtering
+        moduleId: assessment.moduleId, // Keep for filtering
+        courseId: assessment.courseId, // Keep for filtering
+        unitId: assessment.unitId, // Keep for filtering
         actions: (
           <div className="flex gap-1">
             <Button
@@ -1168,7 +1176,17 @@ const AssessmentsPage = () => {
     );
   };
 
-  const columns = ["ID", "Title", "Placement", "Passing Score", "Actions"];
+  const columns = [
+    "ID",
+    "Title",
+    "Placement",
+    "Passing Score",
+    "Training Area ID",
+    "Module ID",
+    "Course ID",
+    "Unit ID",
+    "Actions",
+  ];
 
   return (
     <AdminPageLayout
@@ -1187,6 +1205,19 @@ const AssessmentsPage = () => {
         tableData={filteredAssessments}
         columns={columns}
         onSearch={handleSearch}
+        enableColumnFiltering={true}
+        columnFilterConfig={{
+          trainingAreaId: "trainingAreaId",
+          moduleId: "moduleId",
+          courseId: "courseId",
+          unitId: "unitId",
+        }}
+        dropdownConfig={{
+          showTrainingArea: true,
+          showModule: true,
+          showCourse: true,
+          showUnit: true,
+        }}
       />
 
       {/* Edit Modal */}
