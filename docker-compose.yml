@@ -5,7 +5,7 @@ services:
       dockerfile: server/dockerfile
     ports:
       - "8000:8000"
-    env_file: .env.docker
+    # env_file: .env.docker
 
   frontend:
     build:
@@ -13,4 +13,4 @@ services:
       dockerfile: client/dockerfile
     ports:
       - "5000:5000"
-    env_file: .env.docker
+    # env_file: .env.docker
