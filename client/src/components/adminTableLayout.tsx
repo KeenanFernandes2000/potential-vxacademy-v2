@@ -58,7 +58,7 @@ interface Unit {
 const api = {
   async getAllTrainingAreas() {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/training-areas`);
 
       if (!response.ok) {
@@ -75,7 +75,7 @@ const api = {
 
   async getModulesByTrainingArea(trainingAreaId: number) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/modules/training-area/${trainingAreaId}`
       );
@@ -94,7 +94,7 @@ const api = {
 
   async getCoursesByModule(moduleId: number) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/courses/module/${moduleId}`
       );
@@ -113,7 +113,7 @@ const api = {
 
   async getCourseUnitsByCourse(courseId: number) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
         `${baseUrl}/api/training/course-units/course/${courseId}`
       );
@@ -132,7 +132,7 @@ const api = {
 
   async getAllUnits() {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/units`);
 
       if (!response.ok) {
@@ -149,7 +149,7 @@ const api = {
 
   async getAllAssessments() {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/assessments/assessments`);
 
       if (!response.ok) {

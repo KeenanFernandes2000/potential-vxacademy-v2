@@ -2,15 +2,23 @@ import multer from "multer";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 import type { Request, Response, NextFunction } from "express";
+
+// Helper function to get the server directory
+const getServerDir = () => {
+  const __filename = fileURLToPath(import.meta.url);
+  return path.resolve(path.dirname(__filename), "..");
+};
 
 // Ensure upload directories exist
 const ensureUploadDirs = () => {
+  const serverDir = getServerDir();
   const uploadDirs = [
-    "uploads/images",
-    "uploads/documents",
-    "uploads/videos",
-    "uploads/audio",
+    path.join(serverDir, "uploads/images"),
+    path.join(serverDir, "uploads/documents"),
+    path.join(serverDir, "uploads/videos"),
+    path.join(serverDir, "uploads/audio"),
   ];
 
   uploadDirs.forEach((dir) => {
@@ -71,14 +79,15 @@ const fileFilter = (
 
 // Determine upload directory based on file type
 const getUploadDir = (mimetype: string): string => {
+  const serverDir = getServerDir();
   if (mimetype.startsWith("image/")) {
-    return "uploads/images";
+    return path.join(serverDir, "uploads/images");
   } else if (mimetype.startsWith("video/")) {
-    return "uploads/videos";
+    return path.join(serverDir, "uploads/videos");
   } else if (mimetype.startsWith("audio/")) {
-    return "uploads/audio";
+    return path.join(serverDir, "uploads/audio");
   } else {
-    return "uploads/documents";
+    return path.join(serverDir, "uploads/documents");
   }
 };
 

@@ -25,7 +25,7 @@ import {
 const api = {
   async getAllTrainingAreas(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/training-areas`, {
         method: "GET",
         headers: {
@@ -48,7 +48,7 @@ const api = {
 
   async getAllModules(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/training/modules`, {
         method: "GET",
         headers: {

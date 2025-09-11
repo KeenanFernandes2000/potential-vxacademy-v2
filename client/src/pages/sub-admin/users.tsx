@@ -30,7 +30,7 @@ import {
 const api = {
   async getAllUsers(token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/users`, {
         method: "GET",
         headers: {
@@ -53,7 +53,7 @@ const api = {
 
   async getUserById(userId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/users/${userId}`, {
         method: "GET",
         headers: {
@@ -76,7 +76,7 @@ const api = {
 
   async updateUser(userId: number, userData: any, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/users/${userId}`, {
         method: "PUT",
         headers: {
@@ -100,7 +100,7 @@ const api = {
 
   async deleteUser(userId: number, token: string) {
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL;
+      const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(`${baseUrl}/api/users/users/${userId}`, {
         method: "DELETE",
         headers: {

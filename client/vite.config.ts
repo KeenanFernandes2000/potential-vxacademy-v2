@@ -18,5 +18,8 @@ export default defineConfig(({ mode }) => {
       __APP_ENV__: JSON.stringify(env),
       "import.meta.env.VITE_API_URL": JSON.stringify(env.VITE_API_URL),
     },
+    server: {
+      port: 5000,
+    },
   };
 });
