@@ -78,6 +78,16 @@ router.get(
   userControllers.getSubAdminRegistrationDetails
 );
 
+// ==================== NORMAL USER REGISTRATION & UPDATE FUNCTIONS ====================
+router.post(
+  "/users/:id/register-normal-user",
+  userControllers.registerNormalUser
+);
+router.put(
+  "/users/:id/normal-user",
+  userControllers.updateNormalUser
+);
+
 // ==================== INVITATION FUNCTIONS ====================
 router.post("/invitations", userControllers.createInvitation);
 router.get("/invitations/verify/:token", userControllers.getInvitationByToken);
