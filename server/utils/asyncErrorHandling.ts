@@ -3,7 +3,10 @@ import type { Request, Response, NextFunction, RequestHandler } from "express";
 const asyncHandler =
   (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+    Promise.resolve(fn(req, res, next)).catch((error) => {
+      console.log("Async handler caught error:", error);
+      next(error);
+    });
   };
 
 // Create a wrapper for Express Router that automatically applies asyncHandler

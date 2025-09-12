@@ -46,12 +46,10 @@ export const courses = pgTable("courses", {
   description: text("description"),
   imageUrl: text("image_url"),
   internalNote: text("internal_note"),
-  duration: integer("duration").notNull(),
+  duration: integer("duration"),
   showDuration: boolean("show_duration").notNull().default(true),
   level: text("level").notNull().default("beginner"),
   showLevel: boolean("show_level").notNull().default(true),
-  estimatedDuration: text("estimated_duration"),
-  difficultyLevel: text("difficulty_level"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
