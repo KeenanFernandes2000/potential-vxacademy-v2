@@ -545,7 +545,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
                 {createButtonText}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-[#003451] border-white/20 text-white">
+            <DialogContent className="max-w-2xl bg-[#003451] border-white/20 text-white max-h-[80%] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent">
               <DialogHeader>
                 <DialogTitle className="text-white">
                   {createButtonText}

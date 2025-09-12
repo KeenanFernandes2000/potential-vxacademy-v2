@@ -433,7 +433,7 @@ const ModulesPage = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
+            <Label htmlFor="description">Description</Label>
             <Input
               id="description"
               value={formData.description}
@@ -441,7 +441,6 @@ const ModulesPage = () => {
                 setFormData({ ...formData, description: e.target.value })
               }
               className="rounded-full bg-[#00d8cc]/30"
-              required
             />
           </div>
           <div className="space-y-2">
@@ -513,7 +512,7 @@ const ModulesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_description">Description *</Label>
+          <Label htmlFor="edit_description">Description</Label>
           <Input
             id="edit_description"
             value={formData.description}
@@ -521,7 +520,6 @@ const ModulesPage = () => {
               setFormData({ ...formData, description: e.target.value })
             }
             className="rounded-full bg-[#00d8cc]/30"
-            required
           />
         </div>
         <div className="space-y-2">

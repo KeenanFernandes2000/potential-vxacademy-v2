@@ -302,13 +302,10 @@ const CoursesPage = () => {
         description: formData.description,
         imageUrl: formData.image_url || "",
         internalNote: formData.internal_note || "",
-        courseType: formData.course_type,
         duration: parseInt(formData.duration),
         showDuration: formData.show_duration,
         level: formData.level,
         showLevel: formData.show_level,
-        estimatedDuration: formData.estimated_duration || null,
-        difficultyLevel: formData.difficulty_level,
       };
 
       const response = await api.createCourse(courseData, token);
@@ -344,13 +341,10 @@ const CoursesPage = () => {
         description: formData.description,
         imageUrl: formData.imageUrl || "",
         internalNote: formData.internalNote || "",
-        courseType: formData.courseType,
         duration: parseInt(formData.duration),
         showDuration: formData.showDuration === "true",
         level: formData.level,
         showLevel: formData.showLevel === "true",
-        estimatedDuration: formData.estimatedDuration || null,
-        difficultyLevel: formData.difficultyLevel,
       };
 
       const response = await api.updateCourse(
@@ -485,13 +479,10 @@ const CoursesPage = () => {
       module_id: "",
       image_url: "",
       internal_note: "",
-      course_type: "free",
       duration: "",
       show_duration: true,
       level: "beginner",
       show_level: true,
-      estimated_duration: "",
-      difficulty_level: "beginner",
     });
     const [showInsertImage, setShowInsertImage] = useState(false);
 
@@ -504,13 +495,10 @@ const CoursesPage = () => {
         module_id: "",
         image_url: "",
         internal_note: "",
-        course_type: "free",
         duration: "",
         show_duration: true,
         level: "beginner",
         show_level: true,
-        estimated_duration: "",
-        difficulty_level: "beginner",
       });
     };
 
@@ -521,7 +509,7 @@ const CoursesPage = () => {
     return (
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
+        className="space-y-4 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
       >
         <div className="space-y-2">
           <Label htmlFor="name">Course Name *</Label>
@@ -534,7 +522,7 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="description">Description *</Label>
+          <Label htmlFor="description">Description</Label>
           <Input
             id="description"
             value={formData.description}
@@ -542,7 +530,6 @@ const CoursesPage = () => {
               setFormData({ ...formData, description: e.target.value })
             }
             className="rounded-full bg-[#00d8cc]/30"
-            required
           />
         </div>
         <div className="space-y-2">
@@ -584,34 +571,6 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="course_type">Course Type *</Label>
-          <select
-            id="course_type"
-            value={formData.course_type}
-            onChange={(e) =>
-              setFormData({ ...formData, course_type: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-            required
-          >
-            <option value="free">Free</option>
-            <option value="premium">Premium</option>
-          </select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="duration">Duration (minutes) *</Label>
-          <Input
-            id="duration"
-            type="number"
-            value={formData.duration}
-            onChange={(e) =>
-              setFormData({ ...formData, duration: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            required
-          />
-        </div>
-        <div className="space-y-2">
           <Label htmlFor="showDuration">Show Duration</Label>
           <div className="flex items-center space-x-2">
             <Switch
@@ -626,19 +585,21 @@ const CoursesPage = () => {
             </Label>
           </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="level">Level *</Label>
-          <Input
-            id="level"
-            value={formData.level}
-            onChange={(e) =>
-              setFormData({ ...formData, level: e.target.value })
-            }
-            placeholder="beginner, intermediate, advanced"
-            className="rounded-full bg-[#00d8cc]/30"
-            required
-          />
-        </div>
+        {formData.show_duration && (
+          <div className="space-y-2">
+            <Label htmlFor="duration">Duration (minutes) *</Label>
+            <Input
+              id="duration"
+              type="number"
+              value={formData.duration}
+              onChange={(e) =>
+                setFormData({ ...formData, duration: e.target.value })
+              }
+              className="rounded-full bg-[#00d8cc]/30"
+              required
+            />
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="showLevel">Show Level</Label>
           <div className="flex items-center space-x-2">
@@ -654,39 +615,26 @@ const CoursesPage = () => {
             </Label>
           </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="estimatedDuration">Estimated Duration (hours)</Label>
-          <Input
-            id="estimatedDuration"
-            type="number"
-            value={formData.estimated_duration}
-            onChange={(e) =>
-              setFormData({ ...formData, estimated_duration: e.target.value })
-            }
-            placeholder="e.g., 40"
-            className="rounded-full bg-[#00d8cc]/30"
-            min="0"
-            step="0.5"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="difficultyLevel">Difficulty Level *</Label>
-          <Select
-            value={formData.difficulty_level}
-            onValueChange={(value) =>
-              setFormData({ ...formData, difficulty_level: value })
-            }
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
-              <SelectValue placeholder="Select difficulty level" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="beginner">Beginner</SelectItem>
-              <SelectItem value="intermediate">Intermediate</SelectItem>
-              <SelectItem value="advanced">Advanced</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {formData.show_level && (
+          <div className="space-y-2">
+            <Label htmlFor="level">Level *</Label>
+            <Select
+              value={formData.level}
+              onValueChange={(value) =>
+                setFormData({ ...formData, level: value })
+              }
+            >
+              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+                <SelectValue placeholder="Select level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="beginner">Beginner</SelectItem>
+                <SelectItem value="intermediate">Intermediate</SelectItem>
+                <SelectItem value="advanced">Advanced</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="flex justify-end gap-2">
           <Button type="submit" disabled={isLoading} className="rounded-full">
             {isLoading ? "Creating..." : "Create Course"}
@@ -703,13 +651,10 @@ const CoursesPage = () => {
       moduleId: selectedCourse?.moduleId?.toString() || "",
       imageUrl: selectedCourse?.imageUrl || "",
       internalNote: selectedCourse?.internalNote || "",
-      courseType: selectedCourse?.courseType || "",
       duration: selectedCourse?.duration?.toString() || "",
       showDuration: selectedCourse?.showDuration || true,
       level: selectedCourse?.level || "",
       showLevel: selectedCourse?.showLevel || true,
-      estimatedDuration: selectedCourse?.estimatedDuration || "",
-      difficultyLevel: selectedCourse?.difficultyLevel || "beginner",
     });
     const [showInsertImage, setShowInsertImage] = useState(false);
 
@@ -738,7 +683,7 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_description">Description *</Label>
+          <Label htmlFor="edit_description">Description</Label>
           <Input
             id="edit_description"
             value={formData.description}
@@ -746,7 +691,6 @@ const CoursesPage = () => {
               setFormData({ ...formData, description: e.target.value })
             }
             className="rounded-full bg-[#00d8cc]/30"
-            required
           />
         </div>
         <div className="space-y-2">
@@ -782,32 +726,6 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_courseType">Course Type *</Label>
-          <Input
-            id="edit_courseType"
-            value={formData.courseType}
-            onChange={(e) =>
-              setFormData({ ...formData, courseType: e.target.value })
-            }
-            placeholder="free, premium, etc."
-            className="rounded-full bg-[#00d8cc]/30"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit_duration">Duration (minutes) *</Label>
-          <Input
-            id="edit_duration"
-            type="number"
-            value={formData.duration}
-            onChange={(e) =>
-              setFormData({ ...formData, duration: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            required
-          />
-        </div>
-        <div className="space-y-2">
           <Label htmlFor="edit_showDuration">Show Duration</Label>
           <div className="flex items-center space-x-2">
             <Switch
@@ -822,19 +740,21 @@ const CoursesPage = () => {
             </Label>
           </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit_level">Level *</Label>
-          <Input
-            id="edit_level"
-            value={formData.level}
-            onChange={(e) =>
-              setFormData({ ...formData, level: e.target.value })
-            }
-            placeholder="beginner, intermediate, advanced"
-            className="rounded-full bg-[#00d8cc]/30"
-            required
-          />
-        </div>
+        {formData.showDuration && (
+          <div className="space-y-2">
+            <Label htmlFor="edit_duration">Duration (minutes) *</Label>
+            <Input
+              id="edit_duration"
+              type="number"
+              value={formData.duration}
+              onChange={(e) =>
+                setFormData({ ...formData, duration: e.target.value })
+              }
+              className="rounded-full bg-[#00d8cc]/30"
+              required
+            />
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="edit_showLevel">Show Level</Label>
           <div className="flex items-center space-x-2">
@@ -850,41 +770,26 @@ const CoursesPage = () => {
             </Label>
           </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit_estimatedDuration">
-            Estimated Duration (hours)
-          </Label>
-          <Input
-            id="edit_estimatedDuration"
-            type="number"
-            value={formData.estimatedDuration}
-            onChange={(e) =>
-              setFormData({ ...formData, estimatedDuration: e.target.value })
-            }
-            placeholder="e.g., 40"
-            className="rounded-full bg-[#00d8cc]/30"
-            min="0"
-            step="0.5"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit_difficultyLevel">Difficulty Level *</Label>
-          <Select
-            value={formData.difficultyLevel}
-            onValueChange={(value) =>
-              setFormData({ ...formData, difficultyLevel: value })
-            }
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
-              <SelectValue placeholder="Select difficulty level" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="beginner">Beginner</SelectItem>
-              <SelectItem value="intermediate">Intermediate</SelectItem>
-              <SelectItem value="advanced">Advanced</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {formData.showLevel && (
+          <div className="space-y-2">
+            <Label htmlFor="edit_level">Level *</Label>
+            <Select
+              value={formData.level}
+              onValueChange={(value) =>
+                setFormData({ ...formData, level: value })
+              }
+            >
+              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+                <SelectValue placeholder="Select level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="beginner">Beginner</SelectItem>
+                <SelectItem value="intermediate">Intermediate</SelectItem>
+                <SelectItem value="advanced">Advanced</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="flex justify-end gap-2">
           <Button
             type="button"
@@ -948,7 +853,7 @@ const CoursesPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-[#003451] border-white/20 text-white">
+        <DialogContent className="max-w-md bg-[#003451] border-white/20 text-white max-h-[80%]">
           <DialogHeader>
             <DialogTitle className="text-white">Edit Course</DialogTitle>
           </DialogHeader>

@@ -470,7 +470,7 @@ const LearningBlockPage = () => {
     return (
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
+        className="space-y-4 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
       >
         <div className="space-y-2">
           <Label htmlFor="unit_id">Unit *</Label>
@@ -824,7 +824,7 @@ const LearningBlockPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-[#003451] border-white/20 text-white">
+        <DialogContent className="max-w-md bg-[#003451] border-white/20 text-white max-h-[80%]">
           <DialogHeader>
             <DialogTitle className="text-white">
               Edit Learning Block
