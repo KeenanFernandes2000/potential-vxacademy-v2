@@ -132,7 +132,7 @@ const ProfilePage = (props: Props) => {
         const baseUrl = import.meta.env.VITE_API_URL;
 
         // Fetch user details
-        const userResponse = await fetch(`${baseUrl}/api/users/${user.id}`, {
+        const userResponse = await fetch(`${baseUrl}/api/users/users/${user.id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
