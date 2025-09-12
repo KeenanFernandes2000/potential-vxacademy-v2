@@ -2,6 +2,9 @@ import type { Request, Response } from "express";
 import { MediaService } from "../services/media.services";
 import type { CustomError } from "../middleware/errorHandling";
 import { cleanupFile } from "../middleware/upload";
+import { db } from "../db/connection";
+import { roles, roleCategories } from "../db/schema/users";
+import { eq } from "drizzle-orm";
 
 // Helper function to create custom errors
 const createError = (
@@ -279,5 +282,102 @@ export class MediaController {
       success: true,
       message: "Media file deleted successfully",
     });
+  }
+
+  // ==================== BULK ROLES FUNCTIONS ====================
+
+  /**
+   * Bulk create roles for a specific category
+   * POST /media/bulk-roles
+   */
+  static async bulkCreateRoles(req: Request, res: Response): Promise<void> {
+    const { categoryId, roleNames } = req.body;
+
+    // Validate categoryId
+    if (!categoryId || typeof categoryId !== "number" || categoryId <= 0) {
+      throw createError("Valid category ID is required", 400);
+    }
+
+    // Validate roleNames array
+    if (!Array.isArray(roleNames) || roleNames.length === 0) {
+      throw createError("Role names array is required and must not be empty", 400);
+    }
+
+    // Validate each role name
+    const errors: string[] = [];
+    roleNames.forEach((roleName: any, index: number) => {
+      if (!roleName || typeof roleName !== "string" || roleName.trim().length === 0) {
+        errors.push(`Role name at index ${index} is required and must be a non-empty string`);
+      }
+    });
+
+    if (errors.length > 0) {
+      throw createError("Validation failed", 400, errors);
+    }
+
+    // Check if category exists
+    const [existingCategory] = await db
+      .select()
+      .from(roleCategories)
+      .where(eq(roleCategories.id, categoryId))
+      .limit(1);
+
+    if (!existingCategory) {
+      throw createError("Role category not found", 404);
+    }
+
+    // Check for duplicate role names in the request
+    const trimmedRoleNames = roleNames.map((name: string) => name.trim());
+    const uniqueRoleNames = [...new Set(trimmedRoleNames)];
+    if (uniqueRoleNames.length !== trimmedRoleNames.length) {
+      throw createError("Duplicate role names found in the request", 400);
+    }
+
+    // Check for existing roles with the same names in this category
+    const existingRoles = await db
+      .select()
+      .from(roles)
+      .where(eq(roles.categoryId, categoryId));
+
+    const existingRoleNames = existingRoles.map(role => role.name);
+    const conflictingRoles = trimmedRoleNames.filter(name => existingRoleNames.includes(name));
+
+    if (conflictingRoles.length > 0) {
+      throw createError(
+        `The following role names already exist in this category: ${conflictingRoles.join(", ")}`,
+        409
+      );
+    }
+
+    try {
+      // Prepare bulk insert data
+      const bulkInsertData = trimmedRoleNames.map(roleName => ({
+        categoryId: categoryId,
+        name: roleName,
+      }));
+
+      // Bulk insert roles
+      const newRoles = await db
+        .insert(roles)
+        .values(bulkInsertData)
+        .returning();
+
+      res.status(201).json({
+        success: true,
+        message: `${newRoles.length} roles created successfully for category "${existingCategory.name}"`,
+        data: {
+          category: existingCategory,
+          roles: newRoles,
+        },
+        meta: {
+          categoryId,
+          rolesCreated: newRoles.length,
+          totalRequested: roleNames.length,
+        },
+      });
+    } catch (error: any) {
+      console.error("Bulk create roles error:", error);
+      throw createError("Failed to create roles", 500);
+    }
   }
 }

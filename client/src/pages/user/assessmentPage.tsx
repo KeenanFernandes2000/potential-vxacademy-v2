@@ -382,14 +382,22 @@ const AssessmentPage: React.FC = () => {
         return;
       }
 
+      // Update assessment state with new attempt data
+      setAssessment((prevAssessment) => {
+        if (!prevAssessment) return prevAssessment;
+
+        return {
+          ...prevAssessment,
+          attemptsUsed: prevAssessment.attemptsUsed + 1,
+          hasPassed: passed,
+        };
+      });
+
       // Reset assessment state
       setIsAssessmentStarted(false);
       setCurrentQuestionIndex(0);
       setAnswers({});
       setSelectedAnswer(null);
-
-      // Refresh assessment data to update attempts
-      window.location.reload();
     } catch (error) {
       console.error("Failed to submit assessment:", error);
       alert("Failed to submit assessment. Please try again.");

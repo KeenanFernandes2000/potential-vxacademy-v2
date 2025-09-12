@@ -57,4 +57,10 @@ router.get(
   MediaController.searchMediaFilesByFilename
 );
 
+// ==================== BULK ROLES FUNCTIONS ====================
+router.post(
+  "/bulk-roles",
+  MediaController.bulkCreateRoles
+);
+
 export default router;

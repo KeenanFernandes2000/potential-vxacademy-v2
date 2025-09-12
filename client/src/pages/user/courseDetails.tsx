@@ -495,8 +495,43 @@ const CourseDetails = () => {
                   user.id,
                   token
                 );
-                // Refresh course data to update progress
-                window.location.reload();
+                // Update the specific learning block status in state
+                setCourse((prevCourse) => {
+                  if (!prevCourse) return prevCourse;
+
+                  const updatedUnits = prevCourse.units.map((unit) => ({
+                    ...unit,
+                    learningBlocks: unit.learningBlocks.map((block) =>
+                      block.id === learningBlockId
+                        ? { ...block, status: "completed" }
+                        : block
+                    ),
+                  }));
+
+                  // Recalculate overall progress
+                  const totalBlocks = updatedUnits.reduce(
+                    (sum, unit) => sum + unit.learningBlocks.length,
+                    0
+                  );
+                  const completedBlocks = updatedUnits.reduce(
+                    (sum, unit) =>
+                      sum +
+                      unit.learningBlocks.filter(
+                        (block: LearningBlock) => block.status === "completed"
+                      ).length,
+                    0
+                  );
+                  const progressPercentage =
+                    totalBlocks > 0
+                      ? Math.round((completedBlocks / totalBlocks) * 100)
+                      : 0;
+
+                  return {
+                    ...prevCourse,
+                    units: updatedUnits,
+                    progress: progressPercentage,
+                  };
+                });
               } catch (error) {
                 console.error("Failed to complete learning block:", error);
               }
