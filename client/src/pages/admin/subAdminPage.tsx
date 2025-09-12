@@ -431,7 +431,10 @@ const SubAdminPage = () => {
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
+      >
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="first_name">First Name *</Label>
@@ -441,7 +444,7 @@ const SubAdminPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, first_name: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               required
             />
           </div>
@@ -453,7 +456,7 @@ const SubAdminPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, last_name: e.target.value })
               }
-              className="rounded-full"
+              className="rounded-full bg-[#00d8cc]/30"
               required
             />
           </div>
@@ -468,7 +471,7 @@ const SubAdminPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -481,7 +484,7 @@ const SubAdminPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, organization: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -494,7 +497,7 @@ const SubAdminPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, sub_organization: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           />
         </div>
 
@@ -506,7 +509,7 @@ const SubAdminPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, asset: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -519,7 +522,7 @@ const SubAdminPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, sub_asset: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -533,7 +536,7 @@ const SubAdminPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, password: e.target.value })
             }
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>

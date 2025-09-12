@@ -28,7 +28,12 @@ interface AuthContextType {
   login: (
     email: string,
     password: string
-  ) => Promise<{ success: boolean; message?: string }>;
+  ) => Promise<{
+    success: boolean;
+    message?: string;
+    user?: User;
+    token?: string;
+  }>;
   logout: () => void;
   updateUser: (userData: User) => void;
   userExists: () => boolean;
@@ -115,7 +120,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem("userData", JSON.stringify(response.user));
         localStorage.setItem("token", response.token);
 
-        return { success: true };
+        return {
+          success: true,
+          user: response.user,
+          token: response.token,
+        };
       } else {
         return { success: false, message: response.message || "Login failed" };
       }

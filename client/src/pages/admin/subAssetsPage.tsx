@@ -187,7 +187,7 @@ const SubAssetsPage = () => {
           subAssetsResponse.data?.map((subAsset: any) => ({
             id: subAsset.id,
             name: subAsset.name,
-            parentAsset: subAsset.parentAsset || "N/A",
+            parentAsset: subAsset.assetId || "N/A",
             size: subAsset.size || "0 KB",
             createdDate: subAsset.createdAt
               ? new Date(subAsset.createdAt).toISOString().split("T")[0]
@@ -403,14 +403,17 @@ const SubAssetsPage = () => {
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
+      >
         <div className="space-y-2">
           <Label htmlFor="name">Sub-Asset Name *</Label>
           <Input
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -422,7 +425,7 @@ const SubAssetsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, parentAsset: e.target.value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
             required
           >
             <option value="">Select an asset</option>
@@ -454,14 +457,17 @@ const SubAssetsPage = () => {
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
+      >
         <div className="space-y-2">
           <Label htmlFor="edit_name">Sub-Asset Name *</Label>
           <Input
             id="edit_name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -473,7 +479,7 @@ const SubAssetsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, parentAsset: e.target.value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
             required
           >
             <option value="">Select an asset</option>
@@ -492,7 +498,7 @@ const SubAssetsPage = () => {
               setIsEditModalOpen(false);
               setSelectedSubAsset(null);
             }}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
           >
             Cancel
           </Button>

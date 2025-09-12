@@ -199,60 +199,6 @@ interface AdminTableLayoutProps {
   dropdownConfig?: DropdownConfig; // Configuration for which dropdowns to show
 }
 
-/**
- * AdminTableLayout Component
- *
- * A reusable table layout component for admin pages with integrated filtering dropdowns.
- *
- * Features:
- * - Search functionality
- * - Create modal with custom form
- * - Cascading dropdown filters (Training Area → Module → Course → Unit)
- * - Real-time API integration for dropdown data
- * - Loading states and proper error handling
- * - Smart unit filtering: Gets course units first, then filters all units by unit IDs
- * - Automatic column filtering: Filter table data based on dropdown selections
- *
- * Usage Example:
- * ```tsx
- * const [tableData, setTableData] = useState([]);
- *
- * const handleFilterChange = (filters) => {
- *   // Optional: Handle filter changes for custom logic
- *   console.log('Filters changed:', filters);
- * };
- *
- * // Basic usage without column filtering
- * <AdminTableLayout
- *   searchPlaceholder="Search assessments..."
- *   createButtonText="Create Assessment"
- *   createForm={<YourCreateForm />}
- *   tableData={tableData}
- *   columns={['ID', 'Title', 'Actions']}
- *   onSearch={handleSearch}
- *   onFilterChange={handleFilterChange}
- * />
- *
- * // With automatic column filtering
- * <AdminTableLayout
- *   searchPlaceholder="Search assessments..."
- *   createButtonText="Create Assessment"
- *   createForm={<YourCreateForm />}
- *   tableData={tableData}
- *   columns={['ID', 'Title', 'Training Area', 'Module', 'Course', 'Unit', 'Actions']}
- *   onSearch={handleSearch}
- *   onFilterChange={handleFilterChange}
- *   enableColumnFiltering={true}
- *   columnFilterConfig={{
- *     trainingAreaId: 'trainingAreaId', // Column name containing training area ID
- *     moduleId: 'moduleId',             // Column name containing module ID
- *     courseId: 'courseId',             // Column name containing course ID
- *     unitId: 'unitId'                  // Column name containing unit ID
- *   }}
- * />
- * ```
- */
-
 const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
   searchPlaceholder = "Search...",
   createButtonText = "Create",
@@ -264,10 +210,10 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
   columnFilterConfig,
   enableColumnFiltering = false,
   dropdownConfig = {
-    showTrainingArea: true,
-    showModule: true,
-    showCourse: true,
-    showUnit: true,
+    showTrainingArea: false,
+    showModule: false,
+    showCourse: false,
+    showUnit: false,
     showAssessment: false,
   },
 }) => {
