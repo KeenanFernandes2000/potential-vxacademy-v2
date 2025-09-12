@@ -102,14 +102,17 @@ const SubOrganizationPage = () => {
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
+      >
         <div className="space-y-2">
           <Label htmlFor="name">Sub-Organization Name *</Label>
           <Input
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full"
+            className="rounded-full bg-[#00d8cc]/30"
             required
           />
         </div>
@@ -122,21 +125,21 @@ const SubOrganizationPage = () => {
             }
             // disabled={isLoadingOrganizations}
           >
-            <SelectTrigger className="rounded-full w-full">
-              {/* <SelectValue
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+              <SelectValue
                 placeholder={
                   isLoadingOrganizations
                     ? "Loading organizations..."
                     : "Select parent organization"
                 }
-              /> */}
+              />
             </SelectTrigger>
             <SelectContent>
-              {/* {organizations.map((org) => (
+              {organizations.map((org) => (
                 <SelectItem key={org.id} value={org.name}>
                   {org.name}
                 </SelectItem>
-              ))} */}
+              ))}
             </SelectContent>
           </Select>
         </div>
