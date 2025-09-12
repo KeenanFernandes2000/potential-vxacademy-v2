@@ -182,17 +182,18 @@ const SubAssetsPage = () => {
         // Set assets for dropdown
         setAssets(assetsResponse.data || []);
 
+        // Create a map for quick asset lookup
+        const assetMap = new Map();
+        assetsResponse.data?.forEach((asset: any) => {
+          assetMap.set(asset.id, asset.name);
+        });
+
         // Transform data to match our display format
         const transformedSubAssets =
           subAssetsResponse.data?.map((subAsset: any) => ({
             id: subAsset.id,
             name: subAsset.name,
-            parentAsset: subAsset.assetId || "N/A",
-            size: subAsset.size || "0 KB",
-            createdDate: subAsset.createdAt
-              ? new Date(subAsset.createdAt).toISOString().split("T")[0]
-              : "N/A",
-            status: subAsset.status || "Active",
+            parentAsset: assetMap.get(subAsset.assetId) || "N/A",
             actions: (
               <div className="flex gap-1">
                 <Button
@@ -350,18 +351,24 @@ const SubAssetsPage = () => {
 
   const refreshSubAssetList = async () => {
     if (!token) return;
-    const updatedResponse = await api.getAllSubAssets(token);
+    const [updatedSubAssetsResponse, updatedAssetsResponse] = await Promise.all(
+      [api.getAllSubAssets(token), api.getAllAssets(token)]
+    );
+
+    // Update assets state
+    setAssets(updatedAssetsResponse.data || []);
+
+    // Create a map for quick asset lookup
+    const assetMap = new Map();
+    updatedAssetsResponse.data?.forEach((asset: any) => {
+      assetMap.set(asset.id, asset.name);
+    });
 
     const transformedSubAssets =
-      updatedResponse.data?.map((subAsset: any) => ({
+      updatedSubAssetsResponse.data?.map((subAsset: any) => ({
         id: subAsset.id,
         name: subAsset.name,
-        parentAsset: subAsset.parentAsset || "N/A",
-        size: subAsset.size || "0 KB",
-        createdDate: subAsset.createdAt
-          ? new Date(subAsset.createdAt).toISOString().split("T")[0]
-          : "N/A",
-        status: subAsset.status || "Active",
+        parentAsset: assetMap.get(subAsset.assetId) || "N/A",
         actions: (
           <div className="flex gap-1">
             <Button
@@ -510,15 +517,7 @@ const SubAssetsPage = () => {
     );
   };
 
-  const columns = [
-    "ID",
-    "Name",
-    "Parent Asset",
-    "Size",
-    "Created Date",
-    "Status",
-    "Actions",
-  ];
+  const columns = ["ID", "Name", "Parent Asset", "Actions"];
 
   return (
     <AdminPageLayout
