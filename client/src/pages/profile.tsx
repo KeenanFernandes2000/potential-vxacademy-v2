@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -22,33 +22,90 @@ import SubAdminSidebar from "@/components/subAdminSidebar";
 import AdminSidebar from "@/components/adminSidebar";
 import HomeNavigation from "@/components/homeNavigation";
 import { BarChart, CheckCircle, TrackChanges } from "@mui/icons-material";
-
-
-// Hardcoded usertype - change this to switch between "subadmin" and "user"
-type UserType = "subadmin" | "user";
-const usertype = "asdad" as UserType; // Change to "subadmin" for sub-admin profile
+import { useAuth } from "@/hooks/useAuth";
 
 type Props = {};
 
+// Extended user data interfaces
+interface SubAdminData {
+  job_title: string;
+  total_frontliners: string;
+  eid: string;
+  phone_number: string;
+}
+
+interface NormalUserData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  role_category: string;
+  role: string;
+  seniority: string;
+  eid: string;
+  phone_number: string;
+}
+
+interface UserProfile {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  organization: string;
+  subOrganization?: string;
+  asset: string;
+  subAsset: string;
+  userType: "admin" | "sub_admin" | "user";
+  xp: number;
+  lastLogin: string;
+  createdAt: string;
+  updatedAt: string;
+  subAdminDetails?: {
+    jobTitle: string;
+    totalFrontliners?: number;
+    eid: string;
+    phoneNumber: string;
+  };
+  normalUserDetails?: {
+    roleCategory: string;
+    role: string;
+    seniority: string;
+    eid: string;
+    phoneNumber: string;
+  };
+}
+
 const ProfilePage = (props: Props) => {
+  const { user, token, updateUser } = useAuth();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Overview data state
+  const [overviewData, setOverviewData] = useState({
+    totalCourses: 0,
+    completedCourses: 0,
+    overallProgress: 0,
+    loading: true,
+  });
+
   // Sub-admin profile state
-  const [subAdminData, setSubAdminData] = useState({
-    job_title: "Senior Manager",
-    total_frontliners: "150",
-    eid: "784-2023-1234567-1",
-    phone_number: "+971501234567",
+  const [subAdminData, setSubAdminData] = useState<SubAdminData>({
+    job_title: "",
+    total_frontliners: "",
+    eid: "",
+    phone_number: "",
   });
 
   // User profile state
-  const [userData, setUserData] = useState({
-    first_name: "John",
-    last_name: "Doe",
-    email: "john.doe@company.com",
-    role_category: "Technical",
-    role: "Senior Developer",
-    seniority: "Senior",
-    eid: "784-2023-7654321-2",
-    phone_number: "+971507654321",
+  const [userData, setUserData] = useState<NormalUserData>({
+    first_name: "",
+    last_name: "",
+    email: "",
+    role_category: "",
+    role: "",
+    seniority: "",
+    eid: "",
+    phone_number: "",
   });
 
   // Security tab state
@@ -60,6 +117,145 @@ const ProfilePage = (props: Props) => {
 
   // Password validation state
   const [passwordError, setPasswordError] = useState("");
+
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user || !token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const baseUrl = import.meta.env.VITE_API_URL;
+
+        // Fetch user details
+        const userResponse = await fetch(`${baseUrl}/api/users/${user.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!userResponse.ok) {
+          throw new Error("Failed to fetch user profile");
+        }
+
+        const userResult = await userResponse.json();
+        if (userResult.success) {
+          const profileData = userResult.data;
+          setUserProfile(profileData);
+
+          // Set form data based on user type
+          if (
+            profileData.userType === "sub_admin" &&
+            profileData.subAdminDetails
+          ) {
+            setSubAdminData({
+              job_title: profileData.subAdminDetails.jobTitle || "",
+              total_frontliners:
+                profileData.subAdminDetails.totalFrontliners?.toString() || "",
+              eid: profileData.subAdminDetails.eid || "",
+              phone_number: profileData.subAdminDetails.phoneNumber || "",
+            });
+          } else if (
+            profileData.userType === "user" &&
+            profileData.normalUserDetails
+          ) {
+            setUserData({
+              first_name: profileData.firstName || "",
+              last_name: profileData.lastName || "",
+              email: profileData.email || "",
+              role_category: profileData.normalUserDetails.roleCategory || "",
+              role: profileData.normalUserDetails.role || "",
+              seniority: profileData.normalUserDetails.seniority || "",
+              eid: profileData.normalUserDetails.eid || "",
+              phone_number: profileData.normalUserDetails.phoneNumber || "",
+            });
+          }
+        }
+      } catch (err: any) {
+        console.error("Error fetching user profile:", err);
+        setError(err.message || "Failed to load user profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user, token]);
+
+  // Fetch overview data (courses and progress)
+  useEffect(() => {
+    const fetchOverviewData = async () => {
+      if (!user || !token) {
+        setOverviewData((prev) => ({ ...prev, loading: false }));
+        return;
+      }
+
+      try {
+        setOverviewData((prev) => ({ ...prev, loading: true }));
+        const baseUrl = import.meta.env.VITE_API_URL;
+
+        // Fetch all courses
+        const coursesResponse = await fetch(`${baseUrl}/api/training/courses`);
+        let totalCourses = 0;
+        if (coursesResponse.ok) {
+          const coursesResult = await coursesResponse.json();
+          if (coursesResult.success && coursesResult.data) {
+            totalCourses = coursesResult.data.length;
+          }
+        }
+
+        // Fetch user progress
+        const progressResponse = await fetch(
+          `${baseUrl}/api/progress/courses/${user.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        let completedCourses = 0;
+        let overallProgress = 0;
+
+        if (progressResponse.ok) {
+          const progressResult = await progressResponse.json();
+          if (progressResult.success && progressResult.data) {
+            const courseProgress = progressResult.data;
+            completedCourses = courseProgress.filter(
+              (course: any) => course.progress === 100
+            ).length;
+
+            // Calculate overall progress
+            if (courseProgress.length > 0) {
+              const totalProgress = courseProgress.reduce(
+                (sum: number, course: any) => sum + (course.progress || 0),
+                0
+              );
+              overallProgress = Math.round(
+                totalProgress / courseProgress.length
+              );
+            }
+          }
+        }
+
+        setOverviewData({
+          totalCourses,
+          completedCourses,
+          overallProgress,
+          loading: false,
+        });
+      } catch (err: any) {
+        console.error("Error fetching overview data:", err);
+        setOverviewData((prev) => ({ ...prev, loading: false }));
+      }
+    };
+
+    fetchOverviewData();
+  }, [user, token]);
 
   // Password validation function
   const validatePasswords = (password: string, confirmPassword: string) => {
@@ -130,36 +326,60 @@ const ProfilePage = (props: Props) => {
     "Executive",
   ];
 
-  // Get current user data based on usertype
+  // Get current user data based on user type
   const getCurrentUserData = () => {
-    if (usertype === "subadmin") {
+    if (!userProfile) {
       return {
-        name: "Admin User",
-        email: "admin@vx-academy.ae",
-        role: "Sub Administrator",
-        xp: 310,
+        name: "Loading...",
+        email: "",
+        role: "",
+        xp: 0,
         level: "Beginner",
-        avatar: "A",
+        avatar: "?",
+      };
+    }
+
+    if (userProfile.userType === "sub_admin") {
+      return {
+        name: `${userProfile.firstName} ${userProfile.lastName}`,
+        email: userProfile.email,
+        role: "Sub Administrator",
+        xp: userProfile.xp,
+        level: "Beginner", // You can implement level calculation based on XP
+        avatar: userProfile.firstName.charAt(0).toUpperCase(),
+      };
+    } else if (userProfile.userType === "admin") {
+      return {
+        name: `${userProfile.firstName} ${userProfile.lastName}`,
+        email: userProfile.email,
+        role: "Administrator",
+        xp: userProfile.xp,
+        level: "Beginner",
+        avatar: userProfile.firstName.charAt(0).toUpperCase(),
       };
     } else {
       return {
-        name: `${userData.first_name} ${userData.last_name}`,
-        email: userData.email,
-        role: userData.role,
-        xp: 150,
+        name: `${userProfile.firstName} ${userProfile.lastName}`,
+        email: userProfile.email,
+        role: userData.role || "User",
+        xp: userProfile.xp,
         level: "Beginner",
-        avatar: userData.first_name.charAt(0).toUpperCase(),
+        avatar: userProfile.firstName.charAt(0).toUpperCase(),
       };
     }
   };
 
   const currentUser = getCurrentUserData();
 
-  // Render appropriate sidebar based on usertype
+  // Render appropriate sidebar based on user type
   const renderSidebar = () => {
-    if (usertype === "user") {
+    if (!userProfile) {
+      return <UserSidebar />; // Default while loading
+    }
+
+    if (userProfile.userType === "user") {
       return <UserSidebar />;
-    } else if (usertype === "subadmin") {
+    } else if (userProfile.userType === "sub_admin") {
       return <SubAdminSidebar />;
     } else {
       return <AdminSidebar />;
@@ -228,11 +448,88 @@ const ProfilePage = (props: Props) => {
   };
 
   // Form submission handlers
-  const handleProfileUpdate = (e: React.FormEvent) => {
+  const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const dataToUpdate = usertype === "subadmin" ? subAdminData : userData;
-    console.log("Profile updated:", dataToUpdate);
-    alert("Profile updated successfully!");
+    if (!user || !token || !userProfile) return;
+
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      let response: Response;
+      let result: any;
+
+      if (userProfile.userType === "sub_admin") {
+        // Update sub-admin specific data
+        const subAdminUpdateData = {
+          jobTitle: subAdminData.job_title,
+          totalFrontliners: parseInt(subAdminData.total_frontliners) || 0,
+          eid: subAdminData.eid,
+          phoneNumber: subAdminData.phone_number,
+        };
+
+        response = await fetch(`${baseUrl}/api/users/${user.id}/sub-admin`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(subAdminUpdateData),
+        });
+      } else if (userProfile.userType === "user") {
+        // Update normal user data
+        const normalUserUpdateData = {
+          roleCategory: userData.role_category,
+          role: userData.role,
+          seniority: userData.seniority,
+          eid: userData.eid,
+          phoneNumber: userData.phone_number,
+        };
+
+        response = await fetch(`${baseUrl}/api/users/${user.id}/normal-user`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(normalUserUpdateData),
+        });
+      } else {
+        // For admin users, update basic user data
+        const userUpdateData = {
+          firstName: userProfile.firstName,
+          lastName: userProfile.lastName,
+          email: userProfile.email,
+          organization: userProfile.organization,
+          subOrganization: userProfile.subOrganization,
+          asset: userProfile.asset,
+          subAsset: userProfile.subAsset,
+        };
+
+        response = await fetch(`${baseUrl}/api/users/${user.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(userUpdateData),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to update profile");
+      }
+
+      result = await response.json();
+      if (result.success) {
+        alert("Profile updated successfully!");
+        // Refresh the profile data
+        window.location.reload();
+      } else {
+        throw new Error(result.message || "Failed to update profile");
+      }
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      alert(`Failed to update profile: ${error.message}`);
+    }
   };
 
   const handleSecuritySubmit = (e: React.FormEvent) => {
@@ -253,6 +550,25 @@ const ProfilePage = (props: Props) => {
       confirm_password: "",
     });
   };
+
+  // Show loading state if user data is not available
+  if (!user || loading) {
+    return (
+      <SidebarProvider>
+        <div className="min-h-screen bg-[#003451] relative overflow-hidden flex w-full">
+          <UserSidebar />
+          <SidebarInset className="flex-1 w-full">
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00d8cc] mx-auto mb-4"></div>
+                <p className="text-white/80 text-lg">Loading profile...</p>
+              </div>
+            </div>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -341,7 +657,13 @@ const ProfilePage = (props: Props) => {
                             <p className="text-white/60 text-sm">
                               Total Courses
                             </p>
-                            <p className="text-white text-2xl font-bold">12</p>
+                            <p className="text-white text-2xl font-bold">
+                              {overviewData.loading ? (
+                                <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
+                              ) : (
+                                overviewData.totalCourses
+                              )}
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -355,7 +677,13 @@ const ProfilePage = (props: Props) => {
                           </div>
                           <div>
                             <p className="text-white/60 text-sm">Completed</p>
-                            <p className="text-white text-2xl font-bold">8</p>
+                            <p className="text-white text-2xl font-bold">
+                              {overviewData.loading ? (
+                                <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
+                              ) : (
+                                overviewData.completedCourses
+                              )}
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -369,7 +697,13 @@ const ProfilePage = (props: Props) => {
                           </div>
                           <div>
                             <p className="text-white/60 text-sm">Progress</p>
-                            <p className="text-white text-2xl font-bold">67%</p>
+                            <p className="text-white text-2xl font-bold">
+                              {overviewData.loading ? (
+                                <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
+                              ) : (
+                                `${overviewData.overallProgress}%`
+                              )}
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -379,251 +713,269 @@ const ProfilePage = (props: Props) => {
 
                 {/* User Details Tab */}
                 <TabsContent value="details" className="p-6">
-                  <form onSubmit={handleProfileUpdate} className="space-y-6">
-                    {usertype === "subadmin" ? (
-                      // Sub-admin fields
-                      <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="job_title"
-                              className="block text-white font-medium"
-                            >
-                              Job Title
-                            </label>
-                            <Input
-                              id="job_title"
-                              name="job_title"
-                              value={subAdminData.job_title}
-                              onChange={handleSubAdminChange}
-                              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="total_frontliners"
-                              className="block text-white font-medium"
-                            >
-                              Total Frontliners
-                            </label>
-                            <Input
-                              id="total_frontliners"
-                              name="total_frontliners"
-                              type="number"
-                              value={subAdminData.total_frontliners}
-                              onChange={handleSubAdminChange}
-                              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
-                            />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="eid"
-                              className="block text-white font-medium"
-                            >
-                              EID
-                            </label>
-                            <Input
-                              id="eid"
-                              name="eid"
-                              value={subAdminData.eid}
-                              onChange={handleSubAdminChange}
-                              maxLength={19}
-                              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="phone_number"
-                              className="block text-white font-medium"
-                            >
-                              Phone Number
-                            </label>
-                            <Input
-                              id="phone_number"
-                              name="phone_number"
-                              type="tel"
-                              value={subAdminData.phone_number}
-                              onChange={handleSubAdminChange}
-                              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
-                            />
-                          </div>
-                        </div>
-                      </>
-                    ) : (
-                      // User fields
-                      <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="first_name"
-                              className="block text-white font-medium"
-                            >
-                              First Name
-                            </label>
-                            <Input
-                              id="first_name"
-                              name="first_name"
-                              value={userData.first_name}
-                              onChange={handleUserChange}
-                              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="last_name"
-                              className="block text-white font-medium"
-                            >
-                              Last Name
-                            </label>
-                            <Input
-                              id="last_name"
-                              name="last_name"
-                              value={userData.last_name}
-                              onChange={handleUserChange}
-                              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <label
-                            htmlFor="email"
-                            className="block text-white font-medium"
-                          >
-                            Email
-                          </label>
-                          <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            value={userData.email}
-                            onChange={handleUserChange}
-                            className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
-                          />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="role_category"
-                              className="block text-white font-medium"
-                            >
-                              Role Category
-                            </label>
-                            <Select
-                              value={userData.role_category}
-                              onValueChange={(value) =>
-                                handleUserSelectChange("role_category", value)
-                              }
-                            >
-                              <SelectTrigger className="bg-white/10 border-white/20 text-white w-full rounded-full">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-[#003451] border-white/20 text-white">
-                                {roleCategories.map((category) => (
-                                  <SelectItem key={category} value={category}>
-                                    {category}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="role"
-                              className="block text-white font-medium"
-                            >
-                              Role
-                            </label>
-                            <Select
-                              value={userData.role}
-                              onValueChange={(value) =>
-                                handleUserSelectChange("role", value)
-                              }
-                            >
-                              <SelectTrigger className="bg-white/10 border-white/20 text-white w-full rounded-full">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-[#003451] border-white/20 text-white">
-                                {roles.map((role) => (
-                                  <SelectItem key={role} value={role}>
-                                    {role}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="seniority"
-                              className="block text-white font-medium"
-                            >
-                              Seniority
-                            </label>
-                            <Select
-                              value={userData.seniority}
-                              onValueChange={(value) =>
-                                handleUserSelectChange("seniority", value)
-                              }
-                            >
-                              <SelectTrigger className="bg-white/10 border-white/20 text-white w-full rounded-full">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-[#003451] border-white/20 text-white">
-                                {seniorityLevels.map((level) => (
-                                  <SelectItem key={level} value={level}>
-                                    {level}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="eid"
-                              className="block text-white font-medium"
-                            >
-                              EID
-                            </label>
-                            <Input
-                              id="eid"
-                              name="eid"
-                              value={userData.eid}
-                              onChange={handleUserChange}
-                              maxLength={19}
-                              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <label
-                              htmlFor="phone_number"
-                              className="block text-white font-medium"
-                            >
-                              Phone Number
-                            </label>
-                            <Input
-                              id="phone_number"
-                              name="phone_number"
-                              type="tel"
-                              value={userData.phone_number}
-                              onChange={handleUserChange}
-                              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
-                            />
-                          </div>
-                        </div>
-                      </>
-                    )}
-                    <div className="flex justify-end">
-                      <Button
-                        type="submit"
-                        className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 rounded-full"
-                      >
-                        Update Profile
-                      </Button>
+                  {loading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00d8cc] mx-auto mb-4"></div>
+                        <p className="text-white/80 text-lg">
+                          Loading profile...
+                        </p>
+                      </div>
                     </div>
-                  </form>
+                  ) : error ? (
+                    <div className="text-center py-12">
+                      <p className="text-red-400 text-lg mb-4">
+                        Error loading profile
+                      </p>
+                      <p className="text-white/60">{error}</p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleProfileUpdate} className="space-y-6">
+                      {userProfile?.userType === "sub_admin" ? (
+                        // Sub-admin fields
+                        <>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                              <label
+                                htmlFor="job_title"
+                                className="block text-white font-medium"
+                              >
+                                Job Title
+                              </label>
+                              <Input
+                                id="job_title"
+                                name="job_title"
+                                value={subAdminData.job_title}
+                                onChange={handleSubAdminChange}
+                                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label
+                                htmlFor="total_frontliners"
+                                className="block text-white font-medium"
+                              >
+                                Total Frontliners
+                              </label>
+                              <Input
+                                id="total_frontliners"
+                                name="total_frontliners"
+                                type="number"
+                                value={subAdminData.total_frontliners}
+                                onChange={handleSubAdminChange}
+                                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                              <label
+                                htmlFor="eid"
+                                className="block text-white font-medium"
+                              >
+                                EID
+                              </label>
+                              <Input
+                                id="eid"
+                                name="eid"
+                                value={subAdminData.eid}
+                                onChange={handleSubAdminChange}
+                                maxLength={19}
+                                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label
+                                htmlFor="phone_number"
+                                className="block text-white font-medium"
+                              >
+                                Phone Number
+                              </label>
+                              <Input
+                                id="phone_number"
+                                name="phone_number"
+                                type="tel"
+                                value={subAdminData.phone_number}
+                                onChange={handleSubAdminChange}
+                                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        // User fields
+                        <>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                              <label
+                                htmlFor="first_name"
+                                className="block text-white font-medium"
+                              >
+                                First Name
+                              </label>
+                              <Input
+                                id="first_name"
+                                name="first_name"
+                                value={userData.first_name}
+                                onChange={handleUserChange}
+                                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label
+                                htmlFor="last_name"
+                                className="block text-white font-medium"
+                              >
+                                Last Name
+                              </label>
+                              <Input
+                                id="last_name"
+                                name="last_name"
+                                value={userData.last_name}
+                                onChange={handleUserChange}
+                                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <label
+                              htmlFor="email"
+                              className="block text-white font-medium"
+                            >
+                              Email
+                            </label>
+                            <Input
+                              id="email"
+                              name="email"
+                              type="email"
+                              value={userData.email}
+                              onChange={handleUserChange}
+                              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
+                            />
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-2">
+                              <label
+                                htmlFor="role_category"
+                                className="block text-white font-medium"
+                              >
+                                Role Category
+                              </label>
+                              <Select
+                                value={userData.role_category}
+                                onValueChange={(value) =>
+                                  handleUserSelectChange("role_category", value)
+                                }
+                              >
+                                <SelectTrigger className="bg-white/10 border-white/20 text-white w-full rounded-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#003451] border-white/20 text-white">
+                                  {roleCategories.map((category) => (
+                                    <SelectItem key={category} value={category}>
+                                      {category}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <label
+                                htmlFor="role"
+                                className="block text-white font-medium"
+                              >
+                                Role
+                              </label>
+                              <Select
+                                value={userData.role}
+                                onValueChange={(value) =>
+                                  handleUserSelectChange("role", value)
+                                }
+                              >
+                                <SelectTrigger className="bg-white/10 border-white/20 text-white w-full rounded-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#003451] border-white/20 text-white">
+                                  {roles.map((role) => (
+                                    <SelectItem key={role} value={role}>
+                                      {role}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <label
+                                htmlFor="seniority"
+                                className="block text-white font-medium"
+                              >
+                                Seniority
+                              </label>
+                              <Select
+                                value={userData.seniority}
+                                onValueChange={(value) =>
+                                  handleUserSelectChange("seniority", value)
+                                }
+                              >
+                                <SelectTrigger className="bg-white/10 border-white/20 text-white w-full rounded-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#003451] border-white/20 text-white">
+                                  {seniorityLevels.map((level) => (
+                                    <SelectItem key={level} value={level}>
+                                      {level}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                              <label
+                                htmlFor="eid"
+                                className="block text-white font-medium"
+                              >
+                                EID
+                              </label>
+                              <Input
+                                id="eid"
+                                name="eid"
+                                value={userData.eid}
+                                onChange={handleUserChange}
+                                maxLength={19}
+                                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label
+                                htmlFor="phone_number"
+                                className="block text-white font-medium"
+                              >
+                                Phone Number
+                              </label>
+                              <Input
+                                id="phone_number"
+                                name="phone_number"
+                                type="tel"
+                                value={userData.phone_number}
+                                onChange={handleUserChange}
+                                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      <div className="flex justify-end">
+                        <Button
+                          type="submit"
+                          className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 rounded-full"
+                        >
+                          Update Profile
+                        </Button>
+                      </div>
+                    </form>
+                  )}
                 </TabsContent>
 
                 {/* Security Tab */}
