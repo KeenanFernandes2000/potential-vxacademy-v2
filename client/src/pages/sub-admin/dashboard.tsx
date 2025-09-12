@@ -91,6 +91,11 @@ const Dashboard = () => {
         // Filter users based on current user's organization, suborganization, assets, and subassets (same logic as users.tsx)
         if (currentUserData) {
           filteredUsersData = filteredUsersData.filter((user: any) => {
+            // Filter out Sub_admin users
+            if (user.userType === "sub_admin") {
+              return false;
+            }
+
             // Filter by organization
             if (user.organization !== currentUserData.organization) {
               return false;
@@ -202,8 +207,6 @@ const Dashboard = () => {
       </CardContent>
     </Card>
   );
-
-
 
   return (
     <div className="min-h-screen bg-[#003451] p-6">

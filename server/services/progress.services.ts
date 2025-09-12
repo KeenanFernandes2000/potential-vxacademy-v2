@@ -204,7 +204,8 @@ export class LearningBlockProgressService {
             | "in_progress"
             | "completed" as string,
           completionPercentage: completionPercentage.toString(),
-          completedAt: status === "completed" ? new Date() : sql`completed_at`,
+          completedAt:
+            status === "completed" ? new Date() : sql`EXCLUDED.completed_at`,
         },
       });
 
@@ -273,7 +274,8 @@ export class LearningBlockProgressService {
             | "in_progress"
             | "completed" as string,
           completionPercentage: completionPercentage.toString(),
-          completedAt: status === "completed" ? new Date() : sql`completed_at`,
+          completedAt:
+            status === "completed" ? new Date() : sql`EXCLUDED.completed_at`,
         },
       });
 
@@ -348,7 +350,8 @@ export class LearningBlockProgressService {
             | "in_progress"
             | "completed" as string,
           completionPercentage: completionPercentage.toString(),
-          completedAt: status === "completed" ? new Date() : sql`completed_at`,
+          completedAt:
+            status === "completed" ? new Date() : sql`EXCLUDED.completed_at`,
         },
       });
 
@@ -430,7 +433,8 @@ export class LearningBlockProgressService {
             | "in_progress"
             | "completed" as string,
           completionPercentage: completionPercentage.toString(),
-          completedAt: status === "completed" ? new Date() : sql`completed_at`,
+          completedAt:
+            status === "completed" ? new Date() : sql`EXCLUDED.completed_at`,
         },
       });
   }

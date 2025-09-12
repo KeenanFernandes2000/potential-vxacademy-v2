@@ -169,6 +169,11 @@ const Users = () => {
         // Filter users based on current user's organization, suborganization, assets, and subassets
         if (currentUserData) {
           filteredUsersData = filteredUsersData.filter((user: any) => {
+            // Filter out Sub_admin users
+            if (user.userType === "sub_admin") {
+              return false;
+            }
+
             // Filter by organization
             if (user.organization !== currentUserData.organization) {
               return false;
@@ -343,6 +348,11 @@ const Users = () => {
       // Filter users based on current user's organization, suborganization, assets, and subassets
       if (currentUserData) {
         filteredUsersData = filteredUsersData.filter((user: any) => {
+          // Filter out Sub_admin users
+          if (user.userType === "sub_admin") {
+            return false;
+          }
+
           // Filter by organization
           if (user.organization !== currentUserData.organization) {
             return false;
