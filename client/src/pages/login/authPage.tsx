@@ -39,8 +39,20 @@ const AuthPage: React.FC = () => {
       const result = await login(formData.email, formData.password);
 
       if (result.success) {
-        // Redirect to home route which will automatically redirect based on user type
-        navigate("/", { replace: true });
+        // Get user data from the login response to determine redirect path
+        const user = (result as any).user;
+        let redirectPath = "/";
+
+        // Redirect based on user type
+        if (user?.userType === "admin") {
+          redirectPath = "/admin/dashboard";
+        } else if (user?.userType === "sub_admin") {
+          redirectPath = "/sub-admin/dashboard";
+        } else if (user?.userType === "user") {
+          redirectPath = "/user/dashboard";
+        }
+
+        navigate(redirectPath, { replace: true });
       } else {
         setError(result.message || "Login failed. Please try again.");
       }
