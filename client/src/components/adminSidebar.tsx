@@ -85,15 +85,15 @@ const AdminSidebar = () => {
 
   const roleManagementNavItems = [
     {
-      title: "Roles",
-      icon: RoleIcon,
-      url: "/admin/roles",
-      badge: null,
-    },
-    {
       title: "Role Categories",
       icon: CategoryIcon,
       url: "/admin/role-categories",
+      badge: null,
+    },
+    {
+      title: "Roles",
+      icon: RoleIcon,
+      url: "/admin/roles",
       badge: null,
     },
   ];
@@ -103,12 +103,6 @@ const AdminSidebar = () => {
       title: "Organization",
       icon: Users,
       url: "/admin/organization",
-      badge: null,
-    },
-    {
-      title: "Sub-Organization",
-      icon: Users,
-      url: "/admin/sub-organization",
       badge: null,
     },
     {

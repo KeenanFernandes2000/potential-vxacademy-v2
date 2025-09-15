@@ -118,6 +118,20 @@ const Links = () => {
           ...prev,
           [type]: invitationUrl,
         }));
+
+        // Update invitations state to include the new invitation
+        const newInvitation = {
+          type,
+          tokenHash: data.data.tokenHash,
+          createdBy: user.id,
+          // Add other fields that might be returned from the API
+          ...data.data,
+        };
+        setInvitations((prev) => {
+          // Remove any existing invitation of the same type and add the new one
+          const filtered = prev.filter((inv) => inv.type !== type);
+          return [...filtered, newInvitation];
+        });
       }
     } catch (error) {
       console.error("Failed to send invitation:", error);
