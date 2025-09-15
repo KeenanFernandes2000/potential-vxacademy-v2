@@ -7,6 +7,7 @@ import {
   units,
   courseUnits,
   learningBlocks,
+  unitRoleAssignments,
 } from "../db/schema/training";
 import type {
   TrainingArea,
@@ -27,6 +28,9 @@ import type {
   LearningBlock,
   NewLearningBlock,
   UpdateLearningBlock,
+  UnitRoleAssignment,
+  NewUnitRoleAssignment,
+  UpdateUnitRoleAssignment,
 } from "../db/types";
 
 // ==================== TRAINING AREAS SERVICE ====================
@@ -707,5 +711,187 @@ export class LearningBlockService {
       .limit(1);
 
     return learningBlock || null;
+  }
+}
+
+// ==================== UNIT ROLE ASSIGNMENTS SERVICE ====================
+export class UnitRoleAssignmentService {
+  /**
+   * Create a new unit role assignment
+   */
+  static async createUnitRoleAssignment(
+    data: NewUnitRoleAssignment
+  ): Promise<UnitRoleAssignment> {
+    const result = await db
+      .insert(unitRoleAssignments)
+      .values({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .returning();
+
+    if (!result[0]) {
+      throw new Error("Failed to create unit role assignment");
+    }
+
+    return result[0];
+  }
+
+  /**
+   * Get all unit role assignments with optional filtering
+   */
+  static async getAllUnitRoleAssignments(filters?: {
+    unitId?: number;
+    roleCategoryId?: number;
+    roleId?: number;
+    seniorityLevelId?: number;
+    assetId?: number;
+  }): Promise<UnitRoleAssignment[]> {
+    const conditions = [];
+
+    if (filters?.unitId) {
+      conditions.push(eq(unitRoleAssignments.unitId, filters.unitId));
+    }
+    if (filters?.roleCategoryId) {
+      conditions.push(
+        eq(unitRoleAssignments.roleCategoryId, filters.roleCategoryId)
+      );
+    }
+    if (filters?.roleId) {
+      conditions.push(eq(unitRoleAssignments.roleId, filters.roleId));
+    }
+    if (filters?.seniorityLevelId) {
+      conditions.push(
+        eq(unitRoleAssignments.seniorityLevelId, filters.seniorityLevelId)
+      );
+    }
+    if (filters?.assetId) {
+      conditions.push(eq(unitRoleAssignments.assetId, filters.assetId));
+    }
+
+    const query = db
+      .select()
+      .from(unitRoleAssignments)
+      .orderBy(desc(unitRoleAssignments.createdAt));
+
+    if (conditions.length > 0) {
+      return await query.where(and(...conditions));
+    }
+
+    return await query;
+  }
+
+  /**
+   * Get unit role assignment by ID
+   */
+  static async getUnitRoleAssignmentById(
+    id: number
+  ): Promise<UnitRoleAssignment | null> {
+    const [assignment] = await db
+      .select()
+      .from(unitRoleAssignments)
+      .where(eq(unitRoleAssignments.id, id))
+      .limit(1);
+
+    return assignment || null;
+  }
+
+  /**
+   * Get unit role assignments by unit ID
+   */
+  static async getUnitRoleAssignmentsByUnitId(
+    unitId: number
+  ): Promise<UnitRoleAssignment[]> {
+    return await db
+      .select()
+      .from(unitRoleAssignments)
+      .where(eq(unitRoleAssignments.unitId, unitId))
+      .orderBy(desc(unitRoleAssignments.createdAt));
+  }
+
+  /**
+   * Update unit role assignment
+   */
+  static async updateUnitRoleAssignment(
+    id: number,
+    data: UpdateUnitRoleAssignment
+  ): Promise<UnitRoleAssignment> {
+    const result = await db
+      .update(unitRoleAssignments)
+      .set({
+        ...data,
+        updatedAt: new Date(),
+      })
+      .where(eq(unitRoleAssignments.id, id))
+      .returning();
+
+    if (!result[0]) {
+      throw new Error("Unit role assignment not found or update failed");
+    }
+
+    return result[0];
+  }
+
+  /**
+   * Delete unit role assignment
+   */
+  static async deleteUnitRoleAssignment(id: number): Promise<boolean> {
+    const result = await db
+      .delete(unitRoleAssignments)
+      .where(eq(unitRoleAssignments.id, id))
+      .returning({ id: unitRoleAssignments.id });
+
+    return result.length > 0;
+  }
+
+  /**
+   * Check if unit role assignment exists by ID
+   */
+  static async unitRoleAssignmentExists(
+    id: number
+  ): Promise<UnitRoleAssignment | null> {
+    const [assignment] = await db
+      .select()
+      .from(unitRoleAssignments)
+      .where(eq(unitRoleAssignments.id, id))
+      .limit(1);
+
+    return assignment || null;
+  }
+
+  /**
+   * Check if a specific assignment combination already exists
+   */
+  static async assignmentExists(
+    unitId: number,
+    roleCategoryId?: number,
+    roleId?: number,
+    seniorityLevelId?: number,
+    assetId?: number
+  ): Promise<UnitRoleAssignment | null> {
+    const conditions = [eq(unitRoleAssignments.unitId, unitId)];
+
+    if (roleCategoryId !== undefined) {
+      conditions.push(eq(unitRoleAssignments.roleCategoryId, roleCategoryId));
+    }
+    if (roleId !== undefined) {
+      conditions.push(eq(unitRoleAssignments.roleId, roleId));
+    }
+    if (seniorityLevelId !== undefined) {
+      conditions.push(
+        eq(unitRoleAssignments.seniorityLevelId, seniorityLevelId)
+      );
+    }
+    if (assetId !== undefined) {
+      conditions.push(eq(unitRoleAssignments.assetId, assetId));
+    }
+
+    const [assignment] = await db
+      .select()
+      .from(unitRoleAssignments)
+      .where(and(...conditions))
+      .limit(1);
+
+    return assignment || null;
   }
 }

@@ -17,6 +17,7 @@ import {
   units,
   courseUnits,
   learningBlocks,
+  unitRoleAssignments,
   assessments,
   questions,
   assessmentAttempts,
@@ -126,6 +127,15 @@ export type NewLearningBlock = Omit<
   "id" | "createdAt" | "updatedAt"
 >;
 export type UpdateLearningBlock = Partial<Omit<NewLearningBlock, "createdAt">>;
+
+export type UnitRoleAssignment = InferSelectModel<typeof unitRoleAssignments>;
+export type NewUnitRoleAssignment = Omit<
+  InferInsertModel<typeof unitRoleAssignments>,
+  "id" | "createdAt" | "updatedAt"
+>;
+export type UpdateUnitRoleAssignment = Partial<
+  Omit<NewUnitRoleAssignment, "createdAt">
+>;
 
 // Assessment types
 export type Assessment = InferSelectModel<typeof assessments>;
