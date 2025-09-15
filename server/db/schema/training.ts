@@ -6,7 +6,9 @@ import {
   integer,
   boolean,
   json,
+  unique,
 } from "drizzle-orm/pg-core";
+import { roleCategories, roles, seniorityLevels, assets } from "./users";
 
 export const trainingAreas = pgTable("training_areas", {
   id: serial("id").primaryKey(),
@@ -112,3 +114,42 @@ export const learningBlocks = pgTable("learning_blocks", {
     .notNull()
     .defaultNow(),
 });
+
+export const unitRoleAssignments = pgTable(
+  "unit_role_assignments",
+  {
+    id: serial("id").primaryKey(),
+    unitId: integer("unit_id")
+      .notNull()
+      .references(() => units.id, { onDelete: "cascade" }),
+    roleCategoryId: integer("role_category_id").references(
+      () => roleCategories.id,
+      { onDelete: "set null" }
+    ),
+    roleId: integer("role_id").references(() => roles.id, {
+      onDelete: "set null",
+    }),
+    seniorityLevelId: integer("seniority_level_id").references(
+      () => seniorityLevels.id,
+      { onDelete: "set null" }
+    ),
+    assetId: integer("asset_id").references(() => assets.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    uniqueAssignment: unique("unique_unit_role_assignment").on(
+      table.unitId,
+      table.roleCategoryId,
+      table.roleId,
+      table.seniorityLevelId,
+      table.assetId
+    ),
+  })
+);

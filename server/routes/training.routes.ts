@@ -7,6 +7,7 @@ import {
   UnitController,
   CourseUnitController,
   LearningBlockController,
+  UnitRoleAssignmentController,
 } from "../controller/training.controllers";
 import { authorizeRoles } from "../middleware/userTypeAuth";
 import passport from "../middleware/passport";
@@ -161,6 +162,38 @@ router.delete(
   authenticateJWT,
   authorizeRoles("admin"),
   LearningBlockController.deleteLearningBlock
+);
+
+// ==================== UNIT ROLE ASSIGNMENT ROUTES ====================
+router.get(
+  "/unit-role-assignments",
+  UnitRoleAssignmentController.getAllUnitRoleAssignments
+);
+router.get(
+  "/unit-role-assignments/:id",
+  UnitRoleAssignmentController.getUnitRoleAssignmentById
+);
+router.get(
+  "/unit-role-assignments/unit/:unitId",
+  UnitRoleAssignmentController.getUnitRoleAssignmentsByUnitId
+);
+router.post(
+  "/unit-role-assignments",
+  authenticateJWT,
+  authorizeRoles("admin"),
+  UnitRoleAssignmentController.createUnitRoleAssignment
+);
+router.put(
+  "/unit-role-assignments/:id",
+  authenticateJWT,
+  authorizeRoles("admin"),
+  UnitRoleAssignmentController.updateUnitRoleAssignment
+);
+router.delete(
+  "/unit-role-assignments/:id",
+  authenticateJWT,
+  authorizeRoles("admin"),
+  UnitRoleAssignmentController.deleteUnitRoleAssignment
 );
 
 export default router;
