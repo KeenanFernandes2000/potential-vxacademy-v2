@@ -1532,12 +1532,25 @@ const validateUnitRoleAssignmentInput = (
 ): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  if (
-    !data.unitId ||
-    isNaN(parseInt(data.unitId)) ||
-    parseInt(data.unitId) <= 0
-  ) {
-    errors.push("Unit ID is required and must be a positive number");
+  // Support both single unitId and array of unitIds
+  if (data.unitIds && Array.isArray(data.unitIds)) {
+    // Validate array of unit IDs
+    if (data.unitIds.length === 0) {
+      errors.push("At least one unit ID is required");
+    } else {
+      data.unitIds.forEach((unitId: any, index: number) => {
+        if (isNaN(parseInt(unitId)) || parseInt(unitId) <= 0) {
+          errors.push(`Unit ID at index ${index} must be a positive number`);
+        }
+      });
+    }
+  } else if (data.unitId) {
+    // Support legacy single unitId for backward compatibility
+    if (isNaN(parseInt(data.unitId)) || parseInt(data.unitId) <= 0) {
+      errors.push("Unit ID is required and must be a positive number");
+    }
+  } else {
+    errors.push("Unit ID(s) are required - provide either 'unitId' or 'unitIds' array");
   }
 
   // Optional fields validation
@@ -1689,7 +1702,7 @@ export class UnitRoleAssignmentController {
   }
 
   /**
-   * Create new unit role assignment
+   * Create new unit role assignment(s)
    * POST /unit-role-assignments
    */
   static async createUnitRoleAssignment(
@@ -1702,43 +1715,92 @@ export class UnitRoleAssignmentController {
       throw createError("Validation failed", 400, validation.errors);
     }
 
-    // Check if assignment combination already exists
-    const existingAssignment = await UnitRoleAssignmentService.assignmentExists(
-      parseInt(req.body.unitId),
-      req.body.roleCategoryId ? parseInt(req.body.roleCategoryId) : undefined,
-      req.body.roleId ? parseInt(req.body.roleId) : undefined,
-      req.body.seniorityLevelId
-        ? parseInt(req.body.seniorityLevelId)
-        : undefined,
-      req.body.assetId ? parseInt(req.body.assetId) : undefined
-    );
-
-    if (existingAssignment) {
-      throw createError(
-        "Unit role assignment with this combination already exists",
-        409
-      );
+    // Determine unit IDs to process
+    let unitIds: number[];
+    if (req.body.unitIds && Array.isArray(req.body.unitIds)) {
+      unitIds = req.body.unitIds.map((id: any) => parseInt(id));
+    } else {
+      // Backward compatibility with single unitId
+      unitIds = [parseInt(req.body.unitId)];
     }
 
-    const assignmentData: NewUnitRoleAssignment = {
-      unitId: parseInt(req.body.unitId),
-      roleCategoryId: req.body.roleCategoryId
-        ? parseInt(req.body.roleCategoryId)
-        : null,
-      roleId: req.body.roleId ? parseInt(req.body.roleId) : null,
-      seniorityLevelId: req.body.seniorityLevelId
-        ? parseInt(req.body.seniorityLevelId)
-        : null,
-      assetId: req.body.assetId ? parseInt(req.body.assetId) : null,
-    };
+    const roleCategoryId = req.body.roleCategoryId ? parseInt(req.body.roleCategoryId) : undefined;
+    const roleId = req.body.roleId ? parseInt(req.body.roleId) : undefined;
+    const seniorityLevelId = req.body.seniorityLevelId ? parseInt(req.body.seniorityLevelId) : undefined;
+    const assetId = req.body.assetId ? parseInt(req.body.assetId) : undefined;
 
-    const newAssignment =
-      await UnitRoleAssignmentService.createUnitRoleAssignment(assignmentData);
+    console.log('Controller assignment data:', {
+      unitIds,
+      roleCategoryId,
+      roleId,
+      seniorityLevelId,
+      assetId
+    });
 
-    res.status(201).json({
-      success: true,
-      message: "Unit role assignment created successfully",
-      data: newAssignment,
+    // Try to create assignments directly and handle conflicts as they occur
+    const validUnitIds = unitIds; // Try all units first
+
+    // Create assignments for all valid unit IDs one by one
+    const createdAssignments = [];
+    const failedAssignments = [];
+    
+    for (const unitId of validUnitIds) {
+      try {
+        const assignmentData: NewUnitRoleAssignment = {
+          unitId,
+          roleCategoryId: roleCategoryId || null,
+          roleId: roleId || null,
+          seniorityLevelId: seniorityLevelId || null,
+          assetId: assetId || null,
+        };
+
+        console.log(`Creating assignment for unit ${unitId}:`, assignmentData);
+        const newAssignment = await UnitRoleAssignmentService.createUnitRoleAssignment(assignmentData);
+        createdAssignments.push(newAssignment);
+        console.log(`Successfully created assignment for unit ${unitId}`);
+      } catch (error: any) {
+        console.error(`Failed to create assignment for unit ${unitId}:`, error);
+        
+        // Check if it's a unique constraint violation
+        if (error.message && error.message.includes('unique')) {
+          failedAssignments.push({
+            unitId,
+            error: `Unit ID ${unitId} already has this assignment combination`
+          });
+        } else {
+          failedAssignments.push({
+            unitId,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      }
+    }
+
+    // Determine response status and message
+    const totalRequested = validUnitIds.length;
+    const successCount = createdAssignments.length;
+    const failureCount = failedAssignments.length;
+    
+    let responseMessage;
+    let responseStatus = 201;
+    
+    if (failureCount === 0) {
+      responseMessage = `Unit role assignment(s) created successfully for ${successCount} unit(s)`;
+    } else if (successCount === 0) {
+      responseMessage = `Failed to create any unit role assignments`;
+      responseStatus = 500;
+    } else {
+      responseMessage = `Unit role assignment(s) created for ${successCount} unit(s), ${failureCount} failed`;
+      responseStatus = 207; // Multi-Status
+    }
+
+    res.status(responseStatus).json({
+      success: successCount > 0,
+      message: responseMessage,
+      data: createdAssignments,
+      count: successCount,
+      totalRequested,
+      failedAssignments: failedAssignments.length > 0 ? failedAssignments : undefined,
     });
   }
 
