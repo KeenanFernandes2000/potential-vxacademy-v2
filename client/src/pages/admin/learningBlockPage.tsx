@@ -525,7 +525,7 @@ const LearningBlockPage = () => {
           <div className="space-y-2">
             <Label htmlFor="content">Content *</Label>
             <div className="min-h-[200px]">
-              <Editor editorState={editorState} onChange={setEditorState} />
+              <Editor onChange={setEditorState} />
             </div>
           </div>
         )}
@@ -694,7 +694,10 @@ const LearningBlockPage = () => {
           <div className="space-y-2">
             <Label htmlFor="edit_content">Content *</Label>
             <div className="min-h-[200px]">
-              <Editor editorState={editorState} onChange={setEditorState} />
+              <Editor
+                content={selectedLearningBlock?.content}
+                onChange={setEditorState}
+              />
             </div>
           </div>
         )}
