@@ -1,26 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
   CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import UserSidebar from "@/components/userSidebar";
 import SubAdminSidebar from "@/components/subAdminSidebar";
 import AdminSidebar from "@/components/adminSidebar";
-import HomeNavigation from "@/components/homeNavigation";
 import { BarChart, CheckCircle, TrackChanges } from "@mui/icons-material";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -107,16 +97,6 @@ const ProfilePage = (props: Props) => {
     eid: "",
     phone_number: "",
   });
-
-  // Security tab state
-  const [securityData, setSecurityData] = useState({
-    old_password: "",
-    new_password: "",
-    confirm_password: "",
-  });
-
-  // Password validation state
-  const [passwordError, setPasswordError] = useState("");
 
   // Helper function to update form data based on profile data
   const updateFormDataFromProfile = (profileData: any) => {
@@ -285,17 +265,6 @@ const ProfilePage = (props: Props) => {
     fetchOverviewData();
   }, [user, token]);
 
-  // Password validation function
-  const validatePasswords = (password: string, confirmPassword: string) => {
-    if (confirmPassword && password !== confirmPassword) {
-      setPasswordError("Passwords do not match");
-    } else if (confirmPassword && password === confirmPassword) {
-      setPasswordError("");
-    } else if (!confirmPassword) {
-      setPasswordError("");
-    }
-  };
-
   // EID formatting function
   const formatEID = (value: string) => {
     const digits = value.replace(/\D/g, "");
@@ -313,46 +282,6 @@ const ProfilePage = (props: Props) => {
       )}-${digits.slice(14, 15)}`;
     }
   };
-
-  // Dummy data arrays for select dropdowns
-  const roleCategories = [
-    "Management",
-    "Technical",
-    "Administrative",
-    "Support",
-    "Sales",
-    "Marketing",
-    "Finance",
-    "Human Resources",
-    "Operations",
-    "Research & Development",
-  ];
-
-  const roles = [
-    "Manager",
-    "Team Lead",
-    "Senior Developer",
-    "Developer",
-    "Analyst",
-    "Coordinator",
-    "Specialist",
-    "Assistant",
-    "Consultant",
-    "Director",
-  ];
-
-  const seniorityLevels = [
-    "Entry Level",
-    "Junior",
-    "Mid-Level",
-    "Senior",
-    "Lead",
-    "Principal",
-    "Expert",
-    "Manager",
-    "Director",
-    "Executive",
-  ];
 
   // Get current user data based on user type
   const getCurrentUserData = () => {
@@ -449,32 +378,6 @@ const ProfilePage = (props: Props) => {
     }
   };
 
-  const handleUserSelectChange = (name: string, value: string) => {
-    setUserData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSecurityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setSecurityData((prev) => {
-      const newData = {
-        ...prev,
-        [name]: value,
-      };
-
-      if (name === "new_password" || name === "confirm_password") {
-        const password = name === "new_password" ? value : prev.new_password;
-        const confirmPassword =
-          name === "confirm_password" ? value : prev.confirm_password;
-        validatePasswords(password, confirmPassword);
-      }
-
-      return newData;
-    });
-  };
-
   // Form submission handlers
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -564,25 +467,6 @@ const ProfilePage = (props: Props) => {
     }
   };
 
-  const handleSecuritySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordError) {
-      alert("Please fix the password validation errors before submitting.");
-      return;
-    }
-    if (securityData.new_password.length < 6) {
-      alert("Password must be at least 6 characters long.");
-      return;
-    }
-    console.log("Password updated:", securityData);
-    alert("Password updated successfully!");
-    setSecurityData({
-      old_password: "",
-      new_password: "",
-      confirm_password: "",
-    });
-  };
-
   // Show loading state if user data is not available
   if (!user || loading) {
     return (
@@ -666,12 +550,6 @@ const ProfilePage = (props: Props) => {
                       className="bg-transparent border-0 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white rounded-none px-6 py-4"
                     >
                       User Details
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="security"
-                      className="bg-transparent border-0 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white rounded-none px-6 py-4"
-                    >
-                      Security
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -890,98 +768,22 @@ const ProfilePage = (props: Props) => {
                           </div>
                         </>
                       )}
-                      <div className="flex justify-end">
-                        <Button
-                          type="submit"
-                          className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 rounded-full"
-                        >
-                          Update Profile
-                        </Button>
-                      </div>
+                      <div className="flex justify-end items-center gap-4">
+                          <Link 
+                            to="/forgot-password"
+                            className="text-[#00d8cc] hover:text-[#00b8b0] underline transition-colors duration-200"
+                          >
+                              Reset Password
+                          </Link>
+                          <Button
+                            type="submit"
+                            className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 rounded-full"
+                          >
+                            Update Profile
+                          </Button>
+                        </div>
                     </form>
                   )}
-                </TabsContent>
-
-                {/* Security Tab */}
-                <TabsContent value="security" className="p-6">
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-xl font-semibold text-white mb-2">
-                        Change Password
-                      </h3>
-                      <p className="text-white/70 text-sm">
-                        Update your account password for security
-                      </p>
-                    </div>
-                    <form
-                      onSubmit={handleSecuritySubmit}
-                      className="space-y-6 w-full"
-                    >
-                      <div className="space-y-2">
-                        <label
-                          htmlFor="new_password"
-                          className="block text-white font-medium"
-                        >
-                          New Password
-                        </label>
-                        <Input
-                          id="new_password"
-                          name="new_password"
-                          type="password"
-                          value={securityData.new_password}
-                          onChange={handleSecurityChange}
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full w-full"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label
-                          htmlFor="confirm_password"
-                          className="block text-white font-medium"
-                        >
-                          Confirm New Password
-                        </label>
-                        <Input
-                          id="confirm_password"
-                          name="confirm_password"
-                          type="password"
-                          value={securityData.confirm_password}
-                          onChange={handleSecurityChange}
-                          className={`bg-white/10 text-white placeholder:text-white/50 rounded-full w-full ${
-                            passwordError
-                              ? "border-red-500"
-                              : securityData.confirm_password &&
-                                securityData.new_password ===
-                                  securityData.confirm_password
-                              ? "border-green-500"
-                              : "border-white/20"
-                          }`}
-                        />
-                        {passwordError && (
-                          <p className="text-red-400 text-sm flex items-center gap-2">
-                            <span>⚠</span>
-                            {passwordError}
-                          </p>
-                        )}
-                        {securityData.confirm_password &&
-                          securityData.new_password ===
-                            securityData.confirm_password &&
-                          !passwordError && (
-                            <p className="text-green-400 text-sm flex items-center gap-2">
-                              <span>✓</span>
-                              Passwords match
-                            </p>
-                          )}
-                      </div>
-                      <div className="flex justify-end">
-                        <Button
-                          type="submit"
-                          className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 rounded-full"
-                        >
-                          Update Password
-                        </Button>
-                      </div>
-                    </form>
-                  </div>
                 </TabsContent>
               </Tabs>
             </div>
