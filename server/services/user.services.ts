@@ -563,8 +563,6 @@ export class PasswordResetService {
     token: string,
     newPasswordHash: string
   ): Promise<boolean> {
-    const tokenHash = this.hashToken(token);
-
     // First verify the token is valid
     const verification = await this.verifyPasswordResetToken(token);
     if (!verification) {

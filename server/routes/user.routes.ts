@@ -35,6 +35,10 @@ router.delete("/assets/:id", userControllers.deleteAsset);
 
 // ==================== SUB ASSETS CRUD FUNCTIONS ====================
 router.get("/sub-assets", userControllers.getAllSubAssets);
+router.get(
+  "/sub-assets/by-asset/:assetId",
+  userControllers.getSubAssetsByAssetId
+);
 router.get("/sub-assets/:id", userControllers.getSubAssetById);
 router.post("/sub-assets", userControllers.createSubAsset);
 router.put("/sub-assets/:id", userControllers.updateSubAsset);
@@ -83,10 +87,7 @@ router.post(
   "/users/:id/register-normal-user",
   userControllers.registerNormalUser
 );
-router.put(
-  "/users/:id/normal-user",
-  userControllers.updateNormalUser
-);
+router.put("/users/:id/normal-user", userControllers.updateNormalUser);
 
 // ==================== INVITATION FUNCTIONS ====================
 router.post("/invitations", userControllers.createInvitation);

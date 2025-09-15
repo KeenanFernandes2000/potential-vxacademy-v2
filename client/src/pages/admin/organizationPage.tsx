@@ -224,13 +224,9 @@ const OrganizationPage = () => {
     try {
       setIsLoading(true);
 
-      // Prepare data for API
+      // Prepare data for API - only send name
       const organizationData = {
         name: formData.name,
-        type: formData.type,
-        location: formData.location,
-        contactEmail: formData.contactEmail,
-        description: formData.description,
       };
 
       const response = await api.createOrganization(organizationData, token);
@@ -372,10 +368,6 @@ const OrganizationPage = () => {
   const CreateOrganizationForm = () => {
     const [formData, setFormData] = useState({
       name: "",
-      type: "",
-      location: "",
-      contactEmail: "",
-      description: "",
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -383,10 +375,6 @@ const OrganizationPage = () => {
       await handleCreateOrganization(formData);
       setFormData({
         name: "",
-        type: "",
-        location: "",
-        contactEmail: "",
-        description: "",
       });
     };
 
@@ -403,52 +391,6 @@ const OrganizationPage = () => {
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="rounded-full bg-[#00d8cc]/30"
             required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="type">Organization Type *</Label>
-          <Input
-            id="type"
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            className="rounded-full bg-[#00d8cc]/30"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="location">Location *</Label>
-          <Input
-            id="location"
-            value={formData.location}
-            onChange={(e) =>
-              setFormData({ ...formData, location: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="contactEmail">Contact Email *</Label>
-          <Input
-            id="contactEmail"
-            type="email"
-            value={formData.contactEmail}
-            onChange={(e) =>
-              setFormData({ ...formData, contactEmail: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Input
-            id="description"
-            value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
           />
         </div>
         <div className="flex justify-end gap-2">

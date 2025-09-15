@@ -1305,6 +1305,32 @@ export class userControllers {
   }
 
   /**
+   * Get sub assets by asset ID
+   * GET /sub-assets/by-asset/:assetId
+   */
+  static async getSubAssetsByAssetId(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const assetId = parseInt(req.params.assetId as string);
+
+    if (isNaN(assetId) || assetId <= 0) {
+      throw createError("Invalid asset ID", 400);
+    }
+
+    const subAssetsByAsset = await db
+      .select()
+      .from(subAssets)
+      .where(eq(subAssets.assetId, assetId));
+
+    res.status(200).json({
+      success: true,
+      message: "Sub assets retrieved successfully",
+      data: subAssetsByAsset,
+    });
+  }
+
+  /**
    * Update sub asset by ID
    * PUT /sub-assets/:id
    */

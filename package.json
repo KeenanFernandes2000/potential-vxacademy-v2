@@ -10,7 +10,7 @@
   "scripts": {
     "dev:server": "bun run --watch server/index.ts",
     "dev:client": "cd client && bun run dev",
-    "dev": "concurrently \"bun run dev:server\" \"bun run dev:client\"",
+    "dev": "concurrently \"bun run dev:server\" \"bun run dev:client\" \"bun run db:studio\"",
     "docker": "docker compose --env-file .env.docker up --build -d",
     "docker:down": "docker compose down",
     "build": "cd client && bun run build",

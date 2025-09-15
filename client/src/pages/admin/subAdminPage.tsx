@@ -2,6 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
@@ -108,6 +115,78 @@ const api = {
       throw error;
     }
   },
+
+  async getAllOrganizations(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/users/organizations`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch organizations:", error);
+      throw error;
+    }
+  },
+
+  async getAllAssets(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/users/assets`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch assets:", error);
+      throw error;
+    }
+  },
+
+  async getSubAssetsByAssetId(assetId: number, token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/sub-assets/by-asset/${assetId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch sub-assets:", error);
+      throw error;
+    }
+  },
 };
 
 // Type for sub-admin data
@@ -134,6 +213,34 @@ const SubAdminPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+
+  // Dropdown data states
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [assets, setAssets] = useState<any[]>([]);
+  const [subAssets, setSubAssets] = useState<any[]>([]);
+  const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
+
+  // Fetch organizations and assets on component mount
+  useEffect(() => {
+    const fetchDropdownData = async () => {
+      if (!token) return;
+
+      try {
+        const [orgsResponse, assetsResponse] = await Promise.all([
+          api.getAllOrganizations(token),
+          api.getAllAssets(token),
+        ]);
+
+        setOrganizations(orgsResponse.data || []);
+        setAssets(assetsResponse.data || []);
+      } catch (error) {
+        console.error("Error fetching dropdown data:", error);
+        setError("Failed to load dropdown data. Please try again.");
+      }
+    };
+
+    fetchDropdownData();
+  }, [token]);
 
   // Fetch users from database on component mount
   useEffect(() => {
@@ -228,6 +335,21 @@ const SubAdminPage = () => {
           subAdmin.subAsset.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredSubAdmins(filtered);
+    }
+  };
+
+  const handleAssetChange = async (assetId: number) => {
+    if (!token) return;
+
+    setSelectedAssetId(assetId);
+    setSubAssets([]); // Clear previous sub-assets
+
+    try {
+      const response = await api.getSubAssetsByAssetId(assetId, token);
+      setSubAssets(response.data || []);
+    } catch (error) {
+      console.error("Error fetching sub-assets:", error);
+      setError("Failed to load sub-assets. Please try again.");
     }
   };
 
@@ -414,6 +536,47 @@ const SubAdminPage = () => {
       sub_asset: "",
       password: "",
     });
+    const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
+    const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
+    const [selectedSubAssetId, setSelectedSubAssetId] = useState<number | null>(
+      null
+    );
+    const [formSubAssets, setFormSubAssets] = useState<any[]>([]);
+
+    const handleOrgChange = (orgId: number) => {
+      setSelectedOrgId(orgId);
+      const selectedOrg = organizations.find((org) => org.id === orgId);
+      setFormData({ ...formData, organization: selectedOrg?.name || "" });
+    };
+
+    const handleAssetChange = async (assetId: number) => {
+      setSelectedAssetId(assetId);
+      const selectedAsset = assets.find((asset) => asset.id === assetId);
+      setFormData({
+        ...formData,
+        asset: selectedAsset?.name || "",
+        sub_asset: "",
+      });
+      setSelectedSubAssetId(null);
+      setFormSubAssets([]);
+
+      if (token) {
+        try {
+          const response = await api.getSubAssetsByAssetId(assetId, token);
+          setFormSubAssets(response.data || []);
+        } catch (error) {
+          console.error("Error fetching sub-assets:", error);
+        }
+      }
+    };
+
+    const handleSubAssetChange = (subAssetId: number) => {
+      setSelectedSubAssetId(subAssetId);
+      const selectedSubAsset = formSubAssets.find(
+        (subAsset) => subAsset.id === subAssetId
+      );
+      setFormData({ ...formData, sub_asset: selectedSubAsset?.name || "" });
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -428,6 +591,10 @@ const SubAdminPage = () => {
         sub_asset: "",
         password: "",
       });
+      setSelectedOrgId(null);
+      setSelectedAssetId(null);
+      setSelectedSubAssetId(null);
+      setFormSubAssets([]);
     };
 
     return (
@@ -478,15 +645,22 @@ const SubAdminPage = () => {
 
         <div className="space-y-2">
           <Label htmlFor="organization">Organization *</Label>
-          <Input
-            id="organization"
-            value={formData.organization}
-            onChange={(e) =>
-              setFormData({ ...formData, organization: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
+          <Select
+            value={selectedOrgId?.toString() || ""}
+            onValueChange={(value) => handleOrgChange(parseInt(value))}
             required
-          />
+          >
+            <SelectTrigger className="w-full rounded-full bg-[#00d8cc]/30">
+              <SelectValue placeholder="Select organization" />
+            </SelectTrigger>
+            <SelectContent>
+              {organizations.map((org) => (
+                <SelectItem key={org.id} value={org.id.toString()}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
@@ -503,28 +677,47 @@ const SubAdminPage = () => {
 
         <div className="space-y-2">
           <Label htmlFor="asset">Asset *</Label>
-          <Input
-            id="asset"
-            value={formData.asset}
-            onChange={(e) =>
-              setFormData({ ...formData, asset: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
+          <Select
+            value={selectedAssetId?.toString() || ""}
+            onValueChange={(value) => handleAssetChange(parseInt(value))}
             required
-          />
+          >
+            <SelectTrigger className="w-full rounded-full bg-[#00d8cc]/30">
+              <SelectValue placeholder="Select asset" />
+            </SelectTrigger>
+            <SelectContent>
+              {assets.map((asset) => (
+                <SelectItem key={asset.id} value={asset.id.toString()}>
+                  {asset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="sub_asset">Sub Asset *</Label>
-          <Input
-            id="sub_asset"
-            value={formData.sub_asset}
-            onChange={(e) =>
-              setFormData({ ...formData, sub_asset: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
+          <Select
+            value={selectedSubAssetId?.toString() || ""}
+            onValueChange={(value) => handleSubAssetChange(parseInt(value))}
             required
-          />
+            disabled={!selectedAssetId || formSubAssets.length === 0}
+          >
+            <SelectTrigger className="w-full rounded-full bg-[#00d8cc]/30">
+              <SelectValue
+                placeholder={
+                  selectedAssetId ? "Select sub-asset" : "Select asset first"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {formSubAssets.map((subAsset) => (
+                <SelectItem key={subAsset.id} value={subAsset.id.toString()}>
+                  {subAsset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
@@ -561,6 +754,80 @@ const SubAdminPage = () => {
       sub_asset: selectedUser?.subAsset || "",
       password: "",
     });
+    const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
+    const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
+    const [selectedSubAssetId, setSelectedSubAssetId] = useState<number | null>(
+      null
+    );
+    const [formSubAssets, setFormSubAssets] = useState<any[]>([]);
+
+    // Initialize selected values based on current user data
+    useEffect(() => {
+      if (selectedUser) {
+        // Find organization ID
+        const org = organizations.find(
+          (o) => o.name === selectedUser.organization
+        );
+        if (org) setSelectedOrgId(org.id);
+
+        // Find asset ID
+        const asset = assets.find((a) => a.name === selectedUser.asset);
+        if (asset) {
+          setSelectedAssetId(asset.id);
+          // Fetch sub-assets for this asset
+          if (token) {
+            api
+              .getSubAssetsByAssetId(asset.id, token)
+              .then((response) => {
+                setFormSubAssets(response.data || []);
+                // Find sub-asset ID
+                const subAsset = response.data?.find(
+                  (sa: any) => sa.name === selectedUser.subAsset
+                );
+                if (subAsset) setSelectedSubAssetId(subAsset.id);
+              })
+              .catch((error) => {
+                console.error("Error fetching sub-assets:", error);
+              });
+          }
+        }
+      }
+    }, [selectedUser, organizations, assets, token]);
+
+    const handleOrgChange = (orgId: number) => {
+      setSelectedOrgId(orgId);
+      const selectedOrg = organizations.find((org) => org.id === orgId);
+      setFormData({ ...formData, organization: selectedOrg?.name || "" });
+    };
+
+    const handleAssetChange = async (assetId: number) => {
+      setSelectedAssetId(assetId);
+      const selectedAsset = assets.find((asset) => asset.id === assetId);
+      setFormData({
+        ...formData,
+        asset: selectedAsset?.name || "",
+        sub_asset: "",
+      });
+      setSelectedSubAssetId(null);
+      setFormSubAssets([]);
+
+      if (token) {
+        try {
+          const response = await api.getSubAssetsByAssetId(assetId, token);
+          setFormSubAssets(response.data || []);
+        } catch (error) {
+          console.error("Error fetching sub-assets:", error);
+        }
+      }
+    };
+
+    const handleSubAssetChange = (subAssetId: number) => {
+      setSelectedSubAssetId(subAssetId);
+      const selectedSubAsset = formSubAssets.find(
+        (subAsset) => subAsset.id === subAssetId
+      );
+      setFormData({ ...formData, sub_asset: selectedSubAsset?.name || "" });
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -612,15 +879,22 @@ const SubAdminPage = () => {
 
         <div className="space-y-2">
           <Label htmlFor="edit_organization">Organization *</Label>
-          <Input
-            id="edit_organization"
-            value={formData.organization}
-            onChange={(e) =>
-              setFormData({ ...formData, organization: e.target.value })
-            }
-            className="rounded-full"
+          <Select
+            value={selectedOrgId?.toString() || ""}
+            onValueChange={(value) => handleOrgChange(parseInt(value))}
             required
-          />
+          >
+            <SelectTrigger className="w-full rounded-full">
+              <SelectValue placeholder="Select organization" />
+            </SelectTrigger>
+            <SelectContent>
+              {organizations.map((org) => (
+                <SelectItem key={org.id} value={org.id.toString()}>
+                  {org.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
@@ -637,28 +911,47 @@ const SubAdminPage = () => {
 
         <div className="space-y-2">
           <Label htmlFor="edit_asset">Asset *</Label>
-          <Input
-            id="edit_asset"
-            value={formData.asset}
-            onChange={(e) =>
-              setFormData({ ...formData, asset: e.target.value })
-            }
-            className="rounded-full"
+          <Select
+            value={selectedAssetId?.toString() || ""}
+            onValueChange={(value) => handleAssetChange(parseInt(value))}
             required
-          />
+          >
+            <SelectTrigger className="w-full rounded-full">
+              <SelectValue placeholder="Select asset" />
+            </SelectTrigger>
+            <SelectContent>
+              {assets.map((asset) => (
+                <SelectItem key={asset.id} value={asset.id.toString()}>
+                  {asset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="edit_sub_asset">Sub Asset *</Label>
-          <Input
-            id="edit_sub_asset"
-            value={formData.sub_asset}
-            onChange={(e) =>
-              setFormData({ ...formData, sub_asset: e.target.value })
-            }
-            className="rounded-full"
+          <Select
+            value={selectedSubAssetId?.toString() || ""}
+            onValueChange={(value) => handleSubAssetChange(parseInt(value))}
             required
-          />
+            disabled={!selectedAssetId || formSubAssets.length === 0}
+          >
+            <SelectTrigger className="w-full rounded-full">
+              <SelectValue
+                placeholder={
+                  selectedAssetId ? "Select sub-asset" : "Select asset first"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {formSubAssets.map((subAsset) => (
+                <SelectItem key={subAsset.id} value={subAsset.id.toString()}>
+                  {subAsset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
