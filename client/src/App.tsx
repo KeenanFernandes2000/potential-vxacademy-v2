@@ -42,6 +42,31 @@ import CourseDetails from "@/pages/user/courseDetails";
 import AssessmentPage from "@/pages/user/assessmentPage";
 import MediaPage from "./pages/admin/mediaPage";
 
+// Import SidebarProvider for persistent sidebar state
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import AdminSidebar from "@/components/adminSidebar";
+
+// Create a wrapper component for admin routes with persistent sidebar
+const AdminRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-[#003451]">
+        {/* Persistent Admin Sidebar */}
+        <AdminSidebar />
+
+        {/* Main Content Area */}
+        <SidebarInset className="max-w-[80%]">
+          <div className="flex flex-col h-full">
+            <main className="flex-1 p-6">
+              <div className="space-y-6">{children}</div>
+            </main>
+          </div>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
+  );
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -55,133 +80,46 @@ function App() {
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/join" element={<JoinPage />} />
 
-            {/* Admin Routes */}
+            {/* Admin Routes - Wrapped with persistent SidebarProvider */}
             <Route
-              path="/admin/dashboard"
+              path="/admin/*"
               element={
                 <ProtectedRoute requiredUserType="admin">
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/sub-admin"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <SubAdminPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/assets"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <AssetsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/subassets"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <SubAssetsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/organization"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <OrganizationPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/sub-organization"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <SubOrganizationPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/training-area"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <TrainingAreaPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/modules"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <ModulesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/courses"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <CoursesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/units"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <UnitsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/learning-block"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <LearningBlockPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/assessments"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <AssessmentsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/questions"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <QuestionsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/roles"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <RolesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/role-categories"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <RoleCategoriesPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/admin/media"
-              element={
-                <ProtectedRoute requiredUserType="admin">
-                  <MediaPage />
+                  <AdminRoutesWrapper>
+                    <Routes>
+                      <Route path="dashboard" element={<Dashboard />} />
+                      <Route path="sub-admin" element={<SubAdminPage />} />
+                      <Route path="assets" element={<AssetsPage />} />
+                      <Route path="subassets" element={<SubAssetsPage />} />
+                      <Route
+                        path="organization"
+                        element={<OrganizationPage />}
+                      />
+                      <Route
+                        path="sub-organization"
+                        element={<SubOrganizationPage />}
+                      />
+                      <Route
+                        path="training-area"
+                        element={<TrainingAreaPage />}
+                      />
+                      <Route path="modules" element={<ModulesPage />} />
+                      <Route path="courses" element={<CoursesPage />} />
+                      <Route path="units" element={<UnitsPage />} />
+                      <Route
+                        path="learning-block"
+                        element={<LearningBlockPage />}
+                      />
+                      <Route path="assessments" element={<AssessmentsPage />} />
+                      <Route path="questions" element={<QuestionsPage />} />
+                      <Route path="roles" element={<RolesPage />} />
+                      <Route
+                        path="role-categories"
+                        element={<RoleCategoriesPage />}
+                      />
+                      <Route path="media" element={<MediaPage />} />
+                    </Routes>
+                  </AdminRoutesWrapper>
                 </ProtectedRoute>
               }
             />
