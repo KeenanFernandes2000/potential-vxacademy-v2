@@ -7,6 +7,9 @@ import {
   passwordResets,
   invitations,
   organizations,
+  subOrganizations,
+  assets,
+  subAssets,
 } from "../db/schema/users";
 import type {
   User,
@@ -20,8 +23,221 @@ import type {
   Organization,
   NewOrganization,
   UpdateOrganization,
+  SubOrganization,
+  NewSubOrganization,
+  UpdateSubOrganization,
 } from "../db/types";
 import crypto from "crypto";
+
+// ==================== ORGANIZATION SERVICE ====================
+export class OrganizationService {
+  /**
+   * Create a new organization
+   */
+  static async createOrganization(
+    data: NewOrganization
+  ): Promise<Organization> {
+    const result = await db.insert(organizations).values(data).returning();
+
+    if (!result[0]) {
+      throw new Error("Failed to create organization");
+    }
+
+    return result[0];
+  }
+
+  /**
+   * Get organization by ID
+   */
+  static async getOrganizationById(id: number): Promise<Organization | null> {
+    const [organization] = await db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, id))
+      .limit(1);
+
+    return organization || null;
+  }
+
+  /**
+   * Get all organizations
+   */
+  static async getAllOrganizations(): Promise<Organization[]> {
+    return await db.select().from(organizations);
+  }
+
+  /**
+   * Update organization by ID
+   */
+  static async updateOrganization(
+    id: number,
+    updateData: UpdateOrganization
+  ): Promise<Organization | null> {
+    const [updatedOrganization] = await db
+      .update(organizations)
+      .set(updateData)
+      .where(eq(organizations.id, id))
+      .returning();
+
+    return updatedOrganization || null;
+  }
+
+  /**
+   * Delete organization by ID
+   */
+  static async deleteOrganization(id: number): Promise<boolean> {
+    const result = await db
+      .delete(organizations)
+      .where(eq(organizations.id, id))
+      .returning({ id: organizations.id });
+
+    return result.length > 0;
+  }
+
+  /**
+   * Check if organization exists by ID
+   */
+  static async organizationExists(id: number): Promise<Organization | null> {
+    const [organization] = await db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, id))
+      .limit(1);
+
+    return organization || null;
+  }
+
+  /**
+   * Check if organization name already exists
+   */
+  static async organizationNameExists(name: string): Promise<boolean> {
+    const [organization] = await db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.name, name))
+      .limit(1);
+
+    return !!organization;
+  }
+
+  /**
+   * Validate asset and sub-asset relationship
+   */
+  static async validateAssetSubAssetRelationship(
+    assetId: number,
+    subAssetId: number
+  ): Promise<boolean> {
+    const [subAsset] = await db
+      .select()
+      .from(subAssets)
+      .where(and(eq(subAssets.id, subAssetId), eq(subAssets.assetId, assetId)))
+      .limit(1);
+
+    return !!subAsset;
+  }
+}
+
+// ==================== SUB-ORGANIZATION SERVICE ====================
+export class SubOrganizationService {
+  /**
+   * Create a new sub-organization
+   */
+  static async createSubOrganization(
+    organizationId: number,
+    data: NewSubOrganization
+  ): Promise<SubOrganization> {
+    const result = await db
+      .insert(subOrganizations)
+      .values({
+        ...data,
+        organizationId,
+      })
+      .returning();
+
+    if (!result[0]) {
+      throw new Error("Failed to create sub-organization");
+    }
+
+    return result[0];
+  }
+
+  /**
+   * Get sub-organization by ID
+   */
+  static async getSubOrganizationById(
+    id: number
+  ): Promise<SubOrganization | null> {
+    const [subOrganization] = await db
+      .select()
+      .from(subOrganizations)
+      .where(eq(subOrganizations.id, id))
+      .limit(1);
+
+    return subOrganization || null;
+  }
+
+  /**
+   * Get all sub-organizations
+   */
+  static async getAllSubOrganizations(): Promise<SubOrganization[]> {
+    return await db.select().from(subOrganizations);
+  }
+
+  /**
+   * Get sub-organizations by organization ID
+   */
+  static async getSubOrganizationsByOrganizationId(
+    organizationId: number
+  ): Promise<SubOrganization[]> {
+    return await db
+      .select()
+      .from(subOrganizations)
+      .where(eq(subOrganizations.organizationId, organizationId));
+  }
+
+  /**
+   * Update sub-organization by ID
+   */
+  static async updateSubOrganization(
+    id: number,
+    updateData: UpdateSubOrganization
+  ): Promise<SubOrganization | null> {
+    const [updatedSubOrganization] = await db
+      .update(subOrganizations)
+      .set(updateData)
+      .where(eq(subOrganizations.id, id))
+      .returning();
+
+    return updatedSubOrganization || null;
+  }
+
+  /**
+   * Delete sub-organization by ID
+   */
+  static async deleteSubOrganization(id: number): Promise<boolean> {
+    const result = await db
+      .delete(subOrganizations)
+      .where(eq(subOrganizations.id, id))
+      .returning({ id: subOrganizations.id });
+
+    return result.length > 0;
+  }
+
+  /**
+   * Check if sub-organization exists by ID
+   */
+  static async subOrganizationExists(
+    id: number
+  ): Promise<SubOrganization | null> {
+    const [subOrganization] = await db
+      .select()
+      .from(subOrganizations)
+      .where(eq(subOrganizations.id, id))
+      .limit(1);
+
+    return subOrganization || null;
+  }
+}
 
 export class UserService {
   /**

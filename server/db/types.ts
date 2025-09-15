@@ -6,6 +6,7 @@ import {
   assets,
   subAssets,
   organizations,
+  subOrganizations,
   roleCategories,
   roles,
   seniorityLevels,
@@ -84,6 +85,12 @@ export type NewOrganization = Omit<
   "id"
 >;
 export type UpdateOrganization = Partial<NewOrganization>;
+export type SubOrganization = InferSelectModel<typeof subOrganizations>;
+export type NewSubOrganization = Omit<
+  InferInsertModel<typeof subOrganizations>,
+  "id" | "organizationId"
+>;
+export type UpdateSubOrganization = Partial<NewSubOrganization>;
 
 // Training types
 export type TrainingArea = InferSelectModel<typeof trainingAreas>;

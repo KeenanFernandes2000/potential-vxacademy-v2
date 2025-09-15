@@ -68,6 +68,18 @@ export const subAssets = pgTable("sub_assets", {
 export const organizations = pgTable("organizations", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
+  assetId: integer("asset_id")
+    .references(() => assets.id, { onDelete: "cascade" }),
+  subAssetId: integer("sub_asset_id")
+    .references(() => subAssets.id, { onDelete: "cascade" }),
+});
+
+export const subOrganizations = pgTable("sub_organizations", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
 });
 
 export const roleCategories = pgTable("role_categories", {

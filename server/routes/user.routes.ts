@@ -72,6 +72,17 @@ router.post("/organizations", userControllers.createOrganization);
 router.put("/organizations/:id", userControllers.updateOrganization);
 router.delete("/organizations/:id", userControllers.deleteOrganization);
 
+// ==================== SUB ORGANIZATIONS CRUD FUNCTIONS ====================
+router.get("/sub-organizations", userControllers.getAllSubOrganizations);
+router.get(
+  "/sub-organizations/by-organization/:organizationId",
+  userControllers.getSubOrganizationsByOrganizationId
+);
+router.get("/sub-organizations/:id", userControllers.getSubOrganizationById);
+router.post("/sub-organizations", userControllers.createSubOrganization);
+router.put("/sub-organizations/:id", userControllers.updateSubOrganization);
+router.delete("/sub-organizations/:id", userControllers.deleteSubOrganization);
+
 // ==================== SUB-ADMIN CREATION & REGISTRATION FUNCTIONS ====================
 router.post(
   "/sub-admins/register/:id",

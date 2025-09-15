@@ -3,6 +3,8 @@ import {
   UserService,
   InvitationService,
   PasswordResetService,
+  OrganizationService,
+  SubOrganizationService,
 } from "../services/user.services";
 import type {
   NewUser,
@@ -17,6 +19,7 @@ import {
   assets,
   subAssets,
   organizations,
+  subOrganizations,
   roleCategories,
   roles,
   seniorityLevels,
@@ -1434,7 +1437,7 @@ export class userControllers {
    * Create a new organization
    */
   static async createOrganization(req: Request, res: Response): Promise<void> {
-    const { name } = req.body;
+    const { name, assetId, subAssetId } = req.body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       throw createError(
@@ -1443,18 +1446,61 @@ export class userControllers {
       );
     }
 
+    if (assetId === undefined || assetId === null) {
+      throw createError("Asset ID is required", 400);
+    }
+
+    if (typeof assetId !== "number" || assetId <= 0) {
+      throw createError("Valid asset ID is required", 400);
+    }
+
+    if (subAssetId === undefined || subAssetId === null) {
+      throw createError("Sub-asset ID is required", 400);
+    }
+
+    if (typeof subAssetId !== "number" || subAssetId <= 0) {
+      throw createError("Valid sub-asset ID is required", 400);
+    }
+
     // Check if organization name already exists
-    const nameExists = await UserService.organizationNameExists(name);
+    const nameExists = await OrganizationService.organizationNameExists(name);
     if (nameExists) {
       throw createError("Organization name already exists", 409);
+    }
+
+    // Check if asset exists
+    const [asset] = await db
+      .select()
+      .from(assets)
+      .where(eq(assets.id, assetId))
+      .limit(1);
+
+    if (!asset) {
+      throw createError("Asset not found", 404);
+    }
+
+    // Check if sub-asset exists and belongs to the specified asset
+    const isValidRelationship =
+      await OrganizationService.validateAssetSubAssetRelationship(
+        assetId,
+        subAssetId
+      );
+
+    if (!isValidRelationship) {
+      throw createError(
+        "Sub-asset does not belong to the specified asset",
+        400
+      );
     }
 
     try {
       const organizationData: NewOrganization = {
         name: name.trim(),
+        assetId,
+        subAssetId,
       };
 
-      const newOrganization = await UserService.createOrganization(
+      const newOrganization = await OrganizationService.createOrganization(
         organizationData
       );
 
@@ -1477,7 +1523,7 @@ export class userControllers {
    */
   static async getAllOrganizations(req: Request, res: Response): Promise<void> {
     try {
-      const allOrganizations = await UserService.getAllOrganizations();
+      const allOrganizations = await OrganizationService.getAllOrganizations();
 
       res.status(200).json({
         success: true,
@@ -1501,7 +1547,7 @@ export class userControllers {
     }
 
     try {
-      const organization = await UserService.getOrganizationById(
+      const organization = await OrganizationService.getOrganizationById(
         organizationId
       );
 
@@ -1528,7 +1574,7 @@ export class userControllers {
    */
   static async updateOrganization(req: Request, res: Response): Promise<void> {
     const organizationId = parseInt(req.params.id as string);
-    const { name } = req.body;
+    const { name, assetId, subAssetId } = req.body;
 
     if (isNaN(organizationId) || organizationId <= 0) {
       throw createError("Invalid organization ID", 400);
@@ -1542,7 +1588,7 @@ export class userControllers {
     }
 
     // Check if organization exists
-    const existingOrganization = await UserService.getOrganizationById(
+    const existingOrganization = await OrganizationService.getOrganizationById(
       organizationId
     );
     if (!existingOrganization) {
@@ -1550,20 +1596,59 @@ export class userControllers {
     }
 
     // Check if organization name already exists (excluding current organization)
-    const nameExists = await UserService.organizationNameExists(
-      name,
-      organizationId
-    );
-    if (nameExists) {
+    const nameExists = await OrganizationService.organizationNameExists(name);
+    if (nameExists && existingOrganization.name !== name.trim()) {
       throw createError("Organization name already exists", 409);
+    }
+
+    // Validate asset and sub-asset if provided
+    if (assetId !== undefined || subAssetId !== undefined) {
+      const finalAssetId = assetId !== undefined ? assetId : existingOrganization.assetId;
+      const finalSubAssetId = subAssetId !== undefined ? subAssetId : existingOrganization.subAssetId;
+
+      // If either assetId or subAssetId is provided, both must be valid
+      if (finalAssetId === null || finalSubAssetId === null) {
+        throw createError("Both asset ID and sub-asset ID are required when updating organization", 400);
+      }
+
+      if (finalAssetId !== existingOrganization.assetId) {
+        // Check if new asset exists
+        const [asset] = await db
+          .select()
+          .from(assets)
+          .where(eq(assets.id, finalAssetId))
+          .limit(1);
+
+        if (!asset) {
+          throw createError("Asset not found", 404);
+        }
+      }
+
+      if (finalSubAssetId !== existingOrganization.subAssetId) {
+        // Check if sub-asset exists and belongs to the specified asset
+        const isValidRelationship =
+          await OrganizationService.validateAssetSubAssetRelationship(
+            finalAssetId,
+            finalSubAssetId
+          );
+
+        if (!isValidRelationship) {
+          throw createError(
+            "Sub-asset does not belong to the specified asset",
+            400
+          );
+        }
+      }
     }
 
     try {
       const updateData: UpdateOrganization = {
         name: name.trim(),
+        ...(assetId !== undefined && { assetId }),
+        ...(subAssetId !== undefined && { subAssetId }),
       };
 
-      const updatedOrganization = await UserService.updateOrganization(
+      const updatedOrganization = await OrganizationService.updateOrganization(
         organizationId,
         updateData
       );
@@ -1597,7 +1682,7 @@ export class userControllers {
     }
 
     // Check if organization exists
-    const existingOrganization = await UserService.getOrganizationById(
+    const existingOrganization = await OrganizationService.getOrganizationById(
       organizationId
     );
     if (!existingOrganization) {
@@ -1605,7 +1690,9 @@ export class userControllers {
     }
 
     try {
-      const deleted = await UserService.deleteOrganization(organizationId);
+      const deleted = await OrganizationService.deleteOrganization(
+        organizationId
+      );
 
       if (!deleted) {
         throw createError("Failed to delete organization", 500);
@@ -1622,6 +1709,217 @@ export class userControllers {
       }
       throw createError("Failed to delete organization", 500);
     }
+  }
+
+  // ==================== SUB ORGANIZATIONS CRUD FUNCTIONS ====================
+
+  /**
+   * Create a new sub organization
+   * POST /sub-organizations
+   */
+  static async createSubOrganization(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const { name, organizationId } = req.body;
+
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      throw createError(
+        "Sub organization name is required and must be a non-empty string",
+        400
+      );
+    }
+
+    if (
+      !organizationId ||
+      typeof organizationId !== "number" ||
+      organizationId <= 0
+    ) {
+      throw createError("Valid organization ID is required", 400);
+    }
+
+    // Check if parent organization exists
+    const [parentOrganization] = await db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, organizationId))
+      .limit(1);
+
+    if (!parentOrganization) {
+      throw createError("Parent organization not found", 404);
+    }
+
+    const newSubOrganization =
+      await SubOrganizationService.createSubOrganization(organizationId, {
+        name: name.trim(),
+      });
+
+    res.status(201).json({
+      success: true,
+      message: "Sub organization created successfully",
+      data: newSubOrganization,
+    });
+  }
+
+  /**
+   * Get all sub organizations
+   * GET /sub-organizations
+   */
+  static async getAllSubOrganizations(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const allSubOrganizations =
+      await SubOrganizationService.getAllSubOrganizations();
+
+    res.status(200).json({
+      success: true,
+      message: "Sub organizations retrieved successfully",
+      data: allSubOrganizations,
+    });
+  }
+
+  /**
+   * Get sub organizations by organization ID
+   * GET /sub-organizations/by-organization/:organizationId
+   */
+  static async getSubOrganizationsByOrganizationId(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const organizationId = parseInt(req.params.organizationId as string);
+
+    if (isNaN(organizationId) || organizationId <= 0) {
+      throw createError("Invalid organization ID", 400);
+    }
+
+    // Check if parent organization exists
+    const parentOrganization = await OrganizationService.getOrganizationById(
+      organizationId
+    );
+    if (!parentOrganization) {
+      throw createError("Parent organization not found", 404);
+    }
+
+    const subOrganizations =
+      await SubOrganizationService.getSubOrganizationsByOrganizationId(
+        organizationId
+      );
+
+    res.status(200).json({
+      success: true,
+      message: "Sub organizations retrieved successfully",
+      data: subOrganizations,
+    });
+  }
+
+  /**
+   * Get sub organization by ID
+   * GET /sub-organizations/:id
+   */
+  static async getSubOrganizationById(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const subOrganizationId = parseInt(req.params.id as string);
+
+    if (isNaN(subOrganizationId) || subOrganizationId <= 0) {
+      throw createError("Invalid sub organization ID", 400);
+    }
+
+    const subOrganization = await SubOrganizationService.getSubOrganizationById(
+      subOrganizationId
+    );
+
+    if (!subOrganization) {
+      throw createError("Sub organization not found", 404);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Sub organization retrieved successfully",
+      data: subOrganization,
+    });
+  }
+
+  /**
+   * Update sub organization by ID
+   * PUT /sub-organizations/:id
+   */
+  static async updateSubOrganization(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const subOrganizationId = parseInt(req.params.id as string);
+    const { name } = req.body;
+
+    if (isNaN(subOrganizationId) || subOrganizationId <= 0) {
+      throw createError("Invalid sub organization ID", 400);
+    }
+
+    if (!name || typeof name !== "string" || name.trim().length === 0) {
+      throw createError(
+        "Sub organization name is required and must be a non-empty string",
+        400
+      );
+    }
+
+    // Check if sub organization exists
+    const existingSubOrganization =
+      await SubOrganizationService.getSubOrganizationById(subOrganizationId);
+    if (!existingSubOrganization) {
+      throw createError("Sub organization not found", 404);
+    }
+
+    const updatedSubOrganization =
+      await SubOrganizationService.updateSubOrganization(subOrganizationId, {
+        name: name.trim(),
+      });
+
+    if (!updatedSubOrganization) {
+      throw createError("Failed to update sub organization", 500);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Sub organization updated successfully",
+      data: updatedSubOrganization,
+    });
+  }
+
+  /**
+   * Delete sub organization by ID
+   * DELETE /sub-organizations/:id
+   */
+  static async deleteSubOrganization(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const subOrganizationId = parseInt(req.params.id as string);
+
+    if (isNaN(subOrganizationId) || subOrganizationId <= 0) {
+      throw createError("Invalid sub organization ID", 400);
+    }
+
+    // Check if sub organization exists
+    const existingSubOrganization =
+      await SubOrganizationService.getSubOrganizationById(subOrganizationId);
+    if (!existingSubOrganization) {
+      throw createError("Sub organization not found", 404);
+    }
+
+    const deleted = await SubOrganizationService.deleteSubOrganization(
+      subOrganizationId
+    );
+
+    if (!deleted) {
+      throw createError("Failed to delete sub organization", 500);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Sub organization deleted successfully",
+    });
   }
 
   // ==================== ROLE CATEGORIES CRD FUNCTIONS ====================
