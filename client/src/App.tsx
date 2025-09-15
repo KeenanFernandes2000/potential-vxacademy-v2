@@ -16,7 +16,6 @@ import SubAdminPage from "@/pages/admin/subAdminPage";
 import AssetsPage from "@/pages/admin/assetsPage";
 import SubAssetsPage from "@/pages/admin/subAssetsPage";
 import OrganizationPage from "@/pages/admin/organizationPage";
-import SubOrganizationPage from "@/pages/admin/subOrganizationPage";
 import TrainingAreaPage from "@/pages/admin/trainingAreaPage";
 import ModulesPage from "@/pages/admin/modulesPage";
 import CoursesPage from "@/pages/admin/coursesPage";
@@ -94,10 +93,6 @@ function App() {
                       <Route
                         path="organization"
                         element={<OrganizationPage />}
-                      />
-                      <Route
-                        path="sub-organization"
-                        element={<SubOrganizationPage />}
                       />
                       <Route
                         path="training-area"
