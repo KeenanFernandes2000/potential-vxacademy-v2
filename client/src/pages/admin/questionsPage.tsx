@@ -194,12 +194,17 @@ const QuestionsPage = () => {
     fetchDropdownData();
   }, [token]);
 
-  // Fetch questions from database on component mount
+  // Fetch questions from database when both token and assessments are available
   useEffect(() => {
     const fetchQuestions = async () => {
       if (!token) {
         setError("Authentication required");
         setIsLoading(false);
+        return;
+      }
+
+      // Don't fetch questions until assessments are loaded
+      if (assessments.length === 0) {
         return;
       }
 
@@ -261,7 +266,7 @@ const QuestionsPage = () => {
     };
 
     fetchQuestions();
-  }, [token]);
+  }, [token, assessments]); // Add assessments as dependency
 
   const handleSearch = (query: string) => {
     if (!query) {
@@ -409,51 +414,57 @@ const QuestionsPage = () => {
   };
 
   const refreshQuestionList = async () => {
-    if (!token) return;
-    const updatedResponse = await api.getAllQuestions(token);
+    if (!token || assessments.length === 0) return;
 
-    const transformedQuestions =
-      updatedResponse.data?.map((question: any) => {
-        // Find the assessment for this question
-        const assessment = assessments.find(
-          (a: any) => a.id === (question.assessment_id || question.assessmentId)
-        );
+    try {
+      const updatedResponse = await api.getAllQuestions(token);
 
-        return {
-          id: question.id,
-          question_type:
-            question.question_type || question.questionType || "N/A",
-          assessment_name: assessment?.title || "N/A",
-          correct_answer:
-            question.correct_answer || question.correctAnswer || "N/A",
-          assessmentId: question.assessment_id || question.assessmentId, // Keep for filtering
-          actions: (
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-                onClick={() => handleEditQuestion(question)}
-                title="Edit"
-              >
-                <Edit sx={{ fontSize: 16 }} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-                onClick={() => handleDeleteQuestion(question.id)}
-                title="Delete"
-              >
-                <Delete sx={{ fontSize: 16 }} />
-              </Button>
-            </div>
-          ),
-        };
-      }) || [];
+      const transformedQuestions =
+        updatedResponse.data?.map((question: any) => {
+          // Find the assessment for this question
+          const assessment = assessments.find(
+            (a: any) =>
+              a.id === (question.assessment_id || question.assessmentId)
+          );
 
-    setQuestions(transformedQuestions);
-    setFilteredQuestions(transformedQuestions);
+          return {
+            id: question.id,
+            question_type:
+              question.question_type || question.questionType || "N/A",
+            assessment_name: assessment?.title || "N/A",
+            correct_answer:
+              question.correct_answer || question.correctAnswer || "N/A",
+            assessmentId: question.assessment_id || question.assessmentId, // Keep for filtering
+            actions: (
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                  onClick={() => handleEditQuestion(question)}
+                  title="Edit"
+                >
+                  <Edit sx={{ fontSize: 16 }} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                  onClick={() => handleDeleteQuestion(question.id)}
+                  title="Delete"
+                >
+                  <Delete sx={{ fontSize: 16 }} />
+                </Button>
+              </div>
+            ),
+          };
+        }) || [];
+
+      setQuestions(transformedQuestions);
+      setFilteredQuestions(transformedQuestions);
+    } catch (error) {
+      console.error("Error refreshing questions:", error);
+    }
   };
 
   const CreateQuestionForm = () => {
