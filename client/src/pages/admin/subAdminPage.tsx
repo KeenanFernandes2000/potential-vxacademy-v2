@@ -187,6 +187,35 @@ const api = {
       throw error;
     }
   },
+
+  async getSubOrganizationsByOrganizationId(
+    organizationId: number,
+    token: string
+  ) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/sub-organizations/by-organization/${organizationId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch sub-organizations:", error);
+      throw error;
+    }
+  },
 };
 
 // Type for sub-admin data
@@ -537,16 +566,50 @@ const SubAdminPage = () => {
       password: "",
     });
     const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
+    const [selectedSubOrgId, setSelectedSubOrgId] = useState<number | null>(
+      null
+    );
     const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
     const [selectedSubAssetId, setSelectedSubAssetId] = useState<number | null>(
       null
     );
     const [formSubAssets, setFormSubAssets] = useState<any[]>([]);
+    const [formSubOrganizations, setFormSubOrganizations] = useState<any[]>([]);
 
-    const handleOrgChange = (orgId: number) => {
+    const handleOrgChange = async (orgId: number) => {
       setSelectedOrgId(orgId);
       const selectedOrg = organizations.find((org) => org.id === orgId);
-      setFormData({ ...formData, organization: selectedOrg?.name || "" });
+      setFormData({
+        ...formData,
+        organization: selectedOrg?.name || "",
+        sub_organization: "",
+      });
+      setSelectedSubOrgId(null);
+      setFormSubOrganizations([]);
+
+      // Fetch sub-organizations for the selected organization
+      if (token) {
+        try {
+          const response = await api.getSubOrganizationsByOrganizationId(
+            orgId,
+            token
+          );
+          setFormSubOrganizations(response.data || []);
+        } catch (error) {
+          console.error("Error fetching sub-organizations:", error);
+        }
+      }
+    };
+
+    const handleSubOrgChange = (subOrgId: number) => {
+      setSelectedSubOrgId(subOrgId);
+      const selectedSubOrg = formSubOrganizations.find(
+        (subOrg) => subOrg.id === subOrgId
+      );
+      setFormData({
+        ...formData,
+        sub_organization: selectedSubOrg?.name || "",
+      });
     };
 
     const handleAssetChange = async (assetId: number) => {
@@ -556,9 +619,14 @@ const SubAdminPage = () => {
         ...formData,
         asset: selectedAsset?.name || "",
         sub_asset: "",
+        organization: "",
+        sub_organization: "",
       });
       setSelectedSubAssetId(null);
+      setSelectedOrgId(null);
+      setSelectedSubOrgId(null);
       setFormSubAssets([]);
+      setFormSubOrganizations([]);
 
       if (token) {
         try {
@@ -570,12 +638,20 @@ const SubAdminPage = () => {
       }
     };
 
-    const handleSubAssetChange = (subAssetId: number) => {
+    const handleSubAssetChange = async (subAssetId: number) => {
       setSelectedSubAssetId(subAssetId);
       const selectedSubAsset = formSubAssets.find(
         (subAsset) => subAsset.id === subAssetId
       );
-      setFormData({ ...formData, sub_asset: selectedSubAsset?.name || "" });
+      setFormData({
+        ...formData,
+        sub_asset: selectedSubAsset?.name || "",
+        organization: "",
+        sub_organization: "",
+      });
+      setSelectedOrgId(null);
+      setSelectedSubOrgId(null);
+      setFormSubOrganizations([]);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -592,9 +668,11 @@ const SubAdminPage = () => {
         password: "",
       });
       setSelectedOrgId(null);
+      setSelectedSubOrgId(null);
       setSelectedAssetId(null);
       setSelectedSubAssetId(null);
       setFormSubAssets([]);
+      setFormSubOrganizations([]);
     };
 
     return (
@@ -644,38 +722,6 @@ const SubAdminPage = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="organization">Organization *</Label>
-          <Select
-            value={selectedOrgId?.toString() || ""}
-            onValueChange={(value) => handleOrgChange(parseInt(value))}
-            required
-          >
-            <SelectTrigger className="w-full rounded-full bg-[#00d8cc]/30">
-              <SelectValue placeholder="Select organization" />
-            </SelectTrigger>
-            <SelectContent>
-              {organizations.map((org) => (
-                <SelectItem key={org.id} value={org.id.toString()}>
-                  {org.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="sub_organization">Sub Organization</Label>
-          <Input
-            id="sub_organization"
-            value={formData.sub_organization}
-            onChange={(e) =>
-              setFormData({ ...formData, sub_organization: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-          />
-        </div>
-
-        <div className="space-y-2">
           <Label htmlFor="asset">Asset *</Label>
           <Select
             value={selectedAssetId?.toString() || ""}
@@ -721,6 +767,67 @@ const SubAdminPage = () => {
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="organization">Organization *</Label>
+          <Select
+            value={selectedOrgId?.toString() || ""}
+            onValueChange={(value) => handleOrgChange(parseInt(value))}
+            required
+            disabled={!selectedAssetId || !selectedSubAssetId}
+          >
+            <SelectTrigger className="w-full rounded-full bg-[#00d8cc]/30">
+              <SelectValue
+                placeholder={
+                  !selectedAssetId || !selectedSubAssetId
+                    ? "Select asset and sub-asset first"
+                    : "Select organization"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {organizations
+                .filter(
+                  (org) =>
+                    org.assetId === selectedAssetId &&
+                    org.subAssetId === selectedSubAssetId
+                )
+                .map((org) => (
+                  <SelectItem key={org.id} value={org.id.toString()}>
+                    {org.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="sub_organization">Sub Organization</Label>
+          <Select
+            value={selectedSubOrgId?.toString() || ""}
+            onValueChange={(value) => handleSubOrgChange(parseInt(value))}
+            disabled={!selectedOrgId || formSubOrganizations.length === 0}
+          >
+            <SelectTrigger className="w-full rounded-full bg-[#00d8cc]/30">
+              <SelectValue
+                placeholder={
+                  !selectedOrgId
+                    ? "Select organization first"
+                    : formSubOrganizations.length === 0
+                    ? "No sub-organizations available"
+                    : "Select sub-organization"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {formSubOrganizations.map((subOrg) => (
+                <SelectItem key={subOrg.id} value={subOrg.id.toString()}>
+                  {subOrg.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="password">Password *</Label>
           <Input
             id="password"
@@ -755,11 +862,15 @@ const SubAdminPage = () => {
       password: "",
     });
     const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
+    const [selectedSubOrgId, setSelectedSubOrgId] = useState<number | null>(
+      null
+    );
     const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
     const [selectedSubAssetId, setSelectedSubAssetId] = useState<number | null>(
       null
     );
     const [formSubAssets, setFormSubAssets] = useState<any[]>([]);
+    const [formSubOrganizations, setFormSubOrganizations] = useState<any[]>([]);
 
     // Initialize selected values based on current user data
     useEffect(() => {
@@ -768,7 +879,25 @@ const SubAdminPage = () => {
         const org = organizations.find(
           (o) => o.name === selectedUser.organization
         );
-        if (org) setSelectedOrgId(org.id);
+        if (org) {
+          setSelectedOrgId(org.id);
+          // Fetch sub-organizations for this organization
+          if (token) {
+            api
+              .getSubOrganizationsByOrganizationId(org.id, token)
+              .then((response) => {
+                setFormSubOrganizations(response.data || []);
+                // Find sub-organization ID
+                const subOrg = response.data?.find(
+                  (so: any) => so.name === selectedUser.subOrganization
+                );
+                if (subOrg) setSelectedSubOrgId(subOrg.id);
+              })
+              .catch((error) => {
+                console.error("Error fetching sub-organizations:", error);
+              });
+          }
+        }
 
         // Find asset ID
         const asset = assets.find((a) => a.name === selectedUser.asset);
@@ -794,10 +923,40 @@ const SubAdminPage = () => {
       }
     }, [selectedUser, organizations, assets, token]);
 
-    const handleOrgChange = (orgId: number) => {
+    const handleOrgChange = async (orgId: number) => {
       setSelectedOrgId(orgId);
       const selectedOrg = organizations.find((org) => org.id === orgId);
-      setFormData({ ...formData, organization: selectedOrg?.name || "" });
+      setFormData({
+        ...formData,
+        organization: selectedOrg?.name || "",
+        sub_organization: "",
+      });
+      setSelectedSubOrgId(null);
+      setFormSubOrganizations([]);
+
+      // Fetch sub-organizations for the selected organization
+      if (token) {
+        try {
+          const response = await api.getSubOrganizationsByOrganizationId(
+            orgId,
+            token
+          );
+          setFormSubOrganizations(response.data || []);
+        } catch (error) {
+          console.error("Error fetching sub-organizations:", error);
+        }
+      }
+    };
+
+    const handleSubOrgChange = (subOrgId: number) => {
+      setSelectedSubOrgId(subOrgId);
+      const selectedSubOrg = formSubOrganizations.find(
+        (subOrg) => subOrg.id === subOrgId
+      );
+      setFormData({
+        ...formData,
+        sub_organization: selectedSubOrg?.name || "",
+      });
     };
 
     const handleAssetChange = async (assetId: number) => {
@@ -807,9 +966,14 @@ const SubAdminPage = () => {
         ...formData,
         asset: selectedAsset?.name || "",
         sub_asset: "",
+        organization: "",
+        sub_organization: "",
       });
       setSelectedSubAssetId(null);
+      setSelectedOrgId(null);
+      setSelectedSubOrgId(null);
       setFormSubAssets([]);
+      setFormSubOrganizations([]);
 
       if (token) {
         try {
@@ -821,12 +985,20 @@ const SubAdminPage = () => {
       }
     };
 
-    const handleSubAssetChange = (subAssetId: number) => {
+    const handleSubAssetChange = async (subAssetId: number) => {
       setSelectedSubAssetId(subAssetId);
       const selectedSubAsset = formSubAssets.find(
         (subAsset) => subAsset.id === subAssetId
       );
-      setFormData({ ...formData, sub_asset: selectedSubAsset?.name || "" });
+      setFormData({
+        ...formData,
+        sub_asset: selectedSubAsset?.name || "",
+        organization: "",
+        sub_organization: "",
+      });
+      setSelectedOrgId(null);
+      setSelectedSubOrgId(null);
+      setFormSubOrganizations([]);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -878,38 +1050,6 @@ const SubAdminPage = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="edit_organization">Organization *</Label>
-          <Select
-            value={selectedOrgId?.toString() || ""}
-            onValueChange={(value) => handleOrgChange(parseInt(value))}
-            required
-          >
-            <SelectTrigger className="w-full rounded-full">
-              <SelectValue placeholder="Select organization" />
-            </SelectTrigger>
-            <SelectContent>
-              {organizations.map((org) => (
-                <SelectItem key={org.id} value={org.id.toString()}>
-                  {org.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="edit_sub_organization">Sub Organization</Label>
-          <Input
-            id="edit_sub_organization"
-            value={formData.sub_organization}
-            onChange={(e) =>
-              setFormData({ ...formData, sub_organization: e.target.value })
-            }
-            className="rounded-full"
-          />
-        </div>
-
-        <div className="space-y-2">
           <Label htmlFor="edit_asset">Asset *</Label>
           <Select
             value={selectedAssetId?.toString() || ""}
@@ -948,6 +1088,67 @@ const SubAdminPage = () => {
               {formSubAssets.map((subAsset) => (
                 <SelectItem key={subAsset.id} value={subAsset.id.toString()}>
                   {subAsset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit_organization">Organization *</Label>
+          <Select
+            value={selectedOrgId?.toString() || ""}
+            onValueChange={(value) => handleOrgChange(parseInt(value))}
+            required
+            disabled={!selectedAssetId || !selectedSubAssetId}
+          >
+            <SelectTrigger className="w-full rounded-full">
+              <SelectValue
+                placeholder={
+                  !selectedAssetId || !selectedSubAssetId
+                    ? "Select asset and sub-asset first"
+                    : "Select organization"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {organizations
+                .filter(
+                  (org) =>
+                    org.assetId === selectedAssetId &&
+                    org.subAssetId === selectedSubAssetId
+                )
+                .map((org) => (
+                  <SelectItem key={org.id} value={org.id.toString()}>
+                    {org.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit_sub_organization">Sub Organization</Label>
+          <Select
+            value={selectedSubOrgId?.toString() || ""}
+            onValueChange={(value) => handleSubOrgChange(parseInt(value))}
+            disabled={!selectedOrgId || formSubOrganizations.length === 0}
+          >
+            <SelectTrigger className="w-full rounded-full">
+              <SelectValue
+                placeholder={
+                  !selectedOrgId
+                    ? "Select organization first"
+                    : formSubOrganizations.length === 0
+                    ? "No sub-organizations available"
+                    : "Select sub-organization"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {formSubOrganizations.map((subOrg) => (
+                <SelectItem key={subOrg.id} value={subOrg.id.toString()}>
+                  {subOrg.name}
                 </SelectItem>
               ))}
             </SelectContent>

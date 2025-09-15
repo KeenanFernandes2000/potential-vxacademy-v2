@@ -68,6 +68,7 @@ router.delete("/seniority-levels/:id", userControllers.deleteSeniorityLevel);
 // ==================== ORGANIZATIONS CRUD FUNCTIONS ====================
 router.get("/organizations", userControllers.getAllOrganizations);
 router.get("/organizations/:id", userControllers.getOrganizationById);
+router.get("/organizations/by-asset-subasset/:assetId/:subAssetId", userControllers.getOrganizationByAssetAndSubAsset);
 router.post("/organizations", userControllers.createOrganization);
 router.put("/organizations/:id", userControllers.updateOrganization);
 router.delete("/organizations/:id", userControllers.deleteOrganization);

@@ -1570,6 +1570,45 @@ export class userControllers {
   }
 
   /**
+   * Get organization by asset and sub-asset IDs
+   */
+  static async getOrganizationByAssetAndSubAsset(req: Request, res: Response): Promise<void> {
+    const assetId = parseInt(req.params.assetId as string);
+    const subAssetId = parseInt(req.params.subAssetId as string);
+
+    if (isNaN(assetId) || assetId <= 0) {
+      throw createError("Invalid asset ID", 400);
+    }
+
+    if (isNaN(subAssetId) || subAssetId <= 0) {
+      throw createError("Invalid sub-asset ID", 400);
+    }
+
+    try {
+      const organization = await OrganizationService.getOrganizationByAssetAndSubAsset(
+        assetId,
+        subAssetId
+      );
+
+      if (!organization) {
+        throw createError("Organization not found for the given asset and sub-asset combination", 404);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Organization retrieved successfully",
+        data: organization,
+      });
+    } catch (error: any) {
+      console.error("Get organization by asset and sub-asset error:", error);
+      if (error.statusCode) {
+        throw error;
+      }
+      throw createError("Failed to retrieve organization", 500);
+    }
+  }
+
+  /**
    * Update organization
    */
   static async updateOrganization(req: Request, res: Response): Promise<void> {

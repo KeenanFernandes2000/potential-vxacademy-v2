@@ -135,6 +135,22 @@ export class OrganizationService {
 
     return !!subAsset;
   }
+
+  /**
+   * Get organization by asset and sub-asset IDs
+   */
+  static async getOrganizationByAssetAndSubAsset(
+    assetId: number,
+    subAssetId: number
+  ): Promise<Organization | null> {
+    const [organization] = await db
+      .select()
+      .from(organizations)
+      .where(and(eq(organizations.assetId, assetId), eq(organizations.subAssetId, subAssetId)))
+      .limit(1);
+
+    return organization || null;
+  }
 }
 
 // ==================== SUB-ORGANIZATION SERVICE ====================
