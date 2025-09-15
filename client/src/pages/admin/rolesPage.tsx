@@ -632,7 +632,7 @@ const RolesPage = () => {
   };
 
   // Fetch existing assignments and filter units
-  const fetchExistingAssignments = async () => {
+  const fetchExistingAssignments = async (currentFilters = filters) => {
     if (!token || !selectedRole) return;
 
     try {
@@ -650,14 +650,14 @@ const RolesPage = () => {
         if (assignment.roleCategoryId !== selectedRole.categoryId) return false;
 
         // Filter by seniority level if specified
-        if (filters.seniorityId) {
-          const seniorityId = parseInt(filters.seniorityId);
+        if (currentFilters.seniorityId) {
+          const seniorityId = parseInt(currentFilters.seniorityId);
           if (assignment.seniorityLevelId !== seniorityId) return false;
         }
 
         // Filter by asset if specified
-        if (filters.assetId) {
-          const assetId = parseInt(filters.assetId);
+        if (currentFilters.assetId) {
+          const assetId = parseInt(currentFilters.assetId);
           if (assignment.assetId !== assetId) return false;
         }
 
@@ -689,7 +689,7 @@ const RolesPage = () => {
       setExistingUnits(transformedAssignedUnits);
 
       // Refresh the available units to exclude the newly updated existing units
-      applyFiltersToUnits(filters);
+      applyFiltersToUnits(currentFilters);
     } catch (error) {
       console.error("Error fetching existing assignments:", error);
       setExistingUnits([]);
@@ -803,7 +803,7 @@ const RolesPage = () => {
 
     // Fetch existing assignments when seniority or asset filters change
     if (filterType === "seniorityId" || filterType === "assetId") {
-      await fetchExistingAssignments();
+      await fetchExistingAssignments(newFilters);
     }
   };
 
