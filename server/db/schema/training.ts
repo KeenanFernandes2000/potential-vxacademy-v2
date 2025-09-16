@@ -120,7 +120,7 @@ export const unitRoleAssignments = pgTable(
   {
     id: serial("id").primaryKey(),
     name: text("name").notNull(),
-    unitIds: json("unit_ids").$type<number[] | null>(),
+    unitIds: json("unit_ids").notNull().default([]),
     roleCategoryId: integer("role_category_id").references(
       () => roleCategories.id,
       { onDelete: "set null" }
