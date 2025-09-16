@@ -1532,11 +1532,19 @@ const validateUnitRoleAssignmentInput = (
 ): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  // Support both single unitId and array of unitIds
-  if (data.unitIds && Array.isArray(data.unitIds)) {
-    // Validate array of unit IDs
-    if (data.unitIds.length === 0) {
-      errors.push("At least one unit ID is required");
+  // Validate name field
+  if (
+    !data.name ||
+    typeof data.name !== "string" ||
+    data.name.trim().length === 0
+  ) {
+    errors.push("Name is required and must be a non-empty string");
+  }
+
+  // Validate unitIds array (optional, can be null)
+  if (data.unitIds !== undefined && data.unitIds !== null) {
+    if (!Array.isArray(data.unitIds)) {
+      errors.push("Unit IDs must be an array if provided");
     } else {
       data.unitIds.forEach((unitId: any, index: number) => {
         if (isNaN(parseInt(unitId)) || parseInt(unitId) <= 0) {
@@ -1544,13 +1552,6 @@ const validateUnitRoleAssignmentInput = (
         }
       });
     }
-  } else if (data.unitId) {
-    // Support legacy single unitId for backward compatibility
-    if (isNaN(parseInt(data.unitId)) || parseInt(data.unitId) <= 0) {
-      errors.push("Unit ID is required and must be a positive number");
-    }
-  } else {
-    errors.push("Unit ID(s) are required - provide either 'unitId' or 'unitIds' array");
   }
 
   // Optional fields validation
@@ -1560,12 +1561,6 @@ const validateUnitRoleAssignmentInput = (
       parseInt(data.roleCategoryId) <= 0
     ) {
       errors.push("Role Category ID must be a positive number if provided");
-    }
-  }
-
-  if (data.roleId !== undefined && data.roleId !== null) {
-    if (isNaN(parseInt(data.roleId)) || parseInt(data.roleId) <= 0) {
-      errors.push("Role ID must be a positive number if provided");
     }
   }
 
@@ -1594,7 +1589,7 @@ const validateUnitRoleAssignmentInput = (
 export class UnitRoleAssignmentController {
   /**
    * Get all unit role assignments with optional filtering
-   * GET /unit-role-assignments?unitId=1&roleCategoryId=2&roleId=3&seniorityLevelId=4&assetId=5
+   * GET /unit-role-assignments?name=Assignment&roleCategoryId=2&seniorityLevelId=4&assetId=5
    */
   static async getAllUnitRoleAssignments(
     req: Request,
@@ -1603,24 +1598,14 @@ export class UnitRoleAssignmentController {
     const filters: any = {};
 
     // Parse query parameters
-    if (req.query.unitId) {
-      const unitId = parseInt(req.query.unitId as string);
-      if (!isNaN(unitId) && unitId > 0) {
-        filters.unitId = unitId;
-      }
+    if (req.query.name) {
+      filters.name = req.query.name as string;
     }
 
     if (req.query.roleCategoryId) {
       const roleCategoryId = parseInt(req.query.roleCategoryId as string);
       if (!isNaN(roleCategoryId) && roleCategoryId > 0) {
         filters.roleCategoryId = roleCategoryId;
-      }
-    }
-
-    if (req.query.roleId) {
-      const roleId = parseInt(req.query.roleId as string);
-      if (!isNaN(roleId) && roleId > 0) {
-        filters.roleId = roleId;
       }
     }
 
@@ -1702,7 +1687,7 @@ export class UnitRoleAssignmentController {
   }
 
   /**
-   * Create new unit role assignment(s)
+   * Create new unit role assignment
    * POST /unit-role-assignments
    */
   static async createUnitRoleAssignment(
@@ -1715,92 +1700,54 @@ export class UnitRoleAssignmentController {
       throw createError("Validation failed", 400, validation.errors);
     }
 
-    // Determine unit IDs to process
-    let unitIds: number[];
-    if (req.body.unitIds && Array.isArray(req.body.unitIds)) {
-      unitIds = req.body.unitIds.map((id: any) => parseInt(id));
-    } else {
-      // Backward compatibility with single unitId
-      unitIds = [parseInt(req.body.unitId)];
+    // Check if assignment with same name and combination already exists
+    const existingAssignment = await UnitRoleAssignmentService.assignmentExists(
+      req.body.name.trim(),
+      req.body.roleCategoryId ? parseInt(req.body.roleCategoryId) : undefined,
+      req.body.seniorityLevelId ? parseInt(req.body.seniorityLevelId) : undefined,
+      req.body.assetId ? parseInt(req.body.assetId) : undefined
+    );
+
+    if (existingAssignment) {
+      throw createError(
+        "Unit role assignment with this name and combination already exists",
+        409
+      );
     }
 
-    const roleCategoryId = req.body.roleCategoryId ? parseInt(req.body.roleCategoryId) : undefined;
-    const roleId = req.body.roleId ? parseInt(req.body.roleId) : undefined;
-    const seniorityLevelId = req.body.seniorityLevelId ? parseInt(req.body.seniorityLevelId) : undefined;
-    const assetId = req.body.assetId ? parseInt(req.body.assetId) : undefined;
-
-    console.log('Controller assignment data:', {
-      unitIds,
-      roleCategoryId,
-      roleId,
-      seniorityLevelId,
-      assetId
-    });
-
-    // Try to create assignments directly and handle conflicts as they occur
-    const validUnitIds = unitIds; // Try all units first
-
-    // Create assignments for all valid unit IDs one by one
-    const createdAssignments = [];
-    const failedAssignments = [];
-    
-    for (const unitId of validUnitIds) {
-      try {
-        const assignmentData: NewUnitRoleAssignment = {
-          unitId,
-          roleCategoryId: roleCategoryId || null,
-          roleId: roleId || null,
-          seniorityLevelId: seniorityLevelId || null,
-          assetId: assetId || null,
-        };
-
-        console.log(`Creating assignment for unit ${unitId}:`, assignmentData);
-        const newAssignment = await UnitRoleAssignmentService.createUnitRoleAssignment(assignmentData);
-        createdAssignments.push(newAssignment);
-        console.log(`Successfully created assignment for unit ${unitId}`);
-      } catch (error: any) {
-        console.error(`Failed to create assignment for unit ${unitId}:`, error);
-        
-        // Check if it's a unique constraint violation
-        if (error.message && error.message.includes('unique')) {
-          failedAssignments.push({
-            unitId,
-            error: `Unit ID ${unitId} already has this assignment combination`
-          });
-        } else {
-          failedAssignments.push({
-            unitId,
-            error: error instanceof Error ? error.message : 'Unknown error'
-          });
+    // Prepare unitIds array
+    let unitIds: number[] | null = null;
+    if (req.body.unitIds !== undefined && req.body.unitIds !== null) {
+      if (Array.isArray(req.body.unitIds)) {
+        unitIds = req.body.unitIds.map((id: any) => parseInt(id));
+      } else if (typeof req.body.unitIds === 'string') {
+        // Handle case where array is sent as string
+        try {
+          const parsed = JSON.parse(req.body.unitIds);
+          if (Array.isArray(parsed)) {
+            unitIds = parsed.map((id: any) => parseInt(id));
+          }
+        } catch (e) {
+          // If parsing fails, treat as empty array
+          unitIds = [];
         }
       }
     }
 
-    // Determine response status and message
-    const totalRequested = validUnitIds.length;
-    const successCount = createdAssignments.length;
-    const failureCount = failedAssignments.length;
-    
-    let responseMessage;
-    let responseStatus = 201;
-    
-    if (failureCount === 0) {
-      responseMessage = `Unit role assignment(s) created successfully for ${successCount} unit(s)`;
-    } else if (successCount === 0) {
-      responseMessage = `Failed to create any unit role assignments`;
-      responseStatus = 500;
-    } else {
-      responseMessage = `Unit role assignment(s) created for ${successCount} unit(s), ${failureCount} failed`;
-      responseStatus = 207; // Multi-Status
-    }
+    const assignmentData: NewUnitRoleAssignment = {
+      name: req.body.name.trim(),
+      unitIds,
+      roleCategoryId: req.body.roleCategoryId ? parseInt(req.body.roleCategoryId) : null,
+      seniorityLevelId: req.body.seniorityLevelId ? parseInt(req.body.seniorityLevelId) : null,
+      assetId: req.body.assetId ? parseInt(req.body.assetId) : null,
+    };
 
-    res.status(responseStatus).json({
-      success: successCount > 0,
-      message: responseMessage,
-      data: createdAssignments,
-      count: successCount,
-      totalRequested,
-      failedAssignments: failedAssignments.length > 0 ? failedAssignments : undefined,
+    const newAssignment = await UnitRoleAssignmentService.createUnitRoleAssignment(assignmentData);
+
+    res.status(201).json({
+      success: true,
+      message: "Unit role assignment created successfully",
+      data: newAssignment,
     });
   }
 
@@ -1833,9 +1780,8 @@ export class UnitRoleAssignmentController {
     // Check if updated combination would conflict with existing assignments (excluding current one)
     const conflictingAssignment =
       await UnitRoleAssignmentService.assignmentExists(
-        parseInt(req.body.unitId),
+        req.body.name.trim(),
         req.body.roleCategoryId ? parseInt(req.body.roleCategoryId) : undefined,
-        req.body.roleId ? parseInt(req.body.roleId) : undefined,
         req.body.seniorityLevelId
           ? parseInt(req.body.seniorityLevelId)
           : undefined,
@@ -1844,17 +1790,36 @@ export class UnitRoleAssignmentController {
 
     if (conflictingAssignment && conflictingAssignment.id !== assignmentId) {
       throw createError(
-        "Unit role assignment with this combination already exists",
+        "Unit role assignment with this name and combination already exists",
         409
       );
     }
 
+    // Prepare unitIds array
+    let unitIds: number[] | null = null;
+    if (req.body.unitIds !== undefined && req.body.unitIds !== null) {
+      if (Array.isArray(req.body.unitIds)) {
+        unitIds = req.body.unitIds.map((id: any) => parseInt(id));
+      } else if (typeof req.body.unitIds === 'string') {
+        // Handle case where array is sent as string
+        try {
+          const parsed = JSON.parse(req.body.unitIds);
+          if (Array.isArray(parsed)) {
+            unitIds = parsed.map((id: any) => parseInt(id));
+          }
+        } catch (e) {
+          // If parsing fails, treat as empty array
+          unitIds = [];
+        }
+      }
+    }
+
     const updateData: UpdateUnitRoleAssignment = {
-      unitId: parseInt(req.body.unitId),
+      name: req.body.name.trim(),
+      unitIds,
       roleCategoryId: req.body.roleCategoryId
         ? parseInt(req.body.roleCategoryId)
         : null,
-      roleId: req.body.roleId ? parseInt(req.body.roleId) : null,
       seniorityLevelId: req.body.seniorityLevelId
         ? parseInt(req.body.seniorityLevelId)
         : null,

@@ -27,6 +27,7 @@ import AssessmentsPage from "@/pages/admin/assessmentsPage";
 import QuestionsPage from "@/pages/admin/questionsPage";
 import RolesPage from "@/pages/admin/rolesPage";
 import RoleCategoriesPage from "@/pages/admin/roleCategoriesPage";
+import LearningPathPage from "@/pages/admin/learningPathPage";
 
 // Sub-Admin Pages
 import SubAdminLayout from "@/pages/sub-admin/subAdminLayout";
@@ -117,6 +118,10 @@ function App() {
                       <Route
                         path="role-categories"
                         element={<RoleCategoriesPage />}
+                      />
+                      <Route
+                        path="learning-path"
+                        element={<LearningPathPage />}
                       />
                       <Route path="media" element={<MediaPage />} />
                     </Routes>
@@ -226,7 +231,10 @@ function App() {
                 }
               />
             </Route>
-            <Route path="/initial-assessment" element={<ExistingUserTestPage />} />
+            <Route
+              path="/initial-assessment"
+              element={<ExistingUserTestPage />}
+            />
             <Route
               path="/profile"
               element={
@@ -235,7 +243,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
 
             {/* Catch-all route for 404 */}
             <Route path="*" element={<NotFoundPage />} />

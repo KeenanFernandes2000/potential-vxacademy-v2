@@ -1,4 +1,4 @@
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { db } from "../db/connection";
 import {
   trainingAreas,
@@ -722,12 +722,16 @@ export class UnitRoleAssignmentService {
   static async createUnitRoleAssignment(
     data: NewUnitRoleAssignment
   ): Promise<UnitRoleAssignment> {
+    // Ensure unitIds is properly formatted as JSON array
+    const processedData = {
+      ...data,
+      unitIds: data.unitIds || null, // Ensure it's either an array or null
+      updatedAt: new Date(),
+    };
+
     const result = await db
       .insert(unitRoleAssignments)
-      .values({
-        ...data,
-        updatedAt: new Date(),
-      })
+      .values(processedData)
       .returning();
 
     if (!result[0]) {
@@ -741,24 +745,21 @@ export class UnitRoleAssignmentService {
    * Get all unit role assignments with optional filtering
    */
   static async getAllUnitRoleAssignments(filters?: {
-    unitId?: number;
+    name?: string;
+    unitIds?: number[];
     roleCategoryId?: number;
-    roleId?: number;
     seniorityLevelId?: number;
     assetId?: number;
   }): Promise<UnitRoleAssignment[]> {
     const conditions = [];
 
-    if (filters?.unitId) {
-      conditions.push(eq(unitRoleAssignments.unitId, filters.unitId));
+    if (filters?.name) {
+      conditions.push(eq(unitRoleAssignments.name, filters.name));
     }
     if (filters?.roleCategoryId) {
       conditions.push(
         eq(unitRoleAssignments.roleCategoryId, filters.roleCategoryId)
       );
-    }
-    if (filters?.roleId) {
-      conditions.push(eq(unitRoleAssignments.roleId, filters.roleId));
     }
     if (filters?.seniorityLevelId) {
       conditions.push(
@@ -797,15 +798,21 @@ export class UnitRoleAssignmentService {
   }
 
   /**
-   * Get unit role assignments by unit ID
+   * Get unit role assignments by unit ID (searches within unitIds array)
    */
   static async getUnitRoleAssignmentsByUnitId(
     unitId: number
   ): Promise<UnitRoleAssignment[]> {
+    // Since unitIds is a JSON array, we need to use a different approach
+    // This will return assignments where the unitId is contained in the unitIds array
     return await db
       .select()
       .from(unitRoleAssignments)
-      .where(eq(unitRoleAssignments.unitId, unitId))
+      .where(
+        // Using SQL to check if unitId exists in the JSON array
+        // This is a simplified approach - you might need to adjust based on your database
+        sql`${unitRoleAssignments.unitIds} @> ${JSON.stringify([unitId])}`
+      )
       .orderBy(desc(unitRoleAssignments.createdAt));
   }
 
@@ -816,12 +823,16 @@ export class UnitRoleAssignmentService {
     id: number,
     data: UpdateUnitRoleAssignment
   ): Promise<UnitRoleAssignment> {
+    // Ensure unitIds is properly formatted as JSON array
+    const processedData = {
+      ...data,
+      unitIds: data.unitIds || null, // Ensure it's either an array or null
+      updatedAt: new Date(),
+    };
+
     const result = await db
       .update(unitRoleAssignments)
-      .set({
-        ...data,
-        updatedAt: new Date(),
-      })
+      .set(processedData)
       .where(eq(unitRoleAssignments.id, id))
       .returning();
 
@@ -863,19 +874,15 @@ export class UnitRoleAssignmentService {
    * Check if a specific assignment combination already exists
    */
   static async assignmentExists(
-    unitId: number,
+    name: string,
     roleCategoryId?: number,
-    roleId?: number,
     seniorityLevelId?: number,
     assetId?: number
   ): Promise<UnitRoleAssignment | null> {
-    const conditions = [eq(unitRoleAssignments.unitId, unitId)];
+    const conditions = [eq(unitRoleAssignments.name, name)];
 
     if (roleCategoryId !== undefined) {
       conditions.push(eq(unitRoleAssignments.roleCategoryId, roleCategoryId));
-    }
-    if (roleId !== undefined) {
-      conditions.push(eq(unitRoleAssignments.roleId, roleId));
     }
     if (seniorityLevelId !== undefined) {
       conditions.push(
