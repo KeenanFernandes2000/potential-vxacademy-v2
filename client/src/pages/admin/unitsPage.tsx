@@ -842,9 +842,15 @@ const UnitsPage = () => {
   };
 
   const EditUnitForm = () => {
+    // Find the course-unit relationship for this unit
+    const courseUnit = selectedUnit
+      ? courseUnits.find((cu: any) => cu.unitId === selectedUnit.id)
+      : null;
+    const currentCourseId = courseUnit ? courseUnit.courseId : null;
+
     const [formData, setFormData] = useState({
       name: selectedUnit?.name || "",
-      course_id: selectedUnit?.course_id?.toString() || "",
+      course_id: currentCourseId?.toString() || "",
       description: selectedUnit?.description || "",
       internal_note: selectedUnit?.internal_note || "",
       order: selectedUnit?.order?.toString() || "1",

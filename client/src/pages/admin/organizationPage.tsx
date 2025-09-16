@@ -257,6 +257,8 @@ const OrganizationPage = () => {
             return {
               id: organization.id,
               name: organization.name,
+              assetId: organization.assetId,
+              subAssetId: organization.subAssetId,
               assetName:
                 assetsResponse.data?.find(
                   (asset: any) => asset.id === organization.assetId
@@ -452,6 +454,8 @@ const OrganizationPage = () => {
         return {
           id: organization.id,
           name: organization.name,
+          assetId: organization.assetId,
+          subAssetId: organization.subAssetId,
           assetName:
             assetsResponse.data?.find(
               (asset: any) => asset.id === organization.assetId
@@ -670,7 +674,7 @@ const OrganizationPage = () => {
             onValueChange={handleAssetChange}
             required
           >
-            <SelectTrigger className="rounded-full bg-[#00d8cc]/30">
+            <SelectTrigger className="rounded-full bg-[#00d8cc]/30 w-full">
               <SelectValue placeholder="Select an asset" />
             </SelectTrigger>
             <SelectContent>
@@ -691,9 +695,8 @@ const OrganizationPage = () => {
               setFormData({ ...formData, subAssetId: value })
             }
             required
-            disabled={!formData.assetId}
           >
-            <SelectTrigger className="rounded-full bg-[#00d8cc]/30">
+            <SelectTrigger className="rounded-full bg-[#00d8cc]/30 w-full">
               <SelectValue placeholder="Select a sub asset" />
             </SelectTrigger>
             <SelectContent>

@@ -484,9 +484,8 @@ const ModulesPage = () => {
     const [formData, setFormData] = useState({
       name: selectedModule?.name || "",
       description: selectedModule?.description || "",
-      trainingArea: selectedModule?.trainingArea || "",
-      duration: selectedModule?.duration || "",
-      image_url: selectedModule?.image_url || "",
+      training_area_id: selectedModule?.trainingAreaId || "",
+      image_url: selectedModule?.imageUrl || "",
     });
     const [showInsertImage, setShowInsertImage] = useState(false);
 
@@ -523,28 +522,23 @@ const ModulesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_trainingArea">Training Area *</Label>
-          <Input
-            id="edit_trainingArea"
-            value={formData.trainingArea}
+          <Label htmlFor="edit_training_area_id">Training Area *</Label>
+          <select
+            id="edit_training_area_id"
+            value={formData.training_area_id}
             onChange={(e) =>
-              setFormData({ ...formData, trainingArea: e.target.value })
+              setFormData({ ...formData, training_area_id: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
             required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit_duration">Duration *</Label>
-          <Input
-            id="edit_duration"
-            value={formData.duration}
-            onChange={(e) =>
-              setFormData({ ...formData, duration: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            required
-          />
+          >
+            <option value="">Select a training area</option>
+            {trainingAreas.map((area) => (
+              <option key={area.id} value={area.id}>
+                {area.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="space-y-2">
           <Label>Image</Label>

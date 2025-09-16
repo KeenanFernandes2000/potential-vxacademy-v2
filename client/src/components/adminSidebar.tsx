@@ -14,6 +14,7 @@ import {
   Dashboard as DashboardIcon,
   AdminPanelSettings as RoleIcon,
   Category as CategoryIcon,
+  Timeline as LearningPathIcon,
 } from "@mui/icons-material";
 
 import {
@@ -39,6 +40,7 @@ const AdminSidebar = () => {
   const [roleManagementOpen, setRoleManagementOpen] = React.useState(true);
   const [organizationOpen, setOrganizationOpen] = React.useState(true);
   const [lmsOpen, setLmsOpen] = React.useState(true);
+  const [learningPathOpen, setLearningPathOpen] = React.useState(true);
   const location = useLocation();
   const { toggleSidebar, state } = useSidebar();
 
@@ -50,6 +52,7 @@ const AdminSidebar = () => {
       setRoleManagementOpen(true);
       setOrganizationOpen(true);
       setLmsOpen(true);
+      setLearningPathOpen(true);
     }
   }, [state]);
 
@@ -160,6 +163,15 @@ const AdminSidebar = () => {
       title: "Questions",
       icon: Quiz,
       url: "/admin/questions",
+      badge: null,
+    },
+  ];
+
+  const learningPathNavItems = [
+    {
+      title: "Learning Path",
+      icon: LearningPathIcon,
+      url: "/admin/learning-path",
       badge: null,
     },
   ];
@@ -305,6 +317,52 @@ const AdminSidebar = () => {
             <SidebarGroupContent>
               <SidebarMenu>
                 {roleManagementNavItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === item.url}
+                    >
+                      <Link to={item.url}>
+                        <item.icon sx={{ fontSize: 16 }} />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          )}
+        </SidebarGroup>
+
+        <SidebarSeparator />
+
+        {/* Learning Path - Collapsible */}
+        <SidebarGroup>
+          <SidebarGroupLabel
+            asChild
+            className="cursor-pointer hover:bg-sidebar-accent"
+            onClick={() => setLearningPathOpen(!learningPathOpen)}
+          >
+            <button className="w-full text-left">
+              <div className="flex items-center justify-between">
+                <span>Learning Path</span>
+                <ChevronDown
+                  sx={{
+                    ml: "auto",
+                    transition: "transform 200ms",
+                    transform: learningPathOpen
+                      ? "rotate(180deg)"
+                      : "rotate(0deg)",
+                    fontSize: 16,
+                  }}
+                />
+              </div>
+            </button>
+          </SidebarGroupLabel>
+          {learningPathOpen && (
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {learningPathNavItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild

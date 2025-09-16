@@ -195,6 +195,7 @@ const joinPage = (props: Props) => {
   const navigate = useNavigate();
   const id = searchParams.get("id");
   const token = searchParams.get("token");
+  const type = searchParams.get("type");
 
   // Form 1 state (sub admin)
   const [form1Data, setForm1Data] = useState({
@@ -517,10 +518,10 @@ const joinPage = (props: Props) => {
         id,
         registrationData
       );
-
+      localStorage.setItem("userData", JSON.stringify(response.user));
+      localStorage.setItem("token", response.token);
       if (response.success) {
-        alert("Registration completed successfully! You can now log in.");
-        navigate("/login");
+        navigate("/sub-admin/dashboard");
       } else {
         alert(
           `Registration failed: ${response.message || "Please try again."}`
@@ -579,7 +580,6 @@ const joinPage = (props: Props) => {
             // Update local state with the new role
             setAllRoles((prev) => [...prev, roleResponse.data]);
 
-            console.log("New role created:", roleResponse.data);
           } else {
             throw new Error("Failed to create new role");
           }
@@ -614,8 +614,14 @@ const joinPage = (props: Props) => {
       );
 
       if (response.success) {
+        let userData = JSON.parse(localStorage.getItem("userData") || "{}");
+        if (type === "existing_joiner") {
+          navigate("/initial-assessment");
+        } else {
+          navigate("/user/dashboard");
+        }
         alert("Registration completed successfully! You can now log in.");
-        navigate("/login");
+        // navigate("/login");
       } else {
         alert(
           `Registration failed: ${response.message || "Please try again."}`
@@ -677,7 +683,8 @@ const joinPage = (props: Props) => {
       };
 
       const response = await api.createUser(userData);
-
+      localStorage.setItem("userData", JSON.stringify(response.user));
+      localStorage.setItem("token", response.token);
       if (response.success) {
         // Store the created user data for step 2
         setInvitationData((prev: any) => ({

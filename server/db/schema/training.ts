@@ -119,16 +119,12 @@ export const unitRoleAssignments = pgTable(
   "unit_role_assignments",
   {
     id: serial("id").primaryKey(),
-    unitId: integer("unit_id")
-      .notNull()
-      .references(() => units.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    unitIds: json("unit_ids").$type<number[] | null>(),
     roleCategoryId: integer("role_category_id").references(
       () => roleCategories.id,
       { onDelete: "set null" }
     ),
-    roleId: integer("role_id").references(() => roles.id, {
-      onDelete: "set null",
-    }),
     seniorityLevelId: integer("seniority_level_id").references(
       () => seniorityLevels.id,
       { onDelete: "set null" }
@@ -145,9 +141,8 @@ export const unitRoleAssignments = pgTable(
   },
   (table) => ({
     uniqueAssignment: unique("unique_unit_role_assignment").on(
-      table.unitId,
+      table.name,
       table.roleCategoryId,
-      table.roleId,
       table.seniorityLevelId,
       table.assetId
     ),
