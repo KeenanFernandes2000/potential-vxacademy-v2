@@ -11,8 +11,8 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - JWT_SECRET=${JWT_SECRET}
       - FRONTEND_URL=${FRONTEND_URL}
-    # volumes:
-    #   - /home/ftpDev/vxacademy/uploads:/app/server/uploads
+    volumes:
+      - /home/ftpDev/vxacademy/uploads:/app/server/uploads
 
   frontend:
     build:
