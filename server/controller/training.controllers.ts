@@ -1704,7 +1704,9 @@ export class UnitRoleAssignmentController {
     const existingAssignment = await UnitRoleAssignmentService.assignmentExists(
       req.body.name.trim(),
       req.body.roleCategoryId ? parseInt(req.body.roleCategoryId) : undefined,
-      req.body.seniorityLevelId ? parseInt(req.body.seniorityLevelId) : undefined,
+      req.body.seniorityLevelId
+        ? parseInt(req.body.seniorityLevelId)
+        : undefined,
       req.body.assetId ? parseInt(req.body.assetId) : undefined
     );
 
@@ -1716,11 +1718,11 @@ export class UnitRoleAssignmentController {
     }
 
     // Prepare unitIds array
-    let unitIds: number[] | null = null;
+    let unitIds: number[] = [];
     if (req.body.unitIds !== undefined && req.body.unitIds !== null) {
       if (Array.isArray(req.body.unitIds)) {
         unitIds = req.body.unitIds.map((id: any) => parseInt(id));
-      } else if (typeof req.body.unitIds === 'string') {
+      } else if (typeof req.body.unitIds === "string") {
         // Handle case where array is sent as string
         try {
           const parsed = JSON.parse(req.body.unitIds);
@@ -1737,12 +1739,17 @@ export class UnitRoleAssignmentController {
     const assignmentData: NewUnitRoleAssignment = {
       name: req.body.name.trim(),
       unitIds,
-      roleCategoryId: req.body.roleCategoryId ? parseInt(req.body.roleCategoryId) : null,
-      seniorityLevelId: req.body.seniorityLevelId ? parseInt(req.body.seniorityLevelId) : null,
+      roleCategoryId: req.body.roleCategoryId
+        ? parseInt(req.body.roleCategoryId)
+        : null,
+      seniorityLevelId: req.body.seniorityLevelId
+        ? parseInt(req.body.seniorityLevelId)
+        : null,
       assetId: req.body.assetId ? parseInt(req.body.assetId) : null,
     };
 
-    const newAssignment = await UnitRoleAssignmentService.createUnitRoleAssignment(assignmentData);
+    const newAssignment =
+      await UnitRoleAssignmentService.createUnitRoleAssignment(assignmentData);
 
     res.status(201).json({
       success: true,
@@ -1796,11 +1803,11 @@ export class UnitRoleAssignmentController {
     }
 
     // Prepare unitIds array
-    let unitIds: number[] | null = null;
+    let unitIds: number[] = [];
     if (req.body.unitIds !== undefined && req.body.unitIds !== null) {
       if (Array.isArray(req.body.unitIds)) {
         unitIds = req.body.unitIds.map((id: any) => parseInt(id));
-      } else if (typeof req.body.unitIds === 'string') {
+      } else if (typeof req.body.unitIds === "string") {
         // Handle case where array is sent as string
         try {
           const parsed = JSON.parse(req.body.unitIds);

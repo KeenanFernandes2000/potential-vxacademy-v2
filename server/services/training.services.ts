@@ -722,10 +722,10 @@ export class UnitRoleAssignmentService {
   static async createUnitRoleAssignment(
     data: NewUnitRoleAssignment
   ): Promise<UnitRoleAssignment> {
-    // Ensure unitIds is properly formatted as JSON array
+    // Ensure unitIds is properly formatted as integer array
     const processedData = {
       ...data,
-      unitIds: data.unitIds || null, // Ensure it's either an array or null
+      unitIds: data.unitIds || [], // Ensure it's either an array or empty array
       updatedAt: new Date(),
     };
 
@@ -823,10 +823,10 @@ export class UnitRoleAssignmentService {
     id: number,
     data: UpdateUnitRoleAssignment
   ): Promise<UnitRoleAssignment> {
-    // Ensure unitIds is properly formatted as JSON array
+    // Ensure unitIds is properly formatted as integer array
     const processedData = {
       ...data,
-      unitIds: data.unitIds || null, // Ensure it's either an array or null
+      unitIds: data.unitIds || [], // Ensure it's either an array or empty array
       updatedAt: new Date(),
     };
 
