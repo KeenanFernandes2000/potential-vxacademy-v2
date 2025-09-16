@@ -851,6 +851,9 @@ const SubAdminPage = () => {
   };
 
   const EditSubAdminForm = () => {
+    console.log("EditSubAdminForm rendered with assets:", assets);
+    console.log("EditSubAdminForm rendered with organizations:", organizations);
+
     const [formData, setFormData] = useState({
       first_name: selectedUser?.firstName || "",
       last_name: selectedUser?.lastName || "",
@@ -874,49 +877,62 @@ const SubAdminPage = () => {
 
     // Initialize selected values based on current user data
     useEffect(() => {
-      if (selectedUser) {
-        // Find organization ID
-        const org = organizations.find(
-          (o) => o.name === selectedUser.organization
-        );
-        if (org) {
-          setSelectedOrgId(org.id);
-          // Fetch sub-organizations for this organization
+      if (selectedUser && organizations.length > 0 && assets.length > 0) {
+        // Step 1: Find and set asset ID
+        const asset = assets.find((a) => a.name === selectedUser.asset);
+        if (asset) {
+          setSelectedAssetId(asset.id);
+
+          // Step 2: Find organization by name first (simplified approach)
+          const org = organizations.find(
+            (o) => o.name === selectedUser.organization
+          );
+
+          if (org) {
+            setSelectedOrgId(org.id);
+          }
+
+          // Step 3: Fetch sub-assets for this asset
           if (token) {
+            console.log("Fetching sub-assets for assetId:", asset.id);
+            api
+              .getSubAssetsByAssetId(asset.id, token)
+              .then((response) => {
+                console.log("Sub-assets response:", response);
+                setFormSubAssets(response.data || []);
+
+                // Step 4: Find and set sub-asset ID
+                const subAsset = response.data?.find(
+                  (sa: any) => sa.name === selectedUser.subAsset
+                );
+
+                if (subAsset) {
+                  setSelectedSubAssetId(subAsset.id);
+                }
+              })
+              .catch((error) => {
+                console.error("Error fetching sub-assets:", error);
+              });
+          }
+
+          // Step 5: Fetch sub-organizations if we have an organization
+          if (org && token) {
             api
               .getSubOrganizationsByOrganizationId(org.id, token)
               .then((response) => {
                 setFormSubOrganizations(response.data || []);
-                // Find sub-organization ID
+
+                // Step 6: Find and set sub-organization ID
                 const subOrg = response.data?.find(
                   (so: any) => so.name === selectedUser.subOrganization
                 );
-                if (subOrg) setSelectedSubOrgId(subOrg.id);
+
+                if (subOrg) {
+                  setSelectedSubOrgId(subOrg.id);
+                }
               })
               .catch((error) => {
                 console.error("Error fetching sub-organizations:", error);
-              });
-          }
-        }
-
-        // Find asset ID
-        const asset = assets.find((a) => a.name === selectedUser.asset);
-        if (asset) {
-          setSelectedAssetId(asset.id);
-          // Fetch sub-assets for this asset
-          if (token) {
-            api
-              .getSubAssetsByAssetId(asset.id, token)
-              .then((response) => {
-                setFormSubAssets(response.data || []);
-                // Find sub-asset ID
-                const subAsset = response.data?.find(
-                  (sa: any) => sa.name === selectedUser.subAsset
-                );
-                if (subAsset) setSelectedSubAssetId(subAsset.id);
-              })
-              .catch((error) => {
-                console.error("Error fetching sub-assets:", error);
               });
           }
         }
@@ -977,7 +993,15 @@ const SubAdminPage = () => {
 
       if (token) {
         try {
+          console.log(
+            "EditSubAdminForm: About to fetch sub-assets for assetId:",
+            assetId
+          );
           const response = await api.getSubAssetsByAssetId(assetId, token);
+          console.log(
+            "EditSubAdminForm: Received sub-assets response:",
+            response
+          );
           setFormSubAssets(response.data || []);
         } catch (error) {
           console.error("Error fetching sub-assets:", error);
@@ -986,9 +1010,17 @@ const SubAdminPage = () => {
     };
 
     const handleSubAssetChange = async (subAssetId: number) => {
+      console.log(
+        "EditSubAdminForm: handleSubAssetChange called with:",
+        subAssetId
+      );
       setSelectedSubAssetId(subAssetId);
       const selectedSubAsset = formSubAssets.find(
         (subAsset) => subAsset.id === subAssetId
+      );
+      console.log(
+        "EditSubAdminForm: Found selected sub-asset:",
+        selectedSubAsset
       );
       setFormData({
         ...formData,
@@ -1075,7 +1107,6 @@ const SubAdminPage = () => {
             value={selectedSubAssetId?.toString() || ""}
             onValueChange={(value) => handleSubAssetChange(parseInt(value))}
             required
-            disabled={!selectedAssetId || formSubAssets.length === 0}
           >
             <SelectTrigger className="w-full rounded-full">
               <SelectValue
@@ -1100,7 +1131,6 @@ const SubAdminPage = () => {
             value={selectedOrgId?.toString() || ""}
             onValueChange={(value) => handleOrgChange(parseInt(value))}
             required
-            disabled={!selectedAssetId || !selectedSubAssetId}
           >
             <SelectTrigger className="w-full rounded-full">
               <SelectValue
@@ -1132,7 +1162,6 @@ const SubAdminPage = () => {
           <Select
             value={selectedSubOrgId?.toString() || ""}
             onValueChange={(value) => handleSubOrgChange(parseInt(value))}
-            disabled={!selectedOrgId || formSubOrganizations.length === 0}
           >
             <SelectTrigger className="w-full rounded-full">
               <SelectValue
