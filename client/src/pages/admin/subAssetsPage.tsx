@@ -455,7 +455,7 @@ const SubAssetsPage = () => {
   const EditSubAssetForm = () => {
     const [formData, setFormData] = useState({
       name: selectedSubAsset?.name || "",
-      parentAsset: selectedSubAsset?.parentAsset || "",
+      parentAsset: selectedSubAsset?.assetId || "",
     });
 
     const handleSubmit = async (e: React.FormEvent) => {

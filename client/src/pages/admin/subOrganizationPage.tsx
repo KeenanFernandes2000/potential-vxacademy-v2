@@ -208,6 +208,7 @@ const SubOrganizationPage = () => {
           subOrganizationsResponse.data?.map((subOrg: any) => ({
             id: subOrg.id,
             name: subOrg.name,
+            organizationId: subOrg.organizationId,
             organizationName:
               organizationsResponse.data?.find(
                 (org: any) => org.id === subOrg.organizationId
@@ -386,6 +387,7 @@ const SubOrganizationPage = () => {
       updatedResponse.data?.map((subOrg: any) => ({
         id: subOrg.id,
         name: subOrg.name,
+        organizationId: subOrg.organizationId,
         organizationName:
           organizationsResponse.data?.find(
             (org: any) => org.id === subOrg.organizationId
@@ -516,7 +518,7 @@ const SubOrganizationPage = () => {
             }
             required
           >
-            <SelectTrigger className="rounded-full bg-[#00d8cc]/30">
+            <SelectTrigger className="rounded-full bg-[#00d8cc]/30 w-full">
               <SelectValue placeholder="Select an organization" />
             </SelectTrigger>
             <SelectContent>

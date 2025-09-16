@@ -336,15 +336,15 @@ const CoursesPage = () => {
 
       // Prepare data for API
       const courseData = {
-        moduleId: parseInt(formData.moduleId),
+        moduleId: parseInt(formData.module_id),
         name: formData.name,
         description: formData.description,
-        imageUrl: formData.imageUrl || "",
-        internalNote: formData.internalNote || "",
+        imageUrl: formData.image_url || "",
+        internalNote: formData.internal_note || "",
         duration: parseInt(formData.duration),
-        showDuration: formData.showDuration === "true",
+        showDuration: formData.show_duration,
         level: formData.level,
-        showLevel: formData.showLevel === "true",
+        showLevel: formData.show_level,
       };
 
       const response = await api.updateCourse(
@@ -648,13 +648,13 @@ const CoursesPage = () => {
     const [formData, setFormData] = useState({
       name: selectedCourse?.name || "",
       description: selectedCourse?.description || "",
-      moduleId: selectedCourse?.moduleId?.toString() || "",
-      imageUrl: selectedCourse?.imageUrl || "",
-      internalNote: selectedCourse?.internalNote || "",
+      module_id: selectedCourse?.moduleId?.toString() || "",
+      image_url: selectedCourse?.imageUrl || "",
+      internal_note: selectedCourse?.internalNote || "",
       duration: selectedCourse?.duration?.toString() || "",
-      showDuration: selectedCourse?.showDuration || true,
-      level: selectedCourse?.level || "",
-      showLevel: selectedCourse?.showLevel || true,
+      show_duration: selectedCourse?.showDuration || true,
+      level: selectedCourse?.level || "beginner",
+      show_level: selectedCourse?.showLevel || true,
     });
     const [showInsertImage, setShowInsertImage] = useState(false);
 
@@ -664,7 +664,7 @@ const CoursesPage = () => {
     };
 
     const handleImageInsert = (imageUrl: string) => {
-      setFormData({ ...formData, imageUrl: imageUrl });
+      setFormData({ ...formData, image_url: imageUrl });
     };
 
     return (
@@ -694,33 +694,39 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_moduleId">Module ID *</Label>
-          <Input
-            id="edit_moduleId"
-            type="number"
-            value={formData.moduleId}
+          <Label htmlFor="edit_module_id">Module *</Label>
+          <select
+            id="edit_module_id"
+            value={formData.module_id}
             onChange={(e) =>
-              setFormData({ ...formData, moduleId: e.target.value })
+              setFormData({ ...formData, module_id: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
             required
-          />
+          >
+            <option value="">Select a module</option>
+            {modules.map((module) => (
+              <option key={module.id} value={module.id}>
+                {module.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="space-y-2">
           <Label>Image</Label>
           <InsertImage
             onImageInsert={handleImageInsert}
             onClose={() => setShowInsertImage(false)}
-            currentImageUrl={formData.imageUrl}
+            currentImageUrl={formData.image_url}
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_internalNote">Internal Note</Label>
+          <Label htmlFor="edit_internal_note">Internal Note</Label>
           <Input
-            id="edit_internalNote"
-            value={formData.internalNote}
+            id="edit_internal_note"
+            value={formData.internal_note}
             onChange={(e) =>
-              setFormData({ ...formData, internalNote: e.target.value })
+              setFormData({ ...formData, internal_note: e.target.value })
             }
             className="rounded-full bg-[#00d8cc]/30"
           />
@@ -730,17 +736,17 @@ const CoursesPage = () => {
           <div className="flex items-center space-x-2">
             <Switch
               id="edit_showDuration"
-              checked={formData.showDuration}
+              checked={formData.show_duration}
               onCheckedChange={(checked) =>
-                setFormData({ ...formData, showDuration: checked })
+                setFormData({ ...formData, show_duration: checked })
               }
             />
             <Label htmlFor="edit_showDuration" className="text-sm">
-              {formData.showDuration ? "Show" : "Hide"}
+              {formData.show_duration ? "Show" : "Hide"}
             </Label>
           </div>
         </div>
-        {formData.showDuration && (
+        {formData.show_duration && (
           <div className="space-y-2">
             <Label htmlFor="edit_duration">Duration (minutes) *</Label>
             <Input
@@ -760,17 +766,17 @@ const CoursesPage = () => {
           <div className="flex items-center space-x-2">
             <Switch
               id="edit_showLevel"
-              checked={formData.showLevel}
+              checked={formData.show_level}
               onCheckedChange={(checked) =>
-                setFormData({ ...formData, showLevel: checked })
+                setFormData({ ...formData, show_level: checked })
               }
             />
             <Label htmlFor="edit_showLevel" className="text-sm">
-              {formData.showLevel ? "Show" : "Hide"}
+              {formData.show_level ? "Show" : "Hide"}
             </Label>
           </div>
         </div>
-        {formData.showLevel && (
+        {formData.show_level && (
           <div className="space-y-2">
             <Label htmlFor="edit_level">Level *</Label>
             <Select

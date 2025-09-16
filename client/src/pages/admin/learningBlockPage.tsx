@@ -611,15 +611,15 @@ const LearningBlockPage = () => {
 
   const EditLearningBlockForm = () => {
     const [formData, setFormData] = useState({
-      unit_id: selectedLearningBlock?.unit_id?.toString() || "",
+      unit_id: selectedLearningBlock?.unitId?.toString() || "",
       type: selectedLearningBlock?.type || "text",
       title: selectedLearningBlock?.title || "",
       content: selectedLearningBlock?.content || "",
-      video_url: selectedLearningBlock?.video_url || "",
-      image_url: selectedLearningBlock?.image_url || "",
-      interactive_data: selectedLearningBlock?.interactive_data || "",
+      video_url: selectedLearningBlock?.videoUrl || "",
+      image_url: selectedLearningBlock?.imageUrl || "",
+      interactive_data: selectedLearningBlock?.interactiveData || "",
       order: selectedLearningBlock?.order?.toString() || "1",
-      xp_points: selectedLearningBlock?.xp_points?.toString() || "10",
+      xp_points: selectedLearningBlock?.xpPoints?.toString() || "10",
     });
 
     const [editorState, setEditorState] = useState<any>(null);
