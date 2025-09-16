@@ -483,7 +483,7 @@ const LearningPathsPage = () => {
       // Prepare data for API
       const learningPathData = {
         name: formData.name,
-        unitIds: [], // Empty array for now, can be populated later
+        unitIds: null, // Set to null by default, can be populated later
         roleCategoryId: formData.roleCategoriesId
           ? parseInt(formData.roleCategoriesId)
           : null,
