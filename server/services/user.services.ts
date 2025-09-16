@@ -617,13 +617,12 @@ export class InvitationService {
       subAdmin: any;
     };
   } | null> {
-    const tokenHash = this.hashToken(token);
-
+    
     // Get invitation with sub-admin details
     const [invitation] = await db
       .select()
       .from(invitations)
-      .where(eq(invitations.tokenHash, tokenHash))
+      .where(eq(invitations.tokenHash, token))
       .limit(1);
 
     if (!invitation) {
