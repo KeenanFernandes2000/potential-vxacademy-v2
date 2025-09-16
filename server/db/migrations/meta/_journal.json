@@ -8,6 +8,13 @@
       "when": 1758027152242,
       "tag": "0000_gray_steel_serpent",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1758032151357,
+      "tag": "0001_tan_proemial_gods",
+      "breakpoints": true
     }
   ]
 }
