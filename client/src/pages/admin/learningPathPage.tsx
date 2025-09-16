@@ -567,7 +567,6 @@ const LearningPathsPage = () => {
       learningPathsResponse.data?.map((learningPath: any) => ({
         id: learningPath.id,
         name: learningPath.roleName || learningPath.name,
-        categoryId: learningPath.roleCategoryId,
         categoryName: categoryMap.get(learningPath.roleCategoryId) || "Unknown",
         actions: (
           <div className="flex gap-1">
@@ -688,18 +687,38 @@ const LearningPathsPage = () => {
       setSeniorityLevels(seniorityResponse.data || []);
       setAssets(assetsResponse.data || []);
 
-      // Transform and set initial filtered units
-      const transformedUnits = transformUnitsData(
+      // First, load existing units from the selected role's unitIds
+      const existingUnitIds = role.unitIds || [];
+      const assignedUnits = (unitsResponse.data || []).filter((unit: any) =>
+        existingUnitIds.includes(unit.id)
+      );
+
+      // Transform the assigned units to include related information
+      const transformedAssignedUnits = transformUnitsData(
+        assignedUnits,
+        courseUnitsResponse.data || [],
+        coursesResponse.data || [],
+        modulesResponse.data || [],
+        trainingAreasResponse.data || []
+      );
+
+      setExistingUnits(transformedAssignedUnits);
+
+      // Transform all units and then filter out existing ones
+      const allTransformedUnits = transformUnitsData(
         unitsResponse.data || [],
         courseUnitsResponse.data || [],
         coursesResponse.data || [],
         modulesResponse.data || [],
         trainingAreasResponse.data || []
       );
-      setFilteredUnits(transformedUnits);
 
-      // Fetch existing assignments for this role
-      await fetchExistingAssignments();
+      // Filter out units that are already assigned
+      const availableUnits = allTransformedUnits.filter(
+        (unit: any) => !existingUnitIds.includes(unit.id)
+      );
+
+      setFilteredUnits(availableUnits);
     } catch (error) {
       console.error("Error fetching data for assign units modal:", error);
       setError("Failed to load data for unit assignment");
@@ -754,13 +773,72 @@ const LearningPathsPage = () => {
       newFilters.courseId = "";
     }
 
-    // Apply filters to units
+    // Apply filters to both existing and available units
     applyFiltersToUnits(newFilters);
+    applyFiltersToExistingUnits(newFilters);
+  };
 
-    // Fetch existing assignments when seniority or asset filters change
-    if (filterType === "seniorityId" || filterType === "assetId") {
-      await fetchExistingAssignments(newFilters);
+  // Apply filters to existing units
+  const applyFiltersToExistingUnits = (currentFilters: any) => {
+    if (!selectedRole) return;
+
+    // Get existing unit IDs from the selected learning path
+    const existingUnitIds = selectedRole.unitIds || [];
+
+    // Get unit details for existing assignments
+    const assignedUnits = units.filter((unit) =>
+      existingUnitIds.includes(unit.id)
+    );
+
+    // Apply the same filtering logic as available units
+    let filtered = assignedUnits;
+
+    if (currentFilters.trainingAreaId) {
+      const filteredModules = modules.filter(
+        (m: any) => m.trainingAreaId === parseInt(currentFilters.trainingAreaId)
+      );
+      const filteredCourses = courses.filter((c: any) =>
+        filteredModules.some((m: any) => m.id === c.moduleId)
+      );
+      const filteredCourseUnits = courseUnits.filter((cu: any) =>
+        filteredCourses.some((c: any) => c.id === cu.courseId)
+      );
+      filtered = filtered.filter((u: any) =>
+        filteredCourseUnits.some((cu: any) => cu.unitId === u.id)
+      );
     }
+
+    if (currentFilters.moduleId) {
+      const filteredCourses = courses.filter(
+        (c: any) => c.moduleId === parseInt(currentFilters.moduleId)
+      );
+      const filteredCourseUnits = courseUnits.filter((cu: any) =>
+        filteredCourses.some((c: any) => c.id === cu.courseId)
+      );
+      filtered = filtered.filter((u: any) =>
+        filteredCourseUnits.some((cu: any) => cu.unitId === u.id)
+      );
+    }
+
+    if (currentFilters.courseId) {
+      const filteredCourseUnits = courseUnits.filter(
+        (cu: any) => cu.courseId === parseInt(currentFilters.courseId)
+      );
+      filtered = filtered.filter((u: any) =>
+        filteredCourseUnits.some((cu: any) => cu.unitId === u.id)
+      );
+    }
+
+    // Transform the filtered existing units
+    const transformedExistingUnits = transformUnitsData(
+      filtered,
+      courseUnits,
+      courses,
+      modules,
+      trainingAreas
+    );
+
+    setExistingUnits(transformedExistingUnits);
   };
 
   // Apply filters to units
@@ -903,6 +981,12 @@ const LearningPathsPage = () => {
       );
 
       if (response.success) {
+        // Update the selectedRole with the new unitIds
+        setSelectedRole({
+          ...selectedRole,
+          unitIds: allUnitIds,
+        });
+
         // Show success message
         setError("");
         alert(
@@ -976,6 +1060,18 @@ const LearningPathsPage = () => {
       );
 
       if (response.success) {
+        // Update the selectedRole with the new unitIds
+        setSelectedRole({
+          ...selectedRole,
+          unitIds: updatedUnitIds,
+        });
+
+        // Refresh the existing units display
+        applyFiltersToExistingUnits(filters);
+
+        // Refresh the available units to include the removed unit
+        applyFiltersToUnits(filters);
+
         // Refresh the learning path list to show updated data
         await refreshLearningPathList();
         setError("");
