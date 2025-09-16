@@ -348,50 +348,6 @@ const CertificateDialog: React.FC<CertificateDialogProps> = ({
     }
   };
 
-  // Download certificate as image using @react-pdf/renderer
-  const handleDownloadImage = async () => {
-    if (!user) return;
-
-    setIsDownloadingImage(true);
-
-    try {
-      // Dynamically import @react-pdf/renderer to avoid HMR issues
-      const { pdf } = await import("@react-pdf/renderer");
-
-      // Create the PDF document
-      const doc = (
-        <CertificatePDF
-          user={user}
-          courseName={courseName}
-          completionDate={completionDate}
-          certificateId={certificateId}
-        />
-      );
-
-      // Generate PDF blob
-      const blob = await pdf(doc).toBlob();
-
-      // Create download link for PDF (since @react-pdf/renderer generates PDFs)
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `VX-Academy-Certificate-${user.firstName}-${user.lastName}.pdf`;
-
-      // Trigger download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // Clean up
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error generating image:", error);
-      alert("Error generating image. Please try again.");
-    } finally {
-      setIsDownloadingImage(false);
-    }
-  };
-
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -516,19 +472,6 @@ const CertificateDialog: React.FC<CertificateDialogProps> = ({
               className="bg-[#003451] text-white px-6 py-2 hover:bg-[#004d6b] transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isDownloading ? "Generating PDF..." : "Download PDF"}
-            </Button>
-            <Button
-              onClick={handleDownloadImage}
-              disabled={isDownloading || isDownloadingImage}
-              className="bg-[#00d8cc] text-black px-6 py-2 hover:bg-[#00d8cc]/80 transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isDownloadingImage ? "Generating PDF..." : "Download PDF (Alt)"}
-            </Button>
-            <Button
-              onClick={() => window.print()}
-              className="bg-gray-600 text-white px-6 py-2 hover:bg-gray-700 transition-colors duration-200 font-medium"
-            >
-              Print Certificate
             </Button>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import {
@@ -10,113 +10,184 @@ import {
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Label } from "../../components/ui/label";
 import CertificateDialog from "../../components/CertificateDialog";
+import { useAuth } from "../../hooks/useAuth";
+
+// API object for progress operations
+const api = {
+  async completeLearningBlock(
+    userId: number,
+    learningBlockId: number,
+    token: string
+  ) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/progress/learning-blocks/complete`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId,
+            learningBlockId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to complete learning block:", error);
+      throw error;
+    }
+  },
+
+  async getUserLearningBlockProgress(userId: number, token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/progress/learning-blocks/${userId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to get learning block progress:", error);
+      throw error;
+    }
+  },
+};
 
 // Dummy MCQ data
 const quizData = [
-    {
-      id: 1,
-      question: "What is the Al Midhyaf Code of Conduct?",
-      options: [
-        "To give discounts to visitors",
-        "To guide only airline staff",
-        "A guide for all frontliners to demonstrate the best Emirati values and behaviours",
-        "A set of rules only for international tourists",
-      ],
-      correctAnswer: 2, // A guide for all frontliners...
-    },
-    {
-      id: 2,
-      question: "What does Al Midhyaf mean?",
-      options: [
-        "The guest who is welcomed",
-        "The one who serves only food",
-        "The one who guides tourists",
-        "The one who hosts - representing warmth, generosity, and dignity - values deeply rooted in Emirati tradition",
-      ],
-      correctAnswer: 3, // The one who hosts...
-    },
-    {
-      id: 3,
-      question: "What do the letters GEM stand for?",
-      options: [
-        "Growth, Energy, Motivation",
-        "Genuine, Enriching, Memorable",
-        "Gratitude, Empathy, Mindful",
-        "Global, Easy, Modern",
-      ],
-      correctAnswer: 1, // Genuine, Enriching, Memorable
-    },
-    {
-      id: 4,
-      question: "How can frontliners influence the sensory environment?",
-      options: [
-        "By focusing only on security",
-        "Through small, intentional choices like music, smiles, and traditional treats",
-        "By reducing guest interaction",
-        "By directing guests away from sensory elements",
-      ],
-      correctAnswer: 1, // Through small, intentional choices...
-    },
-    {
-      id: 5,
-      question:
-        "Which Emirati words should be used to welcome, bid farewell, and thank a guest?",
-      options: [
-        "Hayyakum, Famaanilla, and Shukran",
-        "Famaanilla, Inshallah, Shukran",
-        "Marhaba, Hayyakum, Inshallah",
-        "As-salamu alaykum, Inshallah, Famaanilla",
-      ],
-      correctAnswer: 0, // Hayyakum, Famaanilla, and Shukran
-    },
-    {
-      id: 6,
-      question: "How can frontliners demonstrate tolerance towards guests?",
-      options: [
-        "Ignore cultural differences",
-        "Respect and celebrate all backgrounds",
-        "Avoid eye contact with guests",
-        "Serve only familiar cultures",
-      ],
-      correctAnswer: 1, // Respect and celebrate all backgrounds
-    },
-    {
-      id: 7,
-      question: "How can frontliners share knowledge?",
-      options: [
-        "Share interesting stories and facts about Abu Dhabi",
-        "Only talk about international brands",
-        "Avoid questions from guests",
-        "Say the same thing to every guest",
-      ],
-      correctAnswer: 0, // Share interesting stories and facts about Abu Dhabi
-    },
-    {
-      id: 8,
-      question: "What is adaptability in service?",
-      options: [
-        "Adjust communication and offer alternatives when needed",
-        "Give the same answer to everyone",
-        "Ignore feedback",
-        "Stay rigid in communication",
-      ],
-      correctAnswer: 0, // Adjust communication and offer alternatives when needed
-    },
-    {
-      id: 9,
-      question:
-        "What is the best way for frontliners to show integrity in their service?",
-      options: [
-        "Hide mistakes from guests",
-        "Always be honest with guests, admit mistakes, and correct them quickly",
-        "Promise services that are not available",
-        "Recommend personal contacts secretly",
-      ],
-      correctAnswer: 1, // Always be honest...
-    },
-  ];
+  {
+    id: 1,
+    question: "What is the Al Midhyaf Code of Conduct?",
+    options: [
+      "To give discounts to visitors",
+      "To guide only airline staff",
+      "A guide for all frontliners to demonstrate the best Emirati values and behaviours",
+      "A set of rules only for international tourists",
+    ],
+    correctAnswer: 2, // A guide for all frontliners...
+  },
+  {
+    id: 2,
+    question: "What does Al Midhyaf mean?",
+    options: [
+      "The guest who is welcomed",
+      "The one who serves only food",
+      "The one who guides tourists",
+      "The one who hosts - representing warmth, generosity, and dignity - values deeply rooted in Emirati tradition",
+    ],
+    correctAnswer: 3, // The one who hosts...
+  },
+  {
+    id: 3,
+    question: "What do the letters GEM stand for?",
+    options: [
+      "Growth, Energy, Motivation",
+      "Genuine, Enriching, Memorable",
+      "Gratitude, Empathy, Mindful",
+      "Global, Easy, Modern",
+    ],
+    correctAnswer: 1, // Genuine, Enriching, Memorable
+  },
+  {
+    id: 4,
+    question: "How can frontliners influence the sensory environment?",
+    options: [
+      "By focusing only on security",
+      "Through small, intentional choices like music, smiles, and traditional treats",
+      "By reducing guest interaction",
+      "By directing guests away from sensory elements",
+    ],
+    correctAnswer: 1, // Through small, intentional choices...
+  },
+  {
+    id: 5,
+    question:
+      "Which Emirati words should be used to welcome, bid farewell, and thank a guest?",
+    options: [
+      "Hayyakum, Famaanilla, and Shukran",
+      "Famaanilla, Inshallah, Shukran",
+      "Marhaba, Hayyakum, Inshallah",
+      "As-salamu alaykum, Inshallah, Famaanilla",
+    ],
+    correctAnswer: 0, // Hayyakum, Famaanilla, and Shukran
+  },
+  {
+    id: 6,
+    question: "How can frontliners demonstrate tolerance towards guests?",
+    options: [
+      "Ignore cultural differences",
+      "Respect and celebrate all backgrounds",
+      "Avoid eye contact with guests",
+      "Serve only familiar cultures",
+    ],
+    correctAnswer: 1, // Respect and celebrate all backgrounds
+  },
+  {
+    id: 7,
+    question: "How can frontliners share knowledge?",
+    options: [
+      "Share interesting stories and facts about Abu Dhabi",
+      "Only talk about international brands",
+      "Avoid questions from guests",
+      "Say the same thing to every guest",
+    ],
+    correctAnswer: 0, // Share interesting stories and facts about Abu Dhabi
+  },
+  {
+    id: 8,
+    question: "What is adaptability in service?",
+    options: [
+      "Adjust communication and offer alternatives when needed",
+      "Give the same answer to everyone",
+      "Ignore feedback",
+      "Stay rigid in communication",
+    ],
+    correctAnswer: 0, // Adjust communication and offer alternatives when needed
+  },
+  {
+    id: 9,
+    question:
+      "What is the best way for frontliners to show integrity in their service?",
+    options: [
+      "Hide mistakes from guests",
+      "Always be honest with guests, admit mistakes, and correct them quickly",
+      "Promise services that are not available",
+      "Recommend personal contacts secretly",
+    ],
+    correctAnswer: 1, // Always be honest...
+  },
+];
+
+// Minimum score required to view certificate (50%)
+const MINIMUM_CERTIFICATE_SCORE = 20;
+
+// Learning blocks that need to be completed for this quiz
+const LEARNING_BLOCK_IDS = [4, 5];
 
 const ExistingUserTestPage = () => {
+  const { user, token } = useAuth();
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>(
@@ -124,9 +195,53 @@ const ExistingUserTestPage = () => {
   );
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [isCheckingCompletion, setIsCheckingCompletion] = useState(true);
 
   const currentQuestion = quizData[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
+
+  // Calculate percentage score
+  const percentageScore = Math.round((score / quizData.length) * 100);
+
+  // Check if learning blocks are already completed on page load
+  useEffect(() => {
+    const checkCompletionStatus = async () => {
+      if (!user?.id || !token) {
+        setIsCheckingCompletion(false);
+        return;
+      }
+
+      try {
+        const response = await api.getUserLearningBlockProgress(user.id, token);
+
+        if (response.success && response.data) {
+          // Check if all required learning blocks are completed
+          const completedBlocks = response.data.filter(
+            (progress: any) =>
+              LEARNING_BLOCK_IDS.includes(progress.learningBlockId) &&
+              progress.status === "completed"
+          );
+
+          // If all learning blocks are completed, redirect to dashboard
+          if (completedBlocks.length === LEARNING_BLOCK_IDS.length) {
+            console.log(
+              "All learning blocks already completed, redirecting to dashboard"
+            );
+            navigate("/user/dashboard");
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check completion status:", error);
+        // Continue with quiz even if check fails
+      } finally {
+        setIsCheckingCompletion(false);
+      }
+    };
+
+    checkCompletionStatus();
+  }, [user?.id, token, navigate]);
 
   const handleAnswerSelect = (answerIndex: number) => {
     const newAnswers = [...selectedAnswers];
@@ -153,15 +268,52 @@ const ExistingUserTestPage = () => {
     }
   };
 
-  const handleRestart = () => {
-    setCurrentQuestionIndex(0);
-    setSelectedAnswers(new Array(quizData.length).fill(-1));
-    setShowResults(false);
-    setScore(0);
+  const handleRedirect = async () => {
+    if (!user?.id || !token) {
+      console.error("User ID or token not available");
+      navigate("/user/dashboard");
+      return;
+    }
+
+    setIsCompleting(true);
+
+    try {
+      // Complete all required learning blocks
+      for (const learningBlockId of LEARNING_BLOCK_IDS) {
+        await api.completeLearningBlock(user.id, learningBlockId, token);
+      }
+
+      console.log("Learning blocks completed successfully");
+    } catch (error) {
+      console.error("Failed to complete learning blocks:", error);
+      // Continue to dashboard even if API call fails
+    } finally {
+      setIsCompleting(false);
+      navigate("/user/dashboard");
+    }
   };
 
   const isAnswerSelected = selectedAnswers[currentQuestionIndex] !== -1;
   const isLastQuestion = currentQuestionIndex === quizData.length - 1;
+
+  // Show loading screen while checking completion status
+  if (isCheckingCompletion) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00d8cc] mb-4"></div>
+            <h2 className="text-xl font-semibold text-center mb-2">
+              Checking Progress
+            </h2>
+            <p className="text-muted-foreground text-center">
+              Verifying your learning block completion status...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (showResults) {
     return (
@@ -224,23 +376,26 @@ const ExistingUserTestPage = () => {
 
             <div className="flex justify-center gap-2">
               <Button
-                onClick={() => navigate("/user/dashboard")}
-                className="px-8 py-2 bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-black rounded-full"
+                onClick={handleRedirect}
+                disabled={isCompleting}
+                className="px-8 py-2 bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-black rounded-full disabled:opacity-50"
               >
-                Go to Dashboard
+                {isCompleting ? "Completing..." : "Go to Dashboard"}
               </Button>
 
-              <CertificateDialog
-                courseName="Al Midhyaf Code of Conduct Training"
-                completionDate={new Date().toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-                certificateId={`VX-${Date.now()}`}
-                triggerText="View Certificate"
-                triggerClassName="px-8 py-2 bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-black"
-              />
+              {percentageScore >= MINIMUM_CERTIFICATE_SCORE && (
+                <CertificateDialog
+                  courseName="Al Midhyaf Code of Conduct Training"
+                  completionDate={new Date().toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                  certificateId={`VX-${Date.now()}`}
+                  triggerText="View Certificate"
+                  triggerClassName="px-8 py-2 bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-black"
+                />
+              )}
             </div>
           </CardContent>
         </Card>
