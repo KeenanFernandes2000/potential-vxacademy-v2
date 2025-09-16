@@ -7,6 +7,7 @@ import AuthPage from "@/pages/login/authPage";
 import ForgotPasswordPage from "@/pages/login/forgotPasswordPage";
 import ResetPasswordPage from "@/pages/login/resetPasswordPage";
 import JoinPage from "@/pages/login/joinPage";
+import ExistingUserTestPage from "@/pages/login/existingUserTestPage";
 import ProfilePage from "@/pages/profile";
 import NotFoundPage from "@/pages/errors/NotFoundPage";
 
@@ -225,6 +226,7 @@ function App() {
                 }
               />
             </Route>
+            <Route path="/initial-assessment" element={<ExistingUserTestPage />} />
             <Route
               path="/profile"
               element={
@@ -233,6 +235,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
 
             {/* Catch-all route for 404 */}
             <Route path="*" element={<NotFoundPage />} />
