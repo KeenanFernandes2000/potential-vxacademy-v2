@@ -5,64 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1756897139006,
-      "tag": "0000_medical_karen_page",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1756903300738,
-      "tag": "0001_furry_terror",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1757323883890,
-      "tag": "0002_steep_mordo",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1757416945291,
-      "tag": "0003_brief_raza",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1757421679618,
-      "tag": "0004_lame_khan",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1757592492626,
-      "tag": "0005_dizzy_mulholland_black",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1757660452959,
-      "tag": "0006_green_thena",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1757928268962,
-      "tag": "0007_closed_ricochet",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1757935400000,
-      "tag": "0008_add_organization_asset_links",
+      "when": 1758027152242,
+      "tag": "0000_gray_steel_serpent",
       "breakpoints": true
     }
   ]

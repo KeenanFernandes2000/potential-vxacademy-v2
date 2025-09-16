@@ -16,6 +16,7 @@
     "build": "cd client && bun run build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:check": "drizzle-kit check",
     "db:studio": "drizzle-kit studio",
     "db:push": "drizzle-kit push"
   },
