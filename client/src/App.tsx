@@ -233,7 +233,11 @@ function App() {
             </Route>
             <Route
               path="/initial-assessment"
-              element={<ExistingUserTestPage />}
+              element={
+                <ProtectedRoute requiredUserType="user">
+                  <ExistingUserTestPage />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/profile"

@@ -50,6 +50,8 @@ export const normalUsers = pgTable("normal_users", {
   seniority: text("seniority").notNull(),
   eid: text("eid").notNull().unique(),
   phoneNumber: text("phone_number").notNull(),
+  existing: boolean("existing").notNull().default(false),
+  initialAssessment: boolean("initial_assessment").notNull().default(false),
 });
 
 export const assets = pgTable("assets", {

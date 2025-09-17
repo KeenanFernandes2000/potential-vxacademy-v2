@@ -19,6 +19,10 @@ interface User {
   subOrganization?: string;
   asset?: string;
   subAsset?: string;
+  normalUserDetails?: {
+    existing: boolean;
+    initialAssessment: boolean;
+  } | null;
 }
 
 interface AuthContextType {
@@ -255,6 +259,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Persist to localStorage
         localStorage.setItem("userData", JSON.stringify(response.user));
         localStorage.setItem("token", response.token);
+        let flags = {
+          existing: response.user.normalUserDetails?.existing,
+          initialAssessment: response.user.normalUserDetails?.initialAssessment,
+        };
+        localStorage.setItem("flags", JSON.stringify(flags));
 
         // Set up automatic logout timer
         setupLogoutTimer(response.token);

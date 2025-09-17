@@ -29,6 +29,13 @@
       "when": 1758033205392,
       "tag": "0003_stiff_black_crow",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1758088210390,
+      "tag": "0004_worthless_kronos",
+      "breakpoints": true
     }
   ]
 }

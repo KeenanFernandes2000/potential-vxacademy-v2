@@ -350,6 +350,15 @@ const validateNormalUserInput = (
     errors.push("Phone number is required and must be a non-empty string");
   }
 
+  // Boolean fields validation (optional with defaults)
+  if (data.existing !== undefined && typeof data.existing !== "boolean") {
+    errors.push("Existing must be a boolean value");
+  }
+
+  if (data.initialAssessment !== undefined && typeof data.initialAssessment !== "boolean") {
+    errors.push("Initial assessment must be a boolean value");
+  }
+
   return {
     isValid: errors.length === 0,
     errors,
@@ -399,6 +408,15 @@ const validateUpdateNormalUserInput = (
     ) {
       errors.push("Phone number must be a non-empty string");
     }
+  }
+
+  // Boolean fields validation
+  if (data.existing !== undefined && typeof data.existing !== "boolean") {
+    errors.push("Existing must be a boolean value");
+  }
+
+  if (data.initialAssessment !== undefined && typeof data.initialAssessment !== "boolean") {
+    errors.push("Initial assessment must be a boolean value");
   }
 
   return {
@@ -477,6 +495,14 @@ export class userControllers {
 
         await UserService.updateUserLastLogin(user.id);
 
+        // Get user details with normal user info if applicable
+        const userWithDetails = await UserService.getUserByIdWithDetails(user.id);
+
+        let flags = {
+          existing: userWithDetails?.normalUserDetails?.existing,
+          initialAssessment: userWithDetails?.normalUserDetails?.initialAssessment,
+        };
+
         return res.json({
           success: true,
           message: "Login successful",
@@ -487,6 +513,7 @@ export class userControllers {
             firstName: user.firstName,
             lastName: user.lastName,
             userType: user.userType,
+            normalUserDetails: flags || null,
           },
         });
       }
@@ -927,7 +954,7 @@ export class userControllers {
       throw createError("Validation failed", 400, validation.errors);
     }
 
-    const { roleCategory, role, seniority, eid, phoneNumber } = req.body;
+    const { roleCategory, role, seniority, eid, phoneNumber, existing, initialAssessment } = req.body;
 
     // Check if user exists
     const existingUser = await UserService.userExists(userId);
@@ -967,6 +994,8 @@ export class userControllers {
         seniority: seniority.trim(),
         eid: eid.trim(),
         phoneNumber: phoneNumber.trim(),
+        existing: existing !== undefined ? existing : false,
+        initialAssessment: initialAssessment !== undefined ? initialAssessment : false,
       })
       .returning();
 
@@ -1008,7 +1037,7 @@ export class userControllers {
       throw createError("Validation failed", 400, validation.errors);
     }
 
-    const { roleCategory, role, seniority, eid, phoneNumber } = req.body;
+    const { roleCategory, role, seniority, eid, phoneNumber, existing, initialAssessment } = req.body;
 
     // Check if EID is being updated and if it's already taken by another normal user
     if (eid && eid !== existingNormalUser.eid) {
@@ -1030,6 +1059,8 @@ export class userControllers {
     if (seniority) updateData.seniority = seniority.trim();
     if (eid) updateData.eid = eid.trim();
     if (phoneNumber) updateData.phoneNumber = phoneNumber.trim();
+    if (existing !== undefined) updateData.existing = existing;
+    if (initialAssessment !== undefined) updateData.initialAssessment = initialAssessment;
 
     const [updatedNormalUser] = await db
       .update(normalUsers)

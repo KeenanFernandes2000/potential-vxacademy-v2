@@ -49,7 +49,12 @@ const AuthPage: React.FC = () => {
         } else if (user?.userType === "sub_admin") {
           redirectPath = "/sub-admin/dashboard";
         } else if (user?.userType === "user") {
-          redirectPath = "/user/dashboard";
+          const getflags = JSON.parse(localStorage.getItem("flags") || "{}");
+          if (getflags?.existing && !getflags?.initialAssessment) {
+            redirectPath = "/initial-assessment";
+          } else {
+            redirectPath = "/user/dashboard";
+          }
         }
 
         navigate(redirectPath, { replace: true });

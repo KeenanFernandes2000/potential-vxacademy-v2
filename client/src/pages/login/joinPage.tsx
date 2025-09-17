@@ -579,7 +579,6 @@ const joinPage = (props: Props) => {
 
             // Update local state with the new role
             setAllRoles((prev) => [...prev, roleResponse.data]);
-
           } else {
             throw new Error("Failed to create new role");
           }
@@ -605,6 +604,7 @@ const joinPage = (props: Props) => {
         seniority: form2Data.seniority,
         eid: form2Data.eid,
         phoneNumber: form2Data.phone_number,
+        existing: type === "existing_joiner",
       };
 
       // Call the normal user registration endpoint
@@ -615,12 +615,18 @@ const joinPage = (props: Props) => {
 
       if (response.success) {
         let userData = JSON.parse(localStorage.getItem("userData") || "{}");
+        console.log(response.data);
+        let flags = {
+          existing: type === "existing_joiner",
+          initialAssessment: response.data.initialAssessment,
+        };
+        localStorage.setItem("flags", JSON.stringify(flags));
         if (type === "existing_joiner") {
           navigate("/initial-assessment");
         } else {
           navigate("/user/dashboard");
         }
-        alert("Registration completed successfully! You can now log in.");
+        // alert("Registration completed successfully! You can now log in.");
         // navigate("/login");
       } else {
         alert(

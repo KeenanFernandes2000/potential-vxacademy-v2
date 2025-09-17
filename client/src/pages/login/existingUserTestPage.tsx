@@ -73,6 +73,33 @@ const api = {
       throw error;
     }
   },
+
+  async updateNormalUser(userId: number, updateData: any, token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/users/${userId}/normal-user`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(updateData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to update normal user:", error);
+      throw error;
+    }
+  },
 };
 
 const quizData = [
@@ -186,7 +213,7 @@ const MINIMUM_CERTIFICATE_SCORE = 60;
 const LEARNING_BLOCK_IDS = [4, 5];
 
 const ExistingUserTestPage = () => {
-  const { user, token } = useAuth();
+  const { user, token, updateUser } = useAuth();
   const navigate = useNavigate();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>(
@@ -196,12 +223,48 @@ const ExistingUserTestPage = () => {
   const [score, setScore] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
   const [isCheckingCompletion, setIsCheckingCompletion] = useState(true);
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true);
 
   const currentQuestion = quizData[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
 
   // Calculate percentage score
   const percentageScore = Math.round((score / quizData.length) * 100);
+
+  // Check access control on page load
+  useEffect(() => {
+    const checkAccess = () => {
+      if (!user || !token) {
+        navigate("/login");
+        return;
+      }
+
+      // Check if user is of type "user"
+      if (user.userType !== "user") {
+        // Redirect to appropriate dashboard based on user type
+        const dashboardPath =
+          user.userType === "admin"
+            ? "/admin/dashboard"
+            : "/sub-admin/dashboard";
+        navigate(dashboardPath);
+        return;
+      }
+
+      // Check flags from localStorage
+      const flags = JSON.parse(localStorage.getItem("flags") || "{}");
+
+      // User must have existing=true and initialAssessment=false to access this page
+      if (!flags.existing || flags.initialAssessment) {
+        // If conditions aren't met, redirect to user dashboard
+        navigate("/user/dashboard");
+        return;
+      }
+
+      setIsCheckingAccess(false);
+    };
+
+    checkAccess();
+  }, [user, token, navigate]);
 
   // Check if learning blocks are already completed on page load
   useEffect(() => {
@@ -277,6 +340,24 @@ const ExistingUserTestPage = () => {
     setIsCompleting(true);
 
     try {
+      // Update user's initialAssessment status to true
+      await api.updateNormalUser(user.id, { initialAssessment: true }, token);
+
+      // Update localStorage flags
+      const flags = JSON.parse(localStorage.getItem("flags") || "{}");
+      flags.initialAssessment = true;
+      localStorage.setItem("flags", JSON.stringify(flags));
+
+      // Update user context
+      const updatedUser = {
+        ...user,
+        normalUserDetails: {
+          existing: user.normalUserDetails?.existing || false,
+          initialAssessment: true,
+        },
+      };
+      updateUser(updatedUser);
+
       // Only complete learning blocks if user passed the assessment (60% or higher)
       if (percentageScore >= MINIMUM_CERTIFICATE_SCORE) {
         // Complete all required learning blocks
@@ -290,7 +371,7 @@ const ExistingUserTestPage = () => {
         );
       }
     } catch (error) {
-      console.error("Failed to complete learning blocks:", error);
+      console.error("Failed to complete assessment:", error);
       // Continue to dashboard even if API call fails
     } finally {
       setIsCompleting(false);
@@ -301,18 +382,20 @@ const ExistingUserTestPage = () => {
   const isAnswerSelected = selectedAnswers[currentQuestionIndex] !== -1;
   const isLastQuestion = currentQuestionIndex === quizData.length - 1;
 
-  // Show loading screen while checking completion status
-  if (isCheckingCompletion) {
+  // Show loading screen while checking access or completion status
+  if (isCheckingAccess || isCheckingCompletion) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center justify-center p-8">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00d8cc] mb-4"></div>
             <h2 className="text-xl font-semibold text-center mb-2">
-              Checking Progress
+              {isCheckingAccess ? "Verifying Access" : "Checking Progress"}
             </h2>
             <p className="text-muted-foreground text-center">
-              Verifying your learning block completion status...
+              {isCheckingAccess
+                ? "Verifying your access permissions..."
+                : "Verifying your learning block completion status..."}
             </p>
           </CardContent>
         </Card>
