@@ -233,17 +233,17 @@ export class LearningBlockProgressService {
     const completedCourseUnits = await tx
       .select({ count: count() })
       .from(userCourseUnitProgress)
-      .where(
-        and(
-          eq(userCourseUnitProgress.userId, userId),
-          eq(userCourseUnitProgress.status, "completed")
-        )
-      )
       .innerJoin(
         courseUnits,
         eq(courseUnits.id, userCourseUnitProgress.courseUnitId)
       )
-      .where(eq(courseUnits.courseId, courseId));
+      .where(
+        and(
+          eq(userCourseUnitProgress.userId, userId),
+          eq(userCourseUnitProgress.status, "completed"),
+          eq(courseUnits.courseId, courseId)
+        )
+      );
 
     const total = totalCourseUnits[0]?.count || 0;
     const completed = completedCourseUnits[0]?.count || 0;
