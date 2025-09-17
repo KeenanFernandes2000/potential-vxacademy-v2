@@ -133,7 +133,7 @@ const api = {
     try {
       const baseUrl = import.meta.env.VITE_API_URL;
       const response = await fetch(
-        `${baseUrl}/api/users/roles/${learningPathId}`,
+        `${baseUrl}/api/training/unit-role-assignments/${learningPathId}`,
         {
           method: "DELETE",
           headers: {
