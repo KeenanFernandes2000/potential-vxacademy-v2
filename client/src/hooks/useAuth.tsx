@@ -22,6 +22,8 @@ interface User {
   normalUserDetails?: {
     existing: boolean;
     initialAssessment: boolean;
+    roleCategory?: string | null;
+    seniority?: string | null;
   } | null;
 }
 

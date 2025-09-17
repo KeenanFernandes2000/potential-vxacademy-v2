@@ -495,8 +495,8 @@ export class userControllers {
 
         await UserService.updateUserLastLogin(user.id);
 
-        // Get user details with normal user info if applicable
-        const userWithDetails = await UserService.getUserByIdWithDetails(user.id);
+        // Get user details with extended info including IDs
+        const userWithDetails = await UserService.getUserByIdWithExtendedDetails(user.id);
 
         let flags = {
           existing: userWithDetails?.normalUserDetails?.existing,
@@ -513,7 +513,12 @@ export class userControllers {
             firstName: user.firstName,
             lastName: user.lastName,
             userType: user.userType,
-            normalUserDetails: flags || null,
+            assetId: userWithDetails?.assetId || null,
+            normalUserDetails: userWithDetails?.normalUserDetails ? {
+              ...flags,
+              roleCategory: userWithDetails.normalUserDetails.roleCategory,
+              seniority: userWithDetails.normalUserDetails.seniority,
+            } : null,
           },
         });
       }

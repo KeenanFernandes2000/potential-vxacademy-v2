@@ -348,6 +348,7 @@ const Courses = () => {
                           <CourseCard
                             key={course.id}
                             title={course.name}
+                            courseId={course.id}
                             description={
                               course.description || "No description available"
                             }

@@ -198,6 +198,55 @@ const api = {
       throw error;
     }
   },
+
+  async getAllSeniorityLevels(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/users/seniority-levels`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch seniority levels:", error);
+      throw error;
+    }
+  },
+
+  async getAllUnitRoleAssignments(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/training/unit-role-assignments`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch unit role assignments:", error);
+      throw error;
+    }
+  },
 };
 
 // Interface for course data structure
@@ -257,10 +306,127 @@ const CourseDetails = () => {
   const { token, user } = useAuth();
 
   const [course, setCourse] = useState<CourseData | null>(null);
+  const [filteredUnits, setFilteredUnits] = useState<Unit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   const courseId = parseInt(id || "1");
+
+  // Filter units based on user role assignments
+  const filterUnitsBasedOnRoleAssignments = async (
+    units: Unit[],
+    token: string
+  ) => {
+    try {
+      const userData = localStorage.getItem("userData");
+      const normalUserDetails = JSON.parse(userData || "{}")?.normalUserDetails;
+      const assetId = JSON.parse(userData || "{}")?.assetId;
+      const roleCategory = normalUserDetails?.roleCategory;
+      const seniority = normalUserDetails?.seniority;
+
+      console.log("=== FILTERING UNITS BASED ON ROLE ASSIGNMENTS ===");
+
+      // Make API calls to get seniority levels and unit role assignments
+      const [seniorityLevelsResponse, unitRoleAssignmentsResponse] =
+        await Promise.all([
+          api.getAllSeniorityLevels(token),
+          api.getAllUnitRoleAssignments(token),
+        ]);
+
+      // 1. Check if seniority = 'manager' and get manager ID from seniority API response
+      let managerId = null;
+      if (
+        seniority === "manager" &&
+        seniorityLevelsResponse?.success &&
+        seniorityLevelsResponse?.data
+      ) {
+        const managerLevel = seniorityLevelsResponse.data.find(
+          (level: any) => level.name?.toLowerCase() === "manager"
+        );
+        if (managerLevel) {
+          managerId = managerLevel.id;
+          console.log("=== MANAGER ID FOUND ===");
+          console.log("Manager ID:", managerId);
+        } else {
+          console.log("=== MANAGER NOT FOUND IN SENIORITY LEVELS ===");
+        }
+      }
+
+      // 2. Filter Unit Role Assignments by assetId, roleCategory (converted to int), and seniorityLevelId
+      let filteredUnitRoleAssignments = [];
+      if (
+        unitRoleAssignmentsResponse?.success &&
+        unitRoleAssignmentsResponse?.data
+      ) {
+        const roleCategoryInt = parseInt(roleCategory);
+
+        // Build filter criteria
+        const filterCriteria = [
+          (assignment: any) => assignment.assetId === assetId,
+          (assignment: any) => assignment.roleCategoryId === roleCategoryInt,
+        ];
+
+        // Add seniorityLevelId filter only if we found a manager ID
+        if (managerId !== null) {
+          filterCriteria.push(
+            (assignment: any) => assignment.seniorityLevelId === managerId
+          );
+        }
+
+        filteredUnitRoleAssignments = unitRoleAssignmentsResponse.data.filter(
+          (assignment: any) =>
+            filterCriteria.every((criteria) => criteria(assignment))
+        );
+
+        console.log("=== FILTERED UNIT ROLE ASSIGNMENTS ===");
+        console.log(
+          "Filter criteria - assetId:",
+          assetId,
+          "roleCategory:",
+          roleCategoryInt,
+          "managerId:",
+          managerId
+        );
+        console.log("Filtered assignments:", filteredUnitRoleAssignments);
+
+        // 3. Extract all unit IDs from filtered assignments
+        const assignmentUnitIds = new Set<number>();
+        filteredUnitRoleAssignments.forEach((assignment: any) => {
+          if (assignment.unitIds && Array.isArray(assignment.unitIds)) {
+            assignment.unitIds.forEach((unitId: number) => {
+              assignmentUnitIds.add(unitId);
+            });
+          }
+        });
+
+        // 4. Filter units to only include those the user has access to
+        const accessibleUnits = units.filter((unit) =>
+          assignmentUnitIds.has(unit.id)
+        );
+
+        console.log("=== UNIT FILTERING RESULTS ===");
+        console.log(
+          "All course units:",
+          units.map((u) => u.id)
+        );
+        console.log("User accessible unit IDs:", Array.from(assignmentUnitIds));
+        console.log(
+          "Filtered accessible units:",
+          accessibleUnits.map((u) => u.id)
+        );
+
+        setFilteredUnits(accessibleUnits);
+      } else {
+        // If no role assignments found, show no units
+        console.log("=== NO ROLE ASSIGNMENTS FOUND ===");
+        setFilteredUnits([]);
+      }
+    } catch (error) {
+      console.error("Error filtering units:", error);
+      // On error, show all units as fallback
+      setFilteredUnits(units);
+    }
+  };
 
   // Fetch course data from API
   useEffect(() => {
@@ -423,6 +589,9 @@ const CourseDetails = () => {
         };
 
         setCourse(transformedCourse);
+
+        // Filter units based on user role assignments
+        await filterUnitsBasedOnRoleAssignments(transformedCourse.units, token);
       } catch (error: any) {
         console.error("Error fetching course data:", error);
         setError(error.message || "Failed to load course data");
@@ -486,7 +655,7 @@ const CourseDetails = () => {
 
         {/* Course Content Layout */}
         <CourseContentLayout
-          units={course.units}
+          units={filteredUnits}
           onCompleteLearningBlock={async (learningBlockId: number) => {
             if (token && user) {
               try {
@@ -508,12 +677,12 @@ const CourseDetails = () => {
                     ),
                   }));
 
-                  // Recalculate overall progress
-                  const totalBlocks = updatedUnits.reduce(
+                  // Recalculate overall progress based on filtered units
+                  const totalBlocks = filteredUnits.reduce(
                     (sum, unit) => sum + unit.learningBlocks.length,
                     0
                   );
-                  const completedBlocks = updatedUnits.reduce(
+                  const completedBlocks = filteredUnits.reduce(
                     (sum, unit) =>
                       sum +
                       unit.learningBlocks.filter(

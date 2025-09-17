@@ -10,6 +10,8 @@ import {
   subOrganizations,
   assets,
   subAssets,
+  roleCategories,
+  seniorityLevels,
 } from "../db/schema/users";
 import type {
   User,
@@ -333,6 +335,72 @@ export class UserService {
 
     // For admin users, just return the main user data
     return user;
+  }
+
+  /**
+   * Get user by ID with extended details including IDs for login response
+   */
+  static async getUserByIdWithExtendedDetails(id: number): Promise<any | null> {
+    // First get the main user data
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
+
+    if (!user) {
+      return null;
+    }
+
+    // Get asset ID by asset name
+    const [asset] = await db
+      .select()
+      .from(assets)
+      .where(eq(assets.name, user.asset))
+      .limit(1);
+
+    const assetId = asset?.id || null;
+
+    // Check if user is a normal user and get additional details
+    if (user.userType === "user") {
+      const [normalUser] = await db
+        .select()
+        .from(normalUsers)
+        .where(eq(normalUsers.userId, id))
+        .limit(1);
+
+      if (normalUser) {
+        // Get role category ID by role category name
+        const [roleCategory] = await db
+          .select()
+          .from(roleCategories)
+          .where(eq(roleCategories.name, normalUser.roleCategory))
+          .limit(1);
+
+        // Get seniority level ID by seniority name
+        const [seniorityLevel] = await db
+          .select()
+          .from(seniorityLevels)
+          .where(eq(seniorityLevels.name, normalUser.seniority))
+          .limit(1);
+
+        return {
+          ...user,
+          assetId,
+          normalUserDetails: {
+            ...normalUser,
+            roleCategoryId: roleCategory?.id || null,
+            seniorityId: seniorityLevel?.id || null,
+          },
+        };
+      }
+    }
+
+    // For admin and sub-admin users, return with assetId
+    return {
+      ...user,
+      assetId,
+    };
   }
 
   /**
