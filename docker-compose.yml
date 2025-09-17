@@ -12,7 +12,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - FRONTEND_URL=${FRONTEND_URL}
     volumes:
-      - /home/vxacademy/uploads:/app/server/uploads
+      - /home/ftpDev/vxacademy/uploads:/app/server/uploads
     restart: unless-stopped
 
   frontend:
