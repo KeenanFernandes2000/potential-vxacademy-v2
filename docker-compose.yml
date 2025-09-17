@@ -13,6 +13,7 @@ services:
       - FRONTEND_URL=${FRONTEND_URL}
     volumes:
       - /home/ftpDev/vxacademy/uploads:/app/server/uploads
+    restart: unless-stopped
 
   frontend:
     build:
@@ -24,3 +25,4 @@ services:
       - "5000:5000"
     environment:
       - VITE_API_URL=${VITE_API_URL}
+    restart: unless-stopped

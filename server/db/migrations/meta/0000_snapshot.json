@@ -2381,152 +2381,6 @@
       "policies": {},
       "isRLSEnabled": false
     },
-    "public.unit_role_assignments": {
-      "name": "unit_role_assignments",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "unit_id": {
-          "name": "unit_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "role_category_id": {
-          "name": "role_category_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "role_id": {
-          "name": "role_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "seniority_level_id": {
-          "name": "seniority_level_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "asset_id": {
-          "name": "asset_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "unit_role_assignments_unit_id_units_id_fk": {
-          "name": "unit_role_assignments_unit_id_units_id_fk",
-          "tableFrom": "unit_role_assignments",
-          "tableTo": "units",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "unit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "unit_role_assignments_role_category_id_role_categories_id_fk": {
-          "name": "unit_role_assignments_role_category_id_role_categories_id_fk",
-          "tableFrom": "unit_role_assignments",
-          "tableTo": "role_categories",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "role_category_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "unit_role_assignments_role_id_roles_id_fk": {
-          "name": "unit_role_assignments_role_id_roles_id_fk",
-          "tableFrom": "unit_role_assignments",
-          "tableTo": "roles",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "role_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "unit_role_assignments_seniority_level_id_seniority_levels_id_fk": {
-          "name": "unit_role_assignments_seniority_level_id_seniority_levels_id_fk",
-          "tableFrom": "unit_role_assignments",
-          "tableTo": "seniority_levels",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "seniority_level_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "unit_role_assignments_asset_id_assets_id_fk": {
-          "name": "unit_role_assignments_asset_id_assets_id_fk",
-          "tableFrom": "unit_role_assignments",
-          "tableTo": "assets",
-          "schemaTo": "public",
-          "columnsFrom": [
-            "asset_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "unique_unit_role_assignment": {
-          "columns": [
-            "unit_id",
-            "role_category_id",
-            "role_id",
-            "seniority_level_id",
-            "asset_id"
-          ],
-          "nullsNotDistinct": false,
-          "name": "unique_unit_role_assignment"
-        }
-      },
-      "checkConstraints": {},
-      "policies": {},
-      "isRLSEnabled": false
-    },
     "public.sub_organizations": {
       "name": "sub_organizations",
       "schema": "",
@@ -2646,6 +2500,124 @@
       "checkConstraints": {},
       "policies": {},
       "isRLSEnabled": false
+    },
+    "public.unit_role_assignments": {
+      "name": "unit_role_assignments",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "unit_ids": {
+          "name": "unit_ids",
+          "type": "integer[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "role_category_id": {
+          "name": "role_category_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "seniority_level_id": {
+          "name": "seniority_level_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "asset_id": {
+          "name": "asset_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "unit_role_assignments_role_category_id_role_categories_id_fk": {
+          "name": "unit_role_assignments_role_category_id_role_categories_id_fk",
+          "tableFrom": "unit_role_assignments",
+          "tableTo": "role_categories",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "role_category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "unit_role_assignments_seniority_level_id_seniority_levels_id_fk": {
+          "name": "unit_role_assignments_seniority_level_id_seniority_levels_id_fk",
+          "tableFrom": "unit_role_assignments",
+          "tableTo": "seniority_levels",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "seniority_level_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "unit_role_assignments_asset_id_assets_id_fk": {
+          "name": "unit_role_assignments_asset_id_assets_id_fk",
+          "tableFrom": "unit_role_assignments",
+          "tableTo": "assets",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "asset_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "unique_unit_role_assignment": {
+          "columns": [
+            "name",
+            "role_category_id",
+            "seniority_level_id",
+            "asset_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "unique_unit_role_assignment"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
     }
   },
   "enums": {
@@ -2687,6 +2659,16 @@
     "columns": {}
   },
   "internal": {
-    "tables": {}
+    "tables": {
+      "unit_role_assignments": {
+        "columns": {
+          "unit_ids": {
+            "isArray": true,
+            "dimensions": 1,
+            "rawType": "integer"
+          }
+        }
+      }
+    }
   }
 }

@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm/relations";
-import { users, assessmentAttempts, assessments, trainingAreas, modules, units, courses, questions, certificates, userBadges, badges, subAdmins, invitations, normalUsers, passwordResets, roleCategories, roles, assets, subAssets, courseUnits, learningBlocks, userCourseProgress, userLearningBlockProgress, userModuleProgress, userTrainingAreaProgress, courseEnrollments, mediaFiles, notifications, userCourseUnitProgress, unitRoleAssignments, seniorityLevels, organizations, subOrganizations } from "./schema";
+import { users, assessmentAttempts, assessments, trainingAreas, modules, units, courses, questions, certificates, userBadges, badges, subAdmins, invitations, normalUsers, passwordResets, roleCategories, roles, assets, subAssets, courseUnits, learningBlocks, userCourseProgress, userLearningBlockProgress, userModuleProgress, userTrainingAreaProgress, courseEnrollments, mediaFiles, notifications, userCourseUnitProgress, organizations, subOrganizations, unitRoleAssignments, seniorityLevels } from "./schema";
 
 export const assessmentAttemptsRelations = relations(assessmentAttempts, ({one}) => ({
 	user: one(users, {
@@ -70,7 +70,6 @@ export const unitsRelations = relations(units, ({many}) => ({
 	assessments: many(assessments),
 	courseUnits: many(courseUnits),
 	learningBlocks: many(learningBlocks),
-	unitRoleAssignments: many(unitRoleAssignments),
 }));
 
 export const coursesRelations = relations(courses, ({one, many}) => ({
@@ -147,12 +146,11 @@ export const passwordResetsRelations = relations(passwordResets, ({one}) => ({
 	}),
 }));
 
-export const rolesRelations = relations(roles, ({one, many}) => ({
+export const rolesRelations = relations(roles, ({one}) => ({
 	roleCategory: one(roleCategories, {
 		fields: [roles.categoryId],
 		references: [roleCategories.id]
 	}),
-	unitRoleAssignments: many(unitRoleAssignments),
 }));
 
 export const roleCategoriesRelations = relations(roleCategories, ({many}) => ({
@@ -170,8 +168,8 @@ export const subAssetsRelations = relations(subAssets, ({one, many}) => ({
 
 export const assetsRelations = relations(assets, ({many}) => ({
 	subAssets: many(subAssets),
-	unitRoleAssignments: many(unitRoleAssignments),
 	organizations: many(organizations),
+	unitRoleAssignments: many(unitRoleAssignments),
 }));
 
 export const courseUnitsRelations = relations(courseUnits, ({one, many}) => ({
@@ -274,33 +272,6 @@ export const userCourseUnitProgressRelations = relations(userCourseUnitProgress,
 	}),
 }));
 
-export const unitRoleAssignmentsRelations = relations(unitRoleAssignments, ({one}) => ({
-	unit: one(units, {
-		fields: [unitRoleAssignments.unitId],
-		references: [units.id]
-	}),
-	roleCategory: one(roleCategories, {
-		fields: [unitRoleAssignments.roleCategoryId],
-		references: [roleCategories.id]
-	}),
-	role: one(roles, {
-		fields: [unitRoleAssignments.roleId],
-		references: [roles.id]
-	}),
-	seniorityLevel: one(seniorityLevels, {
-		fields: [unitRoleAssignments.seniorityLevelId],
-		references: [seniorityLevels.id]
-	}),
-	asset: one(assets, {
-		fields: [unitRoleAssignments.assetId],
-		references: [assets.id]
-	}),
-}));
-
-export const seniorityLevelsRelations = relations(seniorityLevels, ({many}) => ({
-	unitRoleAssignments: many(unitRoleAssignments),
-}));
-
 export const subOrganizationsRelations = relations(subOrganizations, ({one}) => ({
 	organization: one(organizations, {
 		fields: [subOrganizations.organizationId],
@@ -318,4 +289,23 @@ export const organizationsRelations = relations(organizations, ({one, many}) => 
 		fields: [organizations.subAssetId],
 		references: [subAssets.id]
 	}),
+}));
+
+export const unitRoleAssignmentsRelations = relations(unitRoleAssignments, ({one}) => ({
+	roleCategory: one(roleCategories, {
+		fields: [unitRoleAssignments.roleCategoryId],
+		references: [roleCategories.id]
+	}),
+	seniorityLevel: one(seniorityLevels, {
+		fields: [unitRoleAssignments.seniorityLevelId],
+		references: [seniorityLevels.id]
+	}),
+	asset: one(assets, {
+		fields: [unitRoleAssignments.assetId],
+		references: [assets.id]
+	}),
+}));
+
+export const seniorityLevelsRelations = relations(seniorityLevels, ({many}) => ({
+	unitRoleAssignments: many(unitRoleAssignments),
 }));

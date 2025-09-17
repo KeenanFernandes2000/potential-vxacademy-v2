@@ -528,44 +528,6 @@ export const userCourseUnitProgress = pgTable("user_course_unit_progress", {
 	unique("user_course_unit_progress_user_id_course_unit_id_unique").on(table.userId, table.courseUnitId),
 ]);
 
-export const unitRoleAssignments = pgTable("unit_role_assignments", {
-	id: serial().primaryKey().notNull(),
-	unitId: integer("unit_id").notNull(),
-	roleCategoryId: integer("role_category_id"),
-	roleId: integer("role_id"),
-	seniorityLevelId: integer("seniority_level_id"),
-	assetId: integer("asset_id"),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
-	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
-}, (table) => [
-	foreignKey({
-			columns: [table.unitId],
-			foreignColumns: [units.id],
-			name: "unit_role_assignments_unit_id_units_id_fk"
-		}).onDelete("cascade"),
-	foreignKey({
-			columns: [table.roleCategoryId],
-			foreignColumns: [roleCategories.id],
-			name: "unit_role_assignments_role_category_id_role_categories_id_fk"
-		}).onDelete("set null"),
-	foreignKey({
-			columns: [table.roleId],
-			foreignColumns: [roles.id],
-			name: "unit_role_assignments_role_id_roles_id_fk"
-		}).onDelete("set null"),
-	foreignKey({
-			columns: [table.seniorityLevelId],
-			foreignColumns: [seniorityLevels.id],
-			name: "unit_role_assignments_seniority_level_id_seniority_levels_id_fk"
-		}).onDelete("set null"),
-	foreignKey({
-			columns: [table.assetId],
-			foreignColumns: [assets.id],
-			name: "unit_role_assignments_asset_id_assets_id_fk"
-		}).onDelete("set null"),
-	unique("unique_unit_role_assignment").on(table.unitId, table.roleCategoryId, table.roleId, table.seniorityLevelId, table.assetId),
-]);
-
 export const subOrganizations = pgTable("sub_organizations", {
 	id: serial().primaryKey().notNull(),
 	organizationId: integer("organization_id").notNull(),
@@ -595,4 +557,32 @@ export const organizations = pgTable("organizations", {
 			name: "organizations_sub_asset_id_sub_assets_id_fk"
 		}).onDelete("cascade"),
 	unique("organizations_name_unique").on(table.name),
+]);
+
+export const unitRoleAssignments = pgTable("unit_role_assignments", {
+	id: serial().primaryKey().notNull(),
+	name: text().notNull(),
+	unitIds: integer("unit_ids").array().default([]).notNull(),
+	roleCategoryId: integer("role_category_id"),
+	seniorityLevelId: integer("seniority_level_id"),
+	assetId: integer("asset_id"),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.roleCategoryId],
+			foreignColumns: [roleCategories.id],
+			name: "unit_role_assignments_role_category_id_role_categories_id_fk"
+		}).onDelete("set null"),
+	foreignKey({
+			columns: [table.seniorityLevelId],
+			foreignColumns: [seniorityLevels.id],
+			name: "unit_role_assignments_seniority_level_id_seniority_levels_id_fk"
+		}).onDelete("set null"),
+	foreignKey({
+			columns: [table.assetId],
+			foreignColumns: [assets.id],
+			name: "unit_role_assignments_asset_id_assets_id_fk"
+		}).onDelete("set null"),
+	unique("unique_unit_role_assignment").on(table.name, table.roleCategoryId, table.seniorityLevelId, table.assetId),
 ]);
