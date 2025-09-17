@@ -75,7 +75,6 @@ const api = {
   },
 };
 
-// Dummy MCQ data
 const quizData = [
   {
     id: 1,
@@ -180,8 +179,8 @@ const quizData = [
   },
 ];
 
-// Minimum score required to view certificate (50%)
-const MINIMUM_CERTIFICATE_SCORE = 20;
+// Minimum score required to view certificate (60%)
+const MINIMUM_CERTIFICATE_SCORE = 60;
 
 // Learning blocks that need to be completed for this quiz
 const LEARNING_BLOCK_IDS = [4, 5];
@@ -278,12 +277,18 @@ const ExistingUserTestPage = () => {
     setIsCompleting(true);
 
     try {
-      // Complete all required learning blocks
-      for (const learningBlockId of LEARNING_BLOCK_IDS) {
-        await api.completeLearningBlock(user.id, learningBlockId, token);
+      // Only complete learning blocks if user passed the assessment (60% or higher)
+      if (percentageScore >= MINIMUM_CERTIFICATE_SCORE) {
+        // Complete all required learning blocks
+        for (const learningBlockId of LEARNING_BLOCK_IDS) {
+          await api.completeLearningBlock(user.id, learningBlockId, token);
+        }
+        console.log("Learning blocks completed successfully");
+      } else {
+        console.log(
+          "User did not pass assessment, skipping learning block completion"
+        );
       }
-
-      console.log("Learning blocks completed successfully");
     } catch (error) {
       console.error("Failed to complete learning blocks:", error);
       // Continue to dashboard even if API call fails
