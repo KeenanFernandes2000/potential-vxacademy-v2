@@ -794,7 +794,7 @@ const LearningBlockPage = () => {
     );
   };
 
-  const columns = ["ID", "Name", "Type", "Unit Name", "Unit ID", "Actions"];
+  const columns = ["ID", "Name", "Type", "Unit", "Unit ID", "Actions"];
 
   return (
     <AdminPageLayout

@@ -819,7 +819,7 @@ const CoursesPage = () => {
   const columns = [
     "ID",
     "Name",
-    "Module Name",
+    "Module",
     "Duration",
     "Level",
     "Training Area ID",
