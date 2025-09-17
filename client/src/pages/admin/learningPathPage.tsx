@@ -1191,7 +1191,7 @@ const LearningPathsPage = () => {
     );
   };
 
-  const columns = ["ID", "Learning Path Name", "Category", "Actions"];
+  const columns = ["ID", "Name", "Category", "Actions"];
 
   // Assign Units Modal Component
   const AssignUnitsModal = () => {

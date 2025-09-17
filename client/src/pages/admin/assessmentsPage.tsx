@@ -297,7 +297,7 @@ const AssessmentsPage = () => {
         const transformedAssessments =
           response.data?.map((assessment: any) => ({
             id: assessment.id,
-            title: assessment.title,
+            name: assessment.title,
             placement: assessment.placement || "N/A",
             passing_score:
               assessment.passing_score || assessment.passingScore || 0,
@@ -527,7 +527,7 @@ const AssessmentsPage = () => {
     const transformedAssessments =
       updatedResponse.data?.map((assessment: any) => ({
         id: assessment.id,
-        title: assessment.title,
+        name: assessment.title,
         placement: assessment.placement || "N/A",
         passing_score: assessment.passing_score || assessment.passingScore || 0,
         trainingAreaId: assessment.trainingAreaId, // Keep for filtering
@@ -1178,7 +1178,7 @@ const AssessmentsPage = () => {
 
   const columns = [
     "ID",
-    "Title",
+    "Name",
     "Placement",
     "Passing Score",
     "Training Area ID",

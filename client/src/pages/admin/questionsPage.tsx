@@ -896,7 +896,7 @@ const QuestionsPage = () => {
   const columns = [
     "ID",
     "Question Type",
-    "Assessment Name",
+    "Assessment",
     "Correct Answer",
     "Assessment ID",
     "Actions",

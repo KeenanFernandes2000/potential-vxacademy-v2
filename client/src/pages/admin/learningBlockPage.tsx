@@ -201,7 +201,7 @@ const LearningBlockPage = () => {
 
             return {
               id: learningBlock.id,
-              title: learningBlock.title || "N/A",
+              name: learningBlock.title || "N/A",
               type: learningBlock.type || "N/A",
               unit_name: unit?.name || "N/A",
               unitId: learningBlock.unitId, // Keep for filtering
@@ -395,7 +395,7 @@ const LearningBlockPage = () => {
 
         return {
           id: learningBlock.id,
-          title: learningBlock.title || "N/A",
+          name: learningBlock.title || "N/A",
           type: learningBlock.type || "N/A",
           unit_name: unit?.name || "N/A",
           unitId: learningBlock.unitId, // Keep for filtering
@@ -794,7 +794,7 @@ const LearningBlockPage = () => {
     );
   };
 
-  const columns = ["ID", "Title", "Type", "Unit Name", "Unit ID", "Actions"];
+  const columns = ["ID", "Name", "Type", "Unit Name", "Unit ID", "Actions"];
 
   return (
     <AdminPageLayout

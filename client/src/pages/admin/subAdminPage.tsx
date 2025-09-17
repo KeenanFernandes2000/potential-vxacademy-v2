@@ -296,7 +296,7 @@ const SubAdminPage = () => {
         // Transform data to match our display format
         const transformedUsers = subAdminUsers.map((user: any) => ({
           id: user.id,
-          fullName: `${user.firstName} ${user.lastName}`,
+          name: `${user.firstName} ${user.lastName}`,
           email: user.email,
           organization: user.organization || "N/A",
           subOrganization: user.subOrganization || "N/A",
@@ -511,7 +511,7 @@ const SubAdminPage = () => {
 
     const transformedUsers = subAdminUsers.map((user: any) => ({
       id: user.id,
-      fullName: `${user.firstName} ${user.lastName}`,
+      name: `${user.firstName} ${user.lastName}`,
       email: user.email,
       organization: user.organization || "N/A",
       subOrganization: user.subOrganization || "N/A",

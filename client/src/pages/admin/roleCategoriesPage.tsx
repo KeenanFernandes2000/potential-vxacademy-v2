@@ -282,7 +282,7 @@ const RoleCategoriesPage = () => {
     );
   };
 
-  const columns = ["ID", "Category Name", "Actions"];
+  const columns = ["ID", "Name", "Actions"];
 
   return (
     <AdminPageLayout

@@ -1,5 +1,5 @@
 import React, { ReactNode, useState, useEffect } from "react";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -246,6 +246,20 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
   const [filteredTableData, setFilteredTableData] =
     useState<Record<string, string | number | ReactNode>[]>(tableData);
 
+  // Update filteredTableData when tableData prop changes
+  useEffect(() => {
+    console.log("tableData prop changed:", {
+      length: tableData.length,
+      columns: columns,
+      firstRow: tableData[0],
+    });
+    setFilteredTableData(tableData);
+  }, [tableData, columns]);
+
+  // Sort state
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
   // Load training areas on component mount (only if training area dropdown is enabled)
   useEffect(() => {
     if (!dropdownConfig.showTrainingArea) return;
@@ -480,9 +494,9 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       }
 
       setFilteredTableData(filtered);
-    } else {
-      setFilteredTableData(tableData);
     }
+    // Note: We don't set filteredTableData to tableData here anymore
+    // because the tableData useEffect handles that
   }, [
     tableData,
     selectedTrainingArea,
@@ -517,6 +531,174 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     onSearch?.(query);
+  };
+
+  // Check if a column header contains 'name' using regex
+  const isNameColumn = (columnName: string): boolean => {
+    const isName = /name/i.test(columnName);
+    console.log(`Column "${columnName}" is name column:`, isName);
+    return isName;
+  };
+
+  // Handle sort functionality
+  const handleSort = (columnName: string) => {
+    if (!isNameColumn(columnName)) return;
+
+    console.log("Sorting by column:", columnName);
+    console.log("Current sort column:", sortColumn);
+    console.log("Current sort direction:", sortDirection);
+
+    if (sortColumn === columnName) {
+      // Toggle direction if same column
+      const newDirection = sortDirection === "asc" ? "desc" : "asc";
+      console.log("Toggling direction to:", newDirection);
+      setSortDirection(newDirection);
+    } else {
+      // Set new column and default to ascending
+      console.log("Setting new column:", columnName);
+      setSortColumn(columnName);
+      setSortDirection("asc");
+    }
+  };
+
+  // Map display column names to actual data property names
+  const getDataPropertyName = (columnName: string): string => {
+    // Common mappings for display names to data properties
+    const columnMappings: Record<string, string> = {
+      Name: "name",
+      "Role Name": "name", // Assuming role name is stored in 'name' property
+      "Module Name": "module_name",
+      "Course Name": "name",
+      "Unit Name": "name",
+      "Full Name": "name",
+      Username: "name",
+      "Display Name": "name",
+      Title: "name",
+      Organization: "name",
+      Asset: "name",
+      "Sub Asset": "name",
+      Category: "name",
+    };
+
+    // Check if we have a specific mapping
+    if (columnMappings[columnName]) {
+      return columnMappings[columnName];
+    }
+
+    // Fallback: convert column name to camelCase or snake_case
+    // "Role Name" -> "roleName" or "role_name"
+    const camelCase = columnName
+      .toLowerCase()
+      .replace(/\s+(.)/g, (_, char) => char.toUpperCase());
+    const snakeCase = columnName.toLowerCase().replace(/\s+/g, "_");
+
+    // Try camelCase first, then snake_case, then original
+    return camelCase;
+  };
+
+  // Sort the filtered data
+  const getSortedData = (): Record<string, string | number | ReactNode>[] => {
+    console.log(
+      "getSortedData called - sortColumn:",
+      sortColumn,
+      "sortDirection:",
+      sortDirection
+    );
+    console.log("filteredTableData length:", filteredTableData.length);
+
+    if (!sortColumn) {
+      console.log("No sort column, returning filteredTableData");
+      return filteredTableData;
+    }
+
+    // Get the actual data property name
+    const dataProperty = getDataPropertyName(sortColumn);
+    console.log(
+      `Mapping column "${sortColumn}" to data property "${dataProperty}"`
+    );
+    console.log("Sample data row:", filteredTableData[0]);
+    console.log(
+      "Available properties:",
+      Object.keys(filteredTableData[0] || {})
+    );
+
+    const sorted = [...filteredTableData].sort((a, b) => {
+      const aValue = a[dataProperty];
+      const bValue = b[dataProperty];
+
+      console.log(`Comparing ${dataProperty}:`, aValue, "vs", bValue);
+
+      // Handle different data types
+      const aStr =
+        typeof aValue === "string" || typeof aValue === "number"
+          ? String(aValue).toLowerCase()
+          : "";
+      const bStr =
+        typeof bValue === "string" || typeof bValue === "number"
+          ? String(bValue).toLowerCase()
+          : "";
+
+      if (sortDirection === "asc") {
+        return aStr.localeCompare(bStr);
+      } else {
+        return bStr.localeCompare(aStr);
+      }
+    });
+
+    console.log("Sorted data length:", sorted.length);
+    return sorted;
+  };
+
+  // Sortable TableHead component
+  const SortableTableHead: React.FC<{ column: string }> = ({ column }) => {
+    const isSortable = isNameColumn(column);
+    const isActive = sortColumn === column;
+
+    console.log(`Rendering SortableTableHead for "${column}":`, {
+      isSortable,
+      isActive,
+      sortColumn,
+      sortDirection,
+    });
+
+    return (
+      <TableHead
+        className={`text-white font-semibold ${
+          isSortable ? "cursor-pointer hover:bg-white/10 select-none" : ""
+        }`}
+        onClick={() => {
+          console.log(
+            `Clicked on column: "${column}", isSortable:`,
+            isSortable
+          );
+          if (isSortable) {
+            handleSort(column);
+          }
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <span>{column}</span>
+          {isSortable && (
+            <div className="flex flex-col">
+              <ChevronUp
+                className={`h-3 w-3 ${
+                  isActive && sortDirection === "asc"
+                    ? "text-[#00d8cc]"
+                    : "text-white/40"
+                }`}
+              />
+              <ChevronDown
+                className={`h-3 w-3 -mt-1 ${
+                  isActive && sortDirection === "desc"
+                    ? "text-[#00d8cc]"
+                    : "text-white/40"
+                }`}
+              />
+            </div>
+          )}
+        </div>
+      </TableHead>
+    );
   };
 
   return (
@@ -731,14 +913,12 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
           <TableHeader>
             <TableRow className="border-white/20">
               {columns.map((column) => (
-                <TableHead key={column} className="text-white font-semibold">
-                  {column}
-                </TableHead>
+                <SortableTableHead key={column} column={column} />
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredTableData.map((row, index) => (
+            {getSortedData().map((row, index) => (
               <TableRow
                 key={index}
                 className="border-white/20 hover:bg-white/5"

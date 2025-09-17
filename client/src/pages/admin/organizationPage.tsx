@@ -68,6 +68,29 @@ const api = {
     }
   },
 
+  async getAllSubAssets(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/users/sub-assets`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch sub-assets:", error);
+      throw error;
+    }
+  },
+
   async getSubAssetsByAssetId(assetId: number, token: string) {
     try {
       const baseUrl = import.meta.env.VITE_API_URL;
@@ -208,7 +231,7 @@ const OrganizationPage = () => {
     OrganizationData[]
   >([]);
   const [assets, setAssets] = useState<AssetData[]>([]);
-  const [subAssets, setSubAssets] = useState<SubAssetData[]>([]);
+  const [allSubAssets, setAllSubAssets] = useState<SubAssetData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -226,33 +249,26 @@ const OrganizationPage = () => {
       try {
         setIsLoading(true);
 
-        // Fetch organizations and assets in parallel
-        const [organizationsResponse, assetsResponse] = await Promise.all([
-          api.getAllOrganizations(token),
-          api.getAllAssets(token),
-        ]);
+        // Fetch organizations, assets, and all sub-assets in parallel
+        const [organizationsResponse, assetsResponse, subAssetsResponse] =
+          await Promise.all([
+            api.getAllOrganizations(token),
+            api.getAllAssets(token),
+            api.getAllSubAssets(token),
+          ]);
 
-        // Set assets
+        // Set assets and all sub-assets
         setAssets(assetsResponse.data || []);
+        setAllSubAssets(subAssetsResponse.data || []);
 
         // Transform organizations data to match our display format
-        const transformedOrganizations = await Promise.all(
-          organizationsResponse.data?.map(async (organization: any) => {
-            let subAssetName = "N/A";
-            if (organization.subAssetId) {
-              try {
-                const subAssetsResponse = await api.getSubAssetsByAssetId(
-                  organization.assetId,
-                  token
-                );
-                const subAsset = subAssetsResponse.data?.find(
-                  (sa: any) => sa.id === organization.subAssetId
-                );
-                subAssetName = subAsset?.name || "N/A";
-              } catch (error) {
-                console.error("Error fetching sub-asset name:", error);
-              }
-            }
+        const transformedOrganizations =
+          organizationsResponse.data?.map((organization: any) => {
+            // Find sub-asset name from cached data
+            const subAsset = subAssetsResponse.data?.find(
+              (sa: any) => sa.id === organization.subAssetId
+            );
+            const subAssetName = subAsset?.name || "N/A";
 
             return {
               id: organization.id,
@@ -287,8 +303,7 @@ const OrganizationPage = () => {
                 </div>
               ),
             };
-          }) || []
-        );
+          }) || [];
 
         setOrganizations(transformedOrganizations);
         setFilteredOrganizations(transformedOrganizations);
@@ -427,29 +442,25 @@ const OrganizationPage = () => {
   const refreshOrganizationList = async () => {
     if (!token) return;
 
-    // Fetch both organizations and assets
-    const [updatedResponse, assetsResponse] = await Promise.all([
-      api.getAllOrganizations(token),
-      api.getAllAssets(token),
-    ]);
+    // Fetch organizations, assets, and all sub-assets in parallel
+    const [updatedResponse, assetsResponse, subAssetsResponse] =
+      await Promise.all([
+        api.getAllOrganizations(token),
+        api.getAllAssets(token),
+        api.getAllSubAssets(token),
+      ]);
 
-    const transformedOrganizations = await Promise.all(
-      updatedResponse.data?.map(async (organization: any) => {
-        let subAssetName = "N/A";
-        if (organization.subAssetId) {
-          try {
-            const subAssetsResponse = await api.getSubAssetsByAssetId(
-              organization.assetId,
-              token
-            );
-            const subAsset = subAssetsResponse.data?.find(
-              (sa: any) => sa.id === organization.subAssetId
-            );
-            subAssetName = subAsset?.name || "N/A";
-          } catch (error) {
-            console.error("Error fetching sub-asset name:", error);
-          }
-        }
+    // Update cached data
+    setAssets(assetsResponse.data || []);
+    setAllSubAssets(subAssetsResponse.data || []);
+
+    const transformedOrganizations =
+      updatedResponse.data?.map((organization: any) => {
+        // Find sub-asset name from cached data
+        const subAsset = subAssetsResponse.data?.find(
+          (sa: any) => sa.id === organization.subAssetId
+        );
+        const subAssetName = subAsset?.name || "N/A";
 
         return {
           id: organization.id,
@@ -484,8 +495,7 @@ const OrganizationPage = () => {
             </div>
           ),
         };
-      }) || []
-    );
+      }) || [];
 
     setOrganizations(transformedOrganizations);
     setFilteredOrganizations(transformedOrganizations);
@@ -501,20 +511,15 @@ const OrganizationPage = () => {
       SubAssetData[]
     >([]);
 
-    // Fetch sub-assets when asset changes
-    const handleAssetChange = async (assetId: string) => {
+    // Filter sub-assets when asset changes using cached data
+    const handleAssetChange = (assetId: string) => {
       setFormData({ ...formData, assetId, subAssetId: "" });
-      if (assetId && token) {
-        try {
-          const response = await api.getSubAssetsByAssetId(
-            parseInt(assetId),
-            token
-          );
-          setAvailableSubAssets(response.data || []);
-        } catch (error) {
-          console.error("Error fetching sub-assets:", error);
-          setAvailableSubAssets([]);
-        }
+      if (assetId) {
+        // Filter sub-assets from cached data by assetId
+        const filteredSubAssets = allSubAssets.filter(
+          (subAsset) => subAsset.assetId === parseInt(assetId)
+        );
+        setAvailableSubAssets(filteredSubAssets);
       } else {
         setAvailableSubAssets([]);
       }
@@ -609,41 +614,27 @@ const OrganizationPage = () => {
       SubAssetData[]
     >([]);
 
-    // Fetch sub-assets when component mounts or asset changes
+    // Filter sub-assets when component mounts or asset changes using cached data
     useEffect(() => {
-      const fetchSubAssets = async () => {
-        if (formData.assetId && token) {
-          try {
-            const response = await api.getSubAssetsByAssetId(
-              parseInt(formData.assetId),
-              token
-            );
-            setAvailableSubAssets(response.data || []);
-          } catch (error) {
-            console.error("Error fetching sub-assets:", error);
-            setAvailableSubAssets([]);
-          }
-        } else {
-          setAvailableSubAssets([]);
-        }
-      };
+      if (formData.assetId) {
+        // Filter sub-assets from cached data by assetId
+        const filteredSubAssets = allSubAssets.filter(
+          (subAsset) => subAsset.assetId === parseInt(formData.assetId)
+        );
+        setAvailableSubAssets(filteredSubAssets);
+      } else {
+        setAvailableSubAssets([]);
+      }
+    }, [formData.assetId, allSubAssets]);
 
-      fetchSubAssets();
-    }, [formData.assetId, token]);
-
-    const handleAssetChange = async (assetId: string) => {
+    const handleAssetChange = (assetId: string) => {
       setFormData({ ...formData, assetId, subAssetId: "" });
-      if (assetId && token) {
-        try {
-          const response = await api.getSubAssetsByAssetId(
-            parseInt(assetId),
-            token
-          );
-          setAvailableSubAssets(response.data || []);
-        } catch (error) {
-          console.error("Error fetching sub-assets:", error);
-          setAvailableSubAssets([]);
-        }
+      if (assetId) {
+        // Filter sub-assets from cached data by assetId
+        const filteredSubAssets = allSubAssets.filter(
+          (subAsset) => subAsset.assetId === parseInt(assetId)
+        );
+        setAvailableSubAssets(filteredSubAssets);
       } else {
         setAvailableSubAssets([]);
       }
@@ -729,7 +720,15 @@ const OrganizationPage = () => {
     );
   };
 
-  const columns = ["ID", "Name", "Asset", "Sub Asset", "Actions"];
+  const columns = [
+    "ID",
+    "Name",
+    "Asset ID",
+    "Sub Asset ID",
+    "Asset",
+    "Sub Asset",
+    "Actions",
+  ];
 
   return (
     <AdminPageLayout
