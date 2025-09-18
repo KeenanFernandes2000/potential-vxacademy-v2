@@ -28,5 +28,9 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "pdf-lib": "^1.17.1",
+    "react-international-phone": "^4.6.0"
   }
 }

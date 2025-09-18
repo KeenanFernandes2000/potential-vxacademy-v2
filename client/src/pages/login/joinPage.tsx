@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { PhoneInput } from "react-international-phone";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   Card,
@@ -789,16 +790,17 @@ const joinPage = (props: Props) => {
             >
               Phone Number
             </label>
-            <Input
-              id="phone_number"
-              name="phone_number"
-              type="tel"
-              placeholder="Enter your phone number"
-              value={form1Data.phone_number}
-              onChange={handleForm1Change}
-              required
-              className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
-            />
+            <div className="relative" id="phone_number">
+              <PhoneInput
+                defaultCountry="ae"
+                value={form1Data.phone_number}
+                onChange={(phone) =>
+                  setForm1Data((prev) => ({ ...prev, phone_number: phone }))
+                }
+                className="react-international-phone"
+                
+              />
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -1266,16 +1268,17 @@ const joinPage = (props: Props) => {
                 >
                   Phone Number
                 </label>
-                <Input
-                  id="phone_number"
-                  name="phone_number"
-                  type="tel"
-                  placeholder="Enter your phone number"
-                  value={form2Data.phone_number}
-                  onChange={handleForm2Change}
-                  required
-                  className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
-                />
+                <div className="relative" id="phone_number">
+                  <PhoneInput
+                    defaultCountry="ae"
+                    value={form2Data.phone_number}
+                    onChange={(phone) =>
+                      setForm2Data((prev) => ({ ...prev, phone_number: phone }))
+                    }
+                    className="react-international-phone"
+                    
+                  />
+                </div>
               </div>
 
               <div className="flex space-x-4">

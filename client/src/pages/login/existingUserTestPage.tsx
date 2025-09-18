@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Label } from "../../components/ui/label";
 import CertificateDialog from "../../components/CertificateDialog";
 import { useAuth } from "../../hooks/useAuth";
+import CertificateFormFiller from "@/components/generatePDF";
 
 // API object for progress operations
 const api = {
@@ -472,16 +473,8 @@ const ExistingUserTestPage = () => {
               </Button>
 
               {percentageScore >= MINIMUM_CERTIFICATE_SCORE && (
-                <CertificateDialog
-                  courseName="Al Midhyaf Code of Conduct Training"
-                  completionDate={new Date().toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                  certificateId={`VX-${Date.now()}`}
-                  triggerText="View Certificate"
-                  triggerClassName="px-8 py-2 bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-black"
+                <CertificateFormFiller
+                  userName={`${user?.firstName} ${user?.lastName}`}
                 />
               )}
             </div>

@@ -17,12 +17,6 @@ import { useAuth } from "@/hooks/useAuth";
 type Props = {};
 
 // Extended user data interfaces
-interface SubAdminData {
-  job_title: string;
-  total_frontliners: string;
-  eid: string;
-  phone_number: string;
-}
 
 interface NormalUserData {
   first_name: string;
@@ -78,14 +72,6 @@ const ProfilePage = (props: Props) => {
     loading: true,
   });
 
-  // Sub-admin profile state
-  const [subAdminData, setSubAdminData] = useState<SubAdminData>({
-    job_title: "",
-    total_frontliners: "",
-    eid: "",
-    phone_number: "",
-  });
-
   // User profile state
   const [userData, setUserData] = useState<NormalUserData>({
     first_name: "",
@@ -102,54 +88,23 @@ const ProfilePage = (props: Props) => {
   const updateFormDataFromProfile = (profileData: any) => {
     setUserProfile(profileData);
 
-    // Set form data based on user type
-    if (profileData.userType === "sub_admin" && profileData.subAdminDetails) {
-      setSubAdminData({
-        job_title: profileData.subAdminDetails.jobTitle || "",
-        total_frontliners:
-          profileData.subAdminDetails.totalFrontliners?.toString() || "",
-        eid: profileData.subAdminDetails.eid || "",
-        phone_number: profileData.subAdminDetails.phoneNumber || "",
-      });
-    } else if (
-      profileData.userType === "user" &&
-      profileData.normalUserDetails
-    ) {
-      setUserData({
-        first_name: profileData.firstName || "",
-        last_name: profileData.lastName || "",
-        email: profileData.email || "",
-        role_category: profileData.normalUserDetails.roleCategory || "",
-        role: profileData.normalUserDetails.role || "",
-        seniority: profileData.normalUserDetails.seniority || "",
-        eid: profileData.normalUserDetails.eid || "",
-        phone_number: profileData.normalUserDetails.phoneNumber || "",
-      });
-    } else if (profileData.userType === "user") {
-      // For users without normalUserDetails, just set basic fields
-      setUserData({
-        first_name: profileData.firstName || "",
-        last_name: profileData.lastName || "",
-        email: profileData.email || "",
-        role_category: "",
-        role: "",
-        seniority: "",
-        eid: "",
-        phone_number: "",
-      });
-    } else if (profileData.userType === "admin") {
-      // For admin users, set basic fields
-      setUserData({
-        first_name: profileData.firstName || "",
-        last_name: profileData.lastName || "",
-        email: profileData.email || "",
-        role_category: "",
-        role: "",
-        seniority: "",
-        eid: "",
-        phone_number: "",
-      });
-    }
+    // Set form data - only basic fields are editable
+    setUserData({
+      first_name: profileData.firstName || "",
+      last_name: profileData.lastName || "",
+      email: profileData.email || "",
+      role_category: profileData.normalUserDetails?.roleCategory || "",
+      role: profileData.normalUserDetails?.role || "",
+      seniority: profileData.normalUserDetails?.seniority || "",
+      eid:
+        profileData.normalUserDetails?.eid ||
+        profileData.subAdminDetails?.eid ||
+        "",
+      phone_number:
+        profileData.normalUserDetails?.phoneNumber ||
+        profileData.subAdminDetails?.phoneNumber ||
+        "",
+    });
   };
 
   // Fetch user profile data
@@ -265,24 +220,6 @@ const ProfilePage = (props: Props) => {
     fetchOverviewData();
   }, [user, token]);
 
-  // EID formatting function
-  const formatEID = (value: string) => {
-    const digits = value.replace(/\D/g, "");
-
-    if (digits.length <= 3) {
-      return digits;
-    } else if (digits.length <= 7) {
-      return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-    } else if (digits.length <= 14) {
-      return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
-    } else {
-      return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(
-        7,
-        14
-      )}-${digits.slice(14, 15)}`;
-    }
-  };
-
   // Get current user data based on user type
   const getCurrentUserData = () => {
     if (!userProfile) {
@@ -343,39 +280,12 @@ const ProfilePage = (props: Props) => {
     }
   };
 
-  // Form handlers
-  const handleSubAdminChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-
-    if (name === "eid") {
-      const formattedValue = formatEID(value);
-      setSubAdminData((prev) => ({
-        ...prev,
-        [name]: formattedValue,
-      }));
-    } else {
-      setSubAdminData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
-  };
-
   const handleUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-
-    if (name === "eid") {
-      const formattedValue = formatEID(value);
-      setUserData((prev) => ({
-        ...prev,
-        [name]: formattedValue,
-      }));
-    } else {
-      setUserData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    setUserData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   // Form submission handlers
@@ -385,17 +295,15 @@ const ProfilePage = (props: Props) => {
 
     try {
       const baseUrl = import.meta.env.VITE_API_URL;
-      let response: Response;
-      let result: any;
 
-      // First, update basic user data for all user types
+      // Only update basic user data (first name, last name, email)
       const userUpdateData = {
         firstName: userData.first_name,
         lastName: userData.last_name,
         email: userData.email,
       };
 
-      response = await fetch(`${baseUrl}/api/users/users/${user.id}`, {
+      const response = await fetch(`${baseUrl}/api/users/users/${user.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -404,42 +312,15 @@ const ProfilePage = (props: Props) => {
         body: JSON.stringify(userUpdateData),
       });
 
-      // If user is sub-admin, also update sub-admin specific data
-      if (userProfile.userType === "sub_admin") {
-        const subAdminUpdateData = {
-          jobTitle: subAdminData.job_title,
-          totalFrontliners: parseInt(subAdminData.total_frontliners) || 0,
-          eid: subAdminData.eid,
-          phoneNumber: subAdminData.phone_number,
-        };
-
-        const subAdminResponse = await fetch(
-          `${baseUrl}/api/users/${user.id}/sub-admin`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(subAdminUpdateData),
-          }
-        );
-
-        if (!subAdminResponse.ok) {
-          throw new Error("Failed to update sub-admin details");
-        }
-      }
-
       if (!response.ok) {
         throw new Error("Failed to update profile");
       }
 
-      result = await response.json();
+      const result = await response.json();
       if (result.success) {
         alert("Profile updated successfully!");
         // Refresh the profile data by refetching
         try {
-          const baseUrl = import.meta.env.VITE_API_URL;
           const userResponse = await fetch(
             `${baseUrl}/api/users/users/${user.id}`,
             {
@@ -641,7 +522,7 @@ const ProfilePage = (props: Props) => {
                     </div>
                   ) : (
                     <form onSubmit={handleProfileUpdate} className="space-y-6">
-                      {/* Basic user information - available for all user types */}
+                      {/* Basic user information - only first name, last name, and email are editable */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <label
@@ -691,97 +572,20 @@ const ProfilePage = (props: Props) => {
                         />
                       </div>
 
-                      {/* Sub-admin specific fields */}
-                      {userProfile?.userType === "sub_admin" && (
-                        <>
-                          <div className="border-t border-white/20 pt-6">
-                            <h3 className="text-lg font-semibold text-white mb-4">
-                              Sub-Admin Details
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div className="space-y-2">
-                                <label
-                                  htmlFor="job_title"
-                                  className="block text-white font-medium"
-                                >
-                                  Job Title
-                                </label>
-                                <Input
-                                  id="job_title"
-                                  name="job_title"
-                                  value={subAdminData.job_title}
-                                  onChange={handleSubAdminChange}
-                                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <label
-                                  htmlFor="total_frontliners"
-                                  className="block text-white font-medium"
-                                >
-                                  Total Frontliners
-                                </label>
-                                <Input
-                                  id="total_frontliners"
-                                  name="total_frontliners"
-                                  type="number"
-                                  value={subAdminData.total_frontliners}
-                                  onChange={handleSubAdminChange}
-                                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
-                                />
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                              <div className="space-y-2">
-                                <label
-                                  htmlFor="eid"
-                                  className="block text-white font-medium"
-                                >
-                                  EID
-                                </label>
-                                <Input
-                                  id="eid"
-                                  name="eid"
-                                  value={subAdminData.eid}
-                                  onChange={handleSubAdminChange}
-                                  maxLength={19}
-                                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <label
-                                  htmlFor="phone_number"
-                                  className="block text-white font-medium"
-                                >
-                                  Phone Number
-                                </label>
-                                <Input
-                                  id="phone_number"
-                                  name="phone_number"
-                                  type="tel"
-                                  value={subAdminData.phone_number}
-                                  onChange={handleSubAdminChange}
-                                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      )}
                       <div className="flex justify-end items-center gap-4">
-                          <Link 
-                            to="/forgot-password"
-                            className="text-[#00d8cc] hover:text-[#00b8b0] underline transition-colors duration-200"
-                          >
-                              Reset Password
-                          </Link>
-                          <Button
-                            type="submit"
-                            className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 rounded-full"
-                          >
-                            Update Profile
-                          </Button>
-                        </div>
+                        <Link
+                          to="/forgot-password"
+                          className="text-[#00d8cc] hover:text-[#00b8b0] underline transition-colors duration-200"
+                        >
+                          Reset Password
+                        </Link>
+                        <Button
+                          type="submit"
+                          className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 rounded-full"
+                        >
+                          Update Profile
+                        </Button>
+                      </div>
                     </form>
                   )}
                 </TabsContent>
