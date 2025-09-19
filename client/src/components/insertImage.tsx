@@ -102,11 +102,8 @@ const InsertImage: React.FC<InsertImageProps> = ({
       setUploadProgress(100);
 
       if (response.success && response.data) {
-        // Get the full URL for the uploaded image
-        const fullImageUrl = `${import.meta.env.VITE_API_URL}${
-          response.data.url
-        }`;
-        onImageInsert(fullImageUrl);
+        // Use the complete URL from the server response
+        onImageInsert(response.data.url);
         onClose?.();
       } else {
         setError(response.message || "Upload failed");

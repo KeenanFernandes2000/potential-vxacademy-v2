@@ -11,7 +11,7 @@ export class MediaService {
   static async uploadMediaFile(
     file: Express.Multer.File,
     uploadedBy: number
-  ): Promise<MediaFile> {
+  ): Promise<Omit<MediaFile, 'filePath'>> {
     // Generate URL for the uploaded file
     const fileUrl = this.generateFileUrl(file.path);
 
@@ -33,7 +33,9 @@ export class MediaService {
       throw new Error("Failed to create media file");
     }
 
-    return result[0];
+    // Return without filePath for security
+    const { filePath, ...safeResult } = result[0];
+    return safeResult;
   }
 
   /**
@@ -42,7 +44,7 @@ export class MediaService {
   static async uploadMultipleMediaFiles(
     files: Express.Multer.File[],
     uploadedBy: number
-  ): Promise<MediaFile[]> {
+  ): Promise<Omit<MediaFile, 'filePath'>[]> {
     const mediaDataArray: NewMediaFile[] = files.map((file) => ({
       filename: file.filename,
       originalName: file.originalname,
@@ -58,7 +60,9 @@ export class MediaService {
         .insert(mediaFiles)
         .values(mediaDataArray)
         .returning();
-      return results;
+      
+      // Return without filePath for security
+      return results.map(({ filePath, ...safeResult }) => safeResult);
     } catch (error) {
       // Clean up all uploaded files if database insert fails
       files.forEach((file) => this.cleanupFile(file.path));
@@ -69,14 +73,18 @@ export class MediaService {
   /**
    * Get media file by ID
    */
-  static async getMediaFileById(id: number): Promise<MediaFile | null> {
+  static async getMediaFileById(id: number): Promise<Omit<MediaFile, 'filePath'> | null> {
     const [mediaFile] = await db
       .select()
       .from(mediaFiles)
       .where(eq(mediaFiles.id, id))
       .limit(1);
 
-    return mediaFile || null;
+    if (!mediaFile) return null;
+    
+    // Return without filePath for security
+    const { filePath, ...safeResult } = mediaFile;
+    return safeResult;
   }
 
   /**
@@ -85,7 +93,7 @@ export class MediaService {
   static async getAllMediaFiles(
     limit?: number,
     offset?: number
-  ): Promise<MediaFile[]> {
+  ): Promise<Omit<MediaFile, 'filePath'>[]> {
     const query = db.select().from(mediaFiles);
 
     if (limit !== undefined) {
@@ -96,7 +104,10 @@ export class MediaService {
       query.offset(offset);
     }
 
-    return await query;
+    const results = await query;
+    
+    // Return without filePath for security
+    return results.map(({ filePath, ...safeResult }) => safeResult);
   }
 
   /**
@@ -104,21 +115,27 @@ export class MediaService {
    */
   static async getMediaFilesByUploader(
     uploadedBy: number
-  ): Promise<MediaFile[]> {
-    return await db
+  ): Promise<Omit<MediaFile, 'filePath'>[]> {
+    const results = await db
       .select()
       .from(mediaFiles)
       .where(eq(mediaFiles.uploadedBy, uploadedBy));
+    
+    // Return without filePath for security
+    return results.map(({ filePath, ...safeResult }) => safeResult);
   }
 
   /**
    * Get media files by MIME type
    */
-  static async getMediaFilesByMimeType(mimeType: string): Promise<MediaFile[]> {
-    return await db
+  static async getMediaFilesByMimeType(mimeType: string): Promise<Omit<MediaFile, 'filePath'>[]> {
+    const results = await db
       .select()
       .from(mediaFiles)
       .where(eq(mediaFiles.mimeType, mimeType));
+    
+    // Return without filePath for security
+    return results.map(({ filePath, ...safeResult }) => safeResult);
   }
 
   /**
@@ -126,11 +143,14 @@ export class MediaService {
    */
   static async searchMediaFilesByFilename(
     searchTerm: string
-  ): Promise<MediaFile[]> {
-    return await db
+  ): Promise<Omit<MediaFile, 'filePath'>[]> {
+    const results = await db
       .select()
       .from(mediaFiles)
       .where(eq(mediaFiles.filename, searchTerm));
+    
+    // Return without filePath for security
+    return results.map(({ filePath, ...safeResult }) => safeResult);
   }
 
   /**
@@ -171,13 +191,20 @@ export class MediaService {
     const normalizedPath = filePath.replace(/\\/g, "/");
     const uploadsIndex = normalizedPath.indexOf("/uploads/");
 
+    let relativePath: string;
     if (uploadsIndex !== -1) {
       // Extract everything from /uploads/ onwards
-      return normalizedPath.substring(uploadsIndex);
+      relativePath = normalizedPath.substring(uploadsIndex);
+    } else {
+      // Fallback: if uploads not found, return the path as is with leading slash
+      relativePath = `/${normalizedPath}`;
     }
 
-    // Fallback: if uploads not found, return the path as is with leading slash
-    return `/${normalizedPath}`;
+    // Get the server base URL from environment variable
+    const serverBaseUrl = process.env.VITE_API_URL;
+    
+    // Return the complete URL
+    return `${serverBaseUrl}${relativePath}`;
   }
 
   /**

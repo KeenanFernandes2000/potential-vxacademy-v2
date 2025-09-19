@@ -39,7 +39,6 @@ interface MediaFile {
   originalName: string;
   mimeType: string;
   fileSize: number;
-  filePath: string;
   url: string;
   uploadedBy: number;
   createdAt: string;
@@ -409,13 +408,26 @@ const MediaPage: React.FC = () => {
 
   const handleDownload = async (file: MediaFile) => {
     try {
+      // Fetch the file as a blob to handle CORS and ensure proper download
+      const response = await fetch(file.url);
+      if (!response.ok) {
+        throw new Error("Failed to fetch file");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
       // Create a temporary link to download the file
       const link = document.createElement("a");
-      link.href = file.url;
+      link.href = url;
       link.download = file.originalName;
+      link.style.display = "none";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+
+      // Clean up the blob URL
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Download failed:", error);
       setError("Download failed. Please try again.");
@@ -424,8 +436,7 @@ const MediaPage: React.FC = () => {
 
   const handleCopyUrl = async (file: MediaFile) => {
     try {
-      const fullUrl = `${import.meta.env.VITE_API_URL}${file.url}`;
-      await navigator.clipboard.writeText(fullUrl);
+      await navigator.clipboard.writeText(file.url);
       // You could add a toast notification here
       console.log("URL copied to clipboard");
     } catch (error) {
@@ -679,7 +690,7 @@ const MediaPage: React.FC = () => {
                       {file.mimeType.startsWith("image/") ? (
                         <>
                           <img
-                            src={`${import.meta.env.VITE_API_URL}${file.url}`}
+                            src={file.url}
                             alt={file.originalName}
                             className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                             onError={(e) => {
@@ -813,9 +824,7 @@ const MediaPage: React.FC = () => {
                     <div className="bg-gray-50 rounded-lg p-4 min-h-[300px] flex items-center justify-center">
                       {previewFile.mimeType.startsWith("image/") ? (
                         <img
-                          src={`${import.meta.env.VITE_API_URL}${
-                            previewFile.url
-                          }`}
+                          src={previewFile.url}
                           alt={previewFile.originalName}
                           className="max-w-full max-h-[400px] object-contain rounded-lg shadow-sm"
                         />

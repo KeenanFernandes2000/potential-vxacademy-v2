@@ -57,9 +57,8 @@ export default function CertificateFormFiller({
       throw new Error("Certificate template not found");
     }
 
-    const url = `${baseUrl}${certificateTemplate.url}`;
-    setTemplateUrl(url);
-    return url;
+    setTemplateUrl(certificateTemplate.url);
+    return certificateTemplate.url;
   };
 
   const generateCertificate = async () => {
