@@ -591,7 +591,10 @@ const CourseDetails = () => {
         setCourse(transformedCourse);
 
         // Filter units based on user role assignments
-        await filterUnitsBasedOnRoleAssignments(transformedCourse.units, token);
+        // await filterUnitsBasedOnRoleAssignments(transformedCourse.units, token);
+
+        // Show all units instead of filtering
+        setFilteredUnits(transformedCourse.units);
       } catch (error: any) {
         console.error("Error fetching course data:", error);
         setError(error.message || "Failed to load course data");
