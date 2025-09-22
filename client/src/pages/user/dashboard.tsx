@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, TrendingUp } from "lucide-react";
+import { Star, BookOpen, CheckCircle } from "lucide-react";
 import CourseCard from "@/components/CourseCard";
 
 // Types
@@ -32,15 +32,23 @@ interface CourseProgress {
   completionPercentage: string; // This comes as a string from the database
   startedAt: string;
   completedAt: string;
+  lastAccessedAt?: string;
+  timeSpent?: number; // in minutes
 }
 
-interface UserProgress {
-  courseProgress: CourseProgress[];
+// The API returns progress data directly as an array, not wrapped in courseProgress
+type ProgressApiResponse = CourseProgress[];
+
+interface EnhancedCourse extends Course {
+  progress: number;
+  status: "not_started" | "in_progress" | "completed";
 }
 
 const Dashboard = () => {
   const { user, token } = useAuth();
-  const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
+  const [userProgress, setUserProgress] = useState<ProgressApiResponse | null>(
+    null
+  );
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -64,7 +72,6 @@ const Dashboard = () => {
 
         if (progressResponse.ok) {
           const progressResult = await progressResponse.json();
-          console.log("Progress API Response:", progressResult);
           if (progressResult.success && progressResult.data) {
             setUserProgress(progressResult.data);
           }
@@ -74,7 +81,6 @@ const Dashboard = () => {
         const coursesResponse = await fetch(`${baseUrl}/api/training/courses`);
         if (coursesResponse.ok) {
           const coursesResult = await coursesResponse.json();
-          console.log("Courses API Response:", coursesResult);
           if (coursesResult.success && coursesResult.data) {
             setCourses(coursesResult.data);
           }
@@ -89,77 +95,39 @@ const Dashboard = () => {
     fetchDashboardData();
   }, [user, token]);
 
-  // Get courses with progress > 0%
-  const getInProgressCourses = () => {
-    console.log("getInProgressCourses - userProgress:", userProgress);
-    console.log("getInProgressCourses - courses:", courses);
-
+  // Get courses that have progress (only show courses with progress > 0 or status = "in_progress")
+  const getInProgressCourses = (): EnhancedCourse[] => {
     if (
       !userProgress ||
-      !userProgress.courseProgress ||
-      !Array.isArray(userProgress.courseProgress) ||
-      !courses ||
-      !Array.isArray(courses)
-    ) {
-      console.log(
-        "getInProgressCourses - returning empty array due to missing data"
-      );
-      return [];
-    }
-
-    return courses
-      .map((course) => {
-        const progress = userProgress.courseProgress.find(
-          (p) => p.courseId === course.id
-        );
-        const progressPercentage = progress
-          ? parseFloat(progress.completionPercentage)
-          : 0;
-        return {
-          ...course,
-          progress: progressPercentage,
-          status: progress?.status || "not_started",
-        };
-      })
-      .filter((course) => course.progress > 0 && course.progress < 100);
-  };
-
-  // Get recommended courses (from same modules as in-progress courses)
-  const getRecommendedCourses = () => {
-    if (
-      !userProgress ||
-      !userProgress.courseProgress ||
-      !Array.isArray(userProgress.courseProgress) ||
+      !Array.isArray(userProgress) ||
       !courses ||
       !Array.isArray(courses)
     ) {
       return [];
     }
 
-    const inProgressCourses = getInProgressCourses();
-    const inProgressModuleIds = inProgressCourses.map(
-      (course) => course.moduleId
-    );
-
     return courses
       .map((course) => {
-        const progress = userProgress.courseProgress.find(
-          (p) => p.courseId === course.id
-        );
+        const progress = userProgress.find((p) => p.courseId === course.id);
         const progressPercentage = progress
           ? parseFloat(progress.completionPercentage)
           : 0;
+        const status = progress?.status || "not_started";
         return {
           ...course,
           progress: progressPercentage,
-          status: progress?.status || "not_started",
+          status: status as "not_started" | "in_progress" | "completed",
         };
       })
       .filter(
         (course) =>
-          inProgressModuleIds.includes(course.moduleId) && course.progress === 0
+          // Only show courses that have progress > 0 OR are marked as in_progress
+          course.progress > 0 || course.status === "in_progress"
       )
-      .slice(0, 6); // Limit to 6 recommendations
+      .sort((a, b) => {
+        // Sort by progress descending
+        return b.progress - a.progress;
+      });
   };
 
   const formatDuration = (minutes: number) => {
@@ -171,6 +139,31 @@ const Dashboard = () => {
       : `${hours}h`;
   };
 
+  // Get progress statistics
+  const getProgressStats = () => {
+    const inProgressCourses = getInProgressCourses();
+    const totalCourses = userProgress?.length || 0;
+    const completedCourses =
+      userProgress?.filter((p) => p.status === "completed").length || 0;
+    const inProgressCount = inProgressCourses.length;
+    const averageProgress =
+      inProgressCourses.length > 0
+        ? Math.round(
+            inProgressCourses.reduce(
+              (sum, course) => sum + course.progress,
+              0
+            ) / inProgressCourses.length
+          )
+        : 0;
+
+    return {
+      totalCourses,
+      completedCourses,
+      inProgressCount,
+      averageProgress,
+    };
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -180,7 +173,7 @@ const Dashboard = () => {
   }
 
   const inProgressCourses = getInProgressCourses();
-  const recommendedCourses = getRecommendedCourses();
+  const progressStats = getProgressStats();
 
   return (
     <div className="space-y-8">
@@ -190,17 +183,31 @@ const Dashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">
-                Welcome back, {user?.firstName}!
+                Welcome, {user?.firstName}!
               </h1>
               <p className="text-lg opacity-90 mb-4">
                 Continue your journey in becoming an exceptional hospitality
                 professional.
               </p>
-              <div className="flex items-center space-x-2">
-                <Star className="w-5 h-5" />
-                <span className="text-lg font-semibold">
-                  {userProgress?.courseProgress?.length || 0} Courses Enrolled
-                </span>
+              <div className="flex items-center space-x-6">
+                <div className="flex items-center space-x-2">
+                  <Star className="w-5 h-5" />
+                  <span className="text-lg font-semibold">
+                    {progressStats.totalCourses} Courses Enrolled
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="text-lg font-semibold">
+                    {progressStats.completedCourses} Completed
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="text-lg font-semibold">
+                    0 Certificates Earned
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -209,13 +216,17 @@ const Dashboard = () => {
 
       {/* Your Progress Section */}
       <div>
-        <h2 className="text-2xl font-bold mb-6">Your Progress</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Courses in Progress</h2>
+        </div>
+
         {inProgressCourses.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {inProgressCourses.map((course) => (
               <CourseCard
                 key={course.id}
                 title={course.name}
+                courseId={course.id}
                 description={course.description || "No description available"}
                 duration={formatDuration(course.duration)}
                 difficulty={
@@ -224,60 +235,44 @@ const Dashboard = () => {
                 progress={Math.round(course.progress)}
                 image={course.imageUrl || undefined}
                 onStart={() => {
-                  // Navigate to course
                   window.location.href = `/user/course/${course.id}`;
                 }}
               />
             ))}
           </div>
         ) : (
-          <Card className="p-8 text-center bg-white">
-            <TrendingUp className="w-12 h-12 mx-auto mb-4 text-[#003451]" />
-            <h3 className="text-lg font-semibold mb-2 text-[#003451]">
-              No courses in progress
-            </h3>
-            <Button
-              className="bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-white w-fit mx-auto"
-              onClick={() => {
-                // Navigate to courses page
-                window.location.href = "/user/courses";
-              }}
-            >
-              Browse Courses
-            </Button>
-            <p className="text-gray-600 mb-4">
-              Start a new course to see your progress here.
-            </p>
+          <Card className="p-12 text-center bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200">
+            <div className="max-w-md mx-auto">
+              <div className="w-20 h-20 bg-[#00d8cc] rounded-full flex items-center justify-center mx-auto mb-6">
+                <BookOpen className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                No Courses in Progress
+              </h3>
+              <p className="text-gray-600 mb-8 text-lg">
+                You don't have any courses in progress at the moment. Browse our
+                course catalog and begin your learning journey today!
+              </p>
+              <div className="space-y-4">
+                <Button
+                  className="bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-white px-8 py-3 text-lg font-semibold"
+                  onClick={() => {
+                    window.location.href = "/user/courses";
+                  }}
+                >
+                  <BookOpen className="w-5 h-5 mr-2" />
+                  Browse All Courses
+                </Button>
+                <div className="text-sm text-gray-500">
+                  <p>• Choose from our comprehensive course library</p>
+                  <p>• Learn at your own pace</p>
+                  <p>• Track your progress and achievements</p>
+                </div>
+              </div>
+            </div>
           </Card>
         )}
       </div>
-
-      {/* Recommended Courses Section */}
-      {recommendedCourses.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-bold mb-6">Recommended For You</h2>
-          <div className="flex space-x-6 overflow-x-auto pb-4">
-            {recommendedCourses.map((course) => (
-              <div key={course.id} className="min-w-[300px] flex-shrink-0">
-                <CourseCard
-                  title={course.name}
-                  description={course.description || "No description available"}
-                  duration={formatDuration(course.duration)}
-                  difficulty={
-                    course.level as "beginner" | "intermediate" | "advanced"
-                  }
-                  progress={Math.round(course.progress)}
-                  image={course.imageUrl || undefined}
-                  onStart={() => {
-                    // Navigate to course
-                    window.location.href = `/user/course/${course.id}`;
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

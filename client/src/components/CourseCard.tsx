@@ -334,75 +334,75 @@ const CourseCard: React.FC<CourseCardProps> = ({
               );
 
               // Collect all learning block IDs from all responses
-              const allLearningBlockIds: number[] = [];
-              learningBlockResponses.forEach((response, index) => {
-                if (response?.success && response?.data) {
-                  const unitId = missingUnitIds[index];
-                  const learningBlockIds = response.data.map(
-                    (block: any) => block.id
-                  );
-                  allLearningBlockIds.push(...learningBlockIds);
+              // const allLearningBlockIds: number[] = [];
+              // learningBlockResponses.forEach((response, index) => {
+              //   if (response?.success && response?.data) {
+              //     const unitId = missingUnitIds[index];
+              //     const learningBlockIds = response.data.map(
+              //       (block: any) => block.id
+              //     );
+              //     allLearningBlockIds.push(...learningBlockIds);
 
-                  console.log(
-                    `Learning blocks for unit ${unitId}:`,
-                    learningBlockIds
-                  );
-                }
-              });
+              //     console.log(
+              //       `Learning blocks for unit ${unitId}:`,
+              //       learningBlockIds
+              //     );
+              //   }
+              // });
 
-              console.log("=== ALL LEARNING BLOCK IDS ===");
-              console.log(
-                "All learning block IDs from missing units:",
-                allLearningBlockIds
-              );
+              // console.log("=== ALL LEARNING BLOCK IDS ===");
+              // console.log(
+              //   "All learning block IDs from missing units:",
+              //   allLearningBlockIds
+              // );
 
-              // 5. Complete all learning blocks
-              if (allLearningBlockIds.length > 0) {
-                console.log("=== COMPLETING LEARNING BLOCKS ===");
+              // // 5. Complete all learning blocks
+              // if (allLearningBlockIds.length > 0) {
+              //   console.log("=== COMPLETING LEARNING BLOCKS ===");
 
-                try {
-                  // Get user ID from localStorage
-                  const userId = JSON.parse(userData || "{}")?.id;
+              //   try {
+              //     // Get user ID from localStorage
+              //     const userId = JSON.parse(userData || "{}")?.id;
 
-                  if (!userId) {
-                    console.error("User ID not found in localStorage");
-                  } else {
-                    // Complete all learning blocks in parallel
-                    const completePromises = allLearningBlockIds.map(
-                      (learningBlockId) =>
-                        api.completeLearningBlock(
-                          userId,
-                          learningBlockId,
-                          token
-                        )
-                    );
+              //     if (!userId) {
+              //       console.error("User ID not found in localStorage");
+              //     } else {
+              //       // Complete all learning blocks in parallel
+              //       const completePromises = allLearningBlockIds.map(
+              //         (learningBlockId) =>
+              //           api.completeLearningBlock(
+              //             userId,
+              //             learningBlockId,
+              //             token
+              //           )
+              //       );
 
-                    const completeResponses = await Promise.all(
-                      completePromises
-                    );
+              //       const completeResponses = await Promise.all(
+              //         completePromises
+              //       );
 
-                    console.log("=== LEARNING BLOCK COMPLETION RESULTS ===");
-                    completeResponses.forEach((response, index) => {
-                      const learningBlockId = allLearningBlockIds[index];
-                      if (response?.success) {
-                        console.log(
-                          `✅ Learning block ${learningBlockId} completed successfully`
-                        );
-                      } else {
-                        console.log(
-                          `❌ Learning block ${learningBlockId} failed to complete:`,
-                          response?.message || "Unknown error"
-                        );
-                      }
-                    });
-                  }
-                } catch (error) {
-                  console.error("Error completing learning blocks:", error);
-                }
-              } else {
-                console.log("=== NO LEARNING BLOCKS TO COMPLETE ===");
-                console.log("No learning blocks found in missing units");
-              }
+              //       console.log("=== LEARNING BLOCK COMPLETION RESULTS ===");
+              //       completeResponses.forEach((response, index) => {
+              //         const learningBlockId = allLearningBlockIds[index];
+              //         if (response?.success) {
+              //           console.log(
+              //             `✅ Learning block ${learningBlockId} completed successfully`
+              //           );
+              //         } else {
+              //           console.log(
+              //             `❌ Learning block ${learningBlockId} failed to complete:`,
+              //             response?.message || "Unknown error"
+              //           );
+              //         }
+              //       });
+              //   }
+              // } catch (error) {
+              //   console.error("Error completing learning blocks:", error);
+              // }
+              // } else {
+              //   console.log("=== NO LEARNING BLOCKS TO COMPLETE ===");
+              //   console.log("No learning blocks found in missing units");
+              // }
 
               // Store missing unit IDs for navigation
               if (missingUnitIds.length > 0) {
@@ -450,7 +450,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-sm bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 overflow-hidden rounded-none py-0">
+    <Card className="w-full max-w-sm bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 overflow-hidden rounded-none py-0 flex flex-col h-full">
       {/* Course Image or Initials Fallback */}
       <div className="relative w-full h-48">
         {image && image !== "null" ? (
@@ -478,37 +478,28 @@ const CourseCard: React.FC<CourseCardProps> = ({
         )}
       </div>
 
-      <CardContent className="px-4">
-        {/* Difficulty Tag */}
-        <div className="mb-1">
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${getDifficultyColor(
-              difficulty
-            )}`}
-          >
-            {difficulty}
-          </span>
-        </div>
-
+      <CardContent className="px-4 flex-1 flex flex-col">
         {/* Course Title */}
-        <h3 className="text-xl font-bold text-black mb-1 line-clamp-1 h-6 overflow-hidden">
+        <h3 className="text-xl font-bold text-black mb-1 break-words min-h-[3rem] flex items-start">
           {title}
         </h3>
 
         {/* Course Description */}
-        <p className="text-sm text-gray-500 line-clamp-3 h-16 overflow-hidden">
+        <p className="text-sm text-gray-500 line-clamp-3 h-16 overflow-hidden flex-1">
           {description}
         </p>
       </CardContent>
 
-      <CardFooter className="px-4 pb-4">
+      <CardFooter className="px-4 pb-4 mt-auto">
         <div className="w-full">
           {/* Progress Section */}
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-gray-700">
               Course Progress
             </span>
-            <span className="text-sm text-gray-400">{progress}% Complete</span>
+            <span className="text-sm text-gray-400">
+              {Math.round(progress)}% Complete
+            </span>
           </div>
 
           {/* Progress Bar */}

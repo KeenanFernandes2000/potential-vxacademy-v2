@@ -1,8 +1,5 @@
 import React from "react";
-import {
-  AccessTime as Clock,
-  BookmarkBorder as Bookmark,
-} from "@mui/icons-material";
+import { AccessTime as Clock } from "@mui/icons-material";
 
 interface CourseDetailsCardProps {
   course: {
@@ -36,10 +33,6 @@ const CourseDetailsCard: React.FC<CourseDetailsCardProps> = ({ course }) => {
               <Clock className="w-5 h-5 mr-2" />
               <span>{course.estimatedDuration}</span>
             </div>
-            <div className="flex items-center text-gray-600">
-              <Bookmark className="w-5 h-5 mr-2" />
-              <span>{course.difficultyLevel}</span>
-            </div>
           </div>
         </div>
         <div className="bg-white border p-4 min-w-[200px]">
@@ -53,7 +46,7 @@ const CourseDetailsCard: React.FC<CourseDetailsCardProps> = ({ course }) => {
             ></div>
           </div>
           <span className="text-sm text-gray-600">
-            {course.progress}% Complete
+            {Math.round(course.progress)}% Complete
           </span>
         </div>
       </div>

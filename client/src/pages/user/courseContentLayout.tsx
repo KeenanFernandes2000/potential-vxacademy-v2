@@ -114,6 +114,9 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
     assessment?: Assessment;
   } | null>(null);
 
+  // State to track if there's next content available
+  const [hasNextContent, setHasNextContent] = useState(true);
+
   // State for assessment results
   const [assessmentAttempts, setAssessmentAttempts] = useState<
     AssessmentAttempt[]
@@ -197,7 +200,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
       });
 
       if (firstAccessibleContent) {
-        setSelectedContent({
+        const initialContent = {
           type: firstAccessibleContent.type,
           id: firstAccessibleContent.item.id,
           title: firstAccessibleContent.item.title,
@@ -208,7 +211,13 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
             firstAccessibleContent.type === "assessment"
               ? firstAccessibleContent.item
               : undefined,
-        });
+        };
+
+        setSelectedContent(initialContent);
+
+        // Check if there's next content available
+        const nextContent = findNextAccessibleContent();
+        setHasNextContent(!!nextContent);
       }
     }
   }, [units]);
@@ -272,13 +281,24 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
     type: "learningBlock" | "assessment",
     item: any
   ) => {
-    setSelectedContent({
+    const newSelectedContent = {
       type,
       id: item.id,
       title: item.title,
       content: item.content || item.description,
       assessment: type === "assessment" ? item : undefined,
-    });
+    };
+
+    setSelectedContent(newSelectedContent);
+
+    // Check if there's next content available after this item
+    // We need to temporarily set selectedContent to check for next content
+    const originalSelectedContent = selectedContent;
+    setSelectedContent(newSelectedContent);
+
+    // Check for next content
+    const nextContent = findNextAccessibleContent();
+    setHasNextContent(!!nextContent);
   };
 
   const handleStartAssessment = (assessmentId: number) => {
@@ -289,14 +309,68 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
     if (selectedContent?.type === "learningBlock" && onCompleteLearningBlock) {
       try {
         await onCompleteLearningBlock(selectedContent.id);
-        // Update the selected content status locally
-        setSelectedContent((prev) =>
-          prev ? { ...prev, status: "completed" } : null
-        );
+
+        // Find the next accessible content item
+        const nextContent = findNextAccessibleContent();
+
+        if (nextContent) {
+          // Navigate to the next content item
+          setSelectedContent({
+            type: nextContent.type,
+            id: nextContent.item.id,
+            title: nextContent.item.title,
+            content: nextContent.item.content || nextContent.item.description,
+            assessment:
+              nextContent.type === "assessment" ? nextContent.item : undefined,
+          });
+          setHasNextContent(true);
+        } else {
+          // No more content available - course or unit completed
+          console.log(
+            "No more content available - course progression complete"
+          );
+          setHasNextContent(false);
+        }
       } catch (error) {
         console.error("Failed to complete learning block:", error);
       }
     }
+  };
+
+  // Helper function to find the next accessible content item
+  const findNextAccessibleContent = (): {
+    type: "learningBlock" | "assessment";
+    item: any;
+    unitOrder: number;
+    itemOrder: number;
+  } | null => {
+    if (!selectedContent) return null;
+
+    const allContent = getAllContentInOrder();
+    const currentIndex = allContent.findIndex(
+      (content) =>
+        content.type === selectedContent.type &&
+        content.item.id === selectedContent.id
+    );
+
+    if (currentIndex === -1) return null;
+
+    // Look for the next accessible content item
+    for (let i = currentIndex + 1; i < allContent.length; i++) {
+      const content = allContent[i];
+
+      if (content.type === "learningBlock") {
+        if (isLearningBlockAccessible(content.item, content.unitOrder)) {
+          return content;
+        }
+      } else if (content.type === "assessment") {
+        if (isAssessmentAccessible(content.item, content.unitOrder)) {
+          return content;
+        }
+      }
+    }
+
+    return null; // No more accessible content found
   };
 
   // Helper function to get the current learning block's completion status
@@ -1226,6 +1300,8 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                       {selectedContent?.type === "learningBlock"
                         ? isCurrentLearningBlockCompleted()
                           ? "Completed"
+                          : hasNextContent
+                          ? "Mark Complete & Continue"
                           : "Mark Complete"
                         : "Next"}
                     </Button>

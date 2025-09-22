@@ -247,6 +247,32 @@ const api = {
       throw error;
     }
   },
+
+  async getUserCourseProgress(userId: number, token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/progress/courses/${userId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch user course progress:", error);
+      throw error;
+    }
+  },
 };
 
 // Interface for course data structure
@@ -552,23 +578,48 @@ const CourseDetails = () => {
           }),
         }));
 
-        // Calculate overall course progress
-        const totalBlocks = unitsWithProgress.reduce(
-          (sum, unit) => sum + unit.learningBlocks.length,
-          0
-        );
-        const completedBlocks = unitsWithProgress.reduce(
-          (sum, unit) =>
-            sum +
-            unit.learningBlocks.filter(
-              (block: LearningBlock) => block.status === "completed"
-            ).length,
-          0
-        );
-        const progressPercentage =
-          totalBlocks > 0
-            ? Math.round((completedBlocks / totalBlocks) * 100)
-            : 0;
+        // Fetch course progress from the same API endpoint used by course cards
+        let progressPercentage = 0;
+        try {
+          const courseProgressResponse = await api.getUserCourseProgress(
+            user.id,
+            token
+          );
+          if (courseProgressResponse.success && courseProgressResponse.data) {
+            const courseProgress = courseProgressResponse.data.find(
+              (progress: any) => progress.courseId === courseId
+            );
+            if (
+              courseProgress &&
+              courseProgress.completionPercentage !== undefined
+            ) {
+              progressPercentage =
+                parseFloat(courseProgress.completionPercentage) || 0;
+            }
+          }
+        } catch (progressError) {
+          console.warn(
+            "Failed to fetch course progress, using calculated progress:",
+            progressError
+          );
+          // Fallback to calculated progress if API fails
+          const totalBlocks = unitsWithProgress.reduce(
+            (sum, unit) => sum + unit.learningBlocks.length,
+            0
+          );
+          const completedBlocks = unitsWithProgress.reduce(
+            (sum, unit) =>
+              sum +
+              unit.learningBlocks.filter(
+                (block: LearningBlock) => block.status === "completed"
+              ).length,
+            0
+          );
+          progressPercentage =
+            totalBlocks > 0
+              ? Math.round((completedBlocks / totalBlocks) * 100)
+              : 0;
+        }
 
         // Transform course data to match expected structure
         const transformedCourse: CourseData = {
@@ -591,7 +642,7 @@ const CourseDetails = () => {
         setCourse(transformedCourse);
 
         // Filter units based on user role assignments
-        // await filterUnitsBasedOnRoleAssignments(transformedCourse.units, token);
+        await filterUnitsBasedOnRoleAssignments(transformedCourse.units, token);
 
         // Show all units instead of filtering
         setFilteredUnits(transformedCourse.units);
@@ -653,6 +704,18 @@ const CourseDetails = () => {
   return (
     <div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Back Navigation */}
+        <div className="mb-6">
+          <Button
+            onClick={() => navigate("/user/courses")}
+            variant="outline"
+            className="flex items-center gap-2 text-white hover:text-white"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to My Courses
+          </Button>
+        </div>
+
         {/* Course Details Card */}
         <CourseDetailsCard course={course} />
 
@@ -680,30 +743,56 @@ const CourseDetails = () => {
                     ),
                   }));
 
-                  // Recalculate overall progress based on filtered units
-                  const totalBlocks = filteredUnits.reduce(
-                    (sum, unit) => sum + unit.learningBlocks.length,
-                    0
-                  );
-                  const completedBlocks = filteredUnits.reduce(
-                    (sum, unit) =>
-                      sum +
-                      unit.learningBlocks.filter(
-                        (block: LearningBlock) => block.status === "completed"
-                      ).length,
-                    0
-                  );
-                  const progressPercentage =
-                    totalBlocks > 0
-                      ? Math.round((completedBlocks / totalBlocks) * 100)
-                      : 0;
-
                   return {
                     ...prevCourse,
                     units: updatedUnits,
-                    progress: progressPercentage,
                   };
                 });
+
+                // Also update the filtered units to reflect the changes
+                setFilteredUnits((prevFilteredUnits) => {
+                  return prevFilteredUnits.map((unit) => ({
+                    ...unit,
+                    learningBlocks: unit.learningBlocks.map((block) =>
+                      block.id === learningBlockId
+                        ? { ...block, status: "completed" }
+                        : block
+                    ),
+                  }));
+                });
+
+                // Fetch updated course progress from API to ensure consistency
+                try {
+                  const courseProgressResponse =
+                    await api.getUserCourseProgress(user.id, token);
+                  if (
+                    courseProgressResponse.success &&
+                    courseProgressResponse.data
+                  ) {
+                    const courseProgress = courseProgressResponse.data.find(
+                      (progress: any) => progress.courseId === courseId
+                    );
+                    if (
+                      courseProgress &&
+                      courseProgress.completionPercentage !== undefined
+                    ) {
+                      const updatedProgress =
+                        parseFloat(courseProgress.completionPercentage) || 0;
+                      setCourse((prevCourse) => {
+                        if (!prevCourse) return prevCourse;
+                        return {
+                          ...prevCourse,
+                          progress: updatedProgress,
+                        };
+                      });
+                    }
+                  }
+                } catch (progressError) {
+                  console.warn(
+                    "Failed to fetch updated course progress:",
+                    progressError
+                  );
+                }
               } catch (error) {
                 console.error("Failed to complete learning block:", error);
               }

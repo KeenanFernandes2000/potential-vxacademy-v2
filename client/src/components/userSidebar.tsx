@@ -9,6 +9,7 @@ import {
   School,
   ArrowLeft,
 } from "@mui/icons-material";
+import { useAuth } from "@/hooks/useAuth";
 
 import {
   Sidebar,
@@ -30,12 +31,17 @@ import { Button } from "./ui/button";
 const UserSidebar = () => {
   const location = useLocation();
   const { toggleSidebar, state } = useSidebar();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+  };
 
   const mainNavItems = [
-    { title: "Dashboard", icon: Home, url: "/user/dashboard", badge: null },
+    { title: "My Dashboard", icon: Home, url: "/user/dashboard", badge: null },
     { title: "My Courses", icon: BookOpen, url: "/user/courses", badge: null },
     {
-      title: "Achievements",
+      title: "My Achievements",
       icon: Award,
       url: "/user/achievements",
       badge: null,
@@ -69,7 +75,6 @@ const UserSidebar = () => {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => (
@@ -101,14 +106,12 @@ const UserSidebar = () => {
                     <span>Profile</span>
                   </Link>
                 </SidebarMenuButton>
-                <SidebarMenuAction asChild>
-                  <Link
-                    to="#logout"
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <LogOut sx={{ fontSize: 16 }} />
-                  </Link>
-                </SidebarMenuAction>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout}>
+                  <LogOut sx={{ fontSize: 16 }} />
+                  <span>Logout</span>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>

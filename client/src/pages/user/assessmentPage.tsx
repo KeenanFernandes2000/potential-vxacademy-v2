@@ -378,7 +378,7 @@ const AssessmentPage: React.FC = () => {
 
       // If passed, redirect to course page
       if (passed && assessment.courseId) {
-        navigate(`/user/course/${assessment.courseId}`);
+        navigate(`/user/courses/${assessment.courseId}`);
         return;
       }
 

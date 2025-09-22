@@ -140,6 +140,12 @@ const Courses = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filter states
+  const [selectedTrainingArea, setSelectedTrainingArea] = useState<
+    number | null
+  >(null);
+  const [selectedModule, setSelectedModule] = useState<number | null>(null);
+
   // Helper function to format duration
   const formatDuration = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
@@ -167,6 +173,45 @@ const Courses = () => {
       if (level.includes("advanced")) return "advanced";
     }
     return course.level;
+  };
+
+  // Filter courses based on selected training area and module
+  const getFilteredCourses = () => {
+    return courses.filter((course) => {
+      const courseModule = modules.find(
+        (module) => module.id === course.moduleId
+      );
+      if (!courseModule) return false;
+
+      // Filter by training area
+      if (
+        selectedTrainingArea &&
+        courseModule.trainingAreaId !== selectedTrainingArea
+      ) {
+        return false;
+      }
+
+      // Filter by module
+      if (selectedModule && course.moduleId !== selectedModule) {
+        return false;
+      }
+
+      return true;
+    });
+  };
+
+  // Get modules for selected training area
+  const getFilteredModules = () => {
+    if (!selectedTrainingArea) return modules;
+    return modules.filter(
+      (module) => module.trainingAreaId === selectedTrainingArea
+    );
+  };
+
+  // Reset module filter when training area changes
+  const handleTrainingAreaChange = (trainingAreaId: number | null) => {
+    setSelectedTrainingArea(trainingAreaId);
+    setSelectedModule(null); // Reset module filter
   };
 
   // Fetch all data
@@ -294,9 +339,75 @@ const Courses = () => {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">My Courses</h1>
-        <p className="text-muted-foreground">
-          Track your learning progress and access your enrolled courses.
-        </p>
+        <p className="text-muted-foreground">Access your VX Academy courses</p>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Training Area Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-3">
+              Training Area
+            </label>
+            <select
+              value={selectedTrainingArea || ""}
+              onChange={(e) =>
+                handleTrainingAreaChange(
+                  e.target.value ? parseInt(e.target.value) : null
+                )
+              }
+              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-[#00d8cc] transition-colors"
+            >
+              <option value="" className="bg-gray-700 text-white">
+                All Training Areas
+              </option>
+              {trainingAreas.map((area) => (
+                <option
+                  key={area.id}
+                  value={area.id}
+                  className="bg-gray-700 text-white"
+                >
+                  {area.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Module Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-3">
+              Module
+            </label>
+            <select
+              value={selectedModule || ""}
+              onChange={(e) =>
+                setSelectedModule(
+                  e.target.value ? parseInt(e.target.value) : null
+                )
+              }
+              className={`w-full px-4 py-3 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-[#00d8cc] transition-colors ${
+                !selectedTrainingArea
+                  ? "bg-gray-600 border-gray-500 cursor-not-allowed"
+                  : "bg-gray-700 border-gray-600"
+              }`}
+              disabled={!selectedTrainingArea}
+            >
+              <option value="" className="bg-gray-700 text-white">
+                All Modules
+              </option>
+              {getFilteredModules().map((module) => (
+                <option
+                  key={module.id}
+                  value={module.id}
+                  className="bg-gray-700 text-white"
+                >
+                  {module.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
       {trainingAreas.length === 0 ? (
@@ -309,67 +420,93 @@ const Courses = () => {
         </div>
       ) : (
         <div className="space-y-8">
-          {trainingAreas.map((trainingArea) => {
-            const trainingAreaModules = modules.filter(
-              (module) => module.trainingAreaId === trainingArea.id
-            );
+          {(() => {
+            const filteredCourses = getFilteredCourses();
 
-            if (trainingAreaModules.length === 0) return null;
-
-            return (
-              <div key={trainingArea.id} className="space-y-6">
-                {/* Training Area Header */}
-                <div className="border-b pb-4">
-                  <h2 className="text-2xl font-semibold text-white">
-                    {trainingArea.name}
-                  </h2>
+            if (filteredCourses.length === 0) {
+              return (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <p className="text-muted-foreground">
+                      No courses found matching your filters.
+                    </p>
+                  </div>
                 </div>
+              );
+            }
 
-                {/* Modules */}
-                {trainingAreaModules.map((module) => {
-                  const moduleCourses = courses.filter(
-                    (course) => course.moduleId === module.id
-                  );
+            // Group courses by training area and module
+            const groupedCourses = trainingAreas
+              .map((trainingArea) => {
+                const trainingAreaModules = modules.filter(
+                  (module) => module.trainingAreaId === trainingArea.id
+                );
 
-                  if (moduleCourses.length === 0) return null;
+                const modulesWithCourses = trainingAreaModules
+                  .map((module) => {
+                    const moduleCourses = filteredCourses.filter(
+                      (course) => course.moduleId === module.id
+                    );
+                    return { module, courses: moduleCourses };
+                  })
+                  .filter(({ courses }) => courses.length > 0);
 
-                  return (
-                    <div key={module.id} className="space-y-4">
-                      {/* Module Header */}
-                      <div className="ml-4">
-                        <h3 className="text-xl font-medium text-gray-200">
-                          {module.name}
-                        </h3>
+                return { trainingArea, modulesWithCourses };
+              })
+              .filter(
+                ({ modulesWithCourses }) => modulesWithCourses.length > 0
+              );
+
+            return groupedCourses.map(
+              ({ trainingArea, modulesWithCourses }) => (
+                <div key={trainingArea.id} className="space-y-6">
+                  {/* Training Area Header */}
+                  <div className="border-b pb-4">
+                    <h2 className="text-2xl font-semibold text-white">
+                      {trainingArea.name}
+                    </h2>
+                  </div>
+
+                  {/* Modules */}
+                  {modulesWithCourses.map(
+                    ({ module, courses: moduleCourses }) => (
+                      <div key={module.id} className="space-y-4">
+                        {/* Module Header */}
+                        <div className="ml-4">
+                          <h3 className="text-xl font-medium text-gray-200">
+                            {module.name}
+                          </h3>
+                        </div>
+
+                        {/* Courses Grid */}
+                        <div className="ml-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                          {moduleCourses.map((course) => (
+                            <CourseCard
+                              key={course.id}
+                              title={course.name}
+                              courseId={course.id}
+                              description={
+                                course.description || "No description available"
+                              }
+                              duration={
+                                course.showDuration
+                                  ? formatDuration(course.duration)
+                                  : ""
+                              }
+                              difficulty={getDifficultyLevel(course)}
+                              progress={getCourseProgress(course.id)}
+                              image={course.imageUrl || undefined}
+                              onStart={() => handleCourseStart(course.id)}
+                            />
+                          ))}
+                        </div>
                       </div>
-
-                      {/* Courses Grid */}
-                      <div className="ml-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {moduleCourses.map((course) => (
-                          <CourseCard
-                            key={course.id}
-                            title={course.name}
-                            courseId={course.id}
-                            description={
-                              course.description || "No description available"
-                            }
-                            duration={
-                              course.showDuration
-                                ? formatDuration(course.duration)
-                                : ""
-                            }
-                            difficulty={getDifficultyLevel(course)}
-                            progress={getCourseProgress(course.id)}
-                            image={course.imageUrl || undefined}
-                            onStart={() => handleCourseStart(course.id)}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    )
+                  )}
+                </div>
+              )
             );
-          })}
+          })()}
         </div>
       )}
     </div>
