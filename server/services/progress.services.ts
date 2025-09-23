@@ -15,6 +15,7 @@ import {
   courseUnits,
   learningBlocks,
 } from "../db/schema/training";
+import { assessments, assessmentAttempts } from "../db/schema/assessments";
 import type {
   UserTrainingAreaProgress,
   NewUserTrainingAreaProgress,
@@ -28,6 +29,51 @@ import type {
   NewUserLearningBlockProgress,
   ProgressStatus,
 } from "../db/types";
+
+// ==================== ASSESSMENT PROGRESS HELPER ====================
+export class AssessmentProgressHelper {
+  /**
+   * Get assessment completion status for a user in a course
+   */
+  static async getAssessmentCompletionStatus(
+    tx: any,
+    userId: number,
+    courseId: number
+  ): Promise<{ completed: number; total: number; percentage: number }> {
+    // Get all assessments for the course
+    const courseAssessments = await tx
+      .select({ id: assessments.id })
+      .from(assessments)
+      .where(eq(assessments.courseId, courseId));
+
+    const totalAssessments = courseAssessments.length;
+
+    if (totalAssessments === 0) {
+      return { completed: 0, total: 0, percentage: 0 };
+    }
+
+    // Get completed assessments (any attempt made)
+    const completedAssessments = await tx
+      .select({ count: count() })
+      .from(assessmentAttempts)
+      .innerJoin(
+        assessments,
+        eq(assessments.id, assessmentAttempts.assessmentId)
+      )
+      .where(
+        and(
+          eq(assessmentAttempts.userId, userId),
+          eq(assessments.courseId, courseId)
+        )
+      );
+
+    const completed = completedAssessments[0]?.count || 0;
+    const percentage =
+      totalAssessments > 0 ? (completed / totalAssessments) * 100 : 0;
+
+    return { completed, total: totalAssessments, percentage };
+  }
+}
 
 // ==================== LEARNING BLOCK PROGRESS SERVICE ====================
 export class LearningBlockProgressService {
@@ -209,45 +255,69 @@ export class LearningBlockProgressService {
         },
       });
 
-    // If course-unit is completed, update course progress
-    if (status === "completed") {
-      await this.updateCourseProgress(tx, userId, courseId);
-    }
+    // Always update course progress when course-unit progress changes
+    await this.updateCourseProgress(tx, userId, courseId);
   }
 
   /**
-   * Update course progress based on completed course-units
+   * Update course progress based on completed course-units and assessments
    */
-  private static async updateCourseProgress(
-    tx: any,
-    userId: number,
-    courseId: number
-  ) {
-    // Get total course-units in the course
-    const totalCourseUnits = await tx
-      .select({ count: count() })
+  static async updateCourseProgress(tx: any, userId: number, courseId: number) {
+    // Get all course-units in the course with their progress
+    const courseUnitsWithProgress = await tx
+      .select({
+        courseUnitId: courseUnits.id,
+        completionPercentage: userCourseUnitProgress.completionPercentage,
+      })
       .from(courseUnits)
+      .leftJoin(
+        userCourseUnitProgress,
+        and(
+          eq(userCourseUnitProgress.courseUnitId, courseUnits.id),
+          eq(userCourseUnitProgress.userId, userId)
+        )
+      )
       .where(eq(courseUnits.courseId, courseId));
 
-    // Get completed course-units for this user in this course
-    const completedCourseUnits = await tx
-      .select({ count: count() })
-      .from(userCourseUnitProgress)
-      .innerJoin(
-        courseUnits,
-        eq(courseUnits.id, userCourseUnitProgress.courseUnitId)
-      )
-      .where(
-        and(
-          eq(userCourseUnitProgress.userId, userId),
-          eq(userCourseUnitProgress.status, "completed"),
-          eq(courseUnits.courseId, courseId)
-        )
+    // Calculate course-unit completion percentage
+    const totalCourseUnits = courseUnitsWithProgress.length;
+    const courseUnitCompletionPercentage = courseUnitsWithProgress.reduce(
+      (sum: number, item: any) => {
+        const percentage = parseFloat(item.completionPercentage || "0");
+        return sum + percentage;
+      },
+      0
+    );
+
+    const courseUnitPercentage =
+      totalCourseUnits > 0
+        ? courseUnitCompletionPercentage / totalCourseUnits
+        : 0;
+
+    // Get assessment completion status
+    const assessmentStatus =
+      await AssessmentProgressHelper.getAssessmentCompletionStatus(
+        tx,
+        userId,
+        courseId
       );
 
-    const total = totalCourseUnits[0]?.count || 0;
-    const completed = completedCourseUnits[0]?.count || 0;
-    const completionPercentage = total > 0 ? (completed / total) * 100 : 0;
+    // Calculate combined completion percentage
+    // If course has both course-units and assessments, average them
+    // If course has only one type, use that percentage
+    let completionPercentage = 0;
+
+    if (totalCourseUnits > 0 && assessmentStatus.total > 0) {
+      // Course has both course-units and assessments - average them
+      completionPercentage =
+        (courseUnitPercentage + assessmentStatus.percentage) / 2;
+    } else if (totalCourseUnits > 0) {
+      // Course has only course-units
+      completionPercentage = courseUnitPercentage;
+    } else if (assessmentStatus.total > 0) {
+      // Course has only assessments
+      completionPercentage = assessmentStatus.percentage;
+    }
     const status: ProgressStatus =
       completionPercentage === 100
         ? "completed"
@@ -279,18 +349,16 @@ export class LearningBlockProgressService {
         },
       });
 
-    // If course is completed, update module progress
-    if (status === "completed") {
-      // Get the module this course belongs to
-      const course = await tx
-        .select({ moduleId: courses.moduleId })
-        .from(courses)
-        .where(eq(courses.id, courseId))
-        .limit(1);
+    // Always update module progress when course progress changes
+    // Get the module this course belongs to
+    const course = await tx
+      .select({ moduleId: courses.moduleId })
+      .from(courses)
+      .where(eq(courses.id, courseId))
+      .limit(1);
 
-      if (course[0]) {
-        await this.updateModuleProgress(tx, userId, course[0].moduleId);
-      }
+    if (course[0]) {
+      await this.updateModuleProgress(tx, userId, course[0].moduleId);
     }
   }
 
@@ -302,28 +370,34 @@ export class LearningBlockProgressService {
     userId: number,
     moduleId: number
   ) {
-    // Get total courses in the module
-    const totalCourses = await tx
-      .select({ count: count() })
+    // Get all courses in the module with their progress
+    const coursesWithProgress = await tx
+      .select({
+        courseId: courses.id,
+        completionPercentage: userCourseProgress.completionPercentage,
+      })
       .from(courses)
+      .leftJoin(
+        userCourseProgress,
+        and(
+          eq(userCourseProgress.courseId, courses.id),
+          eq(userCourseProgress.userId, userId)
+        )
+      )
       .where(eq(courses.moduleId, moduleId));
 
-    // Get completed courses for this user in this module
-    const completedCourses = await tx
-      .select({ count: count() })
-      .from(userCourseProgress)
-      .innerJoin(courses, eq(courses.id, userCourseProgress.courseId))
-      .where(
-        and(
-          eq(userCourseProgress.userId, userId),
-          eq(courses.moduleId, moduleId),
-          eq(userCourseProgress.status, "completed")
-        )
-      );
+    // Calculate average completion percentage
+    const totalCourses = coursesWithProgress.length;
+    const totalCompletionPercentage = coursesWithProgress.reduce(
+      (sum: number, item: any) => {
+        const percentage = parseFloat(item.completionPercentage || "0");
+        return sum + percentage;
+      },
+      0
+    );
 
-    const total = totalCourses[0]?.count || 0;
-    const completed = completedCourses[0]?.count || 0;
-    const completionPercentage = total > 0 ? (completed / total) * 100 : 0;
+    const completionPercentage =
+      totalCourses > 0 ? totalCompletionPercentage / totalCourses : 0;
     const status: ProgressStatus =
       completionPercentage === 100
         ? "completed"
@@ -355,22 +429,20 @@ export class LearningBlockProgressService {
         },
       });
 
-    // If module is completed, update training area progress
-    if (status === "completed") {
-      // Get the training area this module belongs to
-      const module = await tx
-        .select({ trainingAreaId: modules.trainingAreaId })
-        .from(modules)
-        .where(eq(modules.id, moduleId))
-        .limit(1);
+    // Always update training area progress when module progress changes
+    // Get the training area this module belongs to
+    const module = await tx
+      .select({ trainingAreaId: modules.trainingAreaId })
+      .from(modules)
+      .where(eq(modules.id, moduleId))
+      .limit(1);
 
-      if (module[0]) {
-        await this.updateTrainingAreaProgress(
-          tx,
-          userId,
-          module[0].trainingAreaId
-        );
-      }
+    if (module[0]) {
+      await this.updateTrainingAreaProgress(
+        tx,
+        userId,
+        module[0].trainingAreaId
+      );
     }
   }
 
@@ -382,28 +454,34 @@ export class LearningBlockProgressService {
     userId: number,
     trainingAreaId: number
   ) {
-    // Get total modules in the training area
-    const totalModules = await tx
-      .select({ count: count() })
+    // Get all modules in the training area with their progress
+    const modulesWithProgress = await tx
+      .select({
+        moduleId: modules.id,
+        completionPercentage: userModuleProgress.completionPercentage,
+      })
       .from(modules)
+      .leftJoin(
+        userModuleProgress,
+        and(
+          eq(userModuleProgress.moduleId, modules.id),
+          eq(userModuleProgress.userId, userId)
+        )
+      )
       .where(eq(modules.trainingAreaId, trainingAreaId));
 
-    // Get completed modules for this user in this training area
-    const completedModules = await tx
-      .select({ count: count() })
-      .from(userModuleProgress)
-      .innerJoin(modules, eq(modules.id, userModuleProgress.moduleId))
-      .where(
-        and(
-          eq(userModuleProgress.userId, userId),
-          eq(modules.trainingAreaId, trainingAreaId),
-          eq(userModuleProgress.status, "completed")
-        )
-      );
+    // Calculate average completion percentage
+    const totalModules = modulesWithProgress.length;
+    const totalCompletionPercentage = modulesWithProgress.reduce(
+      (sum: number, item: any) => {
+        const percentage = parseFloat(item.completionPercentage || "0");
+        return sum + percentage;
+      },
+      0
+    );
 
-    const total = totalModules[0]?.count || 0;
-    const completed = completedModules[0]?.count || 0;
-    const completionPercentage = total > 0 ? (completed / total) * 100 : 0;
+    const completionPercentage =
+      totalModules > 0 ? totalCompletionPercentage / totalModules : 0;
     const status: ProgressStatus =
       completionPercentage === 100
         ? "completed"
@@ -437,6 +515,55 @@ export class LearningBlockProgressService {
             status === "completed" ? new Date() : sql`EXCLUDED.completed_at`,
         },
       });
+  }
+}
+
+// ==================== ASSESSMENT PROGRESS TRIGGER ====================
+export class AssessmentProgressTrigger {
+  /**
+   * Trigger course progress update when assessment is completed
+   */
+  static async triggerCourseProgressUpdate(
+    userId: number,
+    assessmentId: number
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const result = await db.transaction(async (tx) => {
+        // Get the course ID for this assessment
+        const assessment = await tx
+          .select({ courseId: assessments.courseId })
+          .from(assessments)
+          .where(eq(assessments.id, assessmentId))
+          .limit(1);
+
+        if (!assessment[0] || !assessment[0].courseId) {
+          throw new Error("Assessment not found or not linked to a course");
+        }
+
+        const courseId = assessment[0].courseId;
+
+        // Update course progress (this will cascade to module and training area)
+        await LearningBlockProgressService.updateCourseProgress(
+          tx,
+          userId,
+          courseId
+        );
+
+        return {
+          success: true,
+          message: "Course progress updated successfully",
+        };
+      });
+
+      return result;
+    } catch (error) {
+      console.error("Error updating course progress after assessment:", error);
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
   }
 }
 
@@ -653,5 +780,361 @@ export class ProgressService {
       modules: modulesWithProgress,
       courses: coursesWithProgress,
     };
+  }
+
+  /**
+   * Recalculate all progress for a user from scratch
+   * This will recalculate course-unit, course, module, and training area progress
+   * based on completed learning blocks and assessments
+   */
+  static async recalculateUserProgress(
+    userId: number
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const result = await db.transaction(async (tx) => {
+        // Step 1: Get all course-units that have learning blocks completed by this user
+        const courseUnitsToRecalculate = await tx
+          .select({
+            courseUnitId: courseUnits.id,
+            courseId: courseUnits.courseId,
+          })
+          .from(courseUnits)
+          .innerJoin(
+            learningBlocks,
+            eq(learningBlocks.unitId, courseUnits.unitId)
+          )
+          .innerJoin(
+            userLearningBlockProgress,
+            and(
+              eq(userLearningBlockProgress.learningBlockId, learningBlocks.id),
+              eq(userLearningBlockProgress.userId, userId)
+            )
+          )
+          .groupBy(courseUnits.id, courseUnits.courseId);
+
+        // Step 2: Recalculate course-unit progress
+        const uniqueCourseUnits = Array.from(
+          new Map(
+            courseUnitsToRecalculate.map((cu) => [cu.courseUnitId, cu])
+          ).values()
+        );
+
+        for (const courseUnit of uniqueCourseUnits) {
+          await this.recalculateCourseUnitProgress(
+            tx,
+            userId,
+            courseUnit.courseUnitId,
+            courseUnit.courseId
+          );
+        }
+
+        // Step 3: Get all courses that need recalculation (either have course-units or assessments attempted)
+        const coursesToRecalculate = await tx
+          .select({ courseId: courses.id })
+          .from(courses)
+          .where(
+            sql`${courses.id} IN (
+              SELECT DISTINCT ${courseUnits.courseId}
+              FROM ${courseUnits}
+              INNER JOIN ${learningBlocks} ON ${learningBlocks.unitId} = ${courseUnits.unitId}
+              INNER JOIN ${userLearningBlockProgress} ON ${userLearningBlockProgress.learningBlockId} = ${learningBlocks.id}
+              WHERE ${userLearningBlockProgress.userId} = ${userId}
+              UNION
+              SELECT DISTINCT ${assessments.courseId}
+              FROM ${assessments}
+              INNER JOIN ${assessmentAttempts} ON ${assessmentAttempts.assessmentId} = ${assessments.id}
+              WHERE ${assessmentAttempts.userId} = ${userId}
+            )`
+          );
+
+        // Step 4: Recalculate course progress
+        for (const course of coursesToRecalculate) {
+          await LearningBlockProgressService.updateCourseProgress(
+            tx,
+            userId,
+            course.courseId
+          );
+        }
+
+        // Step 5: Get all modules that need recalculation
+        const modulesToRecalculate = await tx
+          .select({ moduleId: modules.id })
+          .from(modules)
+          .where(
+            sql`${modules.id} IN (
+              SELECT DISTINCT ${courses.moduleId}
+              FROM ${courses}
+              WHERE ${courses.id} IN (${sql.join(
+              coursesToRecalculate.map((c) => sql`${c.courseId}`),
+              sql`, `
+            )})
+            )`
+          );
+
+        // Step 6: Recalculate module progress
+        for (const module of modulesToRecalculate) {
+          await this.recalculateModuleProgress(tx, userId, module.moduleId);
+        }
+
+        // Step 7: Get all training areas that need recalculation
+        const trainingAreasToRecalculate = await tx
+          .select({ trainingAreaId: trainingAreas.id })
+          .from(trainingAreas)
+          .where(
+            sql`${trainingAreas.id} IN (
+              SELECT DISTINCT ${modules.trainingAreaId}
+              FROM ${modules}
+              WHERE ${modules.id} IN (${sql.join(
+              modulesToRecalculate.map((m) => sql`${m.moduleId}`),
+              sql`, `
+            )})
+            )`
+          );
+
+        // Step 8: Recalculate training area progress
+        for (const trainingArea of trainingAreasToRecalculate) {
+          await this.recalculateTrainingAreaProgress(
+            tx,
+            userId,
+            trainingArea.trainingAreaId
+          );
+        }
+
+        return {
+          success: true,
+          message: `Progress recalculated successfully for ${courseUnitsToRecalculate.length} course-units, ${coursesToRecalculate.length} courses, ${modulesToRecalculate.length} modules, and ${trainingAreasToRecalculate.length} training areas`,
+        };
+      });
+
+      return result;
+    } catch (error) {
+      console.error("Error recalculating user progress:", error);
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
+  }
+
+  /**
+   * Recalculate course-unit progress based on completed learning blocks
+   */
+  private static async recalculateCourseUnitProgress(
+    tx: any,
+    userId: number,
+    courseUnitId: number,
+    courseId: number
+  ) {
+    // Get the unit ID for this course-unit
+    const courseUnitInfo = await tx
+      .select({ unitId: courseUnits.unitId })
+      .from(courseUnits)
+      .where(eq(courseUnits.id, courseUnitId))
+      .limit(1);
+
+    if (!courseUnitInfo[0]) {
+      throw new Error("Course-unit not found");
+    }
+
+    const unitId = courseUnitInfo[0].unitId;
+
+    // Get total learning blocks in the unit
+    const totalBlocks = await tx
+      .select({ count: count() })
+      .from(learningBlocks)
+      .where(eq(learningBlocks.unitId, unitId));
+
+    // Get completed learning blocks for this user in this unit
+    const completedBlocks = await tx
+      .select({ count: count() })
+      .from(userLearningBlockProgress)
+      .innerJoin(
+        learningBlocks,
+        eq(learningBlocks.id, userLearningBlockProgress.learningBlockId)
+      )
+      .where(
+        and(
+          eq(userLearningBlockProgress.userId, userId),
+          eq(learningBlocks.unitId, unitId),
+          eq(userLearningBlockProgress.status, "completed")
+        )
+      );
+
+    const total = totalBlocks[0]?.count || 0;
+    const completed = completedBlocks[0]?.count || 0;
+    const completionPercentage = total > 0 ? (completed / total) * 100 : 0;
+    const status: ProgressStatus =
+      completionPercentage === 100
+        ? "completed"
+        : completionPercentage > 0
+        ? "in_progress"
+        : "not_started";
+
+    // Update or create course-unit progress
+    await tx
+      .insert(userCourseUnitProgress)
+      .values({
+        userId,
+        courseUnitId,
+        status: status as "not_started" | "in_progress" | "completed" as string,
+        completionPercentage: completionPercentage.toString(),
+        startedAt: new Date(),
+        completedAt: status === "completed" ? new Date() : new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [
+          userCourseUnitProgress.userId,
+          userCourseUnitProgress.courseUnitId,
+        ],
+        set: {
+          status: status as
+            | "not_started"
+            | "in_progress"
+            | "completed" as string,
+          completionPercentage: completionPercentage.toString(),
+          completedAt:
+            status === "completed" ? new Date() : sql`EXCLUDED.completed_at`,
+        },
+      });
+  }
+
+  /**
+   * Recalculate module progress based on completed courses
+   */
+  private static async recalculateModuleProgress(
+    tx: any,
+    userId: number,
+    moduleId: number
+  ) {
+    // Get all courses in the module with their progress
+    const coursesWithProgress = await tx
+      .select({
+        courseId: courses.id,
+        completionPercentage: userCourseProgress.completionPercentage,
+      })
+      .from(courses)
+      .leftJoin(
+        userCourseProgress,
+        and(
+          eq(userCourseProgress.courseId, courses.id),
+          eq(userCourseProgress.userId, userId)
+        )
+      )
+      .where(eq(courses.moduleId, moduleId));
+
+    // Calculate average completion percentage
+    const totalCourses = coursesWithProgress.length;
+    const totalCompletionPercentage = coursesWithProgress.reduce(
+      (sum: number, item: any) => {
+        const percentage = parseFloat(item.completionPercentage || "0");
+        return sum + percentage;
+      },
+      0
+    );
+
+    const completionPercentage =
+      totalCourses > 0 ? totalCompletionPercentage / totalCourses : 0;
+    const status: ProgressStatus =
+      completionPercentage === 100
+        ? "completed"
+        : completionPercentage > 0
+        ? "in_progress"
+        : "not_started";
+
+    // Update or create module progress
+    await tx
+      .insert(userModuleProgress)
+      .values({
+        userId,
+        moduleId,
+        status: status as "not_started" | "in_progress" | "completed" as string,
+        completionPercentage: completionPercentage.toString(),
+        startedAt: new Date(),
+        completedAt: status === "completed" ? new Date() : new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [userModuleProgress.userId, userModuleProgress.moduleId],
+        set: {
+          status: status as
+            | "not_started"
+            | "in_progress"
+            | "completed" as string,
+          completionPercentage: completionPercentage.toString(),
+          completedAt:
+            status === "completed" ? new Date() : sql`EXCLUDED.completed_at`,
+        },
+      });
+  }
+
+  /**
+   * Recalculate training area progress based on completed modules
+   */
+  private static async recalculateTrainingAreaProgress(
+    tx: any,
+    userId: number,
+    trainingAreaId: number
+  ) {
+    // Get all modules in the training area with their progress
+    const modulesWithProgress = await tx
+      .select({
+        moduleId: modules.id,
+        completionPercentage: userModuleProgress.completionPercentage,
+      })
+      .from(modules)
+      .leftJoin(
+        userModuleProgress,
+        and(
+          eq(userModuleProgress.moduleId, modules.id),
+          eq(userModuleProgress.userId, userId)
+        )
+      )
+      .where(eq(modules.trainingAreaId, trainingAreaId));
+
+    // Calculate average completion percentage
+    const totalModules = modulesWithProgress.length;
+    const totalCompletionPercentage = modulesWithProgress.reduce(
+      (sum: number, item: any) => {
+        const percentage = parseFloat(item.completionPercentage || "0");
+        return sum + percentage;
+      },
+      0
+    );
+
+    const completionPercentage =
+      totalModules > 0 ? totalCompletionPercentage / totalModules : 0;
+    const status: ProgressStatus =
+      completionPercentage === 100
+        ? "completed"
+        : completionPercentage > 0
+        ? "in_progress"
+        : "not_started";
+
+    // Update or create training area progress
+    await tx
+      .insert(userTrainingAreaProgress)
+      .values({
+        userId,
+        trainingAreaId,
+        status: status as "not_started" | "in_progress" | "completed" as string,
+        completionPercentage: completionPercentage.toString(),
+        startedAt: new Date(),
+        completedAt: status === "completed" ? new Date() : new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [
+          userTrainingAreaProgress.userId,
+          userTrainingAreaProgress.trainingAreaId,
+        ],
+        set: {
+          status: status as
+            | "not_started"
+            | "in_progress"
+            | "completed" as string,
+          completionPercentage: completionPercentage.toString(),
+          completedAt:
+            status === "completed" ? new Date() : sql`EXCLUDED.completed_at`,
+        },
+      });
   }
 }

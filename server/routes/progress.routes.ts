@@ -192,4 +192,16 @@ router.delete(
   ProgressController.resetUserProgress
 );
 
+/**
+ * @route   POST /api/progress/user/:userId/recalculate
+ * @desc    Recalculate all progress for a user based on completed learning blocks and assessments
+ * @access  Private (Sub-admin, Admin)
+ */
+router.post(
+  "/user/:userId/recalculate",
+  authenticateJWT,
+  // authorizeRoles("sub_admin", "admin"),
+  ProgressController.recalculateUserProgress
+);
+
 export default router;

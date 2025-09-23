@@ -41,7 +41,7 @@ import UserDashboard from "@/pages/user/dashboard";
 import UserCourses from "@/pages/user/courses";
 import UserAchievements from "@/pages/user/achievements";
 import CourseDetails from "@/pages/user/courseDetails";
-import AssessmentPage from "@/pages/user/assessmentPage";
+// import AssessmentPage from "@/pages/user/assessmentPage";
 import MediaPage from "./pages/admin/mediaPage";
 
 // Import SidebarProvider for persistent sidebar state
@@ -222,14 +222,14 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route
+              {/* <Route
                 path="assessment/:id"
                 element={
                   <ProtectedRoute requiredUserType="user">
                     <AssessmentPage />
                   </ProtectedRoute>
                 }
-              />
+              /> */}
             </Route>
             <Route
               path="/initial-assessment"

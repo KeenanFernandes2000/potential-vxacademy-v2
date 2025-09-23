@@ -60,6 +60,29 @@ const api = {
     }
   },
 
+  async getUnitById(unitId: number, token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/training/units/${unitId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch unit details:", error);
+      throw error;
+    }
+  },
+
   async getLearningBlocksByUnit(unitId: number, token: string) {
     try {
       const baseUrl = import.meta.env.VITE_API_URL;
@@ -195,6 +218,32 @@ const api = {
       return data;
     } catch (error) {
       console.error("Failed to complete learning block:", error);
+      throw error;
+    }
+  },
+
+  async recalculateUserProgress(userId: number, token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/progress/user/${userId}/recalculate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to recalculate user progress:", error);
       throw error;
     }
   },
@@ -481,79 +530,102 @@ const CourseDetails = () => {
         // Fetch learning blocks and assessments for each unit
         const unitsWithLearningBlocks = await Promise.all(
           courseUnits.map(async (courseUnit: any) => {
-            const [learningBlocksResponse, assessmentsResponse] =
-              await Promise.all([
+            try {
+              const [
+                unitDetailsResponse,
+                learningBlocksResponse,
+                assessmentsResponse,
+              ] = await Promise.all([
+                api.getUnitById(courseUnit.unitId, token),
                 api.getLearningBlocksByUnit(courseUnit.unitId, token),
                 api.getAssessmentsByUnit(courseUnit.unitId, token),
               ]);
 
-            const learningBlocks = learningBlocksResponse.data || [];
-            const assessments = assessmentsResponse.data || [];
+              const unitDetails = unitDetailsResponse.data || {};
+              const learningBlocks = learningBlocksResponse.data || [];
+              const assessments = assessmentsResponse.data || [];
 
-            // Fetch assessment attempts for each assessment
-            const assessmentsWithAttempts = await Promise.all(
-              assessments.map(async (assessment: any) => {
-                try {
-                  const attemptsResponse =
-                    await api.getAssessmentAttemptsByUserAndAssessment(
-                      user.id,
-                      assessment.id,
-                      token
+              // Fetch assessment attempts for each assessment
+              const assessmentsWithAttempts = await Promise.all(
+                assessments.map(async (assessment: any) => {
+                  try {
+                    const attemptsResponse =
+                      await api.getAssessmentAttemptsByUserAndAssessment(
+                        user.id,
+                        assessment.id,
+                        token
+                      );
+                    const attempts = attemptsResponse.data || [];
+
+                    return {
+                      id: assessment.id,
+                      title: assessment.title,
+                      description: assessment.description,
+                      placement: assessment.placement || "end",
+                      xpPoints: assessment.xpPoints || 0,
+                      status: attempts.length > 0 ? "completed" : "not_started",
+                      questions: assessment.questions?.length || 0,
+                      passingScore: assessment.passingScore || 70,
+                      maxRetakes: assessment.maxRetakes || 3,
+                      attemptsUsed: attempts.length,
+                    };
+                  } catch (error) {
+                    console.error(
+                      `Failed to fetch attempts for assessment ${assessment.id}:`,
+                      error
                     );
-                  const attempts = attemptsResponse.data || [];
+                    return {
+                      id: assessment.id,
+                      title: assessment.title,
+                      description: assessment.description,
+                      placement: assessment.placement || "end",
+                      xpPoints: assessment.xpPoints || 0,
+                      status: "not_started",
+                      questions: assessment.questions?.length || 0,
+                      passingScore: assessment.passingScore || 70,
+                      maxRetakes: assessment.maxRetakes || 3,
+                      attemptsUsed: 0,
+                    };
+                  }
+                })
+              );
 
-                  return {
-                    id: assessment.id,
-                    title: assessment.title,
-                    description: assessment.description,
-                    placement: assessment.placement || "end",
-                    xpPoints: assessment.xpPoints || 0,
-                    status: attempts.length > 0 ? "completed" : "not_started",
-                    questions: assessment.questions?.length || 0,
-                    passingScore: assessment.passingScore || 70,
-                    maxRetakes: assessment.maxRetakes || 3,
-                    attemptsUsed: attempts.length,
-                  };
-                } catch (error) {
-                  console.error(
-                    `Failed to fetch attempts for assessment ${assessment.id}:`,
-                    error
-                  );
-                  return {
-                    id: assessment.id,
-                    title: assessment.title,
-                    description: assessment.description,
-                    placement: assessment.placement || "end",
-                    xpPoints: assessment.xpPoints || 0,
-                    status: "not_started",
-                    questions: assessment.questions?.length || 0,
-                    passingScore: assessment.passingScore || 70,
-                    maxRetakes: assessment.maxRetakes || 3,
-                    attemptsUsed: 0,
-                  };
-                }
-              })
-            );
-
-            return {
-              id: courseUnit.unitId,
-              name: courseUnit.unit?.name || "Unit",
-              description: courseUnit.unit?.description || "",
-              order: courseUnit.order || 1,
-              duration: courseUnit.unit?.duration || 0,
-              xpPoints: courseUnit.unit?.xpPoints || 0,
-              learningBlocks: learningBlocks.map((block: any) => ({
-                id: block.id,
-                type: block.type || "content",
-                title: block.title,
-                content: block.content,
-                videoUrl: block.videoUrl,
-                order: block.order || 1,
-                xpPoints: block.xpPoints || 0,
-                status: "not_started", // Will be updated with progress data
-              })),
-              assessments: assessmentsWithAttempts,
-            };
+              return {
+                id: courseUnit.unitId,
+                name: unitDetails.name || "Unit",
+                description: unitDetails.description || "",
+                order: courseUnit.order || 1,
+                duration: unitDetails.duration || 0,
+                xpPoints: unitDetails.xpPoints || 0,
+                learningBlocks: learningBlocks.map((block: any) => ({
+                  id: block.id,
+                  type: block.type || "content",
+                  title: block.title,
+                  content: block.content,
+                  videoUrl: block.videoUrl,
+                  order: block.order || 1,
+                  xpPoints: block.xpPoints || 0,
+                  status: "not_started", // Will be updated with progress data
+                })),
+                assessments: assessmentsWithAttempts,
+              };
+            } catch (error) {
+              console.error(
+                `Failed to fetch details for unit ${courseUnit.unitId}:`,
+                error
+              );
+              // Return a fallback unit object if fetching fails
+              return {
+                id: courseUnit.unitId,
+                name: "Unit",
+                description: "",
+                order: courseUnit.order || 1,
+                duration: 0,
+                xpPoints: 0,
+                learningBlocks: [],
+                assessments: [],
+              };
+            }
           })
         );
 
@@ -722,6 +794,49 @@ const CourseDetails = () => {
         {/* Course Content Layout */}
         <CourseContentLayout
           units={filteredUnits}
+          courseId={courseId}
+          onUpdateCourseProgress={(progress: number) => {
+            setCourse((prevCourse) => {
+              if (!prevCourse) return prevCourse;
+              return {
+                ...prevCourse,
+                progress: progress,
+              };
+            });
+          }}
+          onUpdateAssessmentStatus={(
+            assessmentId: number,
+            status: string,
+            attemptsUsed: number
+          ) => {
+            // Update assessment status in course units
+            setCourse((prevCourse) => {
+              if (!prevCourse) return prevCourse;
+              return {
+                ...prevCourse,
+                units: prevCourse.units.map((unit) => ({
+                  ...unit,
+                  assessments: unit.assessments.map((assessment) =>
+                    assessment.id === assessmentId
+                      ? { ...assessment, status, attemptsUsed }
+                      : assessment
+                  ),
+                })),
+              };
+            });
+
+            // Also update filtered units
+            setFilteredUnits((prevFilteredUnits) => {
+              return prevFilteredUnits.map((unit) => ({
+                ...unit,
+                assessments: unit.assessments.map((assessment) =>
+                  assessment.id === assessmentId
+                    ? { ...assessment, status, attemptsUsed }
+                    : assessment
+                ),
+              }));
+            });
+          }}
           onCompleteLearningBlock={async (learningBlockId: number) => {
             if (token && user) {
               try {
@@ -730,6 +845,7 @@ const CourseDetails = () => {
                   user.id,
                   token
                 );
+
                 // Update the specific learning block status in state
                 setCourse((prevCourse) => {
                   if (!prevCourse) return prevCourse;

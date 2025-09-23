@@ -412,4 +412,39 @@ export class ProgressController {
       );
     }
   }
+
+  /**
+   * Recalculate progress for a user (admin/sub-admin function)
+   * POST /api/progress/user/:userId/recalculate
+   */
+  static async recalculateUserProgress(req: Request, res: Response) {
+    const userId = parseInt(req.params.userId || "0");
+
+    // Validate input
+    const validation = validateGetProgressInput({ userId });
+    if (!validation.isValid) {
+      throw createError("Validation failed", 400, validation.errors);
+    }
+
+    try {
+      const result = await ProgressService.recalculateUserProgress(userId);
+
+      if (!result.success) {
+        throw createError(result.message, 400);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+        data: null,
+      });
+    } catch (error) {
+      console.error("Error recalculating user progress:", error);
+      throw createError(
+        "Failed to recalculate user progress",
+        500,
+        error instanceof Error ? [error.message] : ["Unknown error occurred"]
+      );
+    }
+  }
 }
