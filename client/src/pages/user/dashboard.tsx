@@ -235,7 +235,7 @@ const Dashboard = () => {
                 progress={Math.round(course.progress)}
                 image={course.imageUrl || undefined}
                 onStart={() => {
-                  window.location.href = `/user/course/${course.id}`;
+                  window.location.href = `/user/courses/${course.id}`;
                 }}
               />
             ))}
