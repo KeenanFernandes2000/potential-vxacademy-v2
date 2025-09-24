@@ -156,7 +156,7 @@ function App() {
                 }
               />
               <Route
-                path="users"
+                path="frontliners"
                 element={
                   <ProtectedRoute requiredUserType="sub_admin">
                     <SubAdminUsers />
@@ -164,7 +164,7 @@ function App() {
                 }
               />
               <Route
-                path="links"
+                path="invite"
                 element={
                   <ProtectedRoute requiredUserType="sub_admin">
                     <SubAdminLinks />

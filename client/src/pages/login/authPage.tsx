@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Card,
@@ -16,12 +16,17 @@ import HomeNavigation from "@/components/homeNavigation";
 
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, redirectIfLoggedIn } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [error, setError] = useState("");
+
+  // Check if user is already logged in and redirect them
+  useEffect(() => {
+    redirectIfLoggedIn();
+  }, [redirectIfLoggedIn]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

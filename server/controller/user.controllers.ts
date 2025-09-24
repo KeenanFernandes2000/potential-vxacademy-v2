@@ -940,6 +940,36 @@ export class userControllers {
     });
   }
 
+  /**
+   * Check if sub-admin exists in sub_admins table
+   * GET /sub-admins/check/:id
+   */
+  static async checkSubAdminExists(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const userId = parseInt(req.params.id as string);
+
+    if (isNaN(userId) || userId <= 0) {
+      throw createError("Invalid user ID", 400);
+    }
+
+    // Check if sub-admin exists in sub_admins table
+    const [subAdmin] = await db
+      .select()
+      .from(subAdmins)
+      .where(eq(subAdmins.userId, userId))
+      .limit(1);
+
+    res.status(200).json({
+      success: true,
+      message: "Sub-admin check completed",
+      data: {
+        exists: !!subAdmin,
+      },
+    });
+  }
+
   // ==================== NORMAL USER CU FUNCTIONS ====================
 
   /**

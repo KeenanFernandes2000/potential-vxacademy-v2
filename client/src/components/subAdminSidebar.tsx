@@ -45,8 +45,18 @@ const SubAdminSidebar = () => {
       url: "/sub-admin/dashboard",
       badge: null,
     },
-    { title: "Frontliners", icon: Users, url: "/sub-admin/users", badge: null },
-    { title: "Invite Your Frontliners", icon: LinkIcon, url: "/sub-admin/links", badge: null },
+    {
+      title: "Frontliners",
+      icon: Users,
+      url: "/sub-admin/frontliners",
+      badge: null,
+    },
+    {
+      title: "Invite Your Frontliners",
+      icon: LinkIcon,
+      url: "/sub-admin/invite",
+      badge: null,
+    },
   ];
 
   return (
