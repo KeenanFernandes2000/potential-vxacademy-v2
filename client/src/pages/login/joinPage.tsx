@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PasswordInput } from "@/components/ui/password-input";
+import { MultiSelect } from "@/components/ui/multi-select";
 import HomeNavigation from "@/components/homeNavigation";
 
 // API object for sub-admin registration and token verification
@@ -187,6 +189,31 @@ const api = {
       throw error;
     }
   },
+
+  async getSubOrganizations(organizationId: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/sub-organizations?organizationId=${organizationId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching sub-organizations:", error);
+      throw error;
+    }
+  },
 };
 
 type Props = {};
@@ -254,16 +281,13 @@ const joinPage = (props: Props) => {
     eid: "",
     phone_number: "",
     organization: "",
-    subOrganization: "",
+    subOrganization: [] as string[],
     asset: "",
     subAsset: "",
   });
 
   // Custom role state for "Other" option
   const [customRole, setCustomRole] = useState("");
-
-  // User form step state
-  const [userFormStep, setUserFormStep] = useState(1);
 
   // User form password validation state
   const [userPasswordError, setUserPasswordError] = useState("");
@@ -287,6 +311,13 @@ const joinPage = (props: Props) => {
     Array<{ id: number; categoryId: number; name: string }>
   >([]);
   const [isLoadingRoles, setIsLoadingRoles] = useState(false);
+
+  // Sub-organizations state
+  const [subOrganizations, setSubOrganizations] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
+  const [isLoadingSubOrganizations, setIsLoadingSubOrganizations] =
+    useState(false);
 
   // User form password validation function
   const validateUserPasswords = (password: string, confirmPassword: string) => {
@@ -342,6 +373,27 @@ const joinPage = (props: Props) => {
     if (!categoryId || categoryId === "") return [];
     const categoryIdNum = parseInt(categoryId);
     return allRoles.filter((role) => role.categoryId === categoryIdNum);
+  };
+
+  // Function to fetch sub-organizations when organization changes
+  const fetchSubOrganizations = async (organizationId: string) => {
+    if (!organizationId || organizationId === "") {
+      setSubOrganizations([]);
+      return;
+    }
+
+    setIsLoadingSubOrganizations(true);
+    try {
+      const response = await api.getSubOrganizations(organizationId);
+      if (response.success && response.data) {
+        setSubOrganizations(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch sub-organizations:", error);
+      setSubOrganizations([]);
+    } finally {
+      setIsLoadingSubOrganizations(false);
+    }
   };
 
   const seniorityLevels = ["Manager", "Staff"];
@@ -474,6 +526,24 @@ const joinPage = (props: Props) => {
       }));
       setCustomRole("");
     }
+
+    // Fetch sub-organizations when organization changes
+    if (name === "organization") {
+      fetchSubOrganizations(value);
+      // Clear sub-organization selection when organization changes
+      setForm2Data((prev) => ({
+        ...prev,
+        subOrganization: [],
+      }));
+    }
+  };
+
+  // Handle sub-organization multi-select changes
+  const handleSubOrganizationChange = (selectedIds: string[]) => {
+    setForm2Data((prev) => ({
+      ...prev,
+      subOrganization: selectedIds,
+    }));
   };
 
   const handleForm1Submit = async (e: React.FormEvent) => {
@@ -539,14 +609,13 @@ const joinPage = (props: Props) => {
   const handleForm2Submit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate custom role when "Other" is selected
-    if (form2Data.role === "Other" && !customRole.trim()) {
-      alert("Please specify your role when 'Other' is selected.");
-      return;
-    }
-
-    // Check if all required fields are filled
+    // Validate all required fields
     if (
+      !form2Data.first_name ||
+      !form2Data.last_name ||
+      !form2Data.email ||
+      !form2Data.password ||
+      !form2Data.confirm_password ||
       !form2Data.role_category ||
       !form2Data.role ||
       !form2Data.seniority ||
@@ -557,112 +626,21 @@ const joinPage = (props: Props) => {
       return;
     }
 
-    try {
-      setIsLoading(true);
-
-      let finalRole = form2Data.role;
-      let roleId = null;
-
-      // If "Other" is selected, create a new role
-      if (form2Data.role === "Other" && customRole.trim()) {
-        const categoryId = parseInt(form2Data.role_category);
-
-        try {
-          const roleResponse = await api.createRole({
-            name: customRole.trim(),
-            categoryId: categoryId,
-          });
-
-          if (roleResponse.success && roleResponse.data) {
-            // Use the newly created role
-            finalRole = roleResponse.data.name;
-            roleId = roleResponse.data.id;
-
-            // Update local state with the new role
-            setAllRoles((prev) => [...prev, roleResponse.data]);
-          } else {
-            throw new Error("Failed to create new role");
-          }
-        } catch (roleError) {
-          console.error("Error creating role:", roleError);
-          alert(
-            "Failed to create custom role. Please try again or select an existing role."
-          );
-          return;
-        }
-      }
-
-      // Check if we have the created user ID from step 1
-      if (!invitationData?.createdUser?.id) {
-        alert("User ID not found. Please try the registration process again.");
-        return;
-      }
-
-      // Prepare normal user registration data
-      const normalUserData = {
-        roleCategory: form2Data.role_category,
-        role: finalRole,
-        seniority: form2Data.seniority,
-        eid: form2Data.eid,
-        phoneNumber: form2Data.phone_number,
-        existing: type === "existing_joiner",
-      };
-
-      // Call the normal user registration endpoint
-      const response = await api.registerNormalUser(
-        invitationData.createdUser.id.toString(),
-        normalUserData
-      );
-
-      if (response.success) {
-        let userData = JSON.parse(localStorage.getItem("userData") || "{}");
-        console.log(response.data);
-        let flags = {
-          existing: type === "existing_joiner",
-          initialAssessment: response.data.initialAssessment,
-        };
-        localStorage.setItem("flags", JSON.stringify(flags));
-        if (type === "existing_joiner") {
-          navigate("/initial-assessment");
-        } else {
-          navigate("/user/dashboard");
-        }
-        // alert("Registration completed successfully! You can now log in.");
-        // navigate("/login");
-      } else {
-        alert(
-          `Registration failed: ${response.message || "Please try again."}`
-        );
-      }
-    } catch (error: any) {
-      console.error("Registration error:", error);
-      alert("Registration failed. Please try again or contact support.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // User form step navigation functions
-  const handleUserFormNext = async () => {
-    // Validate step 1 fields
-    if (
-      !form2Data.first_name ||
-      !form2Data.last_name ||
-      !form2Data.email ||
-      !form2Data.password ||
-      !form2Data.confirm_password
-    ) {
-      alert("Please fill in all required fields before proceeding.");
-      return;
-    }
-
+    // Validate password confirmation
     if (userPasswordError) {
-      alert("Please fix the password validation errors before proceeding.");
+      alert("Please fix the password validation errors before submitting.");
       return;
     }
 
+    // Check password strength
     if (form2Data.password.length < 6) {
       alert("Password must be at least 6 characters long.");
+      return;
+    }
+
+    // Validate custom role when "Other" is selected
+    if (form2Data.role === "Other" && !customRole.trim()) {
+      alert("Please specify your role when 'Other' is selected.");
       return;
     }
 
@@ -675,7 +653,7 @@ const joinPage = (props: Props) => {
     try {
       setIsLoading(true);
 
-      // Prepare user data for API (only basic info for now)
+      // Step 1: Create user account
       const userData = {
         firstName: form2Data.first_name,
         lastName: form2Data.last_name,
@@ -689,16 +667,75 @@ const joinPage = (props: Props) => {
         userType: "user",
       };
 
-      const response = await api.createUser(userData);
-      localStorage.setItem("userData", JSON.stringify(response.user));
-      localStorage.setItem("token", response.token);
+      const userResponse = await api.createUser(userData);
+
+      if (!userResponse.success) {
+        alert(
+          `User creation failed: ${userResponse.message || "Please try again."}`
+        );
+        return;
+      }
+
+      // Store user data and token
+      localStorage.setItem("userData", JSON.stringify(userResponse.user));
+      localStorage.setItem("token", userResponse.token);
+
+      // Step 2: Complete user registration with professional info
+      let finalRole = form2Data.role;
+
+      // If "Other" is selected, create a new role
+      if (form2Data.role === "Other" && customRole.trim()) {
+        const categoryId = parseInt(form2Data.role_category);
+
+        try {
+          const roleResponse = await api.createRole({
+            name: customRole.trim(),
+            categoryId: categoryId,
+          });
+
+          if (roleResponse.success && roleResponse.data) {
+            finalRole = roleResponse.data.name;
+            setAllRoles((prev) => [...prev, roleResponse.data]);
+          } else {
+            throw new Error("Failed to create new role");
+          }
+        } catch (roleError) {
+          console.error("Error creating role:", roleError);
+          alert(
+            "Failed to create custom role. Please try again or select an existing role."
+          );
+          return;
+        }
+      }
+
+      // Prepare normal user registration data
+      const normalUserData = {
+        roleCategory: form2Data.role_category,
+        role: finalRole,
+        seniority: form2Data.seniority,
+        eid: form2Data.eid,
+        phoneNumber: form2Data.phone_number,
+        existing: type === "existing_joiner",
+      };
+
+      // Complete the registration
+      const response = await api.registerNormalUser(
+        userResponse.user.id.toString(),
+        normalUserData
+      );
+
       if (response.success) {
-        // Store the created user data for step 2
-        setInvitationData((prev: any) => ({
-          ...prev,
-          createdUser: response.user,
-        }));
-        setUserFormStep(2);
+        let flags = {
+          existing: type === "existing_joiner",
+          initialAssessment: response.data.initialAssessment,
+        };
+        localStorage.setItem("flags", JSON.stringify(flags));
+
+        if (type === "existing_joiner") {
+          navigate("/initial-assessment");
+        } else {
+          navigate("/user/dashboard");
+        }
       } else {
         alert(
           `Registration failed: ${response.message || "Please try again."}`
@@ -798,7 +835,6 @@ const joinPage = (props: Props) => {
                   setForm1Data((prev) => ({ ...prev, phone_number: phone }))
                 }
                 className="react-international-phone"
-                
               />
             </div>
           </div>
@@ -810,15 +846,13 @@ const joinPage = (props: Props) => {
             >
               Password
             </label>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
-              placeholder="Enter your password"
               value={form1Data.password}
               onChange={handleForm1Change}
+              placeholder="Enter your password"
               required
-              className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
             />
           </div>
 
@@ -829,15 +863,14 @@ const joinPage = (props: Props) => {
             >
               Confirm Password
             </label>
-            <Input
+            <PasswordInput
               id="confirm_password"
               name="confirm_password"
-              type="password"
-              placeholder="Confirm your password"
               value={form1Data.confirm_password}
               onChange={handleForm1Change}
+              placeholder="Confirm your password"
               required
-              className={`bg-[#00d8cc]/10 backdrop-blur-sm text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+              className={`${
                 passwordError
                   ? "border-red-500/60 focus:border-red-500/80 hover:border-red-500/70"
                   : form1Data.confirm_password &&
@@ -921,48 +954,28 @@ const joinPage = (props: Props) => {
     }
 
     return (
-      <Card className="w-full max-w-lg bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
+      <Card className="w-full max-w-2xl bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
         <CardHeader className="text-center pb-6">
           <CardTitle className="text-xl md:text-2xl lg:text-5xl font-bold text-white mb-4">
             User Form
           </CardTitle>
           <div className="w-24 h-1 bg-[#00d8cc] rounded-full mx-auto mb-4"></div>
           <CardDescription className="text-md lg:text-xl text-white/80 leading-relaxed max-w-sm mx-auto">
-            User Registration Form
+            Complete your registration by filling out all the required
+            information below
           </CardDescription>
-
-          {/* Step Indicator */}
-          <div className="flex justify-center items-center space-x-4 mt-6">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                userFormStep >= 1
-                  ? "bg-[#00d8cc] text-black"
-                  : "bg-white/20 text-white/60"
-              }`}
-            >
-              1
-            </div>
-            <div
-              className={`w-16 h-1 rounded-full ${
-                userFormStep >= 2 ? "bg-[#00d8cc]" : "bg-white/20"
-              }`}
-            ></div>
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                userFormStep >= 2
-                  ? "bg-[#00d8cc] text-black"
-                  : "bg-white/20 text-white/60"
-              }`}
-            >
-              2
-            </div>
-          </div>
         </CardHeader>
 
         <CardContent>
-          {userFormStep === 1 ? (
-            // Step 1: Basic Information
+          <form onSubmit={handleForm2Submit} className="space-y-6">
+            {/* Personal Information Section */}
             <div className="space-y-6">
+              <div className="border-b border-[#00d8cc]/20 pb-4">
+                <h3 className="text-xl font-semibold text-white mb-4">
+                  Personal Information
+                </h3>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <label
@@ -1029,15 +1042,13 @@ const joinPage = (props: Props) => {
                 >
                   Password
                 </label>
-                <Input
+                <PasswordInput
                   id="password"
                   name="password"
-                  type="password"
-                  placeholder="Enter your password"
                   value={form2Data.password}
                   onChange={handleForm2Change}
+                  placeholder="Enter your password"
                   required
-                  className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
                 />
               </div>
 
@@ -1048,15 +1059,14 @@ const joinPage = (props: Props) => {
                 >
                   Confirm Password
                 </label>
-                <Input
+                <PasswordInput
                   id="confirm_password"
                   name="confirm_password"
-                  type="password"
-                  placeholder="Confirm your password"
                   value={form2Data.confirm_password}
                   onChange={handleForm2Change}
+                  placeholder="Confirm your password"
                   required
-                  className={`bg-[#00d8cc]/10 backdrop-blur-sm text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                  className={`${
                     userPasswordError
                       ? "border-red-500/60 focus:border-red-500/80 hover:border-red-500/70"
                       : form2Data.confirm_password &&
@@ -1080,19 +1090,38 @@ const joinPage = (props: Props) => {
                     </p>
                   )}
               </div>
-
-              <Button
-                type="button"
-                onClick={handleUserFormNext}
-                disabled={isLoading}
-                className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-              >
-                {isLoading ? "Creating Account..." : "Next Step"}
-              </Button>
             </div>
-          ) : (
-            // Step 2: Professional Information
-            <form onSubmit={handleForm2Submit} className="space-y-6">
+
+            {/* Professional Information Section */}
+            <div className="space-y-6 mt-12">
+              <div className="border-b border-[#00d8cc]/20 pb-4">
+                <h3 className="text-xl font-semibold text-white mb-4">
+                  Professional Information
+                </h3>
+              </div>
+              <div className="space-y-3">
+                <label
+                  htmlFor="sub_organization"
+                  className="block text-lg font-semibold text-white pl-2"
+                >
+                  Sub-Organizations
+                </label>
+                <MultiSelect
+                  options={subOrganizations}
+                  value={form2Data.subOrganization}
+                  onChange={handleSubOrganizationChange}
+                  placeholder="Select sub-organizations"
+                  loading={isLoadingSubOrganizations}
+                  disabled={
+                    !form2Data.organization || form2Data.organization === ""
+                  }
+                />
+                {!form2Data.organization && (
+                  <p className="text-white/60 text-sm pl-2">
+                    Please select an organization first
+                  </p>
+                )}
+              </div>
               <div className="space-y-3">
                 <label
                   htmlFor="role_category"
@@ -1179,7 +1208,6 @@ const joinPage = (props: Props) => {
                             </SelectItem>
                           )
                         )}
-                        <SelectItem value="Other">Other</SelectItem>
                       </>
                     )}
                   </SelectContent>
@@ -1276,22 +1304,22 @@ const joinPage = (props: Props) => {
                       setForm2Data((prev) => ({ ...prev, phone_number: phone }))
                     }
                     className="react-international-phone"
-                    
                   />
                 </div>
               </div>
+            </div>
 
-              <div className="flex space-x-4">
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="flex-1 bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                >
-                  {isLoading ? "Submitting..." : "Submit"}
-                </Button>
-              </div>
-            </form>
-          )}
+            {/* Submit Button */}
+            <div className="pt-6">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                {isLoading ? "Creating Account..." : "Register Now"}
+              </Button>
+            </div>
+          </form>
         </CardContent>
       </Card>
     );
