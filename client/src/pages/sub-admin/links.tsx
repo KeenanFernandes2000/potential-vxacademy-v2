@@ -390,15 +390,16 @@ const Links = () => {
         </div>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-lg border p-6">
+      <div className="grid gap-6 grid-cols-4">
+        <div className="col-span-3 rounded-lg border p-6 flex flex-col">
           <h3 className="font-semibold text-lg mb-2">New Users</h3>
           {hasInvitationLink("new_joiner") ? (
-            <div className="space-y-3">
+            <div className="space-y-3 flex flex-col flex-1">
               <p className="text-sm text-muted-foreground">
-                Invitation generated successfully. Download the Word document to
+                Download the Word document to
                 send to new users:
               </p>
+              <div className="flex-1"></div>
               <Button
                 onClick={() =>
                   generateWordDocument(
@@ -409,17 +410,18 @@ const Links = () => {
                 className="w-full"
                 variant="default"
               >
-                📄 Download New User Invitation Document
+                Download New User Invitation Document
               </Button>
             </div>
           ) : hasInvitation("new_joiner") ? (
-            <div className="space-y-3">
+            <div className="space-y-3 flex flex-col flex-1">
               <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
                 <p className="text-sm text-amber-800">
                   ⚠️ Invitation exists but link is not available. Generate a new
                   invitation to get the document.
                 </p>
               </div>
+              <div className="flex-1"></div>
               <Button
                 onClick={() => makeInvitationRequest("new_joiner")}
                 disabled={isLoading.newJoiner}
@@ -431,26 +433,30 @@ const Links = () => {
               </Button>
             </div>
           ) : (
-            <Button
-              onClick={() => makeInvitationRequest("new_joiner")}
-              disabled={isLoading.newJoiner}
-              className="w-full"
-            >
-              {isLoading.newJoiner
-                ? "Generating..."
-                : "Generate New User Invitation"}
-            </Button>
+            <div className="flex flex-col flex-1">
+              <div className="flex-1"></div>
+              <Button
+                onClick={() => makeInvitationRequest("new_joiner")}
+                disabled={isLoading.newJoiner}
+                className="w-full"
+              >
+                {isLoading.newJoiner
+                  ? "Generating..."
+                  : "Generate New User Invitation"}
+              </Button>
+            </div>
           )}
         </div>
 
-        <div className="rounded-lg border p-6">
+        <div className="col-span-1 rounded-lg border p-6 flex flex-col">
           <h3 className="font-semibold text-lg mb-2">Existing Users</h3>
           {hasInvitationLink("existing_joiner") ? (
-            <div className="space-y-3">
+            <div className="space-y-3 flex flex-col flex-1">
               <p className="text-sm text-muted-foreground">
-                Invitation generated successfully. Download the Word document to
+                Download the Word document to
                 send to existing users:
               </p>
+              <div className="flex-1"></div>
               <Button
                 onClick={() =>
                   generateWordDocument(
@@ -461,17 +467,18 @@ const Links = () => {
                 className="w-full"
                 variant="default"
               >
-                📄 Download Existing User Invitation Document
+                Download Existing User Invitation Document
               </Button>
             </div>
           ) : hasInvitation("existing_joiner") ? (
-            <div className="space-y-3">
+            <div className="space-y-3 flex flex-col flex-1">
               <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
                 <p className="text-sm text-amber-800">
                   ⚠️ Invitation exists but link is not available. Generate a new
                   invitation to get the document.
                 </p>
               </div>
+              <div className="flex-1"></div>
               <Button
                 onClick={() => makeInvitationRequest("existing_joiner")}
                 disabled={isLoading.existingJoiner}
@@ -483,15 +490,18 @@ const Links = () => {
               </Button>
             </div>
           ) : (
-            <Button
-              onClick={() => makeInvitationRequest("existing_joiner")}
-              disabled={isLoading.existingJoiner}
-              className="w-full"
-            >
-              {isLoading.existingJoiner
-                ? "Generating..."
-                : "Generate Existing User Invitation"}
-            </Button>
+            <div className="flex flex-col flex-1">
+              <div className="flex-1"></div>
+              <Button
+                onClick={() => makeInvitationRequest("existing_joiner")}
+                disabled={isLoading.existingJoiner}
+                className="w-full"
+              >
+                {isLoading.existingJoiner
+                  ? "Generating..."
+                  : "Generate Existing User Invitation"}
+              </Button>
+            </div>
           )}
         </div>
       </div>
