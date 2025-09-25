@@ -20,18 +20,29 @@ import {
   Download,
   Eye,
   Loader2,
+  X,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 interface Organization {
   id: string;
   name: string;
-  email: string;
-  contactPerson: string;
-  userCount: number;
-  subAdminCount: number;
+  asset: string;
+  subAsset: string;
+  subOrganization?: string;
+  totalFrontliners: number;
+  registeredFrontliners: number;
+  subAdminName: string;
+  subAdminEmail: string;
   createdAt: string;
   status: "active" | "inactive";
-  lastActivity: string;
 }
 
 const Organizations = () => {
@@ -42,6 +53,18 @@ const Organizations = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Filter states
+  const [selectedAsset, setSelectedAsset] = useState<string>("all");
+  const [selectedSubAsset, setSelectedSubAsset] = useState<string>("all");
+
+  // Extract unique values for filters
+  const uniqueAssets = Array.from(
+    new Set(organizations.map((org) => org.asset))
+  ).filter(Boolean);
+  const uniqueSubAssets = Array.from(
+    new Set(organizations.map((org) => org.subAsset))
+  ).filter(Boolean);
 
   useEffect(() => {
     const fetchOrganizations = async () => {
@@ -57,57 +80,67 @@ const Organizations = () => {
           {
             id: "1",
             name: "Tech Solutions Inc",
-            email: "contact@techsolutions.com",
-            contactPerson: "John Smith",
-            userCount: 45,
-            subAdminCount: 3,
+            asset: "Technology",
+            subAsset: "Software Development",
+            subOrganization: "Engineering Division",
+            totalFrontliners: 50,
+            registeredFrontliners: 45,
+            subAdminName: "John Smith",
+            subAdminEmail: "john.smith@techsolutions.com",
             createdAt: "2024-01-15",
             status: "active",
-            lastActivity: "2024-12-20",
           },
           {
             id: "2",
             name: "Healthcare Partners",
-            email: "admin@healthcarepartners.com",
-            contactPerson: "Sarah Johnson",
-            userCount: 78,
-            subAdminCount: 5,
+            asset: "Healthcare",
+            subAsset: "Medical Services",
+            subOrganization: "Emergency Department",
+            totalFrontliners: 85,
+            registeredFrontliners: 78,
+            subAdminName: "Sarah Johnson",
+            subAdminEmail: "sarah.johnson@healthcarepartners.com",
             createdAt: "2024-02-20",
             status: "active",
-            lastActivity: "2024-12-19",
           },
           {
             id: "3",
             name: "Education Foundation",
-            email: "info@edufoundation.org",
-            contactPerson: "Michael Brown",
-            userCount: 32,
-            subAdminCount: 2,
+            asset: "Education",
+            subAsset: "Academic Programs",
+            subOrganization: "Primary Education",
+            totalFrontliners: 40,
+            registeredFrontliners: 32,
+            subAdminName: "Michael Brown",
+            subAdminEmail: "michael.brown@edufoundation.org",
             createdAt: "2024-03-10",
             status: "active",
-            lastActivity: "2024-12-18",
           },
           {
             id: "4",
             name: "Global Services Ltd",
-            email: "contact@globalservices.com",
-            contactPerson: "Emily Davis",
-            userCount: 156,
-            subAdminCount: 8,
+            asset: "Technology",
+            subAsset: "IT Support",
+            subOrganization: "Customer Service",
+            totalFrontliners: 170,
+            registeredFrontliners: 156,
+            subAdminName: "Emily Davis",
+            subAdminEmail: "emily.davis@globalservices.com",
             createdAt: "2024-01-05",
             status: "active",
-            lastActivity: "2024-12-20",
           },
           {
             id: "5",
             name: "Innovation Hub",
-            email: "hello@innovationhub.com",
-            contactPerson: "David Wilson",
-            userCount: 23,
-            subAdminCount: 1,
+            asset: "Technology",
+            subAsset: "Research & Development",
+            subOrganization: "Innovation Lab",
+            totalFrontliners: 30,
+            registeredFrontliners: 23,
+            subAdminName: "David Wilson",
+            subAdminEmail: "david.wilson@innovationhub.com",
             createdAt: "2024-04-12",
             status: "inactive",
-            lastActivity: "2024-11-15",
           },
         ];
 
@@ -124,43 +157,72 @@ const Organizations = () => {
     fetchOrganizations();
   }, []);
 
-  // Filter organizations based on search term
+  // Filter organizations based on all criteria
   useEffect(() => {
+    let filtered = organizations;
+
+    // Filter by asset
+    if (selectedAsset !== "all") {
+      filtered = filtered.filter((org) => org.asset === selectedAsset);
+    }
+
+    // Filter by sub-asset
+    if (selectedSubAsset !== "all") {
+      filtered = filtered.filter((org) => org.subAsset === selectedSubAsset);
+    }
+
+    // Filter by search term
     if (searchTerm) {
-      const filtered = organizations.filter(
+      filtered = filtered.filter(
         (org) =>
           org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          org.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          org.contactPerson.toLowerCase().includes(searchTerm.toLowerCase())
+          org.subAdminName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          org.subAdminEmail.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      setFilteredOrganizations(filtered);
-    } else {
-      setFilteredOrganizations(organizations);
     }
-  }, [organizations, searchTerm]);
+
+    setFilteredOrganizations(filtered);
+  }, [organizations, selectedAsset, selectedSubAsset, searchTerm]);
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedAsset("all");
+    setSelectedSubAsset("all");
+    setSearchTerm("");
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    selectedAsset !== "all" || selectedSubAsset !== "all" || searchTerm !== "";
 
   const handleExport = () => {
     // Implement CSV export functionality
     const csvContent = [
       [
-        "Organization",
-        "Email",
-        "Contact Person",
-        "Users",
-        "Sub-Admins",
+        "Org ID",
+        "Organization Name",
+        "Sub-Organization",
+        "Total Frontliners",
+        "Registered Frontliners",
+        "Sub-Admin Name",
+        "Sub-Admin Email",
+        "Asset",
+        "Sub-Asset",
         "Status",
         "Created",
-        "Last Activity",
       ],
       ...filteredOrganizations.map((org) => [
+        org.id,
         org.name,
-        org.email,
-        org.contactPerson,
-        org.userCount.toString(),
-        org.subAdminCount.toString(),
+        org.subOrganization || "N/A",
+        org.totalFrontliners.toString(),
+        org.registeredFrontliners.toString(),
+        org.subAdminName,
+        org.subAdminEmail,
+        org.asset,
+        org.subAsset,
         org.status,
         new Date(org.createdAt).toLocaleDateString(),
-        new Date(org.lastActivity).toLocaleDateString(),
       ]),
     ]
       .map((row) => row.join(","))
@@ -183,9 +245,12 @@ const Organizations = () => {
     }
   };
 
-  const totalUsers = organizations.reduce((sum, org) => sum + org.userCount, 0);
-  const totalSubAdmins = organizations.reduce(
-    (sum, org) => sum + org.subAdminCount,
+  const totalFrontliners = organizations.reduce(
+    (sum, org) => sum + org.totalFrontliners,
+    0
+  );
+  const registeredFrontliners = organizations.reduce(
+    (sum, org) => sum + org.registeredFrontliners,
     0
   );
   const activeOrganizations = organizations.filter(
@@ -237,13 +302,13 @@ const Organizations = () => {
           <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-white/80">
-                Total Users
+                Total Frontliners
               </CardTitle>
               <Users className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {loading ? "..." : totalUsers}
+                {loading ? "..." : totalFrontliners}
               </div>
             </CardContent>
           </Card>
@@ -251,30 +316,110 @@ const Organizations = () => {
           <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-white/80">
-                Sub-Admins
+                Registered Frontliners
               </CardTitle>
               <Users className="h-4 w-4 text-purple-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {loading ? "..." : totalSubAdmins}
+                {loading ? "..." : registeredFrontliners}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Search and Actions */}
+        {/* Filters and Actions */}
         <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
           <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
-                <Input
-                  placeholder="Search organizations..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                />
+            <div className="flex flex-wrap gap-4 items-center justify-between">
+              <div className="flex flex-wrap gap-4 items-center">
+                {/* Asset Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">Asset</Label>
+                  <Select
+                    value={selectedAsset}
+                    onValueChange={setSelectedAsset}
+                  >
+                    <SelectTrigger className="w-[140px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Assets" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Assets
+                      </SelectItem>
+                      {uniqueAssets.map((asset) => (
+                        <SelectItem
+                          key={asset}
+                          value={asset}
+                          className="text-white hover:bg-gray-700"
+                        >
+                          {asset}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Asset Sub-Category Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">
+                    Asset Sub-Category
+                  </Label>
+                  <Select
+                    value={selectedSubAsset}
+                    onValueChange={setSelectedSubAsset}
+                  >
+                    <SelectTrigger className="w-[160px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Sub-Categories" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Sub-Categories
+                      </SelectItem>
+                      {uniqueSubAssets.map((subAsset) => (
+                        <SelectItem
+                          key={subAsset}
+                          value={subAsset}
+                          className="text-white hover:bg-gray-700"
+                        >
+                          {subAsset}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Search */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">Search</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
+                    <Input
+                      placeholder="Search organizations..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-[200px] pl-10 bg-orange-500/20 border-orange-500/30 text-orange-300 placeholder:text-orange-300/60"
+                    />
+                  </div>
+                </div>
+
+                {/* Clear Filters Button */}
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    onClick={clearAllFilters}
+                    className="bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Clear Filters
+                  </Button>
+                )}
               </div>
               <Button
                 onClick={handleExport}
@@ -305,22 +450,27 @@ const Organizations = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-white/20">
+                      <TableHead className="text-white/80">Org ID</TableHead>
                       <TableHead className="text-white/80">
-                        Organization
+                        Organization Name
                       </TableHead>
                       <TableHead className="text-white/80">
-                        Contact Person
+                        Sub-Organization
                       </TableHead>
-                      <TableHead className="text-white/80">Email</TableHead>
-                      <TableHead className="text-white/80">Users</TableHead>
                       <TableHead className="text-white/80">
-                        Sub-Admins
+                        Total Frontliners
+                      </TableHead>
+                      <TableHead className="text-white/80">
+                        Registered Frontliners
+                      </TableHead>
+                      <TableHead className="text-white/80">
+                        Sub-Admin Name
+                      </TableHead>
+                      <TableHead className="text-white/80">
+                        Sub-Admin Email
                       </TableHead>
                       <TableHead className="text-white/80">Status</TableHead>
                       <TableHead className="text-white/80">Created</TableHead>
-                      <TableHead className="text-white/80">
-                        Last Activity
-                      </TableHead>
                       <TableHead className="text-white/80">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -328,25 +478,31 @@ const Organizations = () => {
                     {filteredOrganizations.map((org) => (
                       <TableRow key={org.id} className="border-white/10">
                         <TableCell className="text-white font-medium">
+                          {org.id}
+                        </TableCell>
+                        <TableCell className="text-white/80">
                           {org.name}
                         </TableCell>
                         <TableCell className="text-white/80">
-                          {org.contactPerson}
-                        </TableCell>
-                        <TableCell className="text-white/80">
-                          {org.email}
+                          {org.subOrganization || "N/A"}
                         </TableCell>
                         <TableCell className="text-white/80">
                           <div className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
-                            {org.userCount}
+                            {org.totalFrontliners}
                           </div>
                         </TableCell>
                         <TableCell className="text-white/80">
                           <div className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
-                            {org.subAdminCount}
+                            {org.registeredFrontliners}
                           </div>
+                        </TableCell>
+                        <TableCell className="text-white/80">
+                          {org.subAdminName}
+                        </TableCell>
+                        <TableCell className="text-white/80">
+                          {org.subAdminEmail}
                         </TableCell>
                         <TableCell className="text-white/80">
                           <span
@@ -361,9 +517,6 @@ const Organizations = () => {
                         </TableCell>
                         <TableCell className="text-white/80">
                           {formatDate(org.createdAt)}
-                        </TableCell>
-                        <TableCell className="text-white/80">
-                          {formatDate(org.lastActivity)}
                         </TableCell>
                         <TableCell className="text-white/80">
                           <Button

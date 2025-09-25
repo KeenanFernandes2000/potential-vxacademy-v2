@@ -17,7 +17,17 @@ import {
   Eye,
   Loader2,
   ChevronDown,
+  X,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 
 interface User {
@@ -70,6 +80,23 @@ const AllUsers = () => {
     },
   });
   const [showFilters, setShowFilters] = useState(false);
+
+  // Filter states
+  const [selectedUserType, setSelectedUserType] = useState<string>("all");
+  const [selectedOrganization, setSelectedOrganization] =
+    useState<string>("all");
+  const [dateRange, setDateRange] = useState({
+    start: "",
+    end: "",
+  });
+
+  // Extract unique values for filters
+  const uniqueUserTypes = Array.from(
+    new Set(users.map((user) => user.userType))
+  ).filter(Boolean);
+  const uniqueOrganizations = Array.from(
+    new Set(users.map((user) => user.organization))
+  ).filter((org) => org !== "N/A");
 
   // API object for user operations
   const api = {
@@ -168,7 +195,7 @@ const AllUsers = () => {
           eid: user.eid || "N/A",
           phoneNumber: user.phoneNumber || "N/A",
           userType: user.userType || "user",
-          organization: user.organization?.name || "N/A",
+          organization: user.organization || "N/A",
           subOrganization: user.subOrganization || "N/A",
           createdAt: user.createdAt || "N/A",
           lastLogin: user.lastLogin || "N/A",
@@ -188,22 +215,59 @@ const AllUsers = () => {
     fetchUsers();
   }, [token]);
 
-  // Filter users based on type
+  // Filter users based on all criteria
   useEffect(() => {
     let filtered = users;
 
     // Filter by user type
-    if (filterType !== "all") {
-      filtered = filtered.filter((user) => user.userType === filterType);
+    if (selectedUserType !== "all") {
+      filtered = filtered.filter((user) => user.userType === selectedUserType);
+    }
+
+    // Filter by organization
+    if (selectedOrganization !== "all") {
+      filtered = filtered.filter(
+        (user) => user.organization === selectedOrganization
+      );
+    }
+
+    // Filter by registration date range
+    if (dateRange.start || dateRange.end) {
+      filtered = filtered.filter((user) => {
+        if (user.createdAt === "N/A") return false;
+
+        const userDate = new Date(user.createdAt);
+        const startDate = dateRange.start ? new Date(dateRange.start) : null;
+        const endDate = dateRange.end ? new Date(dateRange.end) : null;
+
+        if (startDate && userDate < startDate) return false;
+        if (endDate && userDate > endDate) return false;
+
+        return true;
+      });
     }
 
     setFilteredUsers(filtered);
-  }, [users, filterType]);
+  }, [users, selectedUserType, selectedOrganization, dateRange]);
 
   // Configuration update functions
   const updateReportConfig = (updates: Partial<ReportConfig>) => {
     setReportConfig((prev) => ({ ...prev, ...updates }));
   };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedUserType("all");
+    setSelectedOrganization("all");
+    setDateRange({ start: "", end: "" });
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    selectedUserType !== "all" ||
+    selectedOrganization !== "all" ||
+    dateRange.start ||
+    dateRange.end;
 
   const handleExport = async () => {
     try {
@@ -354,24 +418,110 @@ const AllUsers = () => {
           <CardContent className="p-6">
             <div className="flex flex-wrap gap-4 items-center justify-between">
               <div className="flex flex-wrap gap-4 items-center">
-                <Button
-                  variant="outline"
-                  className="bg-orange-500/20 border-orange-500/30 text-orange-300 hover:bg-orange-500/30"
-                >
-                  User Type <ChevronDown className="h-3 w-3 ml-1" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="bg-orange-500/20 border-orange-500/30 text-orange-300 hover:bg-orange-500/30"
-                >
-                  Organization <ChevronDown className="h-3 w-3 ml-1" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="bg-orange-500/20 border-orange-500/30 text-orange-300 hover:bg-orange-500/30"
-                >
-                  Registration Date <ChevronDown className="h-3 w-3 ml-1" />
-                </Button>
+                {/* User Type Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">User Type</Label>
+                  <Select
+                    value={selectedUserType}
+                    onValueChange={setSelectedUserType}
+                  >
+                    <SelectTrigger className="w-[140px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Types
+                      </SelectItem>
+                      {uniqueUserTypes.map((type) => (
+                        <SelectItem
+                          key={type}
+                          value={type}
+                          className="text-white hover:bg-gray-700"
+                        >
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Organization Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">Organization</Label>
+                  <Select
+                    value={selectedOrganization}
+                    onValueChange={setSelectedOrganization}
+                  >
+                    <SelectTrigger className="w-[160px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Organizations" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Organizations
+                      </SelectItem>
+                      {uniqueOrganizations.map((org) => (
+                        <SelectItem
+                          key={org}
+                          value={org}
+                          className="text-white hover:bg-gray-700"
+                        >
+                          {org}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Registration Date Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">
+                    Registration Date
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="date"
+                      value={dateRange.start}
+                      onChange={(e) =>
+                        setDateRange((prev) => ({
+                          ...prev,
+                          start: e.target.value,
+                        }))
+                      }
+                      className="w-[140px] bg-orange-500/20 border-orange-500/30 text-orange-300 placeholder:text-orange-300/60"
+                      placeholder="Start Date"
+                    />
+                    <Input
+                      type="date"
+                      value={dateRange.end}
+                      onChange={(e) =>
+                        setDateRange((prev) => ({
+                          ...prev,
+                          end: e.target.value,
+                        }))
+                      }
+                      className="w-[140px] bg-orange-500/20 border-orange-500/30 text-orange-300 placeholder:text-orange-300/60"
+                      placeholder="End Date"
+                    />
+                  </div>
+                </div>
+
+                {/* Clear Filters Button */}
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    onClick={clearAllFilters}
+                    className="bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Clear Filters
+                  </Button>
+                )}
               </div>
               <Button
                 onClick={handleExport}

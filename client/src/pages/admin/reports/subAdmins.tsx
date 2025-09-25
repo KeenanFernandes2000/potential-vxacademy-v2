@@ -21,7 +21,16 @@ import {
   Eye,
   MoreHorizontal,
   Loader2,
+  X,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 interface SubAdmin {
   id: string;
@@ -29,6 +38,8 @@ interface SubAdmin {
   lastName: string;
   email: string;
   organization: string;
+  asset: string;
+  subAsset: string;
   userCount: number;
   createdAt: string;
   lastLogin: string;
@@ -43,6 +54,18 @@ const SubAdmins = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  // Filter states
+  const [selectedAsset, setSelectedAsset] = useState<string>("all");
+  const [selectedSubAsset, setSelectedSubAsset] = useState<string>("all");
+
+  // Extract unique values for filters
+  const uniqueAssets = Array.from(
+    new Set(subAdmins.map((subAdmin) => subAdmin.asset))
+  ).filter(Boolean);
+  const uniqueSubAssets = Array.from(
+    new Set(subAdmins.map((subAdmin) => subAdmin.subAsset))
+  ).filter(Boolean);
 
   useEffect(() => {
     const fetchSubAdmins = async () => {
@@ -61,6 +84,8 @@ const SubAdmins = () => {
             lastName: "Johnson",
             email: "alice.johnson@techsolutions.com",
             organization: "Tech Solutions Inc",
+            asset: "Technology",
+            subAsset: "Software Development",
             userCount: 45,
             createdAt: "2024-01-15",
             lastLogin: "2024-12-20",
@@ -73,6 +98,8 @@ const SubAdmins = () => {
             lastName: "Smith",
             email: "bob.smith@healthcarepartners.com",
             organization: "Healthcare Partners",
+            asset: "Healthcare",
+            subAsset: "Medical Services",
             userCount: 78,
             createdAt: "2024-02-20",
             lastLogin: "2024-12-19",
@@ -85,6 +112,8 @@ const SubAdmins = () => {
             lastName: "Davis",
             email: "carol.davis@edufoundation.org",
             organization: "Education Foundation",
+            asset: "Education",
+            subAsset: "Academic Programs",
             userCount: 32,
             createdAt: "2024-03-10",
             lastLogin: "2024-12-18",
@@ -97,6 +126,8 @@ const SubAdmins = () => {
             lastName: "Wilson",
             email: "david.wilson@globalservices.com",
             organization: "Global Services Ltd",
+            asset: "Technology",
+            subAsset: "IT Support",
             userCount: 156,
             createdAt: "2024-01-05",
             lastLogin: "2024-12-20",
@@ -109,6 +140,8 @@ const SubAdmins = () => {
             lastName: "Brown",
             email: "eva.brown@innovationhub.com",
             organization: "Innovation Hub",
+            asset: "Technology",
+            subAsset: "Research & Development",
             userCount: 23,
             createdAt: "2024-04-12",
             lastLogin: "2024-11-15",
@@ -130,9 +163,23 @@ const SubAdmins = () => {
     fetchSubAdmins();
   }, []);
 
-  // Filter sub-admins based on search term and status
+  // Filter sub-admins based on all criteria
   useEffect(() => {
     let filtered = subAdmins;
+
+    // Filter by asset
+    if (selectedAsset !== "all") {
+      filtered = filtered.filter(
+        (subAdmin) => subAdmin.asset === selectedAsset
+      );
+    }
+
+    // Filter by sub-asset
+    if (selectedSubAsset !== "all") {
+      filtered = filtered.filter(
+        (subAdmin) => subAdmin.subAsset === selectedSubAsset
+      );
+    }
 
     // Filter by search term
     if (searchTerm) {
@@ -153,7 +200,22 @@ const SubAdmins = () => {
     }
 
     setFilteredSubAdmins(filtered);
-  }, [subAdmins, searchTerm, statusFilter]);
+  }, [subAdmins, selectedAsset, selectedSubAsset, searchTerm, statusFilter]);
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedAsset("all");
+    setSelectedSubAsset("all");
+    setSearchTerm("");
+    setStatusFilter("all");
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    selectedAsset !== "all" ||
+    selectedSubAsset !== "all" ||
+    searchTerm !== "" ||
+    statusFilter !== "all";
 
   const handleExport = () => {
     // Implement CSV export functionality
@@ -162,6 +224,8 @@ const SubAdmins = () => {
         "Name",
         "Email",
         "Organization",
+        "Asset",
+        "Sub-Asset",
         "Users",
         "Status",
         "Created",
@@ -172,6 +236,8 @@ const SubAdmins = () => {
         `${subAdmin.firstName} ${subAdmin.lastName}`,
         subAdmin.email,
         subAdmin.organization,
+        subAdmin.asset,
+        subAdmin.subAsset,
         subAdmin.userCount.toString(),
         subAdmin.status,
         new Date(subAdmin.createdAt).toLocaleDateString(),
@@ -281,29 +347,128 @@ const SubAdmins = () => {
           </Card>
         </div>
 
-        {/* Search and Filters */}
+        {/* Filters and Actions */}
         <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
           <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="flex flex-col md:flex-row gap-4 flex-1">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
-                  <Input
-                    placeholder="Search sub-admins..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                  />
+            <div className="flex flex-wrap gap-4 items-center justify-between">
+              <div className="flex flex-wrap gap-4 items-center">
+                {/* Asset Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">Asset</Label>
+                  <Select
+                    value={selectedAsset}
+                    onValueChange={setSelectedAsset}
+                  >
+                    <SelectTrigger className="w-[140px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Assets" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Assets
+                      </SelectItem>
+                      {uniqueAssets.map((asset) => (
+                        <SelectItem
+                          key={asset}
+                          value={asset}
+                          className="text-white hover:bg-gray-700"
+                        >
+                          {asset}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 bg-white/10 border border-white/20 text-white rounded-md"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+
+                {/* Asset Sub-Category Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">
+                    Asset Sub-Category
+                  </Label>
+                  <Select
+                    value={selectedSubAsset}
+                    onValueChange={setSelectedSubAsset}
+                  >
+                    <SelectTrigger className="w-[160px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Sub-Categories" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Sub-Categories
+                      </SelectItem>
+                      {uniqueSubAssets.map((subAsset) => (
+                        <SelectItem
+                          key={subAsset}
+                          value={subAsset}
+                          className="text-white hover:bg-gray-700"
+                        >
+                          {subAsset}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Status Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">Status</Label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[120px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Status
+                      </SelectItem>
+                      <SelectItem
+                        value="active"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        Active
+                      </SelectItem>
+                      <SelectItem
+                        value="inactive"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        Inactive
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Search */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">Search</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
+                    <Input
+                      placeholder="Search sub-admins..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-[200px] pl-10 bg-orange-500/20 border-orange-500/30 text-orange-300 placeholder:text-orange-300/60"
+                    />
+                  </div>
+                </div>
+
+                {/* Clear Filters Button */}
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    onClick={clearAllFilters}
+                    className="bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Clear Filters
+                  </Button>
+                )}
               </div>
               <Button
                 onClick={handleExport}
