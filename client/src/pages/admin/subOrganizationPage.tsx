@@ -68,6 +68,52 @@ const api = {
     }
   },
 
+  async getAllAssets(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/users/assets`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch assets:", error);
+      throw error;
+    }
+  },
+
+  async getAllSubAssets(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/users/sub-assets`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch sub-assets:", error);
+      throw error;
+    }
+  },
+
   async createSubOrganization(subOrganizationData: any, token: string) {
     try {
       const baseUrl = import.meta.env.VITE_API_URL;
@@ -157,6 +203,10 @@ interface SubOrganizationData
   name: string;
   organizationId: number;
   organizationName: string;
+  assetId: number;
+  subAssetId: number;
+  assetName: string;
+  subAssetName: string;
   actions: React.ReactNode;
 }
 
@@ -164,6 +214,19 @@ interface SubOrganizationData
 interface OrganizationData {
   id: number;
   name: string;
+}
+
+// Type for asset data
+interface AssetData {
+  id: number;
+  name: string;
+}
+
+// Type for sub-asset data
+interface SubAssetData {
+  id: number;
+  name: string;
+  assetId: number;
 }
 
 const SubOrganizationPage = () => {
@@ -175,6 +238,8 @@ const SubOrganizationPage = () => {
     SubOrganizationData[]
   >([]);
   const [organizations, setOrganizations] = useState<OrganizationData[]>([]);
+  const [assets, setAssets] = useState<AssetData[]>([]);
+  const [allSubAssets, setAllSubAssets] = useState<SubAssetData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -193,49 +258,71 @@ const SubOrganizationPage = () => {
       try {
         setIsLoading(true);
 
-        // Fetch sub-organizations and organizations in parallel
-        const [subOrganizationsResponse, organizationsResponse] =
-          await Promise.all([
-            api.getAllSubOrganizations(token),
-            api.getAllOrganizations(token),
-          ]);
+        // Fetch sub-organizations, organizations, assets, and sub-assets in parallel
+        const [
+          subOrganizationsResponse,
+          organizationsResponse,
+          assetsResponse,
+          subAssetsResponse,
+        ] = await Promise.all([
+          api.getAllSubOrganizations(token),
+          api.getAllOrganizations(token),
+          api.getAllAssets(token),
+          api.getAllSubAssets(token),
+        ]);
 
-        // Set organizations
+        // Set organizations, assets, and sub-assets
         setOrganizations(organizationsResponse.data || []);
+        setAssets(assetsResponse.data || []);
+        setAllSubAssets(subAssetsResponse.data || []);
 
         // Transform sub-organizations data to match our display format
         const transformedSubOrganizations =
-          subOrganizationsResponse.data?.map((subOrg: any) => ({
-            id: subOrg.id,
-            name: subOrg.name,
-            organizationId: subOrg.organizationId,
-            organizationName:
-              organizationsResponse.data?.find(
-                (org: any) => org.id === subOrg.organizationId
-              )?.name || "N/A",
-            actions: (
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-                  onClick={() => handleEditSubOrganization(subOrg)}
-                  title="Edit"
-                >
-                  <Edit sx={{ fontSize: 16 }} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-                  onClick={() => handleDeleteSubOrganization(subOrg.id)}
-                  title="Delete"
-                >
-                  <Delete sx={{ fontSize: 16 }} />
-                </Button>
-              </div>
-            ),
-          })) || [];
+          subOrganizationsResponse.data?.map((subOrg: any) => {
+            // Find asset and sub-asset names
+            const asset = assetsResponse.data?.find(
+              (asset: any) => asset.id === subOrg.assetId
+            );
+            const subAsset = subAssetsResponse.data?.find(
+              (subAsset: any) => subAsset.id === subOrg.subAssetId
+            );
+
+            return {
+              id: subOrg.id,
+              name: subOrg.name,
+              organizationId: subOrg.organizationId,
+              organizationName:
+                organizationsResponse.data?.find(
+                  (org: any) => org.id === subOrg.organizationId
+                )?.name || "N/A",
+              assetId: subOrg.assetId,
+              subAssetId: subOrg.subAssetId,
+              assetName: asset?.name || "N/A",
+              subAssetName: subAsset?.name || "N/A",
+              actions: (
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                    onClick={() => handleEditSubOrganization(subOrg)}
+                    title="Edit"
+                  >
+                    <Edit sx={{ fontSize: 16 }} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                    onClick={() => handleDeleteSubOrganization(subOrg.id)}
+                    title="Delete"
+                  >
+                    <Delete sx={{ fontSize: 16 }} />
+                  </Button>
+                </div>
+              ),
+            };
+          }) || [];
 
         setSubOrganizations(transformedSubOrganizations);
         setFilteredSubOrganizations(transformedSubOrganizations);
@@ -258,7 +345,9 @@ const SubOrganizationPage = () => {
       const filtered = subOrganizations.filter(
         (subOrg) =>
           subOrg.name.toLowerCase().includes(query.toLowerCase()) ||
-          subOrg.organizationName.toLowerCase().includes(query.toLowerCase())
+          subOrg.organizationName.toLowerCase().includes(query.toLowerCase()) ||
+          subOrg.assetName.toLowerCase().includes(query.toLowerCase()) ||
+          subOrg.subAssetName.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredSubOrganizations(filtered);
     }
@@ -277,6 +366,8 @@ const SubOrganizationPage = () => {
       const subOrganizationData = {
         name: formData.name,
         organizationId: parseInt(formData.organizationId),
+        assetId: parseInt(formData.assetId),
+        subAssetId: parseInt(formData.subAssetId),
       };
 
       const response = await api.createSubOrganization(
@@ -312,6 +403,8 @@ const SubOrganizationPage = () => {
       const subOrganizationData = {
         name: formData.name,
         organizationId: parseInt(formData.organizationId),
+        assetId: parseInt(formData.assetId),
+        subAssetId: parseInt(formData.subAssetId),
       };
 
       const response = await api.updateSubOrganization(
@@ -377,44 +470,70 @@ const SubOrganizationPage = () => {
   const refreshSubOrganizationList = async () => {
     if (!token) return;
 
-    // Fetch both sub-organizations and organizations
-    const [updatedResponse, organizationsResponse] = await Promise.all([
+    // Fetch sub-organizations, organizations, assets, and sub-assets
+    const [
+      updatedResponse,
+      organizationsResponse,
+      assetsResponse,
+      subAssetsResponse,
+    ] = await Promise.all([
       api.getAllSubOrganizations(token),
       api.getAllOrganizations(token),
+      api.getAllAssets(token),
+      api.getAllSubAssets(token),
     ]);
 
+    // Update cached data
+    setOrganizations(organizationsResponse.data || []);
+    setAssets(assetsResponse.data || []);
+    setAllSubAssets(subAssetsResponse.data || []);
+
     const transformedSubOrganizations =
-      updatedResponse.data?.map((subOrg: any) => ({
-        id: subOrg.id,
-        name: subOrg.name,
-        organizationId: subOrg.organizationId,
-        organizationName:
-          organizationsResponse.data?.find(
-            (org: any) => org.id === subOrg.organizationId
-          )?.name || "N/A",
-        actions: (
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-              onClick={() => handleEditSubOrganization(subOrg)}
-              title="Edit"
-            >
-              <Edit sx={{ fontSize: 16 }} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-              onClick={() => handleDeleteSubOrganization(subOrg.id)}
-              title="Delete"
-            >
-              <Delete sx={{ fontSize: 16 }} />
-            </Button>
-          </div>
-        ),
-      })) || [];
+      updatedResponse.data?.map((subOrg: any) => {
+        // Find asset and sub-asset names
+        const asset = assetsResponse.data?.find(
+          (asset: any) => asset.id === subOrg.assetId
+        );
+        const subAsset = subAssetsResponse.data?.find(
+          (subAsset: any) => subAsset.id === subOrg.subAssetId
+        );
+
+        return {
+          id: subOrg.id,
+          name: subOrg.name,
+          organizationId: subOrg.organizationId,
+          organizationName:
+            organizationsResponse.data?.find(
+              (org: any) => org.id === subOrg.organizationId
+            )?.name || "N/A",
+          assetId: subOrg.assetId,
+          subAssetId: subOrg.subAssetId,
+          assetName: asset?.name || "N/A",
+          subAssetName: subAsset?.name || "N/A",
+          actions: (
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                onClick={() => handleEditSubOrganization(subOrg)}
+                title="Edit"
+              >
+                <Edit sx={{ fontSize: 16 }} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                onClick={() => handleDeleteSubOrganization(subOrg.id)}
+                title="Delete"
+              >
+                <Delete sx={{ fontSize: 16 }} />
+              </Button>
+            </div>
+          ),
+        };
+      }) || [];
 
     setSubOrganizations(transformedSubOrganizations);
     setFilteredSubOrganizations(transformedSubOrganizations);
@@ -424,7 +543,26 @@ const SubOrganizationPage = () => {
     const [formData, setFormData] = useState({
       name: "",
       organizationId: "",
+      assetId: "",
+      subAssetId: "",
     });
+    const [availableSubAssets, setAvailableSubAssets] = useState<
+      SubAssetData[]
+    >([]);
+
+    // Filter sub-assets when asset changes using cached data
+    const handleAssetChange = (assetId: string) => {
+      setFormData({ ...formData, assetId, subAssetId: "" });
+      if (assetId) {
+        // Filter sub-assets from cached data by assetId
+        const filteredSubAssets = allSubAssets.filter(
+          (subAsset) => subAsset.assetId === parseInt(assetId)
+        );
+        setAvailableSubAssets(filteredSubAssets);
+      } else {
+        setAvailableSubAssets([]);
+      }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -432,7 +570,10 @@ const SubOrganizationPage = () => {
       setFormData({
         name: "",
         organizationId: "",
+        assetId: "",
+        subAssetId: "",
       });
+      setAvailableSubAssets([]);
     };
 
     return (
@@ -476,6 +617,49 @@ const SubOrganizationPage = () => {
           </Select>
         </div>
 
+        <div className="space-y-2">
+          <Label htmlFor="asset">Asset *</Label>
+          <Select
+            value={formData.assetId}
+            onValueChange={handleAssetChange}
+            required
+          >
+            <SelectTrigger className="rounded-full bg-[#00d8cc]/30 w-full">
+              <SelectValue placeholder="Select an asset" />
+            </SelectTrigger>
+            <SelectContent>
+              {assets.map((asset) => (
+                <SelectItem key={asset.id} value={asset.id.toString()}>
+                  {asset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="subAsset">Sub Asset *</Label>
+          <Select
+            value={formData.subAssetId}
+            onValueChange={(value) =>
+              setFormData({ ...formData, subAssetId: value })
+            }
+            required
+            disabled={!formData.assetId}
+          >
+            <SelectTrigger className="rounded-full bg-[#00d8cc]/30 w-full">
+              <SelectValue placeholder="Select a sub asset" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableSubAssets.map((subAsset) => (
+                <SelectItem key={subAsset.id} value={subAsset.id.toString()}>
+                  {subAsset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex justify-end gap-2">
           <Button type="submit" disabled={isLoading} className="rounded-full">
             {isLoading ? "Creating..." : "Create Sub-Organization"}
@@ -489,7 +673,38 @@ const SubOrganizationPage = () => {
     const [formData, setFormData] = useState({
       name: selectedSubOrganization?.name || "",
       organizationId: selectedSubOrganization?.organizationId?.toString() || "",
+      assetId: selectedSubOrganization?.assetId?.toString() || "",
+      subAssetId: selectedSubOrganization?.subAssetId?.toString() || "",
     });
+    const [availableSubAssets, setAvailableSubAssets] = useState<
+      SubAssetData[]
+    >([]);
+
+    // Filter sub-assets when component mounts or asset changes using cached data
+    useEffect(() => {
+      if (formData.assetId) {
+        // Filter sub-assets from cached data by assetId
+        const filteredSubAssets = allSubAssets.filter(
+          (subAsset) => subAsset.assetId === parseInt(formData.assetId)
+        );
+        setAvailableSubAssets(filteredSubAssets);
+      } else {
+        setAvailableSubAssets([]);
+      }
+    }, [formData.assetId, allSubAssets]);
+
+    const handleAssetChange = (assetId: string) => {
+      setFormData({ ...formData, assetId, subAssetId: "" });
+      if (assetId) {
+        // Filter sub-assets from cached data by assetId
+        const filteredSubAssets = allSubAssets.filter(
+          (subAsset) => subAsset.assetId === parseInt(assetId)
+        );
+        setAvailableSubAssets(filteredSubAssets);
+      } else {
+        setAvailableSubAssets([]);
+      }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -534,6 +749,48 @@ const SubOrganizationPage = () => {
           </Select>
         </div>
 
+        <div className="space-y-2">
+          <Label htmlFor="edit_asset">Asset *</Label>
+          <Select
+            value={formData.assetId}
+            onValueChange={handleAssetChange}
+            required
+          >
+            <SelectTrigger className="rounded-full bg-[#00d8cc]/30 w-full">
+              <SelectValue placeholder="Select an asset" />
+            </SelectTrigger>
+            <SelectContent>
+              {assets.map((asset) => (
+                <SelectItem key={asset.id} value={asset.id.toString()}>
+                  {asset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit_subAsset">Sub Asset *</Label>
+          <Select
+            value={formData.subAssetId}
+            onValueChange={(value) =>
+              setFormData({ ...formData, subAssetId: value })
+            }
+            required
+          >
+            <SelectTrigger className="rounded-full bg-[#00d8cc]/30 w-full">
+              <SelectValue placeholder="Select a sub asset" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableSubAssets.map((subAsset) => (
+                <SelectItem key={subAsset.id} value={subAsset.id.toString()}>
+                  {subAsset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex justify-end gap-2">
           <Button
             type="button"
@@ -554,7 +811,14 @@ const SubOrganizationPage = () => {
     );
   };
 
-  const columns = ["ID", "Name", "Organization", "Actions"];
+  const columns = [
+    "ID",
+    "Name",
+    "Organization",
+    "Asset",
+    "Sub-Asset",
+    "Actions",
+  ];
 
   return (
     <AdminPageLayout

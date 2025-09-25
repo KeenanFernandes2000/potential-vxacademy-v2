@@ -115,9 +115,23 @@ const validateUserInput = (
     );
   }
 
-  // Optional field validation
-  if (data.subOrganization && typeof data.subOrganization !== "string") {
-    errors.push("Sub organization must be a string if provided");
+  // Optional field validation for subOrganization array
+  if (data.subOrganization !== undefined && data.subOrganization !== null) {
+    if (!Array.isArray(data.subOrganization)) {
+      errors.push("Sub organization must be an array if provided");
+    } else {
+      // Validate each item in the array is a string
+      for (let i = 0; i < data.subOrganization.length; i++) {
+        if (
+          typeof data.subOrganization[i] !== "string" ||
+          data.subOrganization[i].trim().length === 0
+        ) {
+          errors.push(
+            `Sub organization item at index ${i} must be a non-empty string`
+          );
+        }
+      }
+    }
   }
 
   return {
@@ -192,8 +206,20 @@ const validateUpdateUserInput = (
   }
 
   if (data.subOrganization !== undefined && data.subOrganization !== null) {
-    if (typeof data.subOrganization !== "string") {
-      errors.push("Sub organization must be a string if provided");
+    if (!Array.isArray(data.subOrganization)) {
+      errors.push("Sub organization must be an array if provided");
+    } else {
+      // Validate each item in the array is a string
+      for (let i = 0; i < data.subOrganization.length; i++) {
+        if (
+          typeof data.subOrganization[i] !== "string" ||
+          data.subOrganization[i].trim().length === 0
+        ) {
+          errors.push(
+            `Sub organization item at index ${i} must be a non-empty string`
+          );
+        }
+      }
     }
   }
 
@@ -560,7 +586,12 @@ export class userControllers {
       lastName: req.body.lastName.trim(),
       email: req.body.email.toLowerCase().trim(),
       organization: req.body.organization.trim(),
-      subOrganization: req.body.subOrganization?.trim() || null,
+      subOrganization:
+        req.body.subOrganization && Array.isArray(req.body.subOrganization)
+          ? req.body.subOrganization
+              .map((org: string) => org.trim())
+              .filter((org: string) => org.length > 0)
+          : null,
       asset: req.body.asset.trim(),
       subAsset: req.body.subAsset.trim(),
       userType: req.body.userType,
@@ -692,7 +723,12 @@ export class userControllers {
     if (req.body.organization)
       updateData.organization = req.body.organization.trim();
     if (req.body.subOrganization !== undefined) {
-      updateData.subOrganization = req.body.subOrganization?.trim() || null;
+      updateData.subOrganization =
+        req.body.subOrganization && Array.isArray(req.body.subOrganization)
+          ? req.body.subOrganization
+              .map((org: string) => org.trim())
+              .filter((org: string) => org.length > 0)
+          : null;
     }
     if (req.body.asset) updateData.asset = req.body.asset.trim();
     if (req.body.subAsset) updateData.subAsset = req.body.subAsset.trim();
@@ -1528,7 +1564,7 @@ export class userControllers {
    * Create a new organization
    */
   static async createOrganization(req: Request, res: Response): Promise<void> {
-    const { name, assetId, subAssetId } = req.body;
+    const { name } = req.body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       throw createError(
@@ -1537,58 +1573,15 @@ export class userControllers {
       );
     }
 
-    if (assetId === undefined || assetId === null) {
-      throw createError("Asset ID is required", 400);
-    }
-
-    if (typeof assetId !== "number" || assetId <= 0) {
-      throw createError("Valid asset ID is required", 400);
-    }
-
-    if (subAssetId === undefined || subAssetId === null) {
-      throw createError("Sub-asset ID is required", 400);
-    }
-
-    if (typeof subAssetId !== "number" || subAssetId <= 0) {
-      throw createError("Valid sub-asset ID is required", 400);
-    }
-
     // Check if organization name already exists
     const nameExists = await OrganizationService.organizationNameExists(name);
     if (nameExists) {
       throw createError("Organization name already exists", 409);
     }
 
-    // Check if asset exists
-    const [asset] = await db
-      .select()
-      .from(assets)
-      .where(eq(assets.id, assetId))
-      .limit(1);
-
-    if (!asset) {
-      throw createError("Asset not found", 404);
-    }
-
-    // Check if sub-asset exists and belongs to the specified asset
-    const isValidRelationship =
-      await OrganizationService.validateAssetSubAssetRelationship(
-        assetId,
-        subAssetId
-      );
-
-    if (!isValidRelationship) {
-      throw createError(
-        "Sub-asset does not belong to the specified asset",
-        400
-      );
-    }
-
     try {
       const organizationData: NewOrganization = {
         name: name.trim(),
-        assetId,
-        subAssetId,
       };
 
       const newOrganization = await OrganizationService.createOrganization(
@@ -1661,57 +1654,11 @@ export class userControllers {
   }
 
   /**
-   * Get organization by asset and sub-asset IDs
-   */
-  static async getOrganizationByAssetAndSubAsset(
-    req: Request,
-    res: Response
-  ): Promise<void> {
-    const assetId = parseInt(req.params.assetId as string);
-    const subAssetId = parseInt(req.params.subAssetId as string);
-
-    if (isNaN(assetId) || assetId <= 0) {
-      throw createError("Invalid asset ID", 400);
-    }
-
-    if (isNaN(subAssetId) || subAssetId <= 0) {
-      throw createError("Invalid sub-asset ID", 400);
-    }
-
-    try {
-      const organization =
-        await OrganizationService.getOrganizationByAssetAndSubAsset(
-          assetId,
-          subAssetId
-        );
-
-      if (!organization) {
-        throw createError(
-          "Organization not found for the given asset and sub-asset combination",
-          404
-        );
-      }
-
-      res.status(200).json({
-        success: true,
-        message: "Organization retrieved successfully",
-        data: organization,
-      });
-    } catch (error: any) {
-      console.error("Get organization by asset and sub-asset error:", error);
-      if (error.statusCode) {
-        throw error;
-      }
-      throw createError("Failed to retrieve organization", 500);
-    }
-  }
-
-  /**
    * Update organization
    */
   static async updateOrganization(req: Request, res: Response): Promise<void> {
     const organizationId = parseInt(req.params.id as string);
-    const { name, assetId, subAssetId } = req.body;
+    const { name } = req.body;
 
     if (isNaN(organizationId) || organizationId <= 0) {
       throw createError("Invalid organization ID", 400);
@@ -1738,56 +1685,9 @@ export class userControllers {
       throw createError("Organization name already exists", 409);
     }
 
-    // Validate asset and sub-asset if provided
-    if (assetId !== undefined || subAssetId !== undefined) {
-      const finalAssetId =
-        assetId !== undefined ? assetId : existingOrganization.assetId;
-      const finalSubAssetId =
-        subAssetId !== undefined ? subAssetId : existingOrganization.subAssetId;
-
-      // If either assetId or subAssetId is provided, both must be valid
-      if (finalAssetId === null || finalSubAssetId === null) {
-        throw createError(
-          "Both asset ID and sub-asset ID are required when updating organization",
-          400
-        );
-      }
-
-      if (finalAssetId !== existingOrganization.assetId) {
-        // Check if new asset exists
-        const [asset] = await db
-          .select()
-          .from(assets)
-          .where(eq(assets.id, finalAssetId))
-          .limit(1);
-
-        if (!asset) {
-          throw createError("Asset not found", 404);
-        }
-      }
-
-      if (finalSubAssetId !== existingOrganization.subAssetId) {
-        // Check if sub-asset exists and belongs to the specified asset
-        const isValidRelationship =
-          await OrganizationService.validateAssetSubAssetRelationship(
-            finalAssetId,
-            finalSubAssetId
-          );
-
-        if (!isValidRelationship) {
-          throw createError(
-            "Sub-asset does not belong to the specified asset",
-            400
-          );
-        }
-      }
-    }
-
     try {
       const updateData: UpdateOrganization = {
         name: name.trim(),
-        ...(assetId !== undefined && { assetId }),
-        ...(subAssetId !== undefined && { subAssetId }),
       };
 
       const updatedOrganization = await OrganizationService.updateOrganization(
@@ -1863,7 +1763,7 @@ export class userControllers {
     req: Request,
     res: Response
   ): Promise<void> {
-    const { name, organizationId } = req.body;
+    const { name, organizationId, assetId, subAssetId } = req.body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       throw createError(
@@ -1880,6 +1780,22 @@ export class userControllers {
       throw createError("Valid organization ID is required", 400);
     }
 
+    if (assetId === undefined || assetId === null) {
+      throw createError("Asset ID is required", 400);
+    }
+
+    if (typeof assetId !== "number" || assetId <= 0) {
+      throw createError("Valid asset ID is required", 400);
+    }
+
+    if (subAssetId === undefined || subAssetId === null) {
+      throw createError("Sub-asset ID is required", 400);
+    }
+
+    if (typeof subAssetId !== "number" || subAssetId <= 0) {
+      throw createError("Valid sub-asset ID is required", 400);
+    }
+
     // Check if parent organization exists
     const [parentOrganization] = await db
       .select()
@@ -1891,9 +1807,36 @@ export class userControllers {
       throw createError("Parent organization not found", 404);
     }
 
+    // Check if asset exists
+    const [asset] = await db
+      .select()
+      .from(assets)
+      .where(eq(assets.id, assetId))
+      .limit(1);
+
+    if (!asset) {
+      throw createError("Asset not found", 404);
+    }
+
+    // Check if sub-asset exists and belongs to the specified asset
+    const isValidRelationship =
+      await SubOrganizationService.validateAssetSubAssetRelationship(
+        assetId,
+        subAssetId
+      );
+
+    if (!isValidRelationship) {
+      throw createError(
+        "Sub-asset does not belong to the specified asset",
+        400
+      );
+    }
+
     const newSubOrganization =
       await SubOrganizationService.createSubOrganization(organizationId, {
         name: name.trim(),
+        assetId,
+        subAssetId,
       });
 
     res.status(201).json({
@@ -1985,6 +1928,56 @@ export class userControllers {
   }
 
   /**
+   * Get sub-organization by asset and sub-asset IDs
+   * GET /sub-organizations/by-asset/:assetId/:subAssetId
+   */
+  static async getSubOrganizationByAssetAndSubAsset(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const assetId = parseInt(req.params.assetId as string);
+    const subAssetId = parseInt(req.params.subAssetId as string);
+
+    if (isNaN(assetId) || assetId <= 0) {
+      throw createError("Invalid asset ID", 400);
+    }
+
+    if (isNaN(subAssetId) || subAssetId <= 0) {
+      throw createError("Invalid sub-asset ID", 400);
+    }
+
+    try {
+      const subOrganization =
+        await SubOrganizationService.getSubOrganizationByAssetAndSubAsset(
+          assetId,
+          subAssetId
+        );
+
+      if (!subOrganization) {
+        throw createError(
+          "Sub-organization not found for the given asset and sub-asset combination",
+          404
+        );
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Sub-organization retrieved successfully",
+        data: subOrganization,
+      });
+    } catch (error: any) {
+      console.error(
+        "Get sub-organization by asset and sub-asset error:",
+        error
+      );
+      if (error.statusCode) {
+        throw error;
+      }
+      throw createError("Failed to retrieve sub-organization", 500);
+    }
+  }
+
+  /**
    * Update sub organization by ID
    * PUT /sub-organizations/:id
    */
@@ -1993,7 +1986,7 @@ export class userControllers {
     res: Response
   ): Promise<void> {
     const subOrganizationId = parseInt(req.params.id as string);
-    const { name } = req.body;
+    const { name, assetId, subAssetId } = req.body;
 
     if (isNaN(subOrganizationId) || subOrganizationId <= 0) {
       throw createError("Invalid sub organization ID", 400);
@@ -2013,10 +2006,65 @@ export class userControllers {
       throw createError("Sub organization not found", 404);
     }
 
+    // Validate asset and sub-asset if provided
+    if (assetId !== undefined || subAssetId !== undefined) {
+      const finalAssetId =
+        assetId !== undefined ? assetId : existingSubOrganization.assetId;
+      const finalSubAssetId =
+        subAssetId !== undefined
+          ? subAssetId
+          : existingSubOrganization.subAssetId;
+
+      // If either assetId or subAssetId is provided, both must be valid
+      if (finalAssetId === null || finalSubAssetId === null) {
+        throw createError(
+          "Both asset ID and sub-asset ID are required when updating sub-organization",
+          400
+        );
+      }
+
+      if (finalAssetId !== existingSubOrganization.assetId) {
+        // Check if new asset exists
+        const [asset] = await db
+          .select()
+          .from(assets)
+          .where(eq(assets.id, finalAssetId))
+          .limit(1);
+
+        if (!asset) {
+          throw createError("Asset not found", 404);
+        }
+      }
+
+      if (finalSubAssetId !== existingSubOrganization.subAssetId) {
+        // Check if sub-asset exists and belongs to the specified asset
+        const isValidRelationship =
+          await SubOrganizationService.validateAssetSubAssetRelationship(
+            finalAssetId,
+            finalSubAssetId
+          );
+
+        if (!isValidRelationship) {
+          throw createError(
+            "Sub-asset does not belong to the specified asset",
+            400
+          );
+        }
+      }
+    }
+
+    const updateData: any = {
+      name: name.trim(),
+    };
+
+    if (assetId !== undefined) updateData.assetId = assetId;
+    if (subAssetId !== undefined) updateData.subAssetId = subAssetId;
+
     const updatedSubOrganization =
-      await SubOrganizationService.updateSubOrganization(subOrganizationId, {
-        name: name.trim(),
-      });
+      await SubOrganizationService.updateSubOrganization(
+        subOrganizationId,
+        updateData
+      );
 
     if (!updatedSubOrganization) {
       throw createError("Failed to update sub organization", 500);

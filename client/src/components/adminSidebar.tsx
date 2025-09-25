@@ -175,12 +175,12 @@ const AdminSidebar = () => {
       url: "/admin/organization",
       badge: null,
     },
-    // {
-    //   title: "Sub-Organization",
-    //   icon: Users,
-    //   url: "/admin/sub-organization",
-    //   badge: null,
-    // },
+    {
+      title: "Sub-Organization",
+      icon: Users,
+      url: "/admin/sub-organization",
+      badge: null,
+    },
     {
       title: "Sub-Admin",
       icon: Shield,

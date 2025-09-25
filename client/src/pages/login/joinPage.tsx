@@ -20,7 +20,7 @@ import {
 import { PasswordInput } from "@/components/ui/password-input";
 import { MultiSelect } from "@/components/ui/multi-select";
 import HomeNavigation from "@/components/homeNavigation";
-// import "@/homepage.css";
+import "@/homepage.css";
 
 // API object for sub-admin registration and token verification
 const api = {
@@ -215,6 +215,84 @@ const api = {
       throw error;
     }
   },
+
+  async getSubOrganizationsByAssetAndSubAsset(
+    assetId: number,
+    subAssetId: number
+  ) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/sub-organizations/by-asset/${assetId}/${subAssetId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(
+        "Error fetching sub-organizations by asset and sub-asset:",
+        error
+      );
+      throw error;
+    }
+  },
+
+  async getAllAssets() {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/users/assets`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching assets:", error);
+      throw error;
+    }
+  },
+
+  async getSubAssetsByAssetId(assetId: number) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/sub-assets/by-asset/${assetId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching sub-assets:", error);
+      throw error;
+    }
+  },
 };
 
 type Props = {};
@@ -320,6 +398,16 @@ const joinPage = (props: Props) => {
   const [isLoadingSubOrganizations, setIsLoadingSubOrganizations] =
     useState(false);
 
+  // Asset and sub-asset state for sub-organization filtering
+  const [assetId, setAssetId] = useState<number | null>(null);
+  const [subAssetId, setSubAssetId] = useState<number | null>(null);
+  const [assets, setAssets] = useState<Array<{ id: number; name: string }>>([]);
+  const [subAssets, setSubAssets] = useState<
+    Array<{ id: number; name: string }>
+  >([]);
+  const [isLoadingAssets, setIsLoadingAssets] = useState(false);
+  const [isLoadingSubAssets, setIsLoadingSubAssets] = useState(false);
+
   // User form password validation function
   const validateUserPasswords = (password: string, confirmPassword: string) => {
     if (confirmPassword && password !== confirmPassword) {
@@ -331,7 +419,7 @@ const joinPage = (props: Props) => {
     }
   };
 
-  // Fetch role categories and roles on component mount
+  // Fetch role categories, roles, and assets on component mount
   useEffect(() => {
     const fetchRoleCategories = async () => {
       setIsLoadingRoleCategories(true);
@@ -365,8 +453,13 @@ const joinPage = (props: Props) => {
       }
     };
 
+    const fetchAssetsData = async () => {
+      await fetchAssets();
+    };
+
     fetchRoleCategories();
     fetchAllRoles();
+    fetchAssetsData();
   }, []);
 
   // Function to get filtered roles based on selected role category
@@ -378,7 +471,71 @@ const joinPage = (props: Props) => {
     return allRoles.filter((role) => role.categoryId === category.id);
   };
 
-  // Function to fetch sub-organizations when organization changes
+  // Function to fetch assets
+  const fetchAssets = async () => {
+    setIsLoadingAssets(true);
+    try {
+      const response = await api.getAllAssets();
+      if (response.success && response.data) {
+        setAssets(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch assets:", error);
+      setAssets([]);
+    } finally {
+      setIsLoadingAssets(false);
+    }
+  };
+
+  // Function to fetch sub-assets by asset ID
+  const fetchSubAssets = async (assetId: number) => {
+    if (!assetId) {
+      setSubAssets([]);
+      return;
+    }
+
+    setIsLoadingSubAssets(true);
+    try {
+      const response = await api.getSubAssetsByAssetId(assetId);
+      if (response.success && response.data) {
+        setSubAssets(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch sub-assets:", error);
+      setSubAssets([]);
+    } finally {
+      setIsLoadingSubAssets(false);
+    }
+  };
+
+  // Function to fetch sub-organizations by asset and sub-asset
+  const fetchSubOrganizationsByAssetAndSubAsset = async (
+    assetId: number,
+    subAssetId: number
+  ) => {
+    if (!assetId || !subAssetId) {
+      setSubOrganizations([]);
+      return;
+    }
+
+    setIsLoadingSubOrganizations(true);
+    try {
+      const response = await api.getSubOrganizationsByAssetAndSubAsset(
+        assetId,
+        subAssetId
+      );
+      if (response.success && response.data) {
+        setSubOrganizations(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch sub-organizations:", error);
+      setSubOrganizations([]);
+    } finally {
+      setIsLoadingSubOrganizations(false);
+    }
+  };
+
+  // Function to fetch sub-organizations when organization changes (fallback)
   const fetchSubOrganizations = async (organizationId: string) => {
     if (!organizationId || organizationId === "") {
       setSubOrganizations([]);
@@ -428,10 +585,56 @@ const joinPage = (props: Props) => {
               setForm2Data((prev) => ({
                 ...prev,
                 organization: response.data.subAdmin.organization || "",
-                subOrganization: response.data.subAdmin.subOrganization || "",
+                subOrganization: response.data.subAdmin.subOrganization || [],
                 asset: response.data.subAdmin.asset || "",
                 subAsset: response.data.subAdmin.subAsset || "",
               }));
+
+              // Extract asset and sub-asset information and fetch sub-organizations
+              const assetName = response.data.subAdmin.asset;
+              const subAssetName = response.data.subAdmin.subAsset;
+
+              if (assetName && subAssetName) {
+                // Wait for assets to be loaded, then find the asset ID
+                const findAssetAndFetchSubOrgs = async () => {
+                  // If assets are not loaded yet, wait a bit and try again
+                  if (assets.length === 0) {
+                    setTimeout(findAssetAndFetchSubOrgs, 100);
+                    return;
+                  }
+
+                  const asset = assets.find((a) => a.name === assetName);
+                  if (asset) {
+                    setAssetId(asset.id);
+                    // Fetch sub-assets for this asset
+                    await fetchSubAssets(asset.id);
+
+                    // Wait for sub-assets to be loaded, then find the sub-asset ID
+                    const findSubAssetAndFetchSubOrgs = async () => {
+                      if (subAssets.length === 0) {
+                        setTimeout(findSubAssetAndFetchSubOrgs, 100);
+                        return;
+                      }
+
+                      const subAsset = subAssets.find(
+                        (sa) => sa.name === subAssetName
+                      );
+                      if (subAsset) {
+                        setSubAssetId(subAsset.id);
+                        // Fetch sub-organizations for this asset and sub-asset combination
+                        await fetchSubOrganizationsByAssetAndSubAsset(
+                          asset.id,
+                          subAsset.id
+                        );
+                      }
+                    };
+
+                    findSubAssetAndFetchSubOrgs();
+                  }
+                };
+
+                findAssetAndFetchSubOrgs();
+              }
             }
           } else {
             setTokenError(
@@ -1109,6 +1312,33 @@ const joinPage = (props: Props) => {
                   Professional Information
                 </h3>
               </div>
+              {/* Asset and Sub-Asset Information Display */}
+              {form2Data.asset && form2Data.subAsset && (
+                <div className="space-y-3 p-4 bg-sandstone/20 rounded-lg border border-sandstone">
+                  <h4 className="text-lg font-semibold text-[#2C2C2C]">
+                    Assignment Information
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[#2C2C2C]/70">
+                        Asset
+                      </label>
+                      <p className="text-[#2C2C2C] font-medium">
+                        {form2Data.asset}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#2C2C2C]/70">
+                        Sub-Asset
+                      </label>
+                      <p className="text-[#2C2C2C] font-medium">
+                        {form2Data.subAsset}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-3">
                 <label
                   htmlFor="sub_organization"
@@ -1123,14 +1353,32 @@ const joinPage = (props: Props) => {
                   placeholder="Select sub-organizations"
                   loading={isLoadingSubOrganizations}
                   disabled={
-                    !form2Data.organization || form2Data.organization === ""
+                    !form2Data.organization ||
+                    form2Data.organization === "" ||
+                    !assetId ||
+                    !subAssetId
                   }
                 />
                 {!form2Data.organization && (
                   <p className="text-[#2C2C2C]/60 text-sm pl-2">
-                    Please select an organization first
+                    Please wait for invitation data to load
                   </p>
                 )}
+                {form2Data.organization && (!assetId || !subAssetId) && (
+                  <p className="text-[#2C2C2C]/60 text-sm pl-2">
+                    Loading available sub-organizations...
+                  </p>
+                )}
+                {form2Data.organization &&
+                  assetId &&
+                  subAssetId &&
+                  subOrganizations.length === 0 &&
+                  !isLoadingSubOrganizations && (
+                    <p className="text-[#2C2C2C]/60 text-sm pl-2">
+                      No sub-organizations available for this asset and
+                      sub-asset combination
+                    </p>
+                  )}
               </div>
               <div className="space-y-3">
                 <label

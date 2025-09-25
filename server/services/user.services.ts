@@ -121,43 +121,6 @@ export class OrganizationService {
 
     return !!organization;
   }
-
-  /**
-   * Validate asset and sub-asset relationship
-   */
-  static async validateAssetSubAssetRelationship(
-    assetId: number,
-    subAssetId: number
-  ): Promise<boolean> {
-    const [subAsset] = await db
-      .select()
-      .from(subAssets)
-      .where(and(eq(subAssets.id, subAssetId), eq(subAssets.assetId, assetId)))
-      .limit(1);
-
-    return !!subAsset;
-  }
-
-  /**
-   * Get organization by asset and sub-asset IDs
-   */
-  static async getOrganizationByAssetAndSubAsset(
-    assetId: number,
-    subAssetId: number
-  ): Promise<Organization | null> {
-    const [organization] = await db
-      .select()
-      .from(organizations)
-      .where(
-        and(
-          eq(organizations.assetId, assetId),
-          eq(organizations.subAssetId, subAssetId)
-        )
-      )
-      .limit(1);
-
-    return organization || null;
-  }
 }
 
 // ==================== SUB-ORGANIZATION SERVICE ====================
@@ -182,6 +145,43 @@ export class SubOrganizationService {
     }
 
     return result[0];
+  }
+
+  /**
+   * Validate asset and sub-asset relationship
+   */
+  static async validateAssetSubAssetRelationship(
+    assetId: number,
+    subAssetId: number
+  ): Promise<boolean> {
+    const [subAsset] = await db
+      .select()
+      .from(subAssets)
+      .where(and(eq(subAssets.id, subAssetId), eq(subAssets.assetId, assetId)))
+      .limit(1);
+
+    return !!subAsset;
+  }
+
+  /**
+   * Get sub-organization by asset and sub-asset IDs
+   */
+  static async getSubOrganizationByAssetAndSubAsset(
+    assetId: number,
+    subAssetId: number
+  ): Promise<SubOrganization | null> {
+    const [subOrganization] = await db
+      .select()
+      .from(subOrganizations)
+      .where(
+        and(
+          eq(subOrganizations.assetId, assetId),
+          eq(subOrganizations.subAssetId, subAssetId)
+        )
+      )
+      .limit(1);
+
+    return subOrganization || null;
   }
 
   /**
