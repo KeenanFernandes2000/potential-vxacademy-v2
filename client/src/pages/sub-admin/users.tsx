@@ -183,7 +183,7 @@ const Users = () => {
         if (currentUserData) {
           filteredUsersData = filteredUsersData.filter((user: any) => {
             // Filter out Sub_admin users
-            if (user.userType === "sub_admin") {
+            if (user.userType !== "user") {
               return false;
             }
 
@@ -390,7 +390,7 @@ const Users = () => {
       if (currentUserData) {
         filteredUsersData = filteredUsersData.filter((user: any) => {
           // Filter out Sub_admin users
-          if (user.userType === "sub_admin") {
+          if (user.userType !== "user") {
             return false;
           }
 
