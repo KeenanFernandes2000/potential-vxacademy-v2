@@ -16,6 +16,8 @@ import {
   learningBlocks,
 } from "../db/schema/training";
 import { assessments, assessmentAttempts } from "../db/schema/assessments";
+import { courseEnrollments } from "../db/schema/system";
+import { certificates } from "../db/schema/gamification";
 import type {
   UserTrainingAreaProgress,
   NewUserTrainingAreaProgress,
@@ -29,6 +31,125 @@ import type {
   NewUserLearningBlockProgress,
   ProgressStatus,
 } from "../db/types";
+
+// ==================== COURSE ENROLLMENT HELPER ====================
+export class CourseEnrollmentHelper {
+  /**
+   * Enroll user in a course if not already enrolled
+   */
+  static async enrollUserInCourse(
+    tx: any,
+    userId: number,
+    courseId: number,
+    enrollmentSource: string = "progress_triggered"
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      // Check if user is already enrolled
+      const existingEnrollment = await tx
+        .select({ id: courseEnrollments.id })
+        .from(courseEnrollments)
+        .where(
+          and(
+            eq(courseEnrollments.userId, userId),
+            eq(courseEnrollments.courseId, courseId)
+          )
+        )
+        .limit(1);
+
+      if (existingEnrollment[0]) {
+        return {
+          success: true,
+          message: "User already enrolled in course",
+        };
+      }
+
+      // Enroll user in the course
+      await tx.insert(courseEnrollments).values({
+        userId,
+        courseId,
+        enrollmentSource,
+      });
+
+      return {
+        success: true,
+        message: "User enrolled in course successfully",
+      };
+    } catch (error) {
+      console.error("Error enrolling user in course:", error);
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
+  }
+}
+
+// ==================== CERTIFICATE HELPER ====================
+export class CertificateHelper {
+  /**
+   * Generate certificate for user when they complete a training area
+   */
+  static async generateTrainingAreaCertificate(
+    tx: any,
+    userId: number,
+    trainingAreaId: number
+  ): Promise<{ success: boolean; message: string; certificateId?: number }> {
+    try {
+      // Check if certificate already exists for this user and training area
+      const existingCertificate = await tx
+        .select({ id: certificates.id })
+        .from(certificates)
+        .where(
+          and(
+            eq(certificates.userId, userId),
+            eq(certificates.courseId, trainingAreaId) // Using courseId field for training area
+          )
+        )
+        .limit(1);
+
+      if (existingCertificate[0]) {
+        return {
+          success: true,
+          message: "Certificate already exists for this training area",
+          certificateId: existingCertificate[0].id,
+        };
+      }
+
+      // Generate certificate number (you can customize this format)
+      const certificateNumber = `TA-${trainingAreaId}-${userId}-${Date.now()}`;
+
+      // Calculate expiry date (e.g., 2 years from now)
+      const expiryDate = new Date();
+      expiryDate.setFullYear(expiryDate.getFullYear() + 2);
+
+      // Create certificate
+      const newCertificate = await tx
+        .insert(certificates)
+        .values({
+          userId,
+          courseId: trainingAreaId, // Using courseId field to store training area ID
+          certificateNumber,
+          expiryDate,
+          status: "active",
+        })
+        .returning({ id: certificates.id });
+
+      return {
+        success: true,
+        message: "Certificate generated successfully",
+        certificateId: newCertificate[0].id,
+      };
+    } catch (error) {
+      console.error("Error generating certificate:", error);
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
+  }
+}
 
 // ==================== ASSESSMENT PROGRESS HELPER ====================
 export class AssessmentProgressHelper {
@@ -263,6 +384,8 @@ export class LearningBlockProgressService {
    * Update course progress based on completed course-units and assessments
    */
   static async updateCourseProgress(tx: any, userId: number, courseId: number) {
+    // First, enroll user in the course if they're not already enrolled
+    await CourseEnrollmentHelper.enrollUserInCourse(tx, userId, courseId);
     // Get all course-units in the course with their progress
     const courseUnitsWithProgress = await tx
       .select({
@@ -515,6 +638,15 @@ export class LearningBlockProgressService {
             status === "completed" ? new Date() : sql`EXCLUDED.completed_at`,
         },
       });
+
+    // Generate certificate if training area is 100% completed
+    if (status === "completed" && completionPercentage === 100) {
+      await CertificateHelper.generateTrainingAreaCertificate(
+        tx,
+        userId,
+        trainingAreaId
+      );
+    }
   }
 }
 
@@ -1136,5 +1268,14 @@ export class ProgressService {
             status === "completed" ? new Date() : sql`EXCLUDED.completed_at`,
         },
       });
+
+    // Generate certificate if training area is 100% completed
+    if (status === "completed" && completionPercentage === 100) {
+      await CertificateHelper.generateTrainingAreaCertificate(
+        tx,
+        userId,
+        trainingAreaId
+      );
+    }
   }
 }

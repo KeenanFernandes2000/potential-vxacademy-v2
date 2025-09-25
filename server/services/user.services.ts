@@ -148,7 +148,12 @@ export class OrganizationService {
     const [organization] = await db
       .select()
       .from(organizations)
-      .where(and(eq(organizations.assetId, assetId), eq(organizations.subAssetId, subAssetId)))
+      .where(
+        and(
+          eq(organizations.assetId, assetId),
+          eq(organizations.subAssetId, subAssetId)
+        )
+      )
       .limit(1);
 
     return organization || null;
@@ -685,7 +690,6 @@ export class InvitationService {
       subAdmin: any;
     };
   } | null> {
-    
     // Get invitation with sub-admin details
     const [invitation] = await db
       .select()

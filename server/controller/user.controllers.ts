@@ -355,7 +355,10 @@ const validateNormalUserInput = (
     errors.push("Existing must be a boolean value");
   }
 
-  if (data.initialAssessment !== undefined && typeof data.initialAssessment !== "boolean") {
+  if (
+    data.initialAssessment !== undefined &&
+    typeof data.initialAssessment !== "boolean"
+  ) {
     errors.push("Initial assessment must be a boolean value");
   }
 
@@ -415,7 +418,10 @@ const validateUpdateNormalUserInput = (
     errors.push("Existing must be a boolean value");
   }
 
-  if (data.initialAssessment !== undefined && typeof data.initialAssessment !== "boolean") {
+  if (
+    data.initialAssessment !== undefined &&
+    typeof data.initialAssessment !== "boolean"
+  ) {
     errors.push("Initial assessment must be a boolean value");
   }
 
@@ -496,11 +502,13 @@ export class userControllers {
         await UserService.updateUserLastLogin(user.id);
 
         // Get user details with extended info including IDs
-        const userWithDetails = await UserService.getUserByIdWithExtendedDetails(user.id);
+        const userWithDetails =
+          await UserService.getUserByIdWithExtendedDetails(user.id);
 
         let flags = {
           existing: userWithDetails?.normalUserDetails?.existing,
-          initialAssessment: userWithDetails?.normalUserDetails?.initialAssessment,
+          initialAssessment:
+            userWithDetails?.normalUserDetails?.initialAssessment,
         };
 
         return res.json({
@@ -514,11 +522,13 @@ export class userControllers {
             lastName: user.lastName,
             userType: user.userType,
             assetId: userWithDetails?.assetId || null,
-            normalUserDetails: userWithDetails?.normalUserDetails ? {
-              ...flags,
-              roleCategory: userWithDetails.normalUserDetails.roleCategory,
-              seniority: userWithDetails.normalUserDetails.seniority,
-            } : null,
+            normalUserDetails: userWithDetails?.normalUserDetails
+              ? {
+                  ...flags,
+                  roleCategory: userWithDetails.normalUserDetails.roleCategory,
+                  seniority: userWithDetails.normalUserDetails.seniority,
+                }
+              : null,
           },
         });
       }
@@ -944,10 +954,7 @@ export class userControllers {
    * Check if sub-admin exists in sub_admins table
    * GET /sub-admins/check/:id
    */
-  static async checkSubAdminExists(
-    req: Request,
-    res: Response
-  ): Promise<void> {
+  static async checkSubAdminExists(req: Request, res: Response): Promise<void> {
     const userId = parseInt(req.params.id as string);
 
     if (isNaN(userId) || userId <= 0) {
@@ -989,7 +996,15 @@ export class userControllers {
       throw createError("Validation failed", 400, validation.errors);
     }
 
-    const { roleCategory, role, seniority, eid, phoneNumber, existing, initialAssessment } = req.body;
+    const {
+      roleCategory,
+      role,
+      seniority,
+      eid,
+      phoneNumber,
+      existing,
+      initialAssessment,
+    } = req.body;
 
     // Check if user exists
     const existingUser = await UserService.userExists(userId);
@@ -1030,7 +1045,8 @@ export class userControllers {
         eid: eid.trim(),
         phoneNumber: phoneNumber.trim(),
         existing: existing !== undefined ? existing : false,
-        initialAssessment: initialAssessment !== undefined ? initialAssessment : false,
+        initialAssessment:
+          initialAssessment !== undefined ? initialAssessment : false,
       })
       .returning();
 
@@ -1072,7 +1088,15 @@ export class userControllers {
       throw createError("Validation failed", 400, validation.errors);
     }
 
-    const { roleCategory, role, seniority, eid, phoneNumber, existing, initialAssessment } = req.body;
+    const {
+      roleCategory,
+      role,
+      seniority,
+      eid,
+      phoneNumber,
+      existing,
+      initialAssessment,
+    } = req.body;
 
     // Check if EID is being updated and if it's already taken by another normal user
     if (eid && eid !== existingNormalUser.eid) {
@@ -1095,7 +1119,8 @@ export class userControllers {
     if (eid) updateData.eid = eid.trim();
     if (phoneNumber) updateData.phoneNumber = phoneNumber.trim();
     if (existing !== undefined) updateData.existing = existing;
-    if (initialAssessment !== undefined) updateData.initialAssessment = initialAssessment;
+    if (initialAssessment !== undefined)
+      updateData.initialAssessment = initialAssessment;
 
     const [updatedNormalUser] = await db
       .update(normalUsers)
@@ -1638,7 +1663,10 @@ export class userControllers {
   /**
    * Get organization by asset and sub-asset IDs
    */
-  static async getOrganizationByAssetAndSubAsset(req: Request, res: Response): Promise<void> {
+  static async getOrganizationByAssetAndSubAsset(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     const assetId = parseInt(req.params.assetId as string);
     const subAssetId = parseInt(req.params.subAssetId as string);
 
@@ -1651,13 +1679,17 @@ export class userControllers {
     }
 
     try {
-      const organization = await OrganizationService.getOrganizationByAssetAndSubAsset(
-        assetId,
-        subAssetId
-      );
+      const organization =
+        await OrganizationService.getOrganizationByAssetAndSubAsset(
+          assetId,
+          subAssetId
+        );
 
       if (!organization) {
-        throw createError("Organization not found for the given asset and sub-asset combination", 404);
+        throw createError(
+          "Organization not found for the given asset and sub-asset combination",
+          404
+        );
       }
 
       res.status(200).json({
@@ -1708,12 +1740,17 @@ export class userControllers {
 
     // Validate asset and sub-asset if provided
     if (assetId !== undefined || subAssetId !== undefined) {
-      const finalAssetId = assetId !== undefined ? assetId : existingOrganization.assetId;
-      const finalSubAssetId = subAssetId !== undefined ? subAssetId : existingOrganization.subAssetId;
+      const finalAssetId =
+        assetId !== undefined ? assetId : existingOrganization.assetId;
+      const finalSubAssetId =
+        subAssetId !== undefined ? subAssetId : existingOrganization.subAssetId;
 
       // If either assetId or subAssetId is provided, both must be valid
       if (finalAssetId === null || finalSubAssetId === null) {
-        throw createError("Both asset ID and sub-asset ID are required when updating organization", 400);
+        throw createError(
+          "Both asset ID and sub-asset ID are required when updating organization",
+          400
+        );
       }
 
       if (finalAssetId !== existingOrganization.assetId) {

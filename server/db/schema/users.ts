@@ -5,6 +5,7 @@ import {
   timestamp,
   integer,
   boolean,
+  json,
 } from "drizzle-orm/pg-core";
 import { invitationTypeEnum, userTypeEnum } from "./enums";
 
@@ -14,7 +15,7 @@ export const users = pgTable("users", {
   lastName: text("last_name").notNull(),
   email: text("email").notNull().unique(),
   organization: text("organization").notNull(),
-  subOrganization: text("sub_organization"),
+  subOrganization: json("sub_organization").$type<string[]>(),
   asset: text("asset").notNull(),
   subAsset: text("sub_asset").notNull(),
   userType: userTypeEnum("user_type").notNull(),
@@ -70,10 +71,6 @@ export const subAssets = pgTable("sub_assets", {
 export const organizations = pgTable("organizations", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),
-  assetId: integer("asset_id")
-    .references(() => assets.id, { onDelete: "cascade" }),
-  subAssetId: integer("sub_asset_id")
-    .references(() => subAssets.id, { onDelete: "cascade" }),
 });
 
 export const subOrganizations = pgTable("sub_organizations", {
@@ -82,6 +79,12 @@ export const subOrganizations = pgTable("sub_organizations", {
     .notNull()
     .references(() => organizations.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
+  assetId: integer("asset_id").references(() => assets.id, {
+    onDelete: "cascade",
+  }),
+  subAssetId: integer("sub_asset_id").references(() => subAssets.id, {
+    onDelete: "cascade",
+  }),
 });
 
 export const roleCategories = pgTable("role_categories", {

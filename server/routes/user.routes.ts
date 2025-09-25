@@ -68,7 +68,10 @@ router.delete("/seniority-levels/:id", userControllers.deleteSeniorityLevel);
 // ==================== ORGANIZATIONS CRUD FUNCTIONS ====================
 router.get("/organizations", userControllers.getAllOrganizations);
 router.get("/organizations/:id", userControllers.getOrganizationById);
-router.get("/organizations/by-asset-subasset/:assetId/:subAssetId", userControllers.getOrganizationByAssetAndSubAsset);
+router.get(
+  "/organizations/by-asset-subasset/:assetId/:subAssetId",
+  userControllers.getOrganizationByAssetAndSubAsset
+);
 router.post("/organizations", userControllers.createOrganization);
 router.put("/organizations/:id", userControllers.updateOrganization);
 router.delete("/organizations/:id", userControllers.deleteOrganization);
@@ -93,10 +96,7 @@ router.get(
   "/sub-admins/registration/:id",
   userControllers.getSubAdminRegistrationDetails
 );
-router.get(
-  "/sub-admins/check/:id",
-  userControllers.checkSubAdminExists
-);
+router.get("/sub-admins/check/:id", userControllers.checkSubAdminExists);
 
 // ==================== NORMAL USER REGISTRATION & UPDATE FUNCTIONS ====================
 router.post(
