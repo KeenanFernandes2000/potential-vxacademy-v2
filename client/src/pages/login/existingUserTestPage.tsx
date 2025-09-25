@@ -12,7 +12,7 @@ import { Label } from "../../components/ui/label";
 import CertificateDialog from "../../components/CertificateDialog";
 import { useAuth } from "../../hooks/useAuth";
 import CertificateFormFiller from "@/components/generatePDF";
-import "@/homepage.css";
+// import "@/homepage.css";
 
 // API object for progress operations
 const api = {

@@ -19,7 +19,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
 
 // API object for unit operations
@@ -1225,15 +1224,14 @@ const UnitsPage = () => {
         <DialogContent className="max-w-md bg-[#003451] border-white/20 text-white max-h-[80%]">
           <DialogHeader>
             <DialogTitle className="text-white">Edit Learning Unit</DialogTitle>
-            <DialogClose asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-4 top-4 h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-              >
-                <Close sx={{ fontSize: 16 }} />
-              </Button>
-            </DialogClose>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </Button>
           </DialogHeader>
           <div className="mt-4">
             <EditUnitForm />
