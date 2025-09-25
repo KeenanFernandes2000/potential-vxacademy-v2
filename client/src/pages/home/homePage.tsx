@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import * as AOS from "aos";
 import "aos/dist/aos.css";
+import "../../homepage.css";
 
 import { Button } from "@/components/ui/button";
 import Autoplay from "embla-carousel-autoplay";
