@@ -62,6 +62,10 @@ import ManagerialCompetencies from "@/pages/admin/reports/training-areas/manager
 // Import SidebarProvider for persistent sidebar state
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import AdminSidebar from "@/components/adminSidebar";
+import SubAdminSidebar from "@/components/subAdminSidebar";
+import UserSidebar from "@/components/userSidebar";
+
+import { ThemeProvider } from "./context/themeContext";
 
 // Create a wrapper component for admin routes with persistent sidebar
 const AdminRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -84,6 +88,48 @@ const AdminRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// Create a wrapper component for sub-admin routes with persistent sidebar
+const SubAdminRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-[#003451]">
+        {/* Persistent Sub-Admin Sidebar */}
+        <SubAdminSidebar />
+
+        {/* Main Content Area */}
+        <SidebarInset className="max-w-[80%]">
+          <div className="flex flex-col h-full">
+            <main className="flex-1 p-6">
+              <div className="space-y-6">{children}</div>
+            </main>
+          </div>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
+  );
+};
+
+// Create a wrapper component for user routes with persistent sidebar
+const UserRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-[#003451]">
+        {/* Persistent User Sidebar */}
+        <UserSidebar />
+
+        {/* Main Content Area */}
+        <SidebarInset className="max-w-[80%]">
+          <div className="flex flex-col h-full">
+            <main className="flex-1 p-6">
+              <div className="space-y-6">{children}</div>
+            </main>
+          </div>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
+  );
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -91,198 +137,196 @@ function App() {
         <div>
           <Routes>
             {/* <Route path="/" element={<AuthRedirect />} /> */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<AuthPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/join" element={<JoinPage />} />
+
+            <Route
+              path="/"
+              element={
+                <ThemeProvider defaultTheme="homepage">
+                  <HomePage />
+                </ThemeProvider>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <ThemeProvider defaultTheme="homepage">
+                  <AuthPage />
+                </ThemeProvider>
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                <ThemeProvider defaultTheme="homepage">
+                  <ForgotPasswordPage />
+                </ThemeProvider>
+              }
+            />
+            <Route
+              path="/reset-password"
+              element={
+                <ThemeProvider defaultTheme="homepage">
+                  <ResetPasswordPage />
+                </ThemeProvider>
+              }
+            />
+            <Route
+              path="/join"
+              element={
+                <ThemeProvider defaultTheme="homepage">
+                  <JoinPage />
+                </ThemeProvider>
+              }
+            />
 
             {/* Admin Routes - Wrapped with persistent SidebarProvider */}
             <Route
               path="/admin/*"
               element={
-                <ProtectedRoute requiredUserType="admin">
-                  <AdminRoutesWrapper>
-                    <Routes>
-                      <Route path="dashboard" element={<Dashboard />} />
-                      <Route path="sub-admin" element={<SubAdminPage />} />
-                      <Route path="assets" element={<AssetsPage />} />
-                      <Route path="subassets" element={<SubAssetsPage />} />
-                      <Route
-                        path="organization"
-                        element={<OrganizationPage />}
-                      />
-                      <Route
-                        path="sub-organization"
-                        element={<SubOrganizationPage />}
-                      />
-                      <Route
-                        path="training-area"
-                        element={<TrainingAreaPage />}
-                      />
-                      <Route path="modules" element={<ModulesPage />} />
-                      <Route path="courses" element={<CoursesPage />} />
-                      <Route path="units" element={<UnitsPage />} />
-                      <Route
-                        path="learning-block"
-                        element={<LearningBlockPage />}
-                      />
-                      <Route path="assessments" element={<AssessmentsPage />} />
-                      <Route path="roles" element={<RolesPage />} />
-                      <Route
-                        path="role-categories"
-                        element={<RoleCategoriesPage />}
-                      />
-                      <Route
-                        path="learning-path"
-                        element={<LearningPathPage />}
-                      />
-                      <Route path="media" element={<MediaPage />} />
+                <ThemeProvider>
+                  <ProtectedRoute requiredUserType="admin">
+                    <AdminRoutesWrapper>
+                      <Routes>
+                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="sub-admin" element={<SubAdminPage />} />
+                        <Route path="assets" element={<AssetsPage />} />
+                        <Route path="subassets" element={<SubAssetsPage />} />
+                        <Route
+                          path="organization"
+                          element={<OrganizationPage />}
+                        />
+                        <Route
+                          path="sub-organization"
+                          element={<SubOrganizationPage />}
+                        />
+                        <Route
+                          path="training-area"
+                          element={<TrainingAreaPage />}
+                        />
+                        <Route path="modules" element={<ModulesPage />} />
+                        <Route path="courses" element={<CoursesPage />} />
+                        <Route path="units" element={<UnitsPage />} />
+                        <Route
+                          path="learning-block"
+                          element={<LearningBlockPage />}
+                        />
+                        <Route
+                          path="assessments"
+                          element={<AssessmentsPage />}
+                        />
+                        <Route path="roles" element={<RolesPage />} />
+                        <Route
+                          path="role-categories"
+                          element={<RoleCategoriesPage />}
+                        />
+                        <Route
+                          path="learning-path"
+                          element={<LearningPathPage />}
+                        />
+                        <Route path="media" element={<MediaPage />} />
 
-                      {/* Report Routes */}
-                      <Route path="reports/analytics" element={<Analytics />} />
-                      <Route path="reports/all-users" element={<AllUsers />} />
-                      <Route
-                        path="reports/organizations"
-                        element={<Organizations />}
-                      />
-                      <Route
-                        path="reports/sub-admins"
-                        element={<SubAdmins />}
-                      />
-                      <Route
-                        path="reports/frontliners"
-                        element={<Frontliners />}
-                      />
-                      {/* Training Area Routes */}
-                      <Route
-                        path="reports/training-areas/al-midhyaf-coc"
-                        element={<AlMidhyafCoc />}
-                      />
-                      <Route
-                        path="reports/training-areas/ad-information"
-                        element={<AdInformation />}
-                      />
-                      <Route
-                        path="reports/training-areas/general-vx-soft-skills"
-                        element={<GeneralVxSoftSkills />}
-                      />
-                      <Route
-                        path="reports/training-areas/general-vx-hard-skills"
-                        element={<GeneralVxHardSkills />}
-                      />
-                      <Route
-                        path="reports/training-areas/managerial-competencies"
-                        element={<ManagerialCompetencies />}
-                      />
-                      <Route
-                        path="reports/certificate-reports"
-                        element={<CertificateReports />}
-                      />
-                    </Routes>
-                  </AdminRoutesWrapper>
-                </ProtectedRoute>
+                        {/* Report Routes */}
+                        <Route
+                          path="reports/analytics"
+                          element={<Analytics />}
+                        />
+                        <Route
+                          path="reports/all-users"
+                          element={<AllUsers />}
+                        />
+                        <Route
+                          path="reports/organizations"
+                          element={<Organizations />}
+                        />
+                        <Route
+                          path="reports/sub-admins"
+                          element={<SubAdmins />}
+                        />
+                        <Route
+                          path="reports/frontliners"
+                          element={<Frontliners />}
+                        />
+                        {/* Training Area Routes */}
+                        <Route
+                          path="reports/training-areas/al-midhyaf-coc"
+                          element={<AlMidhyafCoc />}
+                        />
+                        <Route
+                          path="reports/training-areas/ad-information"
+                          element={<AdInformation />}
+                        />
+                        <Route
+                          path="reports/training-areas/general-vx-soft-skills"
+                          element={<GeneralVxSoftSkills />}
+                        />
+                        <Route
+                          path="reports/training-areas/general-vx-hard-skills"
+                          element={<GeneralVxHardSkills />}
+                        />
+                        <Route
+                          path="reports/training-areas/managerial-competencies"
+                          element={<ManagerialCompetencies />}
+                        />
+                        <Route
+                          path="reports/certificate-reports"
+                          element={<CertificateReports />}
+                        />
+                      </Routes>
+                    </AdminRoutesWrapper>
+                  </ProtectedRoute>
+                </ThemeProvider>
               }
             />
 
-            {/* Sub-Admin Routes */}
+            {/* Sub-Admin Routes - Wrapped with persistent SidebarProvider */}
             <Route
-              path="/sub-admin"
+              path="/sub-admin/*"
               element={
-                <ProtectedRoute requiredUserType="sub_admin">
-                  <SubAdminLayout />
-                </ProtectedRoute>
+                <ThemeProvider>
+                  <ProtectedRoute requiredUserType="sub_admin">
+                    <SubAdminRoutesWrapper>
+                      <Routes>
+                        <Route
+                          path="dashboard"
+                          element={<SubAdminDashboard />}
+                        />
+                        <Route path="frontliners" element={<SubAdminUsers />} />
+                        <Route path="invite" element={<SubAdminLinks />} />
+                      </Routes>
+                    </SubAdminRoutesWrapper>
+                  </ProtectedRoute>
+                </ThemeProvider>
               }
-            >
-              <Route
-                index
-                element={
-                  <ProtectedRoute requiredUserType="sub_admin">
-                    <SubAdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="dashboard"
-                element={
-                  <ProtectedRoute requiredUserType="sub_admin">
-                    <SubAdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="frontliners"
-                element={
-                  <ProtectedRoute requiredUserType="sub_admin">
-                    <SubAdminUsers />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="invite"
-                element={
-                  <ProtectedRoute requiredUserType="sub_admin">
-                    <SubAdminLinks />
-                  </ProtectedRoute>
-                }
-              />
-            </Route>
+            />
 
-            {/* User Routes */}
+            {/* User Routes - Wrapped with persistent SidebarProvider */}
             <Route
-              path="/user"
+              path="/user/*"
               element={
-                <ProtectedRoute requiredUserType="user">
-                  <UserLayout />
-                </ProtectedRoute>
+                <ThemeProvider>
+                  <ProtectedRoute requiredUserType="user">
+                    <UserRoutesWrapper>
+                      <Routes>
+                        <Route path="dashboard" element={<UserDashboard />} />
+                        <Route path="courses" element={<UserCourses />} />
+                        <Route
+                          path="achievements"
+                          element={<UserAchievements />}
+                        />
+                        <Route path="courses/:id" element={<CourseDetails />} />
+                      </Routes>
+                    </UserRoutesWrapper>
+                  </ProtectedRoute>
+                </ThemeProvider>
               }
-            >
-              <Route
-                index
-                element={
-                  <ProtectedRoute requiredUserType="user">
-                    <UserDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="dashboard"
-                element={
-                  <ProtectedRoute requiredUserType="user">
-                    <UserDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="courses"
-                element={
-                  <ProtectedRoute requiredUserType="user">
-                    <UserCourses />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="achievements"
-                element={
-                  <ProtectedRoute requiredUserType="user">
-                    <UserAchievements />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="courses/:id"
-                element={
-                  <ProtectedRoute requiredUserType="user">
-                    <CourseDetails />
-                  </ProtectedRoute>
-                }
-              />
-            </Route>
+            />
             <Route
               path="/initial-assessment"
               element={
                 <ProtectedRoute requiredUserType="user">
-                  <ExistingUserTestPage />
+                  <ThemeProvider>
+                    <ExistingUserTestPage />
+                  </ThemeProvider>
                 </ProtectedRoute>
               }
             />
@@ -290,7 +334,9 @@ function App() {
               path="/profile"
               element={
                 <ProtectedRoute>
-                  <ProfilePage />
+                  <ThemeProvider>
+                    <ProfilePage />
+                  </ThemeProvider>
                 </ProtectedRoute>
               }
             />

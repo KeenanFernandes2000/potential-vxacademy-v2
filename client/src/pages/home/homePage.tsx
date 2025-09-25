@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import * as AOS from "aos";
 import "aos/dist/aos.css";
+import "../../homepage.css";
 
 import { Button } from "@/components/ui/button";
 import Autoplay from "embla-carousel-autoplay";
@@ -377,7 +378,7 @@ export default function HomePage() {
                   "Immerse yourself in Abu Dhabi's rich cultural heritage, tourism strategy, and infrastructure knowledge essential for frontline professionals.",
                 icon: InfoIcon,
                 imageSrc:
-                  "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                  "https://images.unsplash.com/photo-1624317937315-0ced8736c9e9?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YWJ1JTIwZGhhYml8ZW58MHx8MHx8fDA%3D",
                 imageAlt: "Abu Dhabi skyline and cultural landmarks",
               },
               {
