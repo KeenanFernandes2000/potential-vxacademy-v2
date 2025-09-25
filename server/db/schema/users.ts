@@ -15,7 +15,7 @@ export const users = pgTable("users", {
   lastName: text("last_name").notNull(),
   email: text("email").notNull().unique(),
   organization: text("organization").notNull(),
-  subOrganization: json("sub_organization").$type<string[]>(),
+  subOrganization: text("sub_organization").array(),
   asset: text("asset").notNull(),
   subAsset: text("sub_asset").notNull(),
   userType: userTypeEnum("user_type").notNull(),
@@ -75,16 +75,16 @@ export const organizations = pgTable("organizations", {
 
 export const subOrganizations = pgTable("sub_organizations", {
   id: serial("id").primaryKey(),
-  organizationId: integer("organization_id")
-    .notNull()
-    .references(() => organizations.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
   assetId: integer("asset_id").references(() => assets.id, {
     onDelete: "cascade",
   }),
   subAssetId: integer("sub_asset_id").references(() => subAssets.id, {
     onDelete: "cascade",
   }),
+  organizationId: integer("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
 });
 
 export const roleCategories = pgTable("role_categories", {

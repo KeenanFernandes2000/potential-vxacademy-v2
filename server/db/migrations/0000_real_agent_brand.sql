@@ -1,6 +1,6 @@
 -- Current sql file was generated after introspecting the database
 -- If you want to run this migration please uncomment this code before executing migrations
-/*
+
 CREATE TYPE "public"."invitation_type" AS ENUM('new_joiner', 'existing_joiner');
 CREATE TYPE "public"."progress_status" AS ENUM('not_started', 'in_progress', 'completed');
 CREATE TYPE "public"."user_type" AS ENUM('admin', 'sub_admin', 'user');
@@ -387,4 +387,3 @@ ALTER TABLE "organizations" ADD CONSTRAINT "organizations_sub_asset_id_sub_asset
 ALTER TABLE "unit_role_assignments" ADD CONSTRAINT "unit_role_assignments_role_category_id_role_categories_id_fk" FOREIGN KEY ("role_category_id") REFERENCES "public"."role_categories"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "unit_role_assignments" ADD CONSTRAINT "unit_role_assignments_seniority_level_id_seniority_levels_id_fk" FOREIGN KEY ("seniority_level_id") REFERENCES "public"."seniority_levels"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "unit_role_assignments" ADD CONSTRAINT "unit_role_assignments_asset_id_assets_id_fk" FOREIGN KEY ("asset_id") REFERENCES "public"."assets"("id") ON DELETE set null ON UPDATE no action;
-*/
