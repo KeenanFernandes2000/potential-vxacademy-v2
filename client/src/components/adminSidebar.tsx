@@ -15,6 +15,7 @@ import {
   AdminPanelSettings as RoleIcon,
   Category as CategoryIcon,
   Timeline as LearningPathIcon,
+  Analytics as Report,
 } from "@mui/icons-material";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -36,12 +37,6 @@ import {
 import { Button } from "./ui/button";
 
 const AdminSidebar = () => {
-  const [mainOpen, setMainOpen] = React.useState(true);
-  const [assetsOpen, setAssetsOpen] = React.useState(true);
-  const [roleManagementOpen, setRoleManagementOpen] = React.useState(true);
-  const [organizationOpen, setOrganizationOpen] = React.useState(true);
-  const [lmsOpen, setLmsOpen] = React.useState(true);
-  const [learningPathOpen, setLearningPathOpen] = React.useState(true);
   const location = useLocation();
   const { toggleSidebar, state } = useSidebar();
   const { logout } = useAuth();
@@ -50,15 +45,34 @@ const AdminSidebar = () => {
     logout();
   };
 
+  // Dynamic state management for all sections
+  const [sectionStates, setSectionStates] = React.useState({
+    main: true,
+    reports: true,
+    learningPath: true,
+    organization: true,
+    contentManagement: true,
+    platformSettings: true,
+  });
+
+  const toggleSection = (sectionName: string) => {
+    setSectionStates((prev) => ({
+      ...prev,
+      [sectionName]: !prev[sectionName as keyof typeof prev],
+    }));
+  };
+
   // When sidebar is collapsed (icon mode), open all dropdowns
   React.useEffect(() => {
     if (state === "collapsed") {
-      setMainOpen(true);
-      setAssetsOpen(true);
-      setRoleManagementOpen(true);
-      setOrganizationOpen(true);
-      setLmsOpen(true);
-      setLearningPathOpen(true);
+      setSectionStates({
+        main: true,
+        reports: true,
+        learningPath: true,
+        organization: true,
+        contentManagement: true,
+        platformSettings: true,
+      });
     }
   }, [state]);
 
@@ -69,44 +83,61 @@ const AdminSidebar = () => {
       url: "/admin/dashboard",
       badge: null,
     },
+  ];
+
+  const reportsNavItems = [
     {
-      title: "Media",
-      icon: WebAsset,
-      url: "/admin/media",
+      title: "Analytics",
+      icon: Report,
+      // url: "/admin/analytics",
+      badge: null,
+    },
+    {
+      title: "All Users",
+      icon: Users,
+      // url: "/admin/all-users",
+      badge: null,
+    },
+    {
+      title: "Organizations",
+      icon: Users,
+      url: "/admin/organizations",
+      badge: null,
+    },
+    {
+      title: "Sub-Admins",
+      icon: Shield,
+      url: "/admin/sub-admins",
+      badge: null,
+    },
+    {
+      title: "Frontliners",
+      icon: Users,
+      // url: "/admin/frontliners",
+      badge: null,
+    },
+    {
+      title: "Training Areas",
+      icon: FileText,
+      // url: "/admin/training-areas",
+      badge: null,
+    },
+    {
+      title: "Certificate Reports",
+      icon: FileText,
+      // url: "/admin/certificate-reports",
       badge: null,
     },
   ];
 
-  const assetNavItems = [
+  const learningPathNavItems = [
     {
-      title: "Assets",
-      icon: WebAsset,
-      url: "/admin/assets",
-      badge: null,
-    },
-    {
-      title: "Sub-Assets",
-      icon: WebAsset,
-      url: "/admin/subassets",
+      title: "Learning Path",
+      icon: LearningPathIcon,
+      url: "/admin/learning-path",
       badge: null,
     },
   ];
-
-  const roleManagementNavItems = [
-    {
-      title: "Role Categories",
-      icon: CategoryIcon,
-      url: "/admin/role-categories",
-      badge: null,
-    },
-    {
-      title: "Roles",
-      icon: RoleIcon,
-      url: "/admin/roles",
-      badge: null,
-    },
-  ];
-
   const organizationNavItems = [
     {
       title: "Organization",
@@ -114,12 +145,12 @@ const AdminSidebar = () => {
       url: "/admin/organization",
       badge: null,
     },
-    {
-      title: "Sub-Organization",
-      icon: Users,
-      url: "/admin/sub-organization",
-      badge: null,
-    },
+    // {
+    //   title: "Sub-Organization",
+    //   icon: Users,
+    //   url: "/admin/sub-organization",
+    //   badge: null,
+    // },
     {
       title: "Sub-Admin",
       icon: Shield,
@@ -127,6 +158,36 @@ const AdminSidebar = () => {
       badge: null,
     },
   ];
+
+  // const assetNavItems = [
+  //   {
+  //     title: "Assets",
+  //     icon: WebAsset,
+  //     url: "/admin/assets",
+  //     badge: null,
+  //   },
+  //   {
+  //     title: "Sub-Assets",
+  //     icon: WebAsset,
+  //     url: "/admin/subassets",
+  //     badge: null,
+  //   },
+  // ];
+
+  // const roleManagementNavItems = [
+  //   {
+  //     title: "Role Categories",
+  //     icon: CategoryIcon,
+  //     url: "/admin/role-categories",
+  //     badge: null,
+  //   },
+  //   {
+  //     title: "Roles",
+  //     icon: RoleIcon,
+  //     url: "/admin/roles",
+  //     badge: null,
+  //   },
+  // ];
 
   const lmsNavItems = [
     {
@@ -148,7 +209,7 @@ const AdminSidebar = () => {
       badge: null,
     },
     {
-      title: "Units",
+      title: "Learning Units",
       icon: FileText,
       url: "/admin/units",
       badge: null,
@@ -165,20 +226,84 @@ const AdminSidebar = () => {
       url: "/admin/assessments",
       badge: null,
     },
+    // {
+    //   title: "Questions",
+    //   icon: Quiz,
+    //   url: "/admin/questions",
+    //   badge: null,
+    // },
     {
-      title: "Questions",
-      icon: Quiz,
-      url: "/admin/questions",
+      title: "Media",
+      icon: WebAsset,
+      url: "/admin/media",
       badge: null,
     },
   ];
 
-  const learningPathNavItems = [
+  const platformSettingsNavItems = [
     {
-      title: "Learning Path",
-      icon: LearningPathIcon,
-      url: "/admin/learning-path",
+      title: "Assets",
+      icon: WebAsset,
+      url: "/admin/assets",
       badge: null,
+    },
+    {
+      title: "Asset Sub-Categories",
+      icon: WebAsset,
+      url: "/admin/subassets",
+      badge: null,
+    },
+    {
+      title: "Role Categories",
+      icon: CategoryIcon,
+      url: "/admin/role-categories",
+      badge: null,
+    },
+    {
+      title: "Roles",
+      icon: RoleIcon,
+      url: "/admin/roles",
+      badge: null,
+    },
+    {
+      title: "Communication Emails",
+      icon: FileText,
+      // url: "/admin/communication-emails",
+      badge: null,
+    },
+  ];
+
+  // Define all sections with their data
+  const sections = [
+    {
+      key: "main",
+      title: "Main",
+      items: mainNavItems,
+    },
+    {
+      key: "reports",
+      title: "Reports",
+      items: reportsNavItems,
+    },
+    {
+      key: "learningPath",
+      title: "Learning Path",
+      items: learningPathNavItems,
+    },
+    {
+      key: "organization",
+      title: "Organization",
+      items: organizationNavItems,
+    },
+    {
+      key: "contentManagement",
+      title: "Content Management",
+      items: lmsNavItems,
+    },
+    {
+      key: "platformSettings",
+      title: "Platform Settings",
+      items: platformSettingsNavItems,
     },
   ];
 
@@ -208,277 +333,59 @@ const AdminSidebar = () => {
       </SidebarHeader>
 
       <SidebarContent>
-        {/* Main Navigation - Collapsible */}
-        <SidebarGroup>
-          <SidebarGroupLabel
-            asChild
-            className="cursor-pointer hover:bg-sidebar-accent"
-            onClick={() => setMainOpen(!mainOpen)}
-          >
-            <button className="w-full text-left">
-              <div className="flex items-center justify-between">
-                <span>Main</span>
-                <ChevronDown
-                  sx={{
-                    ml: "auto",
-                    transition: "transform 200ms",
-                    transform: mainOpen ? "rotate(180deg)" : "rotate(0deg)",
-                    fontSize: 16,
-                  }}
-                />
-              </div>
-            </button>
-          </SidebarGroupLabel>
-          {mainOpen && (
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {mainNavItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={location.pathname === item.url}
-                    >
-                      <Link to={item.url}>
-                        <item.icon sx={{ fontSize: 16 }} />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          )}
-        </SidebarGroup>
-
-        <SidebarSeparator />
-
-        {/* Assets - Collapsible */}
-        <SidebarGroup>
-          <SidebarGroupLabel
-            asChild
-            className="cursor-pointer hover:bg-sidebar-accent"
-            onClick={() => setAssetsOpen(!assetsOpen)}
-          >
-            <button className="w-full text-left">
-              <div className="flex items-center justify-between">
-                <span>Assets</span>
-                <ChevronDown
-                  sx={{
-                    ml: "auto",
-                    transition: "transform 200ms",
-                    transform: assetsOpen ? "rotate(180deg)" : "rotate(0deg)",
-                    fontSize: 16,
-                  }}
-                />
-              </div>
-            </button>
-          </SidebarGroupLabel>
-          {assetsOpen && (
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {assetNavItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={location.pathname === item.url}
-                    >
-                      <Link to={item.url}>
-                        <item.icon sx={{ fontSize: 16 }} />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          )}
-        </SidebarGroup>
-
-        <SidebarSeparator />
-
-        {/* Role Management - Collapsible */}
-        <SidebarGroup>
-          <SidebarGroupLabel
-            asChild
-            className="cursor-pointer hover:bg-sidebar-accent"
-            onClick={() => setRoleManagementOpen(!roleManagementOpen)}
-          >
-            <button className="w-full text-left">
-              <div className="flex items-center justify-between">
-                <span>Role Management</span>
-                <ChevronDown
-                  sx={{
-                    ml: "auto",
-                    transition: "transform 200ms",
-                    transform: roleManagementOpen
-                      ? "rotate(180deg)"
-                      : "rotate(0deg)",
-                    fontSize: 16,
-                  }}
-                />
-              </div>
-            </button>
-          </SidebarGroupLabel>
-          {roleManagementOpen && (
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {roleManagementNavItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={location.pathname === item.url}
-                    >
-                      <Link to={item.url}>
-                        <item.icon sx={{ fontSize: 16 }} />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          )}
-        </SidebarGroup>
-
-        <SidebarSeparator />
-
-        {/* Learning Path - Collapsible */}
-        <SidebarGroup>
-          <SidebarGroupLabel
-            asChild
-            className="cursor-pointer hover:bg-sidebar-accent"
-            onClick={() => setLearningPathOpen(!learningPathOpen)}
-          >
-            <button className="w-full text-left">
-              <div className="flex items-center justify-between">
-                <span>Learning Path</span>
-                <ChevronDown
-                  sx={{
-                    ml: "auto",
-                    transition: "transform 200ms",
-                    transform: learningPathOpen
-                      ? "rotate(180deg)"
-                      : "rotate(0deg)",
-                    fontSize: 16,
-                  }}
-                />
-              </div>
-            </button>
-          </SidebarGroupLabel>
-          {learningPathOpen && (
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {learningPathNavItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={location.pathname === item.url}
-                    >
-                      <Link to={item.url}>
-                        <item.icon sx={{ fontSize: 16 }} />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          )}
-        </SidebarGroup>
-
-        <SidebarSeparator />
-
-        {/* Organization - Collapsible */}
-        <SidebarGroup>
-          <SidebarGroupLabel
-            asChild
-            className="cursor-pointer hover:bg-sidebar-accent"
-            onClick={() => setOrganizationOpen(!organizationOpen)}
-          >
-            <button className="w-full text-left">
-              <div className="flex items-center justify-between">
-                <span>Organization</span>
-                <ChevronDown
-                  sx={{
-                    ml: "auto",
-                    transition: "transform 200ms",
-                    transform: organizationOpen
-                      ? "rotate(180deg)"
-                      : "rotate(0deg)",
-                    fontSize: 16,
-                  }}
-                />
-              </div>
-            </button>
-          </SidebarGroupLabel>
-          {organizationOpen && (
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {organizationNavItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={location.pathname === item.url}
-                    >
-                      <Link to={item.url}>
-                        <item.icon sx={{ fontSize: 16 }} />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          )}
-        </SidebarGroup>
-
-        <SidebarSeparator />
-
-        {/* LMS - Collapsible */}
-        <SidebarGroup>
-          <SidebarGroupLabel
-            asChild
-            className="cursor-pointer hover:bg-sidebar-accent"
-            onClick={() => setLmsOpen(!lmsOpen)}
-          >
-            <button className="w-full text-left">
-              <div className="flex items-center justify-between">
-                <span>Content Management</span>
-                <ChevronDown
-                  sx={{
-                    ml: "auto",
-                    transition: "transform 200ms",
-                    transform: lmsOpen ? "rotate(180deg)" : "rotate(0deg)",
-                    fontSize: 16,
-                  }}
-                />
-              </div>
-            </button>
-          </SidebarGroupLabel>
-          {lmsOpen && (
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {lmsNavItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={location.pathname === item.url}
-                    >
-                      <Link to={item.url}>
-                        <item.icon sx={{ fontSize: 16 }} />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          )}
-        </SidebarGroup>
+        {sections.map((section, index) => (
+          <React.Fragment key={section.key}>
+            <SidebarGroup>
+              <SidebarGroupLabel
+                asChild
+                className="cursor-pointer hover:bg-sidebar-accent"
+                onClick={() => toggleSection(section.key)}
+              >
+                <button className="w-full text-left">
+                  <div className="flex items-center justify-between">
+                    <span>{section.title}</span>
+                    <ChevronDown
+                      sx={{
+                        ml: "auto",
+                        transition: "transform 200ms",
+                        transform: sectionStates[
+                          section.key as keyof typeof sectionStates
+                        ]
+                          ? "rotate(180deg)"
+                          : "rotate(0deg)",
+                        fontSize: 16,
+                      }}
+                    />
+                  </div>
+                </button>
+              </SidebarGroupLabel>
+              {sectionStates[section.key as keyof typeof sectionStates] && (
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {section.items.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={location.pathname === item.url}
+                        >
+                          <Link to={item.url || "#"}>
+                            <item.icon sx={{ fontSize: 16 }} />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              )}
+            </SidebarGroup>
+            {index < sections.length - 1 && <SidebarSeparator />}
+          </React.Fragment>
+        ))}
       </SidebarContent>
 
       {/* Footer with User Profile */}
-      <SidebarFooter>
+      <SidebarFooter className="border-t-2 border-sidebar-accent">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>

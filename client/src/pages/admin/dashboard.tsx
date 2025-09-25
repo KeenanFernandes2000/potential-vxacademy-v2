@@ -196,8 +196,8 @@ const Dashboard = () => {
 
   return (
     <AdminPageLayout
-      title="Dashboard"
-      description="Welcome back! Here's what's happening with your academy."
+      title="Admin Dashboard"
+      description="Welcome back! Here's what's happening with your academy!"
     >
       <div className="space-y-6">
         {error && (
