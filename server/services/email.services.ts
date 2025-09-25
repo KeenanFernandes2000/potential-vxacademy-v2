@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import Handlebars from "handlebars";
 import { htmlToText } from "html-to-text";
+import { createEvent } from "ics";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 
 const TPL_DIR = path.join(process.cwd(), "server", "templates");
@@ -72,9 +73,6 @@ export async function sendByType(args: {
     data: args.data,
   };
   return sendDirect(base);
-  // return process.env.EMAIL_TRANSPORT === "queue"
-  //   ? sendQueued(base)
-  //   : sendDirect(base);
 }
 
 async function sendDirect(payload: {

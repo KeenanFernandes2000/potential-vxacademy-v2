@@ -1,40 +1,52 @@
 import type { Request, Response } from "express";
-import { sendByType } from "../services/email.services";
-import { addMonths, format, subDays } from "date-fns";
+import { createEvent } from "ics";
 
 export class EmailController {
-  static async sendEmail(req: Request, res: Response) {
-    const { type, to, data } = req.body ?? {};
-    await sendByType({
-      type,
-      to,
-      data: {
-        ...data,
-      },
-    });
-    res.json({
-      status: process.env.EMAIL_TRANSPORT === "queue" ? "queued" : "sent",
-    });
-  }
+  static async generateIcsFile(req: Request, res: Response) {
+    const deadlineDate = new Date();
+    deadlineDate.setMonth(deadlineDate.getMonth() + 2);
 
-  static async generateDeadlineURL(req: Request, res: Response) {
-    const deadline = addMonths(new Date(), 2); // deadline day
-    const reminder = subDays(deadline, 1); // 24h before
-
-    // Format for all-day events: YYYYMMDD
-    const startStr = format(deadline, "yyyyMMdd");
-    const endStr = format(deadline, "yyyyMMdd"); // same day (all-day)
-
-    const params = new URLSearchParams({
-      action: "TEMPLATE",
-      text: "VX Academy Training Retake",
-      dates: `${startStr}/${endStr}`,
-      details: "Retake your training to maintain certification.",
+    const event = {
+      title: "VX Academy Training Retake",
+      description: "Retake your training to maintain certification.",
       location: "VX Academy Online",
-    });
+      start: [
+        deadlineDate.getFullYear(),
+        deadlineDate.getMonth() + 1, // months are 1-based
+        deadlineDate.getDate(),
+      ] as [number, number, number],
+      duration: { days: 1 },
+      alarms: [
+        {
+          action: "display" as const,
+          description: "Reminder",
+          trigger: "-P28D",
+        }, // 1 month
+        {
+          action: "display" as const,
+          description: "Reminder",
+          trigger: "-P7D",
+        }, // 1 week
+        {
+          action: "display" as const,
+          description: "Reminder",
+          trigger: "-P1D",
+        }, // 1 day
+      ],
+    };
 
-    res.json({
-      url: `https://calendar.google.com/calendar/render?${params.toString()}`,
+    createEvent(event, (error, value) => {
+      if (error) return res.status(500).send("Error generating invite");
+
+      const fixed = value
+        .replace(/TRIGGER;VALUE=DATE-TIME:-P28D/g, "TRIGGER:-P28D")
+        .replace(/TRIGGER;VALUE=DATE-TIME:-P7D/g, "TRIGGER:-P7D")
+        .replace(/TRIGGER;VALUE=DATE-TIME:-P1D/g, "TRIGGER:-P1D");
+
+      res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+      res.setHeader("Content-Disposition", "attachment; filename=retake.ics");
+
+      res.send(fixed);
     });
   }
 }
