@@ -386,8 +386,7 @@ export default function HomePage() {
                 description:
                   "Master communication, empathy, and service delivery skills that ensure every guest feels welcomed and valued.",
                 icon: GroupsIcon,
-                imageSrc:
-                  "soft.jpg",
+                imageSrc: "soft.jpg",
                 imageAlt: "Professional hospitality training session",
               },
               {
@@ -395,8 +394,7 @@ export default function HomePage() {
                 description:
                   "Develop technical expertise and operational knowledge for specialized frontline positions across Abu Dhabi's visitor landscape.",
                 icon: BuildIcon,
-                imageSrc:
-                  "hard.jpg",
+                imageSrc: "hard.jpg",
                 imageAlt: "Specialized training and skill development",
               },
               {
@@ -413,8 +411,7 @@ export default function HomePage() {
                 description:
                   "Learn the essential standards, regulations, and ethical guidelines that define excellence in Abu Dhabi's hospitality sector.",
                 icon: VerifiedIcon,
-                imageSrc:
-                  "almidhyaf.jpg",
+                imageSrc: "almidhyaf.jpg",
                 imageAlt: "Code of conduct and regulations",
               },
             ].map((area, index) => (
@@ -473,13 +470,11 @@ export default function HomePage() {
                 {[
                   {
                     title: "Museums & Cultural Sites",
-                    image:
-                      "./museum.jpg",
+                    image: "./museum.jpg",
                   },
                   {
                     title: "Events & Entertainment Venues",
-                    image:
-                      "events.jpg",
+                    image: "events.jpg",
                   },
                   {
                     title: "Mobility Operators & Airports",
@@ -493,28 +488,23 @@ export default function HomePage() {
                   },
                   {
                     title: "Hotels & Hospitality",
-                    image:
-                      "hotel.jpg",
+                    image: "hotel.jpg",
                   },
                   {
                     title: "Malls & Retail",
-                    image:
-                      "mall.jpg",
+                    image: "mall.jpg",
                   },
                   {
                     title: "Tour Guides & Operators",
-                    image:
-                      "tour.jpg",
+                    image: "tour.jpg",
                   },
                   {
                     title: "Visitor Information Centers",
-                    image:
-                      "visitor.jpg",
+                    image: "visitor.jpg",
                   },
                   {
                     title: "Attractions & Theme Parks",
-                    image:
-                      "attraction.jpg",
+                    image: "attraction.jpg",
                   },
                 ].map((item, index) => (
                   <CarouselItem
@@ -602,13 +592,13 @@ export default function HomePage() {
             className="w-full h-full object-cover"
           />
           {/* Sandstone overlay for warmth */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#F5F1E8]/95 via-[#F5F1E8]/85 to-[#F5F1E8]/95"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/95 via-gray-900/85 to-gray-900/95"></div>
         </div>
 
         <div className="grid-container relative z-10 flex items-center justify-center min-h-[80vh]">
           <div className="text-center max-w-5xl mx-auto" data-aos="fade-up">
             <h2
-              className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#2C2C2C] mb-12 leading-tight text-column-wide"
+              className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-12 leading-tight text-column-wide"
               data-aos="fade-up"
             >
               VX Academy - Excellence in Visitor Experiences
