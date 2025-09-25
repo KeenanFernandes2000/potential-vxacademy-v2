@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -13,12 +12,11 @@ import {
 } from "@/components/ui/table";
 import {
   Users,
-  Search,
   Filter,
   Download,
   Eye,
-  MoreHorizontal,
   Loader2,
+  ChevronDown,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -27,11 +25,28 @@ interface User {
   firstName: string;
   lastName: string;
   email: string;
+  eid?: string;
+  phoneNumber?: string;
   userType: string;
   organization: string;
+  subOrganization?: string;
   createdAt: string;
   lastLogin: string;
   status: "active" | "inactive";
+}
+
+interface ReportConfig {
+  format: "dataTable" | "excel" | "pdf";
+  download: "excel" | "csv" | "pdf";
+  search: boolean;
+  filters: {
+    userType: string[];
+    organization: string[];
+    registrationDate: {
+      start: string;
+      end: string;
+    };
+  };
 }
 
 const AllUsers = () => {
@@ -40,8 +55,21 @@ const AllUsers = () => {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [reportConfig, setReportConfig] = useState<ReportConfig>({
+    format: "dataTable",
+    download: "excel",
+    search: true,
+    filters: {
+      userType: [],
+      organization: [],
+      registrationDate: {
+        start: "",
+        end: "",
+      },
+    },
+  });
+  const [showFilters, setShowFilters] = useState(false);
 
   // API object for user operations
   const api = {
@@ -64,6 +92,53 @@ const AllUsers = () => {
         return data;
       } catch (error) {
         console.error("Failed to fetch users:", error);
+        throw error;
+      }
+    },
+
+    async generateReport(token: string, config: ReportConfig) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${baseUrl}/api/reports/generate`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(config),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Failed to generate report:", error);
+        throw error;
+      }
+    },
+
+    async getOrganizations(token: string) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${baseUrl}/api/organizations`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Failed to fetch organizations:", error);
         throw error;
       }
     },
@@ -90,8 +165,11 @@ const AllUsers = () => {
           firstName: user.firstName || "N/A",
           lastName: user.lastName || "N/A",
           email: user.email || "N/A",
+          eid: user.eid || "N/A",
+          phoneNumber: user.phoneNumber || "N/A",
           userType: user.userType || "user",
           organization: user.organization?.name || "N/A",
+          subOrganization: user.subOrganization || "N/A",
           createdAt: user.createdAt || "N/A",
           lastLogin: user.lastLogin || "N/A",
           status: user.isActive ? "active" : "inactive",
@@ -110,20 +188,9 @@ const AllUsers = () => {
     fetchUsers();
   }, [token]);
 
-  // Filter users based on search term and type
+  // Filter users based on type
   useEffect(() => {
     let filtered = users;
-
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (user) =>
-          user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.organization.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
 
     // Filter by user type
     if (filterType !== "all") {
@@ -131,40 +198,71 @@ const AllUsers = () => {
     }
 
     setFilteredUsers(filtered);
-  }, [users, searchTerm, filterType]);
+  }, [users, filterType]);
 
-  const handleExport = () => {
-    // Implement CSV export functionality
-    const csvContent = [
-      [
-        "Name",
-        "Email",
-        "Type",
-        "Organization",
-        "Status",
-        "Created",
-        "Last Login",
-      ],
-      ...filteredUsers.map((user) => [
-        `${user.firstName} ${user.lastName}`,
-        user.email,
-        user.userType,
-        user.organization,
-        user.status,
-        new Date(user.createdAt).toLocaleDateString(),
-        new Date(user.lastLogin).toLocaleDateString(),
-      ]),
-    ]
-      .map((row) => row.join(","))
-      .join("\n");
+  // Configuration update functions
+  const updateReportConfig = (updates: Partial<ReportConfig>) => {
+    setReportConfig((prev) => ({ ...prev, ...updates }));
+  };
 
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "users-report.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
+  const handleExport = async () => {
+    try {
+      const response = await api.generateReport(token!, reportConfig);
+
+      if (reportConfig.download === "excel") {
+        // Handle Excel download
+        const blob = new Blob([response.data], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `users-report-${
+          new Date().toISOString().split("T")[0]
+        }.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } else if (reportConfig.download === "csv") {
+        // Handle CSV download
+        const csvContent = generateCSVContent();
+        const blob = new Blob([csvContent], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `users-report-${
+          new Date().toISOString().split("T")[0]
+        }.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      }
+    } catch (error) {
+      console.error("Export failed:", error);
+      setError("Failed to export report");
+    }
+  };
+
+  const generateCSVContent = () => {
+    const headers = [
+      "Name",
+      "Email",
+      "Type",
+      "Organization",
+      "Status",
+      "Created",
+      "Last Login",
+    ];
+
+    const data = filteredUsers.map((user) => [
+      `${user.firstName} ${user.lastName}`,
+      user.email,
+      user.userType,
+      user.organization,
+      user.status,
+      formatDate(user.createdAt),
+      formatDate(user.lastLogin),
+    ]);
+
+    return [headers, ...data].map((row) => row.join(",")).join("\n");
   };
 
   const formatDate = (dateString: string) => {
@@ -251,43 +349,42 @@ const AllUsers = () => {
           </Card>
         </div>
 
-        {/* Filters and Actions */}
+        {/* Filters and Actions - Right above the table */}
         <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
           <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="flex flex-col md:flex-row gap-4 flex-1">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
-                  <Input
-                    placeholder="Search users..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                  />
-                </div>
-                <select
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                  className="px-3 py-2 bg-white/10 border border-white/20 text-white rounded-md"
+            <div className="flex flex-wrap gap-4 items-center justify-between">
+              <div className="flex flex-wrap gap-4 items-center">
+                <Button
+                  variant="outline"
+                  className="bg-orange-500/20 border-orange-500/30 text-orange-300 hover:bg-orange-500/30"
                 >
-                  <option value="all">All Types</option>
-                  <option value="admin">Admin</option>
-                  <option value="sub_admin">Sub-Admin</option>
-                  <option value="user">User</option>
-                </select>
+                  User Type <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="bg-orange-500/20 border-orange-500/30 text-orange-300 hover:bg-orange-500/30"
+                >
+                  Organization <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="bg-orange-500/20 border-orange-500/30 text-orange-300 hover:bg-orange-500/30"
+                >
+                  Registration Date <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
               </div>
               <Button
                 onClick={handleExport}
                 className="bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-white"
               >
                 <Download className="h-4 w-4 mr-2" />
-                Export CSV
+                Download CSV
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Users Table */}
+        {/* Data Table */}
         <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
