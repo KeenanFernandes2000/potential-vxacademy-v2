@@ -170,7 +170,7 @@ export default function HomePage() {
             className="w-full h-full object-cover"
           />
           {/* Sandstone overlay for warmth */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#F5F1E8]/90 via-[#F5F1E8]/70 to-[#F5F1E8]/50"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/90 via-gray-900/70 to-gray-900/50"></div>
           {/* Subtle geometric accents */}
           <div className="absolute top-20 right-20 w-32 h-32 bg-dawn opacity-10 transform rotate-45"></div>
           <div className="absolute bottom-20 left-20 w-24 h-24 bg-dawn opacity-10 rounded-full"></div>
@@ -180,16 +180,16 @@ export default function HomePage() {
         <div className="grid-container py-16 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left-aligned text block - takes up 6-7 columns */}
-            <div className="lg:col-span-7 text-[#2C2C2C] space-y-8">
+            <div className="lg:col-span-7 text-white space-y-8">
               <h1
-                className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-[#2C2C2C] text-column"
+                className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-white text-column"
                 data-aos="fade-up"
                 data-aos-delay="200"
               >
                 Elevate Abu Dhabi's Visitor Experience
               </h1>
               <p
-                className="text-lg md:text-xl lg:text-2xl text-[#2C2C2C] leading-relaxed font-light text-column"
+                className="text-lg md:text-xl lg:text-2xl text-white leading-relaxed font-light text-column"
                 data-aos="fade-up"
                 data-aos-delay="400"
               >
@@ -322,7 +322,7 @@ export default function HomePage() {
             ].map((benefit, index) => (
               <div key={index} className="group">
                 <div
-                  className="bg-white border border-sandstone p-6 lg:p-8 hover:border-dawn transition-all duration-500 h-full relative overflow-hidden shadow-sm"
+                  className="bg-white border border-gray-200 p-6 lg:p-8 transition-all duration-500 h-full relative overflow-hidden shadow-sm hover:bg-blur-md hover:shadow-lg hover:border-2 hover:border-gray-300"
                   data-aos="fade-up"
                   data-aos-delay="200"
                 >
@@ -387,7 +387,7 @@ export default function HomePage() {
                   "Master communication, empathy, and service delivery skills that ensure every guest feels welcomed and valued.",
                 icon: GroupsIcon,
                 imageSrc:
-                  "https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                  "soft.jpg",
                 imageAlt: "Professional hospitality training session",
               },
               {
@@ -396,7 +396,7 @@ export default function HomePage() {
                   "Develop technical expertise and operational knowledge for specialized frontline positions across Abu Dhabi's visitor landscape.",
                 icon: BuildIcon,
                 imageSrc:
-                  "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2069&q=80",
+                  "hard.jpg",
                 imageAlt: "Specialized training and skill development",
               },
               {
@@ -414,7 +414,7 @@ export default function HomePage() {
                   "Learn the essential standards, regulations, and ethical guidelines that define excellence in Abu Dhabi's hospitality sector.",
                 icon: VerifiedIcon,
                 imageSrc:
-                  "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                  "almidhyaf.jpg",
                 imageAlt: "Code of conduct and regulations",
               },
             ].map((area, index) => (
@@ -474,12 +474,12 @@ export default function HomePage() {
                   {
                     title: "Museums & Cultural Sites",
                     image:
-                      "https://images.unsplash.com/photo-1554907984-15263bfd63bd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                      "./museum.jpg",
                   },
                   {
                     title: "Events & Entertainment Venues",
                     image:
-                      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                      "events.jpg",
                   },
                   {
                     title: "Mobility Operators & Airports",
@@ -494,27 +494,27 @@ export default function HomePage() {
                   {
                     title: "Hotels & Hospitality",
                     image:
-                      "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                      "hotel.jpg",
                   },
                   {
                     title: "Malls & Retail",
                     image:
-                      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                      "mall.jpg",
                   },
                   {
                     title: "Tour Guides & Operators",
                     image:
-                      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                      "tour.jpg",
                   },
                   {
                     title: "Visitor Information Centers",
                     image:
-                      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                      "visitor.jpg",
                   },
                   {
                     title: "Attractions & Theme Parks",
                     image:
-                      "https://images.unsplash.com/photo-1613058502382-f2c4656638ff?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                      "attraction.jpg",
                   },
                 ].map((item, index) => (
                   <CarouselItem
@@ -522,20 +522,18 @@ export default function HomePage() {
                     className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3"
                   >
                     <div className="group cursor-pointer transition-all duration-300 hover:scale-105">
-                      <div className="relative aspect-[4/3] overflow-hidden shadow-lg border border-sandstone">
+                      <div className="aspect-[4/3] overflow-hidden shadow-lg border border-sandstone">
                         <img
                           src={item.image}
                           alt={item.title}
                           className="w-full h-full object-cover transition-all duration-500 ease-in-out group-hover:scale-110"
                         />
-                        {/* Sandstone overlay for warmth */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#F5F1E8]/90 via-[#F5F1E8]/20 to-transparent"></div>
-                        {/* Text overlay positioned at bottom left */}
-                        <div className="absolute bottom-4 left-4 right-4">
-                          <h3 className="text-xl lg:text-3xl font-bold text-[#2C2C2C] group-hover:text-dawn transition-colors duration-300">
-                            {item.title}
-                          </h3>
-                        </div>
+                      </div>
+                      {/* Text positioned under the image */}
+                      <div className="mt-4 px-2">
+                        <h3 className="text-xl lg:text-3xl font-bold text-[#2C2C2C] group-hover:text-dawn transition-colors duration-300">
+                          {item.title}
+                        </h3>
                       </div>
                     </div>
                   </CarouselItem>
@@ -559,7 +557,7 @@ export default function HomePage() {
             <div className="lg:col-span-6 order-2 lg:order-1">
               <div className="w-full h-full overflow-hidden" data-aos="fade-up">
                 <img
-                  src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                  src="./impact.jpg"
                   alt="Team collaboration and impact"
                   className="w-full h-full object-cover"
                 />
@@ -599,7 +597,7 @@ export default function HomePage() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+            src="./join.jpg"
             alt="VX Academy Join Background"
             className="w-full h-full object-cover"
           />

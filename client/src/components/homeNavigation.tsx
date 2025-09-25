@@ -61,7 +61,7 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
       <nav className="bg-white border-b border-[#E5E5E5] z-50 sticky top-0 shadow-sm">
         <div className="container mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center">
-            <div className="h-12 w-auto">
+            <div className="h-16 w-auto">
               <Link to={showItems ? "" : "/"}>
                 <img
                   src="/logo.png"
