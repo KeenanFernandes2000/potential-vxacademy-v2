@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { CheckCircle, ErrorOutline } from "@mui/icons-material";
 import HomeNavigation from "@/components/homeNavigation";
-import "@/hompage.css";
+import "@/homepage.css";
 
 // API object for this page
 const api = {

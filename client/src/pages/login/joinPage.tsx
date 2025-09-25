@@ -20,7 +20,7 @@ import {
 import { PasswordInput } from "@/components/ui/password-input";
 import { MultiSelect } from "@/components/ui/multi-select";
 import HomeNavigation from "@/components/homeNavigation";
-import "@/hompage.css";
+import "@/homepage.css";
 
 // API object for sub-admin registration and token verification
 const api = {
