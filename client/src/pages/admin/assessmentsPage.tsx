@@ -20,7 +20,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
 
 // API object for assessment operations
@@ -2078,15 +2077,14 @@ const AssessmentsPage = () => {
         <DialogContent className="max-w-4xl bg-[#003451] border-white/20 text-white max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">Edit Assessment</DialogTitle>
-            <DialogClose asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-4 top-4 h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-              >
-                <Close sx={{ fontSize: 16 }} />
-              </Button>
-            </DialogClose>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </Button>
           </DialogHeader>
           <div className="mt-4">
             <EditAssessmentForm />
@@ -2104,15 +2102,14 @@ const AssessmentsPage = () => {
             <DialogTitle className="text-white">
               Questions for: {selectedAssessment?.title}
             </DialogTitle>
-            <DialogClose asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-4 top-4 h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-              >
-                <Close sx={{ fontSize: 16 }} />
-              </Button>
-            </DialogClose>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => setIsQuestionsModalOpen(false)}
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </Button>
           </DialogHeader>
           <div className="mt-4 space-y-4">
             <div className="flex justify-between items-center">
@@ -2177,15 +2174,14 @@ const AssessmentsPage = () => {
             <DialogTitle className="text-white">
               {selectedQuestion ? "Edit Question" : "Create Question"}
             </DialogTitle>
-            <DialogClose asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-4 top-4 h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-              >
-                <Close sx={{ fontSize: 16 }} />
-              </Button>
-            </DialogClose>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => setIsEditQuestionModalOpen(false)}
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </Button>
           </DialogHeader>
           <div className="mt-4">
             {selectedQuestion ? <EditQuestionForm /> : <CreateQuestionForm />}

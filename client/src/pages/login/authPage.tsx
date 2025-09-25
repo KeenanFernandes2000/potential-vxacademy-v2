@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import "@/homepage.css";
+// import "@/homepage.css";
 
 // MUI Icons
 import HomeNavigation from "@/components/homeNavigation";

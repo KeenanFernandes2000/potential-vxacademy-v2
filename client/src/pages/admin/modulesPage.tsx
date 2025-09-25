@@ -11,7 +11,7 @@ import {
   Delete,
   Close,
   Publish,
-  Draft,
+  Drafts,
 } from "@mui/icons-material";
 import {
   Dialog,
@@ -291,7 +291,7 @@ const ModulesPage = () => {
                       onClick={() => handleDraftModule(module.id)}
                       title="Draft"
                     >
-                      <Draft sx={{ fontSize: 16 }} />
+                      <Drafts sx={{ fontSize: 16 }} />
                     </Button>
                   )}
                   <Button
@@ -544,7 +544,7 @@ const ModulesPage = () => {
                   onClick={() => handleDraftModule(module.id)}
                   title="Draft"
                 >
-                  <Draft sx={{ fontSize: 16 }} />
+                  <Drafts sx={{ fontSize: 16 }} />
                 </Button>
               )}
               <Button

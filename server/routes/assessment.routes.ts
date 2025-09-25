@@ -4,7 +4,7 @@ import {
   AssessmentController,
   QuestionController,
   AssessmentAttemptController,
-} from "../controller/assessment.controllers";
+} from "../controller/assessment.controller";
 import { authorizeRoles } from "../middleware/userTypeAuth";
 import passport from "../middleware/passport";
 
