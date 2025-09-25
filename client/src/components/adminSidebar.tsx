@@ -16,6 +16,7 @@ import {
   Category as CategoryIcon,
   Timeline as LearningPathIcon,
 } from "@mui/icons-material";
+import { useAuth } from "@/hooks/useAuth";
 
 import {
   Sidebar,
@@ -43,6 +44,11 @@ const AdminSidebar = () => {
   const [learningPathOpen, setLearningPathOpen] = React.useState(true);
   const location = useLocation();
   const { toggleSidebar, state } = useSidebar();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+  };
 
   // When sidebar is collapsed (icon mode), open all dropdowns
   React.useEffect(() => {
@@ -483,14 +489,12 @@ const AdminSidebar = () => {
                     <span>Profile</span>
                   </Link>
                 </SidebarMenuButton>
-                <SidebarMenuAction asChild>
-                  <Link
-                    to="#logout"
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <LogOut sx={{ fontSize: 16 }} />
-                  </Link>
-                </SidebarMenuAction>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout}>
+                  <LogOut sx={{ fontSize: 16 }} />
+                  <span>Logout</span>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
