@@ -57,14 +57,14 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
 
   return (
     <>
-      {/* Navigation Bar with Glassmorphism */}
-      <nav className="backdrop-blur-xl border-b border-white/10 z-50 sticky top-0 shadow-2xl">
+      {/* Navigation Bar with Clean Design */}
+      <nav className="bg-white border-b border-[#E5E5E5] z-50 sticky top-0 shadow-sm">
         <div className="container mx-auto px-4 lg:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center">
             <div className="h-12 w-auto">
               <Link to={showItems ? "" : "/"}>
                 <img
-                  src="/vx-academy-logo.svg"
+                  src="/vx-academy-logo.png"
                   alt="VX Academy Logo"
                   className="h-full"
                 />
@@ -77,38 +77,38 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
             <div className="hidden lg:flex items-center space-x-8">
               <button
                 onClick={() => scrollToSection("about")}
-                className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
+                className="text-[#2C2C2C] hover:text-dawn transition-all duration-300 hover:scale-105 font-regular cursor-pointer"
               >
                 About
               </button>
               <button
                 onClick={() => scrollToSection("benefits")}
-                className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
+                className="text-[#2C2C2C] hover:text-dawn transition-all duration-300 hover:scale-105 font-regular cursor-pointer"
               >
                 Why Join
               </button>
               <button
                 onClick={() => scrollToSection("training-areas")}
-                className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
+                className="text-[#2C2C2C] hover:text-dawn transition-all duration-300 hover:scale-105 font-regular cursor-pointer"
               >
                 Training Areas
               </button>
 
               <button
                 onClick={() => scrollToSection("for")}
-                className="text-white/90 hover:text-white transition-all duration-300 hover:scale-105 font-medium cursor-pointer"
+                className="text-[#2C2C2C] hover:text-dawn transition-all duration-300 hover:scale-105 font-regular cursor-pointer"
               >
                 Who is it for
               </button>
               {userExists() ? (
                 <Link to={getDashboardPath()}>
-                  <Button className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black rounded-xl px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 transition-all duration-300 hover:scale-105">
+                  <Button className="bg-dawn hover:bg-[#B85A1A] text-white rounded-full px-6 py-2 font-regular shadow-sm border border-dawn transition-all duration-300 hover:scale-105">
                     My Dashboard
                   </Button>
                 </Link>
               ) : (
                 <Link to="/login">
-                  <Button className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-6 py-2 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 rounded-full">
+                  <Button className="bg-dawn hover:bg-[#B85A1A] text-white px-6 py-2 font-regular shadow-sm border border-dawn transition-all duration-300 hover:scale-105 rounded-full">
                     Login
                   </Button>
                 </Link>
@@ -120,7 +120,7 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
           {showItems && (
             <div className="lg:hidden">
               <button
-                className="text-white/90 hover:text-white transition-colors"
+                className="text-[#2C2C2C] hover:text-dawn transition-colors"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
                 <MenuIcon size={24} color="currentColor" />
@@ -129,10 +129,10 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
           )}
         </div>
 
-        {/* Mobile Menu with Glassmorphism */}
+        {/* Mobile Menu with Clean Design */}
         {showItems && (
           <div
-            className={`lg:hidden backdrop-blur-xl border-[#00d8cc]/20 overflow-hidden transition-all duration-500 ease-in-out ${
+            className={`lg:hidden bg-white border-t border-[#E5E5E5] overflow-hidden transition-all duration-500 ease-in-out ${
               isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
             }`}
           >
@@ -142,7 +142,7 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
                   scrollToSection("about");
                   setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
+                className="block w-full text-left py-3 text-[#2C2C2C] hover:text-dawn transition-colors font-regular cursor-pointer"
               >
                 About
               </button>
@@ -151,7 +151,7 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
                   scrollToSection("benefits");
                   setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
+                className="block w-full text-left py-3 text-[#2C2C2C] hover:text-dawn transition-colors font-regular cursor-pointer"
               >
                 Why Join
               </button>
@@ -160,7 +160,7 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
                   scrollToSection("training-areas");
                   setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
+                className="block w-full text-left py-3 text-[#2C2C2C] hover:text-dawn transition-colors font-regular cursor-pointer"
               >
                 Training Areas
               </button>
@@ -169,19 +169,19 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
                   scrollToSection("for");
                   setIsMobileMenuOpen(false);
                 }}
-                className="block w-full text-left py-3 text-white/90 hover:text-white transition-colors font-medium cursor-pointer"
+                className="block w-full text-left py-3 text-[#2C2C2C] hover:text-dawn transition-colors font-regular cursor-pointer"
               >
                 Who is it for
               </button>
               {userExists() ? (
                 <Link to={getDashboardPath()}>
-                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
+                  <Button className="w-full bg-dawn hover:bg-[#B85A1A] text-white py-3 font-regular shadow-sm border border-dawn mt-4 rounded-full">
                     My Dashboard
                   </Button>
                 </Link>
               ) : (
                 <Link to="/login">
-                  <Button className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black py-3 font-semibold shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 mt-4 rounded-full">
+                  <Button className="w-full bg-dawn hover:bg-[#B85A1A] text-white py-3 font-regular shadow-sm border border-dawn mt-4 rounded-full">
                     Login
                   </Button>
                 </Link>

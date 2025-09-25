@@ -15,6 +15,7 @@ import {
 import Icon from "@/components/icon";
 import HomeNavigation from "@/components/homeNavigation";
 import HomeFooter from "@/components/homeFooter";
+import TrainingAreaCard from "@/components/trainingAreaCard";
 
 // MUI Icons
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
@@ -152,9 +153,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#003451] relative overflow-hidden">
-      {/* Supergraphic SVG Background in Experience Abu Dhabi Style */}
-
+    <div className="min-h-screen flex flex-col bg-white relative overflow-hidden">
       <HomeNavigation showItems={true} />
 
       {/* Hero Section with Full Background Image */}
@@ -169,38 +168,41 @@ export default function HomePage() {
             alt="VX Academy Hero Background"
             className="w-full h-full object-cover"
           />
-          {/* Overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/60 to-slate-900/40"></div>
-          {/* Subtle animated background elements */}
-          <div className="absolute top-20 left-10 w-72 h-72 bg-[#00d8cc]/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#00d8cc]/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-[#00d8cc]/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+          {/* Sandstone overlay for warmth */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#F5F1E8]/90 via-[#F5F1E8]/70 to-[#F5F1E8]/50"></div>
+          {/* Subtle geometric accents */}
+          <div className="absolute top-20 right-20 w-32 h-32 bg-dawn opacity-10 transform rotate-45"></div>
+          <div className="absolute bottom-20 left-20 w-24 h-24 bg-dawn opacity-10 rounded-full"></div>
+          <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-dawn opacity-10 transform rotate-12"></div>
         </div>
 
-        <div className="container mx-auto px-4 lg:px-6 py-16 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="text-white space-y-8">
+        <div className="grid-container py-16 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left-aligned text block - takes up 6-7 columns */}
+            <div className="lg:col-span-7 text-[#2C2C2C] space-y-8">
               <h1
-                className="text-5xl md:text-6xl lg:text-7xl font-abu-bold leading-tight text-white"
+                className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-[#2C2C2C] text-column"
                 data-aos="fade-up"
                 data-aos-delay="200"
               >
                 Elevate Abu Dhabi's Visitor Experience
               </h1>
               <p
-                className="text-lg md:text-xl lg:text-2xl text-white leading-relaxed max-w-3xl mx-auto"
+                className="text-lg md:text-xl lg:text-2xl text-[#2C2C2C] leading-relaxed font-light text-column"
                 data-aos="fade-up"
                 data-aos-delay="400"
               >
                 Welcome to VX Academy — your gateway to becoming part of Abu
-                Dhabi’s story.
+                Dhabi's story.
               </p>
               <div
-                className="flex flex-col sm:flex-row gap-4 justify-center"
+                className="flex flex-col sm:flex-row gap-4"
                 data-aos="fade-up"
                 data-aos-delay="600"
               ></div>
             </div>
+            {/* Right visual area - takes up remaining columns */}
+            <div className="lg:col-span-5"></div>
           </div>
         </div>
       </section>
@@ -208,21 +210,21 @@ export default function HomePage() {
       {/* About Section */}
       <section
         id="about"
-        className="py-16 md:py-24 relative overflow-hidden bg-[#003451] border-b border-white/10 mb-8"
+        className="section-padding relative overflow-hidden bg-sandstone border-b border-[#E5E5E5]"
       >
-        <div className="container mx-auto px-4 lg:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Content Column */}
-            <div className="text-white">
+        <div className="grid-container">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            {/* Content Column - Left side */}
+            <div className="lg:col-span-6 text-[#2C2C2C]">
               <h2
                 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
                 data-aos="fade-up"
               >
                 About VX Academy
               </h2>
-              <div className="w-24 h-1 bg-[#00d8cc] rounded-full mb-8"></div>
+              <div className="w-24 h-1 bg-dawn rounded-full mb-8"></div>
               <div
-                className="space-y-4 text-lg leading-relaxed mb-8"
+                className="space-y-4 text-lg leading-relaxed mb-8 font-light text-column"
                 data-aos="fade-up"
               >
                 <p>
@@ -247,7 +249,7 @@ export default function HomePage() {
               </div>
               <Link to="/login">
                 <Button
-                  className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 py-3 font-semibold transition-colors rounded-full shadow-lg backdrop-blur-sm border border-[#00d8cc]/20 hover:scale-105 cursor-pointer"
+                  className="bg-dawn hover:bg-[#B85A1A] text-white px-8 py-3 font-regular transition-colors rounded-full shadow-lg border border-dawn hover:scale-105 cursor-pointer"
                   data-aos="fade-up"
                 >
                   Login
@@ -255,8 +257,8 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Image Column */}
-            <div className="flex justify-center lg:justify-end">
+            {/* Image Column - Right side */}
+            <div className="lg:col-span-6">
               <div className="w-full h-full overflow-hidden" data-aos="fade-up">
                 <img
                   src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80"
@@ -272,19 +274,17 @@ export default function HomePage() {
       {/* Benefits Section */}
       <section
         id="benefits"
-        className="py-16 md:py-24 relative overflow-hidden bg-[#003451] border-b border-white/10 mb-8 shadow-lg"
+        className="section-padding relative overflow-hidden bg-white border-b border-[#E5E5E5]"
         // data-aos="fade-up"
       >
-        {/* Removed old blurred and previous SVG backgrounds */}
-
-        <div className="container mx-auto px-4 lg:px-6 relative z-10">
+        <div className="grid-container relative z-10">
           <div className="text-center mb-16 lg:mb-20" data-aos="fade-up">
             <div className="space-y-6">
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#2C2C2C]">
                 Why Join VX Academy?
               </h2>
-              <div className="w-24 h-1 bg-[#00d8cc] rounded-full mx-auto"></div>
-              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-white leading-relaxed">
+              <div className="w-24 h-1 bg-dawn rounded-full mx-auto"></div>
+              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-[#2C2C2C] leading-relaxed font-light">
                 Joining the VX Academy provides frontliners with numerous
                 benefits that enhance both professional development and personal
                 growth.
@@ -321,7 +321,7 @@ export default function HomePage() {
             ].map((benefit, index) => (
               <div key={index} className="group">
                 <div
-                  className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 p-6 lg:p-8 hover:bg-[#00d8cc]/20 transition-all duration-500 h-full relative overflow-hidden"
+                  className="bg-white border border-sandstone p-6 lg:p-8 hover:border-dawn transition-all duration-500 h-full relative overflow-hidden shadow-sm"
                   data-aos="fade-up"
                   data-aos-delay="200"
                 >
@@ -329,14 +329,14 @@ export default function HomePage() {
                     <div className="w-20 h-20 flex items-center justify-center mb-6 transition-transform duration-300">
                       <Icon
                         Component={benefit.icon}
-                        color="#00d8cc"
+                        color="#D2691E"
                         size={58}
                       />
                     </div>
-                    <h3 className="text-xl lg:text-2xl font-bold mb-4 text-white group-hover:text-[#00d8cc] transition-colors duration-300">
+                    <h3 className="text-xl lg:text-2xl font-bold mb-4 text-[#2C2C2C] group-hover:text-dawn transition-colors duration-300">
                       {benefit.title}
                     </h3>
-                    <p className="text-white/90 leading-relaxed">
+                    <p className="text-[#666666] leading-relaxed font-light">
                       {benefit.description}
                     </p>
                   </div>
@@ -350,28 +350,17 @@ export default function HomePage() {
       {/* Training Areas Section */}
       <section
         id="training-areas"
-        className="py-16 md:py-24 relative overflow-hidden bg-[#003451] border-b border-white/10 mb-8"
+        className="section-padding relative overflow-hidden bg-sandstone border-b border-[#E5E5E5]"
         // data-aos="fade-up"
       >
-        {/* Subtle background pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `linear-gradient(45deg, white 1px, transparent 1px), linear-gradient(-45deg, white 1px, transparent 1px)`,
-              backgroundSize: "30px 30px",
-            }}
-          ></div>
-        </div>
-
-        <div className="container mx-auto px-4 lg:px-6 relative z-10">
+        <div className="grid-container relative z-10">
           <div className="text-center mb-16 lg:mb-20" data-aos="fade-up">
             <div className="space-y-6">
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#2C2C2C]">
                 Training Areas
               </h2>
-              <div className="w-24 h-1 bg-[#00d8cc] rounded-full mx-auto"></div>
-              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-white leading-relaxed">
+              <div className="w-24 h-1 bg-dawn rounded-full mx-auto"></div>
+              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-[#2C2C2C] leading-relaxed font-light">
                 Our comprehensive training system follows a structured approach
                 through five interconnected areas, building from foundational
                 knowledge to advanced competencies for exceptional visitor
@@ -428,33 +417,17 @@ export default function HomePage() {
                 imageAlt: "Code of conduct and regulations",
               },
             ].map((area, index) => (
-              <div
-                key={index}
-                className="group"
-                data-aos="fade-up"
-                data-aos-delay="200"
-              >
-                <div className="bg-[#00d8cc]/10 backdrop-blur-sm   hover:bg-[#00d8cc]/20 transition-all duration-500 hover:scale-105 h-full flex flex-col">
-                  {/* Image Placeholder */}
-                  <div className="aspect-[4/3] bg-[#00d8cc]/5 mb-6  overflow-hidden relative group-hover:scale-105 transition-transform duration-300">
-                    <img
-                      src={area.imageSrc}
-                      alt={area.imageAlt}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                  </div>
-
-                  {/* Body - flex-1 for consistent height */}
-                  <div className="text-center space-y-4 flex-1 flex flex-col border-l-2 border-[#00d8cc] p-8">
-                    <h3 className="text-xl lg:text-2xl font-bold text-white group-hover:text-[#00d8cc] transition-colors duration-300">
-                      {area.title}
-                    </h3>
-                    <p className="text-white text-sm leading-relaxed flex-1">
-                      {area.description}
-                    </p>
-                  </div>
-                </div>
+              <div key={index} data-aos="fade-up" data-aos-delay={index * 100}>
+                <TrainingAreaCard
+                  title={area.title}
+                  description={area.description}
+                  imageSrc={area.imageSrc}
+                  imageAlt={area.imageAlt}
+                  onLearnMore={() => {
+                    // Handle learn more action
+                    console.log(`Learn more about ${area.title}`);
+                  }}
+                />
               </div>
             ))}
           </div>
@@ -464,15 +437,15 @@ export default function HomePage() {
       {/* Who is it for Section */}
       <section
         id="for"
-        className="py-16 md:py-24 relative overflow-hidden bg-[#003451] border-b border-white/10 mb-8 shadow-lg"
+        className="section-padding relative overflow-hidden bg-white border-b border-[#E5E5E5]"
       >
-        <div className="container mx-auto px-4 lg:px-6">
+        <div className="grid-container">
           <div className="text-center mb-16" data-aos="fade-up">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#2C2C2C] mb-6">
               Who Is VX Academy For?
             </h2>
-            <div className="w-24 h-1 bg-[#00d8cc] rounded-full mx-auto mb-8"></div>
-            <p className="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
+            <div className="w-24 h-1 bg-dawn rounded-full mx-auto mb-8"></div>
+            <p className="text-xl text-[#666666] max-w-3xl mx-auto leading-relaxed font-light text-column-wide">
               If you play a role in shaping Abu Dhabi's visitor journey, VX
               Academy is for you.
             </p>
@@ -486,9 +459,9 @@ export default function HomePage() {
               }}
               plugins={[
                 Autoplay({
-                  delay: 2000,
+                  delay: 3000,
                   stopOnInteraction: false,
-                  stopOnMouseEnter: false,
+                  stopOnMouseEnter: true,
                 }),
               ]}
               className="w-full"
@@ -545,20 +518,20 @@ export default function HomePage() {
                 ].map((item, index) => (
                   <CarouselItem
                     key={index}
-                    className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                    className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3"
                   >
                     <div className="group cursor-pointer transition-all duration-300 hover:scale-105">
-                      <div className="relative aspect-[4/3] overflow-hidden shadow-2xl">
+                      <div className="relative aspect-[4/3] overflow-hidden shadow-lg border border-sandstone">
                         <img
                           src={item.image}
                           alt={item.title}
                           className="w-full h-full object-cover transition-all duration-500 ease-in-out group-hover:scale-110"
                         />
-                        {/* Gradient overlay for better text readability */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                        {/* Sandstone overlay for warmth */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#F5F1E8]/90 via-[#F5F1E8]/20 to-transparent"></div>
                         {/* Text overlay positioned at bottom left */}
                         <div className="absolute bottom-4 left-4 right-4">
-                          <h3 className="text-xl lg:text-3xl font-bold text-white group-hover:text-[#00d8cc] transition-colors duration-300">
+                          <h3 className="text-xl lg:text-3xl font-bold text-[#2C2C2C] group-hover:text-dawn transition-colors duration-300">
                             {item.title}
                           </h3>
                         </div>
@@ -567,8 +540,8 @@ export default function HomePage() {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="absolute -left-16 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 border-white/20 text-white hover:text-[#00d8cc]" />
-              <CarouselNext className="absolute -right-16 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 border-white/20 text-white hover:text-[#00d8cc]" />
+              <CarouselPrevious className="absolute -left-16 top-1/2 -translate-y-1/2 bg-white hover:bg-sandstone border-sandstone text-[#2C2C2C] hover:text-dawn" />
+              <CarouselNext className="absolute -right-16 top-1/2 -translate-y-1/2 bg-white hover:bg-sandstone border-sandstone text-[#2C2C2C] hover:text-dawn" />
             </Carousel>
           </div>
         </div>
@@ -577,23 +550,12 @@ export default function HomePage() {
       {/* Your Impact Section */}
       <section
         id="impact"
-        className="py-16 md:py-24 relative overflow-hidden bg-[#003451] mb-8"
+        className="section-padding relative overflow-hidden bg-sandstone"
       >
-        {/* Subtle background pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `radial-gradient(circle at 75% 75%, white 1px, transparent 1px)`,
-              backgroundSize: "40px 40px",
-            }}
-          ></div>
-        </div>
-
-        <div className="container mx-auto px-4 lg:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Image Column */}
-            <div className="flex justify-center lg:justify-start order-2 lg:order-1">
+        <div className="grid-container">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            {/* Image Column - Left side */}
+            <div className="lg:col-span-6 order-2 lg:order-1">
               <div className="w-full h-full overflow-hidden" data-aos="fade-up">
                 <img
                   src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
@@ -603,17 +565,17 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Content Column */}
-            <div className="text-white order-1 lg:order-2">
+            {/* Content Column - Right side */}
+            <div className="lg:col-span-6 text-[#2C2C2C] order-1 lg:order-2">
               <h2
                 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
                 data-aos="fade-up"
               >
                 Your Impact
               </h2>
-              <div className="w-24 h-1 bg-[#00d8cc] rounded-full mb-8"></div>
+              <div className="w-24 h-1 bg-dawn rounded-full mb-8"></div>
               <div
-                className="space-y-4 text-lg leading-relaxed mb-8"
+                className="space-y-4 text-lg leading-relaxed mb-8 font-light text-column"
                 data-aos="fade-up"
               >
                 <p>
@@ -631,7 +593,7 @@ export default function HomePage() {
 
       <section
         id="join"
-        className="py-24 md:py-32 lg:py-40 relative overflow-hidden bg-[#003451] min-h-[80vh] shadow-lg"
+        className="section-padding relative overflow-hidden bg-white min-h-[80vh]"
       >
         {/* Background Image */}
         <div className="absolute inset-0">
@@ -640,14 +602,14 @@ export default function HomePage() {
             alt="VX Academy Join Background"
             className="w-full h-full object-cover"
           />
-          {/* Overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/80 to-slate-900/90"></div>
+          {/* Sandstone overlay for warmth */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#F5F1E8]/95 via-[#F5F1E8]/85 to-[#F5F1E8]/95"></div>
         </div>
 
-        <div className="container mx-auto px-4 relative z-10 flex items-center justify-center min-h-[80vh]">
+        <div className="grid-container relative z-10 flex items-center justify-center min-h-[80vh]">
           <div className="text-center max-w-5xl mx-auto" data-aos="fade-up">
             <h2
-              className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-12 leading-tight"
+              className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#2C2C2C] mb-12 leading-tight text-column-wide"
               data-aos="fade-up"
             >
               VX Academy - Excellence in Visitor Experiences
@@ -655,7 +617,7 @@ export default function HomePage() {
             <div className="pt-8">
               <Link to="/login">
                 <Button
-                  className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-xl py-6 px-16 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold rounded-full backdrop-blur-sm border border-[#00d8cc]/20 cursor-pointer"
+                  className="bg-dawn hover:bg-[#B85A1A] text-white text-xl py-6 px-16 shadow-lg transition-all duration-300 hover:scale-105 font-regular rounded-full border border-dawn cursor-pointer"
                   data-aos="fade-up"
                 >
                   Login
