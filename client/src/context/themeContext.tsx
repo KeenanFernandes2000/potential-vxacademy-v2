@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 type Theme = "homepage" | "app";
 
@@ -17,6 +18,29 @@ export function ThemeProvider({
   defaultTheme?: Theme;
 }) {
   const [theme, setTheme] = React.useState<Theme>(defaultTheme);
+  const location = useLocation();
+
+  // Function to determine theme based on current route
+  const getThemeFromRoute = (pathname: string): Theme => {
+    // Homepage and auth routes use homepage theme
+    if (
+      pathname === "/" ||
+      pathname.startsWith("/login") ||
+      pathname.startsWith("/forgot-password") ||
+      pathname.startsWith("/reset-password") ||
+      pathname.startsWith("/join")
+    ) {
+      return "homepage";
+    }
+    // All other routes use app theme
+    return "app";
+  };
+
+  // Update theme when route changes
+  useEffect(() => {
+    const newTheme = getThemeFromRoute(location.pathname);
+    setTheme(newTheme);
+  }, [location.pathname]);
 
   useEffect(() => {
     // Set the data-theme attribute on document root
@@ -24,6 +48,11 @@ export function ThemeProvider({
 
     // Add theme class to body for CSS targeting
     document.body.className = `theme-${theme}`;
+
+    // Cleanup function to reset body class when component unmounts
+    return () => {
+      document.body.className = "";
+    };
   }, [theme]);
 
   return (
