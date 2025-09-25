@@ -215,7 +215,7 @@ const Dashboard = () => {
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-white">Sub-Admin Dashboard</h1>
           <p className="text-white/80">
-            Manage your assigned users and training programs
+          Welcome back! Here's what's happening with your organization!
           </p>
           {error && (
             <div className="bg-red-500/20 border border-red-500/30 p-3">

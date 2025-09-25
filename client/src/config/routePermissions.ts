@@ -141,13 +141,13 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
     description: "Sub-admin dashboard",
   },
   {
-    path: "/sub-admin/users",
+    path: "/sub-admin/frontliners",
     allowedUserTypes: ["sub_admin"],
     requiresAuth: true,
     description: "Sub-admin users management",
   },
   {
-    path: "/sub-admin/links",
+    path: "/sub-admin/invite",
     allowedUserTypes: ["sub_admin"],
     requiresAuth: true,
     description: "Sub-admin links management",

@@ -9,8 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+import { Add as Plus, Download } from "@mui/icons-material";
+import * as XLSX from "xlsx";
+
 import { useAuth } from "@/hooks/useAuth";
-import { Edit, Delete, Search } from "@mui/icons-material";
+import { Edit, Delete, Search, Visibility } from "@mui/icons-material";
 import {
   Dialog,
   DialogContent,
@@ -129,7 +133,15 @@ interface UserData
   firstName: string;
   lastName: string;
   email: string;
-  userType: string;
+  eid: string;
+  phoneNumber: string;
+  roleCategory: string;
+  role: string;
+  seniority: string;
+  overallProgress: string;
+  certificates: string;
+  registrationDate: string;
+  lastLoginDate: string;
   actions: React.ReactNode;
 }
 
@@ -140,6 +152,7 @@ const Users = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -170,7 +183,7 @@ const Users = () => {
         if (currentUserData) {
           filteredUsersData = filteredUsersData.filter((user: any) => {
             // Filter out Sub_admin users
-            if (user.userType === "sub_admin") {
+            if (user.userType !== "user") {
               return false;
             }
 
@@ -207,9 +220,32 @@ const Users = () => {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          userType: user.userType,
+          eid: user.eid || "N/A",
+          phoneNumber: user.phoneNumber || "N/A",
+          roleCategory: user.roleCategory || "N/A",
+          role: user.role || "N/A",
+          seniority: user.seniority || "N/A",
+          overallProgress: user.overallProgress
+            ? `${user.overallProgress}%`
+            : "0%",
+          certificates: user.certificates || "0",
+          registrationDate: user.createdAt
+            ? new Date(user.createdAt).toLocaleDateString()
+            : "N/A",
+          lastLoginDate: user.lastLogin
+            ? new Date(user.lastLogin).toLocaleDateString()
+            : "N/A",
           actions: (
             <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                onClick={() => handleViewMore(user)}
+                title="View Full Profile"
+              >
+                <Visibility sx={{ fontSize: 16 }} />
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -330,6 +366,11 @@ const Users = () => {
     setIsEditModalOpen(true);
   };
 
+  const handleViewMore = (user: any) => {
+    setSelectedUser(user);
+    setIsViewModalOpen(true);
+  };
+
   const refreshUserList = async () => {
     if (!token) return;
 
@@ -349,7 +390,7 @@ const Users = () => {
       if (currentUserData) {
         filteredUsersData = filteredUsersData.filter((user: any) => {
           // Filter out Sub_admin users
-          if (user.userType === "sub_admin") {
+          if (user.userType !== "user") {
             return false;
           }
 
@@ -385,9 +426,32 @@ const Users = () => {
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        userType: user.userType,
+        eid: user.eid || "N/A",
+        phoneNumber: user.phoneNumber || "N/A",
+        roleCategory: user.roleCategory || "N/A",
+        role: user.role || "N/A",
+        seniority: user.seniority || "N/A",
+        overallProgress: user.overallProgress
+          ? `${user.overallProgress}%`
+          : "0%",
+        certificates: user.certificates || "0",
+        registrationDate: user.createdAt
+          ? new Date(user.createdAt).toLocaleDateString()
+          : "N/A",
+        lastLoginDate: user.lastLogin
+          ? new Date(user.lastLogin).toLocaleDateString()
+          : "N/A",
         actions: (
           <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => handleViewMore(user)}
+              title="View Full Profile"
+            >
+              <Visibility sx={{ fontSize: 16 }} />
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -416,6 +480,39 @@ const Users = () => {
       console.error("Error refreshing user list:", error);
       setError("Failed to refresh user list. Please try again.");
     }
+  };
+
+  const downloadExcel = () => {
+    // Prepare data for Excel export (exclude the actions column)
+    const excelData = filteredUsers.map((user) => ({
+      ID: user.id,
+      "First Name": user.firstName,
+      "Last Name": user.lastName,
+      "Email Address": user.email,
+      EID: user.eid,
+      "Phone Number": user.phoneNumber,
+      "Role Category": user.roleCategory,
+      Role: user.role,
+      Seniority: user.seniority,
+      "Overall Progress": user.overallProgress,
+      Certificates: user.certificates,
+      "Registration Date": user.registrationDate,
+      "Last Login Date": user.lastLoginDate,
+    }));
+
+    // Create a new workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Add the worksheet to the workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Frontliners");
+
+    // Generate filename with current date
+    const currentDate = new Date().toISOString().split("T")[0];
+    const filename = `frontliners_${currentDate}.xlsx`;
+
+    // Write and download the file
+    XLSX.writeFile(workbook, filename);
   };
 
   const EditUserForm = () => {
@@ -514,8 +611,16 @@ const Users = () => {
     "ID",
     "First Name",
     "Last Name",
-    "Email",
-    "User Type",
+    "Email Address",
+    "EID",
+    "Phone Number",
+    "Role Category",
+    "Role",
+    "Seniority",
+    "Overall Progress",
+    "Certificates",
+    "Registration Date",
+    "Last Login Date",
     "Actions",
   ];
 
@@ -524,10 +629,10 @@ const Users = () => {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white">
-            User Management
+            Frontliners
           </h1>
           <p className="text-white/80 mt-2">
-            Manage users within your organization and assets
+            Manage frontliners within your organization
           </p>
         </div>
       </header>
@@ -551,6 +656,16 @@ const Users = () => {
             }}
             className="pl-10 rounded-full bg-[#00d8cc]/30 border-white/20 text-white placeholder:text-white/60 w-full"
           />
+        </div>
+        <div>
+          <Button
+            onClick={downloadExcel}
+            className="rounded-full bg-[#00d8cc]/30"
+            disabled={filteredUsers.length === 0}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Download Excel
+          </Button>
         </div>
       </div>
 
@@ -578,7 +693,29 @@ const Users = () => {
                 </TableCell>
                 <TableCell className="text-white/90">{user.lastName}</TableCell>
                 <TableCell className="text-white/90">{user.email}</TableCell>
-                <TableCell className="text-white/90">{user.userType}</TableCell>
+                <TableCell className="text-white/90">{user.eid}</TableCell>
+                <TableCell className="text-white/90">
+                  {user.phoneNumber}
+                </TableCell>
+                <TableCell className="text-white/90">
+                  {user.roleCategory}
+                </TableCell>
+                <TableCell className="text-white/90">{user.role}</TableCell>
+                <TableCell className="text-white/90">
+                  {user.seniority}
+                </TableCell>
+                <TableCell className="text-white/90">
+                  {user.overallProgress}
+                </TableCell>
+                <TableCell className="text-white/90">
+                  {user.certificates}
+                </TableCell>
+                <TableCell className="text-white/90">
+                  {user.registrationDate}
+                </TableCell>
+                <TableCell className="text-white/90">
+                  {user.lastLoginDate}
+                </TableCell>
                 <TableCell className="text-white/90">{user.actions}</TableCell>
               </TableRow>
             ))}
@@ -593,6 +730,134 @@ const Users = () => {
             <DialogTitle className="text-white">Edit User</DialogTitle>
           </DialogHeader>
           <EditUserForm />
+        </DialogContent>
+      </Dialog>
+
+      {/* View User Details Modal */}
+      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+        <DialogContent className="max-w-2xl bg-[#003451] border-white/20 text-white max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white">
+              User Profile Details
+            </DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white/80">First Name</Label>
+                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                    {selectedUser.firstName}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white/80">Last Name</Label>
+                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                    {selectedUser.lastName}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white/80">Email Address</Label>
+                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                    {selectedUser.email}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white/80">EID</Label>
+                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                    {selectedUser.eid}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white/80">Phone Number</Label>
+                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                    {selectedUser.phoneNumber}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white/80">User Type</Label>
+                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                    {selectedUser.userType}
+                  </div>
+                </div>
+              </div>
+
+              {/* Role Information */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white/80">Role Category</Label>
+                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                    {selectedUser.roleCategory}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white/80">Role</Label>
+                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                    {selectedUser.role}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white/80">Seniority</Label>
+                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                    {selectedUser.seniority}
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress and Certificates */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white/80">Overall Progress</Label>
+                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                    {selectedUser.overallProgress}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white/80">Certificates</Label>
+                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                    {selectedUser.certificates}
+                  </div>
+                </div>
+              </div>
+
+              {/* Dates */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white/80">Registration Date</Label>
+                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                    {selectedUser.registrationDate}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white/80">Last Login Date</Label>
+                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                    {selectedUser.lastLoginDate}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsViewModalOpen(false)}
+                  className="rounded-full bg-[#00d8cc]/30 border-white/20 text-white hover:bg-[#00d8cc]/50"
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    handleEditUser(selectedUser);
+                  }}
+                  className="rounded-full bg-[#00d8cc] hover:bg-[#00d8cc]/80"
+                >
+                  Edit User
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -44,6 +44,7 @@ interface AuthContextType {
   logout: () => void;
   updateUser: (userData: User) => void;
   userExists: () => boolean;
+  redirectIfLoggedIn: () => void;
 }
 
 // JWT utility functions
@@ -102,6 +103,31 @@ const api = {
       return data;
     } catch (error) {
       console.error("Failed to login:", error);
+      throw error;
+    }
+  },
+
+  async checkSubAdminExists(userId: number) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/sub-admins/check/${userId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to check sub-admin existence:", error);
       throw error;
     }
   },
@@ -254,6 +280,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await api.login(email, password);
 
       if (response.success) {
+        // If user is a sub_admin, check if they exist in the sub_admins table
+        if (response.user.userType === "sub_admin") {
+          try {
+            const subAdminCheck = await api.checkSubAdminExists(
+              response.user.id
+            );
+            if (!subAdminCheck.data.exists) {
+              // Redirect to join page instead of blocking login
+              window.location.href = `/join?id=${response.user.id}`;
+              return {
+                success: false,
+                message: "Redirecting to registration...",
+              };
+            }
+          } catch (error) {
+            console.error("Error checking sub-admin existence:", error);
+            return {
+              success: false,
+              message: "Unable to verify sub-admin status. Please try again.",
+            };
+          }
+        }
+
         // Store user data and token
         setUser(response.user);
         setToken(response.token);
@@ -335,6 +384,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return user !== null && user !== undefined;
   };
 
+  // Check if user is logged in and redirect them to appropriate dashboard
+  const redirectIfLoggedIn = (): void => {
+    const storedUser = localStorage.getItem("userData");
+    const storedToken = localStorage.getItem("token");
+
+    if (storedUser && storedToken) {
+      try {
+        // Check if token is expired
+        if (!isTokenExpired(storedToken)) {
+          const userData = JSON.parse(storedUser);
+
+          // Redirect to appropriate dashboard based on user type
+          const dashboardPath =
+            userData.userType === "admin"
+              ? "/admin/dashboard"
+              : userData.userType === "sub_admin"
+              ? "/sub-admin/dashboard"
+              : "/user/dashboard";
+
+          window.location.href = dashboardPath;
+        } else {
+          // Token is expired, clear storage
+          localStorage.removeItem("userData");
+          localStorage.removeItem("token");
+        }
+      } catch (error) {
+        console.error("Error parsing stored user data:", error);
+        // Clear corrupted data
+        localStorage.removeItem("userData");
+        localStorage.removeItem("token");
+      }
+    }
+  };
+
   const value: AuthContextType = {
     user,
     token,
@@ -344,6 +427,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     updateUser,
     userExists,
+    redirectIfLoggedIn,
   };
 
   return (

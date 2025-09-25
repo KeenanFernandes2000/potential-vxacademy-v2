@@ -9,6 +9,7 @@ import {
   School,
   ArrowLeft,
 } from "@mui/icons-material";
+import { useAuth } from "@/hooks/useAuth";
 
 import {
   Sidebar,
@@ -31,6 +32,12 @@ const SubAdminSidebar = () => {
   const location = useLocation();
   const { toggleSidebar, state } = useSidebar();
 
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+  };
+
   const mainNavItems = [
     {
       title: "Dashboard",
@@ -38,8 +45,18 @@ const SubAdminSidebar = () => {
       url: "/sub-admin/dashboard",
       badge: null,
     },
-    { title: "Users", icon: Users, url: "/sub-admin/users", badge: null },
-    { title: "Links", icon: LinkIcon, url: "/sub-admin/links", badge: null },
+    {
+      title: "Frontliners",
+      icon: Users,
+      url: "/sub-admin/frontliners",
+      badge: null,
+    },
+    {
+      title: "Invite Your Frontliners",
+      icon: LinkIcon,
+      url: "/sub-admin/invite",
+      badge: null,
+    },
   ];
 
   return (
@@ -69,7 +86,6 @@ const SubAdminSidebar = () => {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => (
@@ -101,14 +117,12 @@ const SubAdminSidebar = () => {
                     <span>Profile</span>
                   </Link>
                 </SidebarMenuButton>
-                <SidebarMenuAction asChild>
-                  <Link
-                    to="#logout"
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <LogOut sx={{ fontSize: 16 }} />
-                  </Link>
-                </SidebarMenuAction>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout}>
+                  <LogOut sx={{ fontSize: 16 }} />
+                  <span>Logout</span>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>

@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  HeadingLevel,
+  ExternalHyperlink,
+} from "docx";
 
 // API object with all endpoints
 const api = {
@@ -160,18 +168,200 @@ const Links = () => {
     return invitationLinks[type] || null;
   };
 
-  const copyToClipboard = async (text: string) => {
+  const generateWordDocument = async (
+    type: "new_joiner" | "existing_joiner",
+    invitationUrl: string
+  ) => {
     try {
-      await navigator.clipboard.writeText(text);
+      let content: Paragraph[] = [];
+
+      if (type === "existing_joiner") {
+        content = [
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Dear [Frontliner Name],",
+                bold: true,
+                size: 24,
+              }),
+            ],
+            spacing: { after: 400 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Welcome to VX Academy! Start your learning journey, designed to help you deliver authentic, memorable, and world-class guest experiences.",
+                size: 24,
+              }),
+            ],
+            spacing: { after: 400 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Please complete your registration and proceed to the Al Midhyaf Training area to access and download your certificate of completion.",
+                size: 24,
+              }),
+            ],
+            spacing: { after: 400 },
+          }),
+          new Paragraph({
+            children: [
+              new ExternalHyperlink({
+                children: [
+                  new TextRun({
+                    text: invitationUrl,
+                    bold: true,
+                    color: "0066CC",
+                    underline: {},
+                    size: 24,
+                  }),
+                ],
+                link: invitationUrl,
+              }),
+            ],
+            spacing: { after: 400 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "We're excited to have you on this journey.",
+                size: 24,
+              }),
+            ],
+            spacing: { after: 400 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Best of luck,",
+                size: 24,
+              }),
+            ],
+            spacing: { after: 200 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "The VX Academy Team",
+                bold: true,
+                size: 24,
+              }),
+            ],
+            spacing: { after: 400 },
+          }),
+        ];
+      } else {
+        content = [
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Dear [Frontliner Name],",
+                bold: true,
+                size: 24,
+              }),
+            ],
+            spacing: { after: 400 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Thank you for completing your registration with the VX Academy. Your account has been successfully created.",
+                size: 24,
+              }),
+            ],
+            spacing: { after: 400 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "You can now log in to the platform using the link below to access your dashboard and begin exploring the Academy:",
+                size: 24,
+              }),
+            ],
+            spacing: { after: 400 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "👉 ",
+                size: 24,
+              }),
+              new ExternalHyperlink({
+                children: [
+                  new TextRun({
+                    text: invitationUrl,
+                    bold: true,
+                    color: "0066CC",
+                    underline: {},
+                    size: 24,
+                  }),
+                ],
+                link: invitationUrl,
+              }),
+            ],
+            spacing: { after: 400 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "We are excited to welcome you onboard and look forward to supporting your learning journey.",
+                size: 24,
+              }),
+            ],
+            spacing: { after: 400 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Best regards,",
+                size: 24,
+              }),
+            ],
+            spacing: { after: 200 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "The VX Academy Team",
+                bold: true,
+                size: 24,
+              }),
+            ],
+          }),
+        ];
+      }
+
+      const doc = new Document({
+        sections: [
+          {
+            properties: {},
+            children: content,
+          },
+        ],
+      });
+
+      const blob = await Packer.toBlob(doc);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `VX_Academy_Invitation_${
+        type === "new_joiner" ? "New_Users" : "Existing_Users"
+      }.docx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
       setMessage({
         type: "success",
-        text: "Link copied to clipboard!",
+        text: "Word document downloaded successfully!",
       });
-    } catch (err) {
-      console.error("Failed to copy text: ", err);
+    } catch (error) {
+      console.error("Failed to generate Word document:", error);
       setMessage({
         type: "error",
-        text: "Failed to copy link to clipboard",
+        text: "Failed to generate Word document. Please try again.",
       });
     }
   };
@@ -179,9 +369,12 @@ const Links = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">User Invitations</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Frontliner Invitations
+        </h1>
         <p className="text-muted-foreground">
-          Send invitations to new users or existing users in your organization.
+          Send invitations to new frontliners or existing frontliners in your
+          organization.
         </p>
       </div>
 
@@ -197,38 +390,38 @@ const Links = () => {
         </div>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-lg border p-6">
+      <div className="grid gap-6 grid-cols-4">
+        <div className="col-span-3 rounded-lg border p-6 flex flex-col">
           <h3 className="font-semibold text-lg mb-2">New Users</h3>
           {hasInvitationLink("new_joiner") ? (
-            <div className="space-y-3">
+            <div className="space-y-3 flex flex-col flex-1">
               <p className="text-sm text-muted-foreground">
-                Invitation link generated:
+                Download the Word document to
+                send to new users:
               </p>
-              <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                <code className="text-sm flex-1 break-all text-slate-700">
-                  {getInvitationLink("new_joiner")}
-                </code>
-                <Button
-                  onClick={() =>
-                    copyToClipboard(getInvitationLink("new_joiner")!)
-                  }
-                  size="sm"
-                  variant="outline"
-                  className="shrink-0"
-                >
-                  Copy
-                </Button>
-              </div>
+              <div className="flex-1"></div>
+              <Button
+                onClick={() =>
+                  generateWordDocument(
+                    "new_joiner",
+                    getInvitationLink("new_joiner")!
+                  )
+                }
+                className="w-full"
+                variant="default"
+              >
+                Download New User Invitation Document
+              </Button>
             </div>
           ) : hasInvitation("new_joiner") ? (
-            <div className="space-y-3">
+            <div className="space-y-3 flex flex-col flex-1">
               <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
                 <p className="text-sm text-amber-800">
                   ⚠️ Invitation exists but link is not available. Generate a new
-                  invitation to get the link.
+                  invitation to get the document.
                 </p>
               </div>
+              <div className="flex-1"></div>
               <Button
                 onClick={() => makeInvitationRequest("new_joiner")}
                 disabled={isLoading.newJoiner}
@@ -236,53 +429,56 @@ const Links = () => {
               >
                 {isLoading.newJoiner
                   ? "Generating..."
-                  : "Generate New Invitation Link"}
+                  : "Generate New Invitation Document"}
               </Button>
             </div>
           ) : (
-            <Button
-              onClick={() => makeInvitationRequest("new_joiner")}
-              disabled={isLoading.newJoiner}
-              className="w-full"
-            >
-              {isLoading.newJoiner
-                ? "Generating..."
-                : "Generate New User Invitation"}
-            </Button>
+            <div className="flex flex-col flex-1">
+              <div className="flex-1"></div>
+              <Button
+                onClick={() => makeInvitationRequest("new_joiner")}
+                disabled={isLoading.newJoiner}
+                className="w-full"
+              >
+                {isLoading.newJoiner
+                  ? "Generating..."
+                  : "Generate New User Invitation"}
+              </Button>
+            </div>
           )}
         </div>
 
-        <div className="rounded-lg border p-6">
+        <div className="col-span-1 rounded-lg border p-6 flex flex-col">
           <h3 className="font-semibold text-lg mb-2">Existing Users</h3>
           {hasInvitationLink("existing_joiner") ? (
-            <div className="space-y-3">
+            <div className="space-y-3 flex flex-col flex-1">
               <p className="text-sm text-muted-foreground">
-                Invitation link generated:
+                Download the Word document to
+                send to existing users:
               </p>
-              <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                <code className="text-sm flex-1 break-all text-slate-700">
-                  {getInvitationLink("existing_joiner")}
-                </code>
-                <Button
-                  onClick={() =>
-                    copyToClipboard(getInvitationLink("existing_joiner")!)
-                  }
-                  size="sm"
-                  variant="outline"
-                  className="shrink-0"
-                >
-                  Copy
-                </Button>
-              </div>
+              <div className="flex-1"></div>
+              <Button
+                onClick={() =>
+                  generateWordDocument(
+                    "existing_joiner",
+                    getInvitationLink("existing_joiner")!
+                  )
+                }
+                className="w-full"
+                variant="default"
+              >
+                Download Existing User Invitation Document
+              </Button>
             </div>
           ) : hasInvitation("existing_joiner") ? (
-            <div className="space-y-3">
+            <div className="space-y-3 flex flex-col flex-1">
               <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
                 <p className="text-sm text-amber-800">
                   ⚠️ Invitation exists but link is not available. Generate a new
-                  invitation to get the link.
+                  invitation to get the document.
                 </p>
               </div>
+              <div className="flex-1"></div>
               <Button
                 onClick={() => makeInvitationRequest("existing_joiner")}
                 disabled={isLoading.existingJoiner}
@@ -290,19 +486,22 @@ const Links = () => {
               >
                 {isLoading.existingJoiner
                   ? "Generating..."
-                  : "Generate New Invitation Link"}
+                  : "Generate New Invitation Document"}
               </Button>
             </div>
           ) : (
-            <Button
-              onClick={() => makeInvitationRequest("existing_joiner")}
-              disabled={isLoading.existingJoiner}
-              className="w-full"
-            >
-              {isLoading.existingJoiner
-                ? "Generating..."
-                : "Generate Existing User Invitation"}
-            </Button>
+            <div className="flex flex-col flex-1">
+              <div className="flex-1"></div>
+              <Button
+                onClick={() => makeInvitationRequest("existing_joiner")}
+                disabled={isLoading.existingJoiner}
+                className="w-full"
+              >
+                {isLoading.existingJoiner
+                  ? "Generating..."
+                  : "Generate Existing User Invitation"}
+              </Button>
+            </div>
           )}
         </div>
       </div>

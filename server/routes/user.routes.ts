@@ -93,6 +93,10 @@ router.get(
   "/sub-admins/registration/:id",
   userControllers.getSubAdminRegistrationDetails
 );
+router.get(
+  "/sub-admins/check/:id",
+  userControllers.checkSubAdminExists
+);
 
 // ==================== NORMAL USER REGISTRATION & UPDATE FUNCTIONS ====================
 router.post(
