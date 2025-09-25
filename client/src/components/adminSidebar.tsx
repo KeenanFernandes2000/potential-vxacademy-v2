@@ -53,6 +53,7 @@ const AdminSidebar = () => {
     organization: true,
     contentManagement: true,
     platformSettings: true,
+    trainingAreas: false, // Add state for training areas dropdown
   });
 
   const toggleSection = (sectionName: string) => {
@@ -72,6 +73,7 @@ const AdminSidebar = () => {
         organization: true,
         contentManagement: true,
         platformSettings: true,
+        trainingAreas: true, // Add training areas to collapsed state
       });
     }
   }, [state]);
@@ -89,43 +91,71 @@ const AdminSidebar = () => {
     {
       title: "Analytics",
       icon: Report,
-      // url: "/admin/analytics",
+      url: "/admin/reports/analytics",
       badge: null,
     },
     {
       title: "All Users",
       icon: Users,
-      // url: "/admin/all-users",
+      url: "/admin/reports/all-users",
       badge: null,
     },
     {
       title: "Organizations",
       icon: Users,
-      url: "/admin/organizations",
+      url: "/admin/reports/organizations",
       badge: null,
     },
     {
       title: "Sub-Admins",
       icon: Shield,
-      url: "/admin/sub-admins",
+      url: "/admin/reports/sub-admins",
       badge: null,
     },
     {
       title: "Frontliners",
       icon: Users,
-      // url: "/admin/frontliners",
-      badge: null,
-    },
-    {
-      title: "Training Areas",
-      icon: FileText,
-      // url: "/admin/training-areas",
+      url: "/admin/reports/frontliners",
       badge: null,
     },
     {
       title: "Certificate Reports",
       icon: FileText,
-      // url: "/admin/certificate-reports",
+      url: "/admin/reports/certificate-reports",
+      badge: null,
+    },
+  ];
+
+  // Add training areas sub-items
+  const trainingAreasNavItems = [
+    {
+      title: "Al Midhyaf COC",
+      icon: School,
+      url: "/admin/reports/training-areas/al-midhyaf-coc",
+      badge: null,
+    },
+    {
+      title: "AD Information",
+      icon: School,
+      url: "/admin/reports/training-areas/ad-information",
+      badge: null,
+    },
+    {
+      title: "General VX Soft Skills",
+      icon: School,
+      url: "/admin/reports/training-areas/general-vx-soft-skills",
+      badge: null,
+    },
+    {
+      title: "General VX Hard Skills",
+      icon: School,
+      url: "/admin/reports/training-areas/general-vx-hard-skills",
+      badge: null,
+    },
+    {
+      title: "Managerial Competencies",
+      icon: School,
+      url: "/admin/reports/training-areas/managerial-competencies",
       badge: null,
     },
   ];
@@ -362,23 +392,110 @@ const AdminSidebar = () => {
               {sectionStates[section.key as keyof typeof sectionStates] && (
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {section.items.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={location.pathname === item.url}
-                        >
-                          <Link to={item.url || "#"}>
-                            <item.icon sx={{ fontSize: 16 }} />
-                            <span>{item.title}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
+                    {/* Custom rendering for Reports section */}
+                    {section.key === "reports" ? (
+                      <>
+                        {/* Regular report items before Training Areas */}
+                        {section.items.slice(0, -1).map((item) => (
+                          <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={location.pathname === item.url}
+                            >
+                              <Link to={item.url || "#"}>
+                                <item.icon sx={{ fontSize: 16 }} />
+                                <span>{item.title}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+
+                        {/* Training Areas dropdown */}
+                        <SidebarMenuItem>
+                          <SidebarMenuButton
+                            asChild
+                            className="cursor-pointer hover:bg-sidebar-accent"
+                            onClick={() => toggleSection("trainingAreas")}
+                          >
+                            <button className="w-full text-left flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <School sx={{ fontSize: 16 }} />
+                                <span>Training Areas</span>
+                              </div>
+                              <ChevronDown
+                                sx={{
+                                  ml: "auto",
+                                  transition: "transform 200ms",
+                                  transform: sectionStates.trainingAreas
+                                    ? "rotate(180deg)"
+                                    : "rotate(0deg)",
+                                  fontSize: 16,
+                                }}
+                              />
+                            </button>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+
+                        {/* Training Areas sub-items */}
+                        {sectionStates.trainingAreas && (
+                          <>
+                            {trainingAreasNavItems.map((trainingItem) => (
+                              <SidebarMenuItem
+                                key={trainingItem.title}
+                                className="ml-4"
+                              >
+                                <SidebarMenuButton
+                                  asChild
+                                  isActive={
+                                    location.pathname === trainingItem.url
+                                  }
+                                >
+                                  <Link to={trainingItem.url || "#"}>
+                                    <trainingItem.icon sx={{ fontSize: 16 }} />
+                                    <span>{trainingItem.title}</span>
+                                  </Link>
+                                </SidebarMenuButton>
+                              </SidebarMenuItem>
+                            ))}
+                          </>
+                        )}
+
+                        {/* Certificate Reports (last item) */}
+                        {section.items.slice(-1).map((item) => (
+                          <SidebarMenuItem key={item.title}>
+                            <SidebarMenuButton
+                              asChild
+                              isActive={location.pathname === item.url}
+                            >
+                              <Link to={item.url || "#"}>
+                                <item.icon sx={{ fontSize: 16 }} />
+                                <span>{item.title}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </>
+                    ) : (
+                      /* Regular rendering for other sections */
+                      section.items.map((item) => (
+                        <SidebarMenuItem key={item.title}>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={location.pathname === item.url}
+                          >
+                            <Link to={item.url || "#"}>
+                              <item.icon sx={{ fontSize: 16 }} />
+                              <span>{item.title}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))
+                    )}
                   </SidebarMenu>
                 </SidebarGroupContent>
               )}
             </SidebarGroup>
+
             {index < sections.length - 1 && <SidebarSeparator />}
           </React.Fragment>
         ))}

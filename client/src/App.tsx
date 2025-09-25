@@ -41,8 +41,24 @@ import UserDashboard from "@/pages/user/dashboard";
 import UserCourses from "@/pages/user/courses";
 import UserAchievements from "@/pages/user/achievements";
 import CourseDetails from "@/pages/user/courseDetails";
-// import AssessmentPage from "@/pages/user/assessmentPage";
 import MediaPage from "./pages/admin/mediaPage";
+
+// Report Pages
+import {
+  Analytics,
+  AllUsers,
+  Organizations,
+  SubAdmins,
+  Frontliners,
+  CertificateReports,
+} from "@/pages/admin/reports";
+
+// Training Area Pages
+import AlMidhyafCoc from "@/pages/admin/reports/training-areas/alMidhyafCoc";
+import AdInformation from "@/pages/admin/reports/training-areas/adInformation";
+import GeneralVxSoftSkills from "@/pages/admin/reports/training-areas/generalVxSoftSkills";
+import GeneralVxHardSkills from "@/pages/admin/reports/training-areas/generalVxHardSkills";
+import ManagerialCompetencies from "@/pages/admin/reports/training-areas/managerialCompetencies";
 
 // Import SidebarProvider for persistent sidebar state
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
@@ -124,6 +140,47 @@ function App() {
                         element={<LearningPathPage />}
                       />
                       <Route path="media" element={<MediaPage />} />
+
+                      {/* Report Routes */}
+                      <Route path="reports/analytics" element={<Analytics />} />
+                      <Route path="reports/all-users" element={<AllUsers />} />
+                      <Route
+                        path="reports/organizations"
+                        element={<Organizations />}
+                      />
+                      <Route
+                        path="reports/sub-admins"
+                        element={<SubAdmins />}
+                      />
+                      <Route
+                        path="reports/frontliners"
+                        element={<Frontliners />}
+                      />
+                      {/* Training Area Routes */}
+                      <Route
+                        path="reports/training-areas/al-midhyaf-coc"
+                        element={<AlMidhyafCoc />}
+                      />
+                      <Route
+                        path="reports/training-areas/ad-information"
+                        element={<AdInformation />}
+                      />
+                      <Route
+                        path="reports/training-areas/general-vx-soft-skills"
+                        element={<GeneralVxSoftSkills />}
+                      />
+                      <Route
+                        path="reports/training-areas/general-vx-hard-skills"
+                        element={<GeneralVxHardSkills />}
+                      />
+                      <Route
+                        path="reports/training-areas/managerial-competencies"
+                        element={<ManagerialCompetencies />}
+                      />
+                      <Route
+                        path="reports/certificate-reports"
+                        element={<CertificateReports />}
+                      />
                     </Routes>
                   </AdminRoutesWrapper>
                 </ProtectedRoute>
@@ -222,14 +279,6 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              {/* <Route
-                path="assessment/:id"
-                element={
-                  <ProtectedRoute requiredUserType="user">
-                    <AssessmentPage />
-                  </ProtectedRoute>
-                }
-              /> */}
             </Route>
             <Route
               path="/initial-assessment"

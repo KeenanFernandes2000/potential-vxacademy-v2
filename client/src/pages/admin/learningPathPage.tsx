@@ -18,7 +18,7 @@ import {
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { Delete, Assignment } from "@mui/icons-material";
+import { Delete, Assignment, Close } from "@mui/icons-material";
 
 // API object for learning path operations
 const api = {
@@ -326,6 +326,8 @@ interface LearningPathData
   name: string;
   categoryId: number;
   categoryName: string;
+  assetName: string;
+  seniorityName: string;
   actions: React.ReactNode;
 }
 
@@ -338,6 +340,18 @@ const LearningPathsPage = () => {
   const [roleCategories, setRoleCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  // Success message display function
+  const showSuccess = (message: string) => {
+    setSuccessMessage(message);
+    setShowSuccessMessage(true);
+    setTimeout(() => {
+      setShowSuccessMessage(false);
+      setSuccessMessage("");
+    }, 3000);
+  };
 
   // Modal and assignment-related state
   const [isAssignUnitsModalOpen, setIsAssignUnitsModalOpen] = useState(false);
@@ -361,6 +375,12 @@ const LearningPathsPage = () => {
     courseId: "",
     seniorityId: "",
     assetId: "",
+  });
+
+  // Table filter state
+  const [tableFilters, setTableFilters] = useState({
+    assetId: "",
+    roleCategoryId: "",
   });
 
   // Ensure no duplicates between existing and available units whenever existing units change
@@ -407,10 +427,21 @@ const LearningPathsPage = () => {
         setAssets(assetsResponse.data || []);
         setSeniorityLevels(seniorityResponse.data || []);
 
-        // Create a map for quick category lookup
+        // Create maps for quick lookup
         const categoryMap = new Map();
+        const assetMap = new Map();
+        const seniorityMap = new Map();
+
         categoriesResponse.data?.forEach((cat: any) => {
           categoryMap.set(cat.id, cat.name);
+        });
+
+        assetsResponse.data?.forEach((asset: any) => {
+          assetMap.set(asset.id, asset.name);
+        });
+
+        seniorityResponse.data?.forEach((seniority: any) => {
+          seniorityMap.set(seniority.id, seniority.name);
         });
 
         // Transform data to match our display format
@@ -418,8 +449,11 @@ const LearningPathsPage = () => {
           learningPathsResponse.data?.map((learningPath: any) => ({
             id: learningPath.id,
             name: learningPath.roleName || learningPath.name,
+            assetName: assetMap.get(learningPath.assetId) || "Unknown",
             categoryName:
               categoryMap.get(learningPath.roleCategoryId) || "Unknown",
+            seniorityName:
+              seniorityMap.get(learningPath.seniorityLevelId) || "Unknown",
             actions: (
               <div className="flex gap-1">
                 <Button
@@ -459,16 +493,59 @@ const LearningPathsPage = () => {
   }, [token]);
 
   const handleSearch = (query: string) => {
-    if (!query) {
-      setFilteredLearningPaths(learningPaths);
-    } else {
-      const filtered = learningPaths.filter(
+    applyTableFilters(query);
+  };
+
+  const applyTableFilters = (searchQuery: string = "") => {
+    let filtered = learningPaths;
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(
         (learningPath) =>
-          learningPath.name.toLowerCase().includes(query.toLowerCase()) ||
-          learningPath.categoryName.toLowerCase().includes(query.toLowerCase())
+          learningPath.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          learningPath.categoryName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          (learningPath.assetName &&
+            learningPath.assetName
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase())) ||
+          (learningPath.seniorityName &&
+            learningPath.seniorityName
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase()))
       );
-      setFilteredLearningPaths(filtered);
     }
+
+    // Apply asset filter
+    if (tableFilters.assetId) {
+      filtered = filtered.filter(
+        (learningPath) =>
+          learningPath.assetName ===
+          assets.find((asset) => asset.id.toString() === tableFilters.assetId)
+            ?.name
+      );
+    }
+
+    // Apply role category filter
+    if (tableFilters.roleCategoryId) {
+      filtered = filtered.filter(
+        (learningPath) =>
+          learningPath.categoryName ===
+          roleCategories.find(
+            (cat) => cat.id.toString() === tableFilters.roleCategoryId
+          )?.name
+      );
+    }
+
+    setFilteredLearningPaths(filtered);
+  };
+
+  const handleTableFilterChange = (filterType: string, value: string) => {
+    const newFilters = { ...tableFilters, [filterType]: value };
+    setTableFilters(newFilters);
+    applyTableFilters();
   };
 
   const handleCreateLearningPath = async (formData: any) => {
@@ -499,6 +576,7 @@ const LearningPathsPage = () => {
         // Refresh the learning path list
         await refreshLearningPathList();
         setError("");
+        showSuccess("Learning Path created successfully!");
       } else {
         setError(response.message || "Failed to create learning path");
       }
@@ -553,10 +631,21 @@ const LearningPathsPage = () => {
       api.getAllSeniorityLevels(token),
     ]);
 
-    // Create a map for quick category lookup
+    // Create maps for quick lookup
     const categoryMap = new Map();
+    const assetMap = new Map();
+    const seniorityMap = new Map();
+
     categoriesResponse.data?.forEach((cat: any) => {
       categoryMap.set(cat.id, cat.name);
+    });
+
+    assetsResponse.data?.forEach((asset: any) => {
+      assetMap.set(asset.id, asset.name);
+    });
+
+    seniorityResponse.data?.forEach((seniority: any) => {
+      seniorityMap.set(seniority.id, seniority.name);
     });
 
     // Update the dropdown data
@@ -567,7 +656,10 @@ const LearningPathsPage = () => {
       learningPathsResponse.data?.map((learningPath: any) => ({
         id: learningPath.id,
         name: learningPath.roleName || learningPath.name,
+        assetName: assetMap.get(learningPath.assetId) || "Unknown",
         categoryName: categoryMap.get(learningPath.roleCategoryId) || "Unknown",
+        seniorityName:
+          seniorityMap.get(learningPath.seniorityLevelId) || "Unknown",
         actions: (
           <div className="flex gap-1">
             <Button
@@ -1091,7 +1183,7 @@ const LearningPathsPage = () => {
     }
   };
 
-  const CreateLearningPathForm = () => {
+  const CreateLearningPathForm = ({ onClose }: { onClose: () => void }) => {
     const [formData, setFormData] = useState({
       name: "",
       assetsId: "",
@@ -1111,87 +1203,198 @@ const LearningPathsPage = () => {
     };
 
     return (
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
-      >
-        <div className="space-y-2">
-          <Label htmlFor="name">Learning Path Name *</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-[#00d8cc]/30"
-            required
-          />
+      <div className="relative">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="absolute top-0 right-0 h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10 z-10"
+          onClick={onClose}
+        >
+          <Close sx={{ fontSize: 20 }} />
+        </Button>
+
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-white">
+            Create Learning Path
+          </h2>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="assetsId">Asset *</Label>
-          <select
-            id="assetsId"
-            value={formData.assetsId}
-            onChange={(e) =>
-              setFormData({ ...formData, assetsId: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-            required
-          >
-            <option value="">Select an asset</option>
-            {assets.map((asset) => (
-              <option key={asset.id} value={asset.id}>
-                {asset.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="roleCategoriesId">Role Category *</Label>
-          <select
-            id="roleCategoriesId"
-            value={formData.roleCategoriesId}
-            onChange={(e) =>
-              setFormData({ ...formData, roleCategoriesId: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-            required
-          >
-            <option value="">Select a role category</option>
-            {roleCategories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="seniorityLevelId">Seniority Level *</Label>
-          <select
-            id="seniorityLevelId"
-            value={formData.seniorityLevelId}
-            onChange={(e) =>
-              setFormData({ ...formData, seniorityLevelId: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-            required
-          >
-            <option value="">Select a seniority level</option>
-            {seniorityLevels.map((seniority) => (
-              <option key={seniority.id} value={seniority.id}>
-                {seniority.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoading} className="rounded-full">
-            {isLoading ? "Creating..." : "Create Learning Path"}
-          </Button>
-        </div>
-      </form>
+
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
+        >
+          <div className="space-y-3">
+            <Label htmlFor="name" className="text-white font-medium">
+              Learning Path Name *
+            </Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              placeholder="Type Learning Path Name"
+              className="rounded-full bg-[#00d8cc]/30 text-white placeholder:text-white/60 border-white/30 focus:border-[#00d8cc]"
+              required
+            />
+          </div>
+          <div className="space-y-3">
+            <Label htmlFor="assetsId" className="text-white font-medium">
+              Asset *
+            </Label>
+            <div className="relative">
+              <select
+                id="assetsId"
+                value={formData.assetsId}
+                onChange={(e) =>
+                  setFormData({ ...formData, assetsId: e.target.value })
+                }
+                className="w-full px-3 py-2 pr-8 border border-white/30 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent appearance-none"
+                required
+              >
+                <option value="" className="text-gray-900">
+                  Select an asset
+                </option>
+                {assets.map((asset) => (
+                  <option
+                    key={asset.id}
+                    value={asset.id}
+                    className="text-gray-900"
+                  >
+                    {asset.name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <Label
+              htmlFor="roleCategoriesId"
+              className="text-white font-medium"
+            >
+              Role Category *
+            </Label>
+            <div className="relative">
+              <select
+                id="roleCategoriesId"
+                value={formData.roleCategoriesId}
+                onChange={(e) =>
+                  setFormData({ ...formData, roleCategoriesId: e.target.value })
+                }
+                className="w-full px-3 py-2 pr-8 border border-white/30 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent appearance-none"
+                required
+              >
+                <option value="" className="text-gray-900">
+                  Select a role category
+                </option>
+                {roleCategories.map((category) => (
+                  <option
+                    key={category.id}
+                    value={category.id}
+                    className="text-gray-900"
+                  >
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <Label
+              htmlFor="seniorityLevelId"
+              className="text-white font-medium"
+            >
+              Seniority Level *
+            </Label>
+            <div className="relative">
+              <select
+                id="seniorityLevelId"
+                value={formData.seniorityLevelId}
+                onChange={(e) =>
+                  setFormData({ ...formData, seniorityLevelId: e.target.value })
+                }
+                className="w-full px-3 py-2 pr-8 border border-white/30 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent appearance-none"
+                required
+              >
+                <option value="" className="text-gray-900">
+                  Select a seniority level
+                </option>
+                {seniorityLevels.map((seniority) => (
+                  <option
+                    key={seniority.id}
+                    value={seniority.id}
+                    className="text-gray-900"
+                  >
+                    {seniority.name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg
+                  className="w-4 h-4 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="submit" disabled={isLoading} className="rounded-full">
+              {isLoading ? "Creating..." : "Create Learning Path"}
+            </Button>
+          </div>
+        </form>
+      </div>
     );
   };
 
-  const columns = ["ID", "Name", "Category", "Actions"];
+  const columns = [
+    "ID",
+    "Learning Path",
+    "Asset",
+    "Role Category",
+    "Seniority",
+    "Actions",
+  ];
 
   // Assign Units Modal Component
   const AssignUnitsModal = () => {
@@ -1416,17 +1619,76 @@ const LearningPathsPage = () => {
   return (
     <AdminPageLayout
       title="Learning Paths"
-      description="Manage learning paths and unit assignments across the platform"
+      description="Manage Learning Paths and unit assignments across the platform"
     >
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
           {error}
         </div>
       )}
+
+      {/* Success Message */}
+      {showSuccessMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate-in slide-in-from-right duration-300">
+          {successMessage}
+        </div>
+      )}
+
+      {/* Filter Section */}
+      <div className="mb-6 p-4 bg-[#003451] rounded-lg border border-white/20">
+        <h3 className="text-lg font-semibold text-[#00d8cc] mb-4">Filter By</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="assetFilter" className="text-white">
+              Asset
+            </Label>
+            <Select
+              value={tableFilters.assetId}
+              onValueChange={(value) =>
+                handleTableFilterChange("assetId", value)
+              }
+            >
+              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 border-white/30">
+                <SelectValue placeholder="Select an asset" />
+              </SelectTrigger>
+              <SelectContent>
+                {assets.map((asset) => (
+                  <SelectItem key={asset.id} value={asset.id.toString()}>
+                    {asset.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="roleCategoryFilter" className="text-white">
+              Role Category
+            </Label>
+            <Select
+              value={tableFilters.roleCategoryId}
+              onValueChange={(value) =>
+                handleTableFilterChange("roleCategoryId", value)
+              }
+            >
+              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 border-white/30">
+                <SelectValue placeholder="Select a role category" />
+              </SelectTrigger>
+              <SelectContent>
+                {roleCategories.map((category) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
       <AdminTableLayout
         searchPlaceholder="Search learning paths..."
         createButtonText="Create Learning Path"
-        createForm={<CreateLearningPathForm />}
+        createForm={<CreateLearningPathForm onClose={() => {}} />}
         tableData={filteredLearningPaths}
         columns={columns}
         onSearch={handleSearch}
