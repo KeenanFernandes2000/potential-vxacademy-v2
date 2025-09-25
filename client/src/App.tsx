@@ -134,56 +134,21 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <div>
-          <Routes>
-            {/* <Route path="/" element={<AuthRedirect />} /> */}
+        <ThemeProvider>
+          <div>
+            <Routes>
+              {/* <Route path="/" element={<AuthRedirect />} /> */}
 
-            <Route
-              path="/"
-              element={
-                <ThemeProvider defaultTheme="homepage">
-                  <HomePage />
-                </ThemeProvider>
-              }
-            />
-            <Route
-              path="/login"
-              element={
-                <ThemeProvider defaultTheme="homepage">
-                  <AuthPage />
-                </ThemeProvider>
-              }
-            />
-            <Route
-              path="/forgot-password"
-              element={
-                <ThemeProvider defaultTheme="homepage">
-                  <ForgotPasswordPage />
-                </ThemeProvider>
-              }
-            />
-            <Route
-              path="/reset-password"
-              element={
-                <ThemeProvider defaultTheme="homepage">
-                  <ResetPasswordPage />
-                </ThemeProvider>
-              }
-            />
-            <Route
-              path="/join"
-              element={
-                <ThemeProvider defaultTheme="homepage">
-                  <JoinPage />
-                </ThemeProvider>
-              }
-            />
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<AuthPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/join" element={<JoinPage />} />
 
-            {/* Admin Routes - Wrapped with persistent SidebarProvider */}
-            <Route
-              path="/admin/*"
-              element={
-                <ThemeProvider>
+              {/* Admin Routes - Wrapped with persistent SidebarProvider */}
+              <Route
+                path="/admin/*"
+                element={
                   <ProtectedRoute requiredUserType="admin">
                     <AdminRoutesWrapper>
                       <Routes>
@@ -274,15 +239,13 @@ function App() {
                       </Routes>
                     </AdminRoutesWrapper>
                   </ProtectedRoute>
-                </ThemeProvider>
-              }
-            />
+                }
+              />
 
-            {/* Sub-Admin Routes - Wrapped with persistent SidebarProvider */}
-            <Route
-              path="/sub-admin/*"
-              element={
-                <ThemeProvider>
+              {/* Sub-Admin Routes - Wrapped with persistent SidebarProvider */}
+              <Route
+                path="/sub-admin/*"
+                element={
                   <ProtectedRoute requiredUserType="sub_admin">
                     <SubAdminRoutesWrapper>
                       <Routes>
@@ -295,15 +258,13 @@ function App() {
                       </Routes>
                     </SubAdminRoutesWrapper>
                   </ProtectedRoute>
-                </ThemeProvider>
-              }
-            />
+                }
+              />
 
-            {/* User Routes - Wrapped with persistent SidebarProvider */}
-            <Route
-              path="/user/*"
-              element={
-                <ThemeProvider>
+              {/* User Routes - Wrapped with persistent SidebarProvider */}
+              <Route
+                path="/user/*"
+                element={
                   <ProtectedRoute requiredUserType="user">
                     <UserRoutesWrapper>
                       <Routes>
@@ -317,34 +278,30 @@ function App() {
                       </Routes>
                     </UserRoutesWrapper>
                   </ProtectedRoute>
-                </ThemeProvider>
-              }
-            />
-            <Route
-              path="/initial-assessment"
-              element={
-                <ProtectedRoute requiredUserType="user">
-                  <ThemeProvider>
+                }
+              />
+              <Route
+                path="/initial-assessment"
+                element={
+                  <ProtectedRoute requiredUserType="user">
                     <ExistingUserTestPage />
-                  </ThemeProvider>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <ThemeProvider>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
                     <ProfilePage />
-                  </ThemeProvider>
-                </ProtectedRoute>
-              }
-            />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Catch-all route for 404 */}
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </div>
+              {/* Catch-all route for 404 */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </div>
+        </ThemeProvider>
       </Router>
     </AuthProvider>
   );

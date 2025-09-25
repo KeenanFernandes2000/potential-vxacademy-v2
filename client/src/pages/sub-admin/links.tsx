@@ -390,14 +390,13 @@ const Links = () => {
         </div>
       )}
 
-      <div className="grid gap-6 grid-cols-4">
-        <div className="col-span-3 rounded-lg border p-6 flex flex-col">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
+        <div className="lg:col-span-3 rounded-lg border p-6 flex flex-col">
           <h3 className="font-semibold text-lg mb-2">New Users</h3>
           {hasInvitationLink("new_joiner") ? (
             <div className="space-y-3 flex flex-col flex-1">
               <p className="text-sm text-muted-foreground">
-                Download the Word document to
-                send to new users:
+                Download the Word document to send to new users:
               </p>
               <div className="flex-1"></div>
               <Button
@@ -410,7 +409,7 @@ const Links = () => {
                 className="w-full"
                 variant="default"
               >
-                Download New User Invitation Document
+                Download New User Document
               </Button>
             </div>
           ) : hasInvitation("new_joiner") ? (
@@ -429,7 +428,7 @@ const Links = () => {
               >
                 {isLoading.newJoiner
                   ? "Generating..."
-                  : "Generate New Invitation Document"}
+                  : "Generate New Document"}
               </Button>
             </div>
           ) : (
@@ -442,19 +441,18 @@ const Links = () => {
               >
                 {isLoading.newJoiner
                   ? "Generating..."
-                  : "Generate New User Invitation"}
+                  : "Generate New User Document"}
               </Button>
             </div>
           )}
         </div>
 
-        <div className="col-span-1 rounded-lg border p-6 flex flex-col">
+        <div className="lg:col-span-1 rounded-lg border p-6 flex flex-col">
           <h3 className="font-semibold text-lg mb-2">Existing Users</h3>
           {hasInvitationLink("existing_joiner") ? (
             <div className="space-y-3 flex flex-col flex-1">
               <p className="text-sm text-muted-foreground">
-                Download the Word document to
-                send to existing users:
+                Download the Word document to send to existing users:
               </p>
               <div className="flex-1"></div>
               <Button
@@ -467,7 +465,7 @@ const Links = () => {
                 className="w-full"
                 variant="default"
               >
-                Download Existing User Invitation Document
+                Download Existing User Document
               </Button>
             </div>
           ) : hasInvitation("existing_joiner") ? (
@@ -486,7 +484,7 @@ const Links = () => {
               >
                 {isLoading.existingJoiner
                   ? "Generating..."
-                  : "Generate New Invitation Document"}
+                  : "Generate New Document"}
               </Button>
             </div>
           ) : (
@@ -499,7 +497,7 @@ const Links = () => {
               >
                 {isLoading.existingJoiner
                   ? "Generating..."
-                  : "Generate Existing User Invitation"}
+                  : "Generate Existing User Document"}
               </Button>
             </div>
           )}
