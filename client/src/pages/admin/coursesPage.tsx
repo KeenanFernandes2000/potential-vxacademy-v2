@@ -177,8 +177,10 @@ interface CourseData
   id: number;
   name: string;
   module_name: string;
+  training_area_name: string;
   duration: number;
   level: string;
+  status: string;
   actions: React.ReactNode;
 }
 
@@ -192,6 +194,7 @@ const CoursesPage = () => {
   const [error, setError] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Fetch courses from database on component mount
   useEffect(() => {
@@ -232,8 +235,10 @@ const CoursesPage = () => {
               id: course.id,
               name: course.name,
               module_name: module?.name || "N/A",
+              training_area_name: trainingArea?.name || "N/A",
               duration: course.duration || 0,
               level: course.level || "beginner",
+              status: course.status || "draft",
               trainingAreaId: trainingArea?.id, // Keep for filtering
               moduleId: course.moduleId, // Keep for filtering
               actions: (
@@ -818,19 +823,17 @@ const CoursesPage = () => {
 
   const columns = [
     "ID",
-    "Name",
+    "Course",
     "Module",
-    "Duration",
-    "Level",
-    "Training Area ID",
-    "Module ID",
+    "Training Area",
+    "Duration (Min)",
     "Actions",
   ];
 
   return (
     <AdminPageLayout
       title="Courses"
-      description="Manage courses and learning programs"
+      description="Manage your Courses"
     >
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">

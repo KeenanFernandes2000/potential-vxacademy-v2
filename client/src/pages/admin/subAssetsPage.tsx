@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { MoreVert, Edit, Delete } from "@mui/icons-material";
+import { MoreVert, Edit, Delete, Close } from "@mui/icons-material";
 import {
   Dialog,
   DialogContent,
@@ -160,8 +160,17 @@ const SubAssetsPage = () => {
   const [assets, setAssets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedSubAsset, setSelectedSubAsset] = useState<any>(null);
+
+  // Function to show success message
+  const showSuccessMessage = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+  };
 
   // Fetch sub-assets and assets from database on component mount
   useEffect(() => {
@@ -266,6 +275,7 @@ const SubAssetsPage = () => {
         // Refresh the sub-asset list
         await refreshSubAssetList();
         setError("");
+        showSuccessMessage("Asset Sub-Category created successfully!");
       } else {
         setError(response.message || "Failed to create sub-asset");
       }
@@ -304,6 +314,7 @@ const SubAssetsPage = () => {
         setIsEditModalOpen(false);
         setSelectedSubAsset(null);
         setError("");
+        showSuccessMessage("Asset Sub-Category updated successfully!");
       } else {
         setError(response.message || "Failed to update sub-asset");
       }
@@ -333,6 +344,7 @@ const SubAssetsPage = () => {
         // Refresh the sub-asset list
         await refreshSubAssetList();
         setError("");
+        showSuccessMessage("Asset Sub-Category deleted successfully!");
       } else {
         setError(response.message || "Failed to delete sub-asset");
       }
@@ -421,6 +433,7 @@ const SubAssetsPage = () => {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="rounded-full bg-[#00d8cc]/30"
+            placeholder="Type your Asset Sub-Category Name"
             required
           />
         </div>
@@ -432,12 +445,14 @@ const SubAssetsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, parentAsset: e.target.value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
             required
           >
-            <option value="">Select an asset</option>
+            <option value="" className="text-gray-900">
+              Select an asset
+            </option>
             {assets.map((asset) => (
-              <option key={asset.id} value={asset.id}>
+              <option key={asset.id} value={asset.id} className="text-gray-900">
                 {asset.name}
               </option>
             ))}
@@ -475,6 +490,7 @@ const SubAssetsPage = () => {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="rounded-full bg-[#00d8cc]/30"
+            placeholder="Type your Asset Sub-Category Name"
             required
           />
         </div>
@@ -486,12 +502,14 @@ const SubAssetsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, parentAsset: e.target.value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
             required
           >
-            <option value="">Select an asset</option>
+            <option value="" className="text-gray-900">
+              Select an asset
+            </option>
             {assets.map((asset) => (
-              <option key={asset.id} value={asset.id}>
+              <option key={asset.id} value={asset.id} className="text-gray-900">
                 {asset.name}
               </option>
             ))}
@@ -517,16 +535,21 @@ const SubAssetsPage = () => {
     );
   };
 
-  const columns = ["ID", "Name", "Parent Asset", "Actions"];
+  const columns = ["ID", "Asset Sub-Category", "Parent Asset", "Actions"];
 
   return (
     <AdminPageLayout
-      title="Sub Assets"
-      description="Manage sub-assets and components of your training materials"
+      title="Asset Sub-Categories"
+      description="Manage your Asset Sub-Categories"
     >
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
           {error}
+        </div>
+      )}
+      {successMessage && (
+        <div className="fixed top-4 right-4 z-50 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg shadow-lg">
+          {successMessage}
         </div>
       )}
       <AdminTableLayout
@@ -541,10 +564,23 @@ const SubAssetsPage = () => {
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="max-w-md bg-[#003451] border-white/20 text-white">
-          <DialogHeader>
+          <DialogHeader className="relative">
             <DialogTitle className="text-white">Edit Sub-Asset</DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setSelectedSubAsset(null);
+              }}
+            >
+              <Close sx={{ fontSize: 20 }} />
+            </Button>
           </DialogHeader>
-          <EditSubAssetForm />
+          <div className="mt-4">
+            <EditSubAssetForm />
+          </div>
         </DialogContent>
       </Dialog>
     </AdminPageLayout>

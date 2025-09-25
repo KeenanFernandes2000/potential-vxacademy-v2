@@ -18,7 +18,7 @@ import {
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { Delete, Assignment } from "@mui/icons-material";
+import { Delete, Assignment, Edit, Close } from "@mui/icons-material";
 
 // API object for role operations
 const api = {
@@ -88,6 +88,30 @@ const api = {
       return data;
     } catch (error) {
       console.error("Failed to create role:", error);
+      throw error;
+    }
+  },
+
+  async updateRole(roleId: number, roleData: any, token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/users/roles/${roleId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(roleData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to update role:", error);
       throw error;
     }
   },
@@ -377,6 +401,18 @@ const RolesPage = () => {
   const [roleCategories, setRoleCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [editingRole, setEditingRole] = useState<RoleData | null>(null);
+
+  // Auto-hide success message after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   // Modal and assignment-related state
   const [isAssignUnitsModalOpen, setIsAssignUnitsModalOpen] = useState(false);
@@ -448,17 +484,18 @@ const RolesPage = () => {
           rolesResponse.data?.map((role: any) => ({
             id: role.id,
             name: role.name,
+            categoryId: role.categoryId,
             categoryName: categoryMap.get(role.categoryId) || "Unknown",
             actions: (
               <div className="flex gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-                  onClick={() => handleAssignUnits(role)}
-                  title="Assign Units"
+                  className="h-8 w-8 p-0 text-white hover:text-blue-400 hover:bg-blue-400/10"
+                  onClick={() => handleEditRole(role)}
+                  title="Edit"
                 >
-                  <Assignment sx={{ fontSize: 16 }} />
+                  <Edit sx={{ fontSize: 16 }} />
                 </Button>
                 <Button
                   variant="ghost"
@@ -521,12 +558,51 @@ const RolesPage = () => {
         // Refresh the role list
         await refreshRoleList();
         setError("");
+        setSuccessMessage("Role created successfully!");
       } else {
         setError(response.message || "Failed to create role");
       }
     } catch (error) {
       console.error("Error creating role:", error);
       setError("Failed to create role. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEditRole = (role: any) => {
+    setEditingRole(role);
+  };
+
+  const handleUpdateRole = async (formData: any) => {
+    if (!token || !editingRole) {
+      setError("Authentication required");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Prepare data for API
+      const roleData = {
+        name: formData.name,
+        categoryId: parseInt(formData.categoryId),
+      };
+
+      const response = await api.updateRole(editingRole.id, roleData, token);
+
+      if (response.success) {
+        // Refresh the role list
+        await refreshRoleList();
+        setError("");
+        setSuccessMessage("Role updated successfully!");
+        setEditingRole(null);
+      } else {
+        setError(response.message || "Failed to update role");
+      }
+    } catch (error) {
+      console.error("Error updating role:", error);
+      setError("Failed to update role. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -585,11 +661,11 @@ const RolesPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-              onClick={() => handleAssignUnits(role)}
-              title="Assign Units"
+              className="h-8 w-8 p-0 text-white hover:text-blue-400 hover:bg-blue-400/10"
+              onClick={() => handleEditRole(role)}
+              title="Edit"
             >
-              <Assignment sx={{ fontSize: 16 }} />
+              <Edit sx={{ fontSize: 16 }} />
             </Button>
             <Button
               variant="ghost"
@@ -1026,7 +1102,7 @@ const RolesPage = () => {
     }
   };
 
-  const CreateRoleForm = () => {
+  const CreateRoleForm = ({ onClose }: { onClose: () => void }) => {
     const [formData, setFormData] = useState({
       name: "",
       categoryId: "",
@@ -1042,49 +1118,151 @@ const RolesPage = () => {
     };
 
     return (
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
-      >
-        <div className="space-y-2">
-          <Label htmlFor="name">Role Name *</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-[#00d8cc]/30"
-            required
-          />
+      <div className="relative">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-0 right-0 h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
+          onClick={onClose}
+        >
+          <Close sx={{ fontSize: 20 }} />
+        </Button>
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold">Create Role</h3>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="categoryId">Category *</Label>
-          <select
-            id="categoryId"
-            value={formData.categoryId}
-            onChange={(e) =>
-              setFormData({ ...formData, categoryId: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-            required
-          >
-            <option value="">Select a category</option>
-            {roleCategories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
+        >
+          <div className="space-y-2">
+            <Label htmlFor="name">Role Name *</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="rounded-full bg-[#00d8cc]/30"
+              placeholder="Type your Role Name"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="categoryId">Category *</Label>
+            <select
+              id="categoryId"
+              value={formData.categoryId}
+              onChange={(e) =>
+                setFormData({ ...formData, categoryId: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
+              required
+            >
+              <option value="" className="text-gray-900">
+                Select a category
               </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoading} className="rounded-full">
-            {isLoading ? "Creating..." : "Create Role"}
-          </Button>
-        </div>
-      </form>
+              {roleCategories.map((category) => (
+                <option
+                  key={category.id}
+                  value={category.id}
+                  className="text-gray-900"
+                >
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="submit" disabled={isLoading} className="rounded-full">
+              {isLoading ? "Creating..." : "Create Role"}
+            </Button>
+          </div>
+        </form>
+      </div>
     );
   };
 
-  const columns = ["ID", "Role Name", "Category", "Actions"];
+  const EditRoleForm = ({ onClose }: { onClose: () => void }) => {
+    const [formData, setFormData] = useState({
+      name: editingRole?.name || "",
+      categoryId: editingRole?.categoryId?.toString() || "",
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      await handleUpdateRole(formData);
+      setFormData({
+        name: "",
+        categoryId: "",
+      });
+    };
+
+    return (
+      <div className="relative">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-0 right-0 h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
+          onClick={onClose}
+        >
+          <Close sx={{ fontSize: 20 }} />
+        </Button>
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold">Edit Role</h3>
+        </div>
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
+        >
+          <div className="space-y-2">
+            <Label htmlFor="edit-name">Role Name *</Label>
+            <Input
+              id="edit-name"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+              className="rounded-full bg-[#00d8cc]/30"
+              placeholder="Type your Role Name"
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-categoryId">Category *</Label>
+            <select
+              id="edit-categoryId"
+              value={formData.categoryId}
+              onChange={(e) =>
+                setFormData({ ...formData, categoryId: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
+              required
+            >
+              <option value="" className="text-gray-900">
+                Select a category
+              </option>
+              {roleCategories.map((category) => (
+                <option
+                  key={category.id}
+                  value={category.id}
+                  className="text-gray-900"
+                >
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="submit" disabled={isLoading} className="rounded-full">
+              {isLoading ? "Updating..." : "Update Role"}
+            </Button>
+          </div>
+        </form>
+      </div>
+    );
+  };
+
+  const columns = ["ID", "Role", "Role Category", "Actions"];
 
   // Assign Units Modal Component
   const AssignUnitsModal = () => {
@@ -1367,23 +1545,34 @@ const RolesPage = () => {
   };
 
   return (
-    <AdminPageLayout
-      title="Roles"
-      description="Manage user roles and permissions across the platform"
-    >
+    <AdminPageLayout title="Roles" description="Manage your Roles">
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
           {error}
         </div>
       )}
+      {successMessage && (
+        <div className="fixed top-4 right-4 z-50 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg shadow-lg">
+          {successMessage}
+        </div>
+      )}
       <AdminTableLayout
         searchPlaceholder="Search roles..."
         createButtonText="Create Role"
-        createForm={<CreateRoleForm />}
+        createForm={<CreateRoleForm onClose={() => {}} />}
         tableData={filteredRoles}
         columns={columns}
         onSearch={handleSearch}
       />
+
+      {/* Edit Role Modal */}
+      {editingRole && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+            <EditRoleForm onClose={() => setEditingRole(null)} />
+          </div>
+        </div>
+      )}
 
       {/* Assign Units Modal */}
       <AssignUnitsModal />

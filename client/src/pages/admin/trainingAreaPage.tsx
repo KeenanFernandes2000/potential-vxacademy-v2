@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { MoreVert, Edit, Delete } from "@mui/icons-material";
+import { MoreVert, Edit, Delete, Close, Publish } from "@mui/icons-material";
 import {
   Dialog,
   DialogContent,
@@ -120,6 +120,58 @@ const api = {
       throw error;
     }
   },
+
+  async publishTrainingArea(trainingAreaId: number, token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/training/training-areas/${trainingAreaId}/publish`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to publish training area:", error);
+      throw error;
+    }
+  },
+
+  async draftTrainingArea(trainingAreaId: number, token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/training/training-areas/${trainingAreaId}/draft`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to draft training area:", error);
+      throw error;
+    }
+  },
 };
 
 // Type for training area data
@@ -127,6 +179,7 @@ interface TrainingAreaData
   extends Record<string, string | number | React.ReactNode> {
   id: number;
   name: string;
+  status: string;
   actions: React.ReactNode;
 }
 
@@ -138,6 +191,7 @@ const TrainingAreaPage = () => {
   >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTrainingArea, setSelectedTrainingArea] = useState<any>(null);
 

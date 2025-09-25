@@ -13,12 +13,13 @@ import {
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { MoreVert, Edit, Delete } from "@mui/icons-material";
+import { MoreVert, Edit, Delete, Close } from "@mui/icons-material";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 
 // API object for unit operations
@@ -298,6 +299,9 @@ interface UnitData
   name: string;
   order: number;
   xp_points: number;
+  course_name: string;
+  module_name: string;
+  training_area_name: string;
   courseUnitId: number | null;
   actions: React.ReactNode;
 }
@@ -314,6 +318,7 @@ const UnitsPage = () => {
   const [error, setError] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<any>(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Fetch units from database on component mount
   useEffect(() => {
@@ -371,6 +376,10 @@ const UnitsPage = () => {
               order: unit.order || 1,
               name: unit.name,
               xp_points: unit.xp_points || 100,
+              course_name: course?.name || "N/A",
+              module_name: module?.name || "N/A",
+              training_area_name: trainingArea?.name || "N/A",
+              courseUnitId: courseUnit?.id || null, // Keep for editing
               trainingAreaId: trainingArea?.id, // Keep for filtering
               moduleId: module?.id, // Keep for filtering
               courseId: course?.id, // Keep for filtering
@@ -465,6 +474,8 @@ const UnitsPage = () => {
           // Refresh the unit list
           await refreshUnitList();
           setError("");
+          setSuccessMessage("Learning Unit created successfully!");
+          setTimeout(() => setSuccessMessage(""), 3000);
         } else {
           setError(
             courseUnitResponse.message ||
@@ -550,6 +561,8 @@ const UnitsPage = () => {
         setIsEditModalOpen(false);
         setSelectedUnit(null);
         setError("");
+        setSuccessMessage("Learning Unit updated successfully!");
+        setTimeout(() => setSuccessMessage(""), 3000);
       } else {
         setError(unitResponse.message || "Failed to update unit");
       }
@@ -659,6 +672,10 @@ const UnitsPage = () => {
           order: unit.order || 1,
           name: unit.name,
           xp_points: unit.xp_points || 100,
+          course_name: course?.name || "N/A",
+          module_name: module?.name || "N/A",
+          training_area_name: trainingArea?.name || "N/A",
+          courseUnitId: courseUnit?.id || null, // Keep for editing
           trainingAreaId: trainingArea?.id, // Keep for filtering
           moduleId: module?.id, // Keep for filtering
           courseId: course?.id, // Keep for filtering
@@ -694,6 +711,8 @@ const UnitsPage = () => {
   const CreateUnitForm = () => {
     const [formData, setFormData] = useState({
       name: "",
+      training_area_id: "",
+      module_id: "",
       course_id: "",
       description: "",
       internal_note: "",
@@ -702,12 +721,47 @@ const UnitsPage = () => {
       show_duration: true,
       xp_points: "100",
     });
+    const [filteredModules, setFilteredModules] = useState<any[]>([]);
+    const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
+
+    // Filter modules based on selected training area
+    useEffect(() => {
+      if (formData.training_area_id) {
+        const filtered = modules.filter(
+          (module) =>
+            module.trainingAreaId === parseInt(formData.training_area_id)
+        );
+        setFilteredModules(filtered);
+        // Reset module and course selections
+        setFormData((prev) => ({ ...prev, module_id: "", course_id: "" }));
+      } else {
+        setFilteredModules([]);
+        setFormData((prev) => ({ ...prev, module_id: "", course_id: "" }));
+      }
+    }, [formData.training_area_id, modules]);
+
+    // Filter courses based on selected module
+    useEffect(() => {
+      if (formData.module_id) {
+        const filtered = courses.filter(
+          (course) => course.moduleId === parseInt(formData.module_id)
+        );
+        setFilteredCourses(filtered);
+        // Reset course selection
+        setFormData((prev) => ({ ...prev, course_id: "" }));
+      } else {
+        setFilteredCourses([]);
+        setFormData((prev) => ({ ...prev, course_id: "" }));
+      }
+    }, [formData.module_id, courses]);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       await handleCreateUnit(formData);
       setFormData({
         name: "",
+        training_area_id: "",
+        module_id: "",
         course_id: "",
         description: "",
         internal_note: "",
@@ -724,34 +778,15 @@ const UnitsPage = () => {
         className="space-y-4 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
       >
         <div className="space-y-2">
-          <Label htmlFor="name">Unit Name *</Label>
+          <Label htmlFor="name">Learning Unit Name *</Label>
           <Input
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="rounded-full bg-[#00d8cc]/30"
+            placeholder="Type your Learning Unit name"
             required
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="course_id">Course *</Label>
-          <Select
-            value={formData.course_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, course_id: value })
-            }
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
-              <SelectValue placeholder="Select a course" />
-            </SelectTrigger>
-            <SelectContent>
-              {courses.map((course) => (
-                <SelectItem key={course.id} value={course.id.toString()}>
-                  {course.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="description">Description</Label>
@@ -762,7 +797,70 @@ const UnitsPage = () => {
               setFormData({ ...formData, description: e.target.value })
             }
             className="rounded-full bg-[#00d8cc]/30"
+            placeholder="Add a description"
           />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="training_area_id">Training Area *</Label>
+          <Select
+            value={formData.training_area_id}
+            onValueChange={(value) =>
+              setFormData({ ...formData, training_area_id: value })
+            }
+          >
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
+              <SelectValue placeholder="Select a training area" />
+            </SelectTrigger>
+            <SelectContent>
+              {trainingAreas.map((area) => (
+                <SelectItem key={area.id} value={area.id.toString()}>
+                  {area.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="module_id">Module *</Label>
+          <Select
+            value={formData.module_id}
+            onValueChange={(value) =>
+              setFormData({ ...formData, module_id: value })
+            }
+            disabled={!formData.training_area_id}
+          >
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
+              <SelectValue placeholder="Select a module" />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredModules.map((module) => (
+                <SelectItem key={module.id} value={module.id.toString()}>
+                  {module.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="course_id">Course *</Label>
+          <Select
+            value={formData.course_id}
+            onValueChange={(value) =>
+              setFormData({ ...formData, course_id: value })
+            }
+            disabled={!formData.module_id}
+          >
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
+              <SelectValue placeholder="Select a course" />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredCourses.map((course) => (
+                <SelectItem key={course.id} value={course.id.toString()}>
+                  {course.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="internal_note">Internal Note</Label>
@@ -776,7 +874,7 @@ const UnitsPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="order">Order *</Label>
+          <Label htmlFor="order">Order in Course *</Label>
           <Input
             id="order"
             type="number"
@@ -819,7 +917,7 @@ const UnitsPage = () => {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="xp_points">XP Points *</Label>
+          <Label htmlFor="xp_points">VX Points *</Label>
           <Input
             id="xp_points"
             type="number"
@@ -847,9 +945,20 @@ const UnitsPage = () => {
       ? courseUnits.find((cu: any) => cu.unitId === selectedUnit.id)
       : null;
     const currentCourseId = courseUnit ? courseUnit.courseId : null;
+    const currentCourse = currentCourseId
+      ? courses.find((c: any) => c.id === currentCourseId)
+      : null;
+    const currentModule = currentCourse
+      ? modules.find((m: any) => m.id === currentCourse.moduleId)
+      : null;
+    const currentTrainingArea = currentModule
+      ? trainingAreas.find((ta: any) => ta.id === currentModule.trainingAreaId)
+      : null;
 
     const [formData, setFormData] = useState({
       name: selectedUnit?.name || "",
+      training_area_id: currentTrainingArea?.id?.toString() || "",
+      module_id: currentModule?.id?.toString() || "",
       course_id: currentCourseId?.toString() || "",
       description: selectedUnit?.description || "",
       internal_note: selectedUnit?.internal_note || "",
@@ -858,6 +967,33 @@ const UnitsPage = () => {
       show_duration: selectedUnit?.show_duration || true,
       xp_points: selectedUnit?.xp_points?.toString() || "100",
     });
+    const [filteredModules, setFilteredModules] = useState<any[]>([]);
+    const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
+
+    // Filter modules based on selected training area
+    useEffect(() => {
+      if (formData.training_area_id) {
+        const filtered = modules.filter(
+          (module) =>
+            module.trainingAreaId === parseInt(formData.training_area_id)
+        );
+        setFilteredModules(filtered);
+      } else {
+        setFilteredModules([]);
+      }
+    }, [formData.training_area_id, modules]);
+
+    // Filter courses based on selected module
+    useEffect(() => {
+      if (formData.module_id) {
+        const filtered = courses.filter(
+          (course) => course.moduleId === parseInt(formData.module_id)
+        );
+        setFilteredCourses(filtered);
+      } else {
+        setFilteredCourses([]);
+      }
+    }, [formData.module_id, courses]);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -870,34 +1006,15 @@ const UnitsPage = () => {
         className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
       >
         <div className="space-y-2">
-          <Label htmlFor="edit_name">Unit Name *</Label>
+          <Label htmlFor="edit_name">Learning Unit Name *</Label>
           <Input
             id="edit_name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="rounded-full bg-[#00d8cc]/30"
+            placeholder="Type your Learning Unit name"
             required
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit_course_id">Course *</Label>
-          <Select
-            value={formData.course_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, course_id: value })
-            }
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
-              <SelectValue placeholder="Select a course" />
-            </SelectTrigger>
-            <SelectContent>
-              {courses.map((course) => (
-                <SelectItem key={course.id} value={course.id.toString()}>
-                  {course.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="edit_description">Description</Label>
@@ -908,7 +1025,70 @@ const UnitsPage = () => {
               setFormData({ ...formData, description: e.target.value })
             }
             className="rounded-full bg-[#00d8cc]/30"
+            placeholder="Add a description"
           />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="edit_training_area_id">Training Area *</Label>
+          <Select
+            value={formData.training_area_id}
+            onValueChange={(value) =>
+              setFormData({ ...formData, training_area_id: value })
+            }
+          >
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
+              <SelectValue placeholder="Select a training area" />
+            </SelectTrigger>
+            <SelectContent>
+              {trainingAreas.map((area) => (
+                <SelectItem key={area.id} value={area.id.toString()}>
+                  {area.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="edit_module_id">Module *</Label>
+          <Select
+            value={formData.module_id}
+            onValueChange={(value) =>
+              setFormData({ ...formData, module_id: value })
+            }
+            disabled={!formData.training_area_id}
+          >
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
+              <SelectValue placeholder="Select a module" />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredModules.map((module) => (
+                <SelectItem key={module.id} value={module.id.toString()}>
+                  {module.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="edit_course_id">Course *</Label>
+          <Select
+            value={formData.course_id}
+            onValueChange={(value) =>
+              setFormData({ ...formData, course_id: value })
+            }
+            disabled={!formData.module_id}
+          >
+            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
+              <SelectValue placeholder="Select a course" />
+            </SelectTrigger>
+            <SelectContent>
+              {filteredCourses.map((course) => (
+                <SelectItem key={course.id} value={course.id.toString()}>
+                  {course.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="edit_internal_note">Internal Note</Label>
@@ -922,7 +1102,7 @@ const UnitsPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_order">Order *</Label>
+          <Label htmlFor="edit_order">Order in Course *</Label>
           <Input
             id="edit_order"
             type="number"
@@ -965,7 +1145,7 @@ const UnitsPage = () => {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_xp_points">XP Points *</Label>
+          <Label htmlFor="edit_xp_points">VX Points *</Label>
           <Input
             id="edit_xp_points"
             type="number"
@@ -1001,18 +1181,18 @@ const UnitsPage = () => {
   const columns = [
     "ID",
     "Order",
-    "Name",
-    "XP Points",
-    "Training Area ID",
-    "Module ID",
-    "Course ID",
+    "Learning Unit",
+    "Course",
+    "Module",
+    "Training Area",
+    "VX Points",
     "Actions",
   ];
 
   return (
     <AdminPageLayout
-      title="Units"
-      description="Manage course units and learning segments"
+      title="Learning Units"
+      description="Manage your Learning Units"
     >
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
@@ -1021,7 +1201,7 @@ const UnitsPage = () => {
       )}
       <AdminTableLayout
         searchPlaceholder="Search by ID or name"
-        createButtonText="Create Unit"
+        createButtonText="Create Learning Unit"
         createForm={<CreateUnitForm />}
         tableData={filteredUnits}
         columns={columns}
@@ -1044,11 +1224,29 @@ const UnitsPage = () => {
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="max-w-md bg-[#003451] border-white/20 text-white max-h-[80%]">
           <DialogHeader>
-            <DialogTitle className="text-white">Edit Unit</DialogTitle>
+            <DialogTitle className="text-white">Edit Learning Unit</DialogTitle>
+            <DialogClose asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-4 top-4 h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              >
+                <Close sx={{ fontSize: 16 }} />
+              </Button>
+            </DialogClose>
           </DialogHeader>
-          <EditUnitForm />
+          <div className="mt-4">
+            <EditUnitForm />
+          </div>
         </DialogContent>
       </Dialog>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+          {successMessage}
+        </div>
+      )}
     </AdminPageLayout>
   );
 };

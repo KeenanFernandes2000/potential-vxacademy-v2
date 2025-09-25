@@ -12,7 +12,7 @@ import {
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { MoreVert, Edit, Delete } from "@mui/icons-material";
+import { MoreVert, Edit, Delete, Close } from "@mui/icons-material";
 import {
   Dialog,
   DialogContent,
@@ -204,10 +204,12 @@ interface OrganizationData
   extends Record<string, string | number | React.ReactNode> {
   id: number;
   name: string;
+  subOrganization: string;
   assetId: number;
   subAssetId: number;
   assetName: string;
   subAssetName: string;
+  dateAdded: string;
   actions: React.ReactNode;
 }
 
@@ -234,8 +236,17 @@ const OrganizationPage = () => {
   const [allSubAssets, setAllSubAssets] = useState<SubAssetData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState<any>(null);
+
+  // Function to show success message
+  const showSuccessMessage = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+  };
 
   // Fetch organizations and assets from database on component mount
   useEffect(() => {
@@ -273,6 +284,7 @@ const OrganizationPage = () => {
             return {
               id: organization.id,
               name: organization.name,
+              subOrganization: organization.subOrganization || "N/A",
               assetId: organization.assetId,
               subAssetId: organization.subAssetId,
               assetName:
@@ -280,6 +292,9 @@ const OrganizationPage = () => {
                   (asset: any) => asset.id === organization.assetId
                 )?.name || "N/A",
               subAssetName,
+              dateAdded: organization.createdAt
+                ? new Date(organization.createdAt).toLocaleDateString()
+                : "N/A",
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -326,6 +341,7 @@ const OrganizationPage = () => {
       const filtered = organizations.filter(
         (org) =>
           org.name.toLowerCase().includes(query.toLowerCase()) ||
+          org.subOrganization.toLowerCase().includes(query.toLowerCase()) ||
           org.assetName.toLowerCase().includes(query.toLowerCase()) ||
           org.subAssetName.toLowerCase().includes(query.toLowerCase())
       );
@@ -342,9 +358,10 @@ const OrganizationPage = () => {
     try {
       setIsLoading(true);
 
-      // Prepare data for API - send name, assetId, and subAssetId
+      // Prepare data for API - send name, subOrganization, assetId, and subAssetId
       const organizationData = {
         name: formData.name,
+        subOrganization: formData.subOrganization,
         assetId: parseInt(formData.assetId),
         subAssetId: parseInt(formData.subAssetId),
       };
@@ -355,6 +372,7 @@ const OrganizationPage = () => {
         // Refresh the organization list
         await refreshOrganizationList();
         setError("");
+        showSuccessMessage("Organization created successfully!");
       } else {
         setError(response.message || "Failed to create organization");
       }
@@ -378,6 +396,7 @@ const OrganizationPage = () => {
       // Prepare data for API
       const organizationData = {
         name: formData.name,
+        subOrganization: formData.subOrganization,
         assetId: parseInt(formData.assetId),
         subAssetId: parseInt(formData.subAssetId),
       };
@@ -394,6 +413,7 @@ const OrganizationPage = () => {
         setIsEditModalOpen(false);
         setSelectedOrganization(null);
         setError("");
+        showSuccessMessage("Organization updated successfully!");
       } else {
         setError(response.message || "Failed to update organization");
       }
@@ -423,6 +443,7 @@ const OrganizationPage = () => {
         // Refresh the organization list
         await refreshOrganizationList();
         setError("");
+        showSuccessMessage("Organization deleted successfully!");
       } else {
         setError(response.message || "Failed to delete organization");
       }
@@ -465,6 +486,7 @@ const OrganizationPage = () => {
         return {
           id: organization.id,
           name: organization.name,
+          subOrganization: organization.subOrganization || "N/A",
           assetId: organization.assetId,
           subAssetId: organization.subAssetId,
           assetName:
@@ -472,6 +494,9 @@ const OrganizationPage = () => {
               (asset: any) => asset.id === organization.assetId
             )?.name || "N/A",
           subAssetName,
+          dateAdded: organization.createdAt
+            ? new Date(organization.createdAt).toLocaleDateString()
+            : "N/A",
           actions: (
             <div className="flex gap-1">
               <Button
@@ -504,6 +529,7 @@ const OrganizationPage = () => {
   const CreateOrganizationForm = () => {
     const [formData, setFormData] = useState({
       name: "",
+      subOrganization: "",
       assetId: "",
       subAssetId: "",
     });
@@ -530,6 +556,7 @@ const OrganizationPage = () => {
       await handleCreateOrganization(formData);
       setFormData({
         name: "",
+        subOrganization: "",
         assetId: "",
         subAssetId: "",
       });
@@ -548,6 +575,21 @@ const OrganizationPage = () => {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="rounded-full bg-[#00d8cc]/30"
+            placeholder="Type Organization Name"
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="subOrganization">Sub-Organization *</Label>
+          <Input
+            id="subOrganization"
+            value={formData.subOrganization}
+            onChange={(e) =>
+              setFormData({ ...formData, subOrganization: e.target.value })
+            }
+            className="rounded-full bg-[#00d8cc]/30"
+            placeholder="Type Sub-Organization Name"
             required
           />
         </div>
@@ -607,6 +649,7 @@ const OrganizationPage = () => {
   const EditOrganizationForm = () => {
     const [formData, setFormData] = useState({
       name: selectedOrganization?.name || "",
+      subOrganization: selectedOrganization?.subOrganization || "",
       assetId: selectedOrganization?.assetId?.toString() || "",
       subAssetId: selectedOrganization?.subAssetId?.toString() || "",
     });
@@ -654,6 +697,21 @@ const OrganizationPage = () => {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="rounded-full bg-[#00d8cc]/30"
+            placeholder="Type Organization Name"
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit_subOrganization">Sub-Organization *</Label>
+          <Input
+            id="edit_subOrganization"
+            value={formData.subOrganization}
+            onChange={(e) =>
+              setFormData({ ...formData, subOrganization: e.target.value })
+            }
+            className="rounded-full bg-[#00d8cc]/30"
+            placeholder="Type Sub-Organization Name"
             required
           />
         </div>
@@ -722,22 +780,27 @@ const OrganizationPage = () => {
 
   const columns = [
     "ID",
-    "Name",
-    "Asset ID",
-    "Sub Asset ID",
+    "Organization",
+    "Sub-Organization",
     "Asset",
-    "Sub Asset",
+    "Asset Sub-Category",
+    "Date Added",
     "Actions",
   ];
 
   return (
     <AdminPageLayout
-      title="Organizations"
-      description="Manage organizations and institutions using the platform"
+      title="Organization Management"
+      description="Manage Organizations and Sub-Organizations"
     >
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
           {error}
+        </div>
+      )}
+      {successMessage && (
+        <div className="fixed top-4 right-4 z-50 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg shadow-lg">
+          {successMessage}
         </div>
       )}
       <AdminTableLayout
@@ -752,10 +815,23 @@ const OrganizationPage = () => {
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="max-w-md bg-[#003451] border-white/20 text-white">
-          <DialogHeader>
+          <DialogHeader className="relative">
             <DialogTitle className="text-white">Edit Organization</DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setSelectedOrganization(null);
+              }}
+            >
+              <Close sx={{ fontSize: 20 }} />
+            </Button>
           </DialogHeader>
-          <EditOrganizationForm />
+          <div className="mt-4">
+            <EditOrganizationForm />
+          </div>
         </DialogContent>
       </Dialog>
     </AdminPageLayout>

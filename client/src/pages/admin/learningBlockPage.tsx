@@ -157,7 +157,11 @@ interface LearningBlockData
   id: number;
   title: string;
   type: string;
+  order: number;
   unit_name: string;
+  course_name: string;
+  module_name: string;
+  training_area_name: string;
   actions: React.ReactNode;
 }
 
@@ -172,6 +176,7 @@ const LearningBlockPage = () => {
   const [error, setError] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedLearningBlock, setSelectedLearningBlock] = useState<any>(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   // Fetch learning blocks from database on component mount
   useEffect(() => {
@@ -794,12 +799,22 @@ const LearningBlockPage = () => {
     );
   };
 
-  const columns = ["ID", "Name", "Type", "Unit", "Unit ID", "Actions"];
+  const columns = [
+    "ID",
+    "Learning Block",
+    "Type",
+    "Order",
+    "Learning Unit",
+    "Course",
+    "Module",
+    "Training Area",
+    "Actions",
+  ];
 
   return (
     <AdminPageLayout
       title="Learning Blocks"
-      description="Manage learning blocks and content segments"
+      description="Manage your Learning Blocks"
     >
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">

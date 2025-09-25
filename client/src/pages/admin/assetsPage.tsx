@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { MoreVert, Edit, Delete } from "@mui/icons-material";
+import { MoreVert, Edit, Delete, Close } from "@mui/icons-material";
 import {
   Dialog,
   DialogContent,
@@ -123,8 +123,17 @@ const AssetsPage = () => {
   const [filteredAssets, setFilteredAssets] = useState<AssetData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<any>(null);
+
+  // Function to show success message
+  const showSuccessMessage = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+  };
 
   // Fetch assets from database on component mount
   useEffect(() => {
@@ -213,6 +222,7 @@ const AssetsPage = () => {
         // Refresh the asset list
         await refreshAssetList();
         setError("");
+        showSuccessMessage("Asset created successfully!");
       } else {
         setError(response.message || "Failed to create asset");
       }
@@ -250,6 +260,7 @@ const AssetsPage = () => {
         setIsEditModalOpen(false);
         setSelectedAsset(null);
         setError("");
+        showSuccessMessage("Asset updated successfully!");
       } else {
         setError(response.message || "Failed to update asset");
       }
@@ -279,6 +290,7 @@ const AssetsPage = () => {
         // Refresh the asset list
         await refreshAssetList();
         setError("");
+        showSuccessMessage("Asset deleted successfully!");
       } else {
         setError(response.message || "Failed to delete asset");
       }
@@ -354,6 +366,7 @@ const AssetsPage = () => {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="rounded-full bg-[#00d8cc]/30"
+            placeholder="Type your Asset Name"
             required
           />
         </div>
@@ -385,6 +398,7 @@ const AssetsPage = () => {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="rounded-full bg-[#00d8cc]/30"
+            placeholder="Type your Asset Name"
             required
           />
         </div>
@@ -420,6 +434,11 @@ const AssetsPage = () => {
           {error}
         </div>
       )}
+      {successMessage && (
+        <div className="fixed top-4 right-4 z-50 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg shadow-lg">
+          {successMessage}
+        </div>
+      )}
       <AdminTableLayout
         searchPlaceholder="Search assets..."
         createButtonText="Create Asset"
@@ -432,10 +451,23 @@ const AssetsPage = () => {
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="max-w-md bg-[#003451] border-white/20 text-white">
-          <DialogHeader>
+          <DialogHeader className="relative">
             <DialogTitle className="text-white">Edit Asset</DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setSelectedAsset(null);
+              }}
+            >
+              <Close sx={{ fontSize: 20 }} />
+            </Button>
           </DialogHeader>
-          <EditAssetForm />
+          <div className="mt-4">
+            <EditAssetForm />
+          </div>
         </DialogContent>
       </Dialog>
     </AdminPageLayout>

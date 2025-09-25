@@ -24,7 +24,6 @@ import CoursesPage from "@/pages/admin/coursesPage";
 import UnitsPage from "@/pages/admin/unitsPage";
 import LearningBlockPage from "@/pages/admin/learningBlockPage";
 import AssessmentsPage from "@/pages/admin/assessmentsPage";
-import QuestionsPage from "@/pages/admin/questionsPage";
 import RolesPage from "@/pages/admin/rolesPage";
 import RoleCategoriesPage from "@/pages/admin/roleCategoriesPage";
 import LearningPathPage from "@/pages/admin/learningPathPage";
@@ -129,7 +128,6 @@ function App() {
                         element={<LearningBlockPage />}
                       />
                       <Route path="assessments" element={<AssessmentsPage />} />
-                      <Route path="questions" element={<QuestionsPage />} />
                       <Route path="roles" element={<RolesPage />} />
                       <Route
                         path="role-categories"
