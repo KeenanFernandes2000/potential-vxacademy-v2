@@ -64,7 +64,7 @@ const HomeNavigation: React.FC<HomeNavigationProps> = ({
             <div className="h-12 w-auto">
               <Link to={showItems ? "" : "/"}>
                 <img
-                  src="/vx-academy-logo.png"
+                  src="/logo.png"
                   alt="VX Academy Logo"
                   className="h-full"
                 />

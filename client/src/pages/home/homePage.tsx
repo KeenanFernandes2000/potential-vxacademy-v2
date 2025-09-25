@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import * as AOS from "aos";
 import "aos/dist/aos.css";
+import "@/hompage.css";
 
 import { Button } from "@/components/ui/button";
 import Autoplay from "embla-carousel-autoplay";
@@ -292,7 +293,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-16">
             {[
               {
                 title: "Recognized Certification",
