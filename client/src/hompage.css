@@ -4,9 +4,10 @@
 @custom-variant dark (&:is(.dark *));
 
 /* Helvetica LT Pro Fonts - DCT Standard */
+@import url('https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;700&display=swap');
+
 @font-face {
   font-family: "HelveticaLTPro";
-  src: url("https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;700&display=swap");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -14,7 +15,6 @@
 
 @font-face {
   font-family: "HelveticaLTPro";
-  src: url("https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;700&display=swap");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -22,7 +22,6 @@
 
 @font-face {
   font-family: "HelveticaLTPro";
-  src: url("https://fonts.googleapis.com/css2?family=Helvetica+Neue:wght@300;400;700&display=swap");
   font-weight: 700;
   font-style: normal;
   font-display: swap;

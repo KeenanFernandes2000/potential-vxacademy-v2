@@ -20,6 +20,7 @@ import {
 import { PasswordInput } from "@/components/ui/password-input";
 import { MultiSelect } from "@/components/ui/multi-select";
 import HomeNavigation from "@/components/homeNavigation";
+import "@/hompage.css";
 
 // API object for sub-admin registration and token verification
 const api = {
@@ -750,13 +751,13 @@ const joinPage = (props: Props) => {
   };
 
   const renderForm1 = () => (
-    <Card className="w-full max-w-lg bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
+    <Card className="w-full max-w-lg bg-white backdrop-blur-sm border border-sandstone shadow-2xl relative z-10 rounded-none">
       <CardHeader className="text-center pb-6">
-        <CardTitle className="text-xl md:text-2xl lg:text-5xl font-bold text-white mb-4">
+        <CardTitle className="text-xl md:text-2xl lg:text-5xl font-bold text-[#2C2C2C] mb-4">
           Sub Admin Form
         </CardTitle>
-        <div className="w-24 h-1 bg-[#00d8cc] rounded-full mx-auto mb-4"></div>
-        <CardDescription className="text-md lg:text-xl text-white/80 leading-relaxed max-w-sm mx-auto">
+        <div className="w-24 h-1 bg-dawn rounded-full mx-auto mb-4"></div>
+        <CardDescription className="text-md lg:text-xl text-[#666666] leading-relaxed max-w-sm mx-auto">
           Sub Administrator Registration Form
         </CardDescription>
       </CardHeader>
@@ -766,7 +767,7 @@ const joinPage = (props: Props) => {
           <div className="space-y-3">
             <label
               htmlFor="job_title"
-              className="block text-lg font-semibold text-white pl-2"
+              className="block text-lg font-semibold text-[#2C2C2C] pl-2"
             >
               Job Title
             </label>
@@ -778,14 +779,14 @@ const joinPage = (props: Props) => {
               value={form1Data.job_title}
               onChange={handleForm1Change}
               required
-              className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+              className="bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             />
           </div>
 
           <div className="space-y-3">
             <label
               htmlFor="total_frontliners"
-              className="block text-lg font-semibold text-white pl-2"
+              className="block text-lg font-semibold text-[#2C2C2C] pl-2"
             >
               Total Frontliners
             </label>
@@ -796,14 +797,14 @@ const joinPage = (props: Props) => {
               placeholder="Enter total number of frontliners"
               value={form1Data.total_frontliners}
               onChange={handleForm1Change}
-              className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+              className="bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             />
           </div>
 
           <div className="space-y-3">
             <label
               htmlFor="eid"
-              className="block text-lg font-semibold text-white pl-2"
+              className="block text-lg font-semibold text-[#2C2C2C] pl-2"
             >
               EID
             </label>
@@ -816,14 +817,14 @@ const joinPage = (props: Props) => {
               onChange={handleForm1Change}
               maxLength={19}
               required
-              className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+              className="bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             />
           </div>
 
           <div className="space-y-3">
             <label
               htmlFor="phone_number"
-              className="block text-lg font-semibold text-white pl-2"
+              className="block text-lg font-semibold text-[#2C2C2C] pl-2"
             >
               Phone Number
             </label>
@@ -842,7 +843,7 @@ const joinPage = (props: Props) => {
           <div className="space-y-3">
             <label
               htmlFor="password"
-              className="block text-lg font-semibold text-white pl-2"
+              className="block text-lg font-semibold text-[#2C2C2C] pl-2"
             >
               Password
             </label>
@@ -859,7 +860,7 @@ const joinPage = (props: Props) => {
           <div className="space-y-3">
             <label
               htmlFor="confirm_password"
-              className="block text-lg font-semibold text-white pl-2"
+              className="block text-lg font-semibold text-[#2C2C2C] pl-2"
             >
               Confirm Password
             </label>
@@ -876,7 +877,7 @@ const joinPage = (props: Props) => {
                   : form1Data.confirm_password &&
                     form1Data.password === form1Data.confirm_password
                   ? "border-green-500/60 focus:border-green-500/80 hover:border-green-500/70"
-                  : "border-[#00d8cc]/20 focus:border-[#00d8cc]/40 hover:border-[#00d8cc]/30"
+                  : "border-sandstone focus:border-[#00d8cc]/40 hover:border-dawn"
               }`}
             />
             {passwordError && (
@@ -898,7 +899,7 @@ const joinPage = (props: Props) => {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="w-full bg-dawn hover:bg-[#B85A1A] text-white text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-sandstone rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             {isLoading ? "Submitting..." : "Submit"}
           </Button>
@@ -911,13 +912,13 @@ const joinPage = (props: Props) => {
     // Show loading state while verifying token
     if (isVerifyingToken) {
       return (
-        <Card className="w-full max-w-lg bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
+        <Card className="w-full max-w-lg bg-white backdrop-blur-sm border border-sandstone shadow-2xl relative z-10 rounded-none">
           <CardHeader className="text-center pb-6">
-            <CardTitle className="text-xl md:text-2xl lg:text-5xl font-bold text-white mb-4">
+            <CardTitle className="text-xl md:text-2xl lg:text-5xl font-bold text-[#2C2C2C] mb-4">
               Verifying Invitation
             </CardTitle>
-            <div className="w-24 h-1 bg-[#00d8cc] rounded-full mx-auto mb-4"></div>
-            <CardDescription className="text-md lg:text-xl text-white/80 leading-relaxed max-w-sm mx-auto">
+            <div className="w-24 h-1 bg-dawn rounded-full mx-auto mb-4"></div>
+            <CardDescription className="text-md lg:text-xl text-[#666666] leading-relaxed max-w-sm mx-auto">
               Please wait while we verify your invitation...
             </CardDescription>
           </CardHeader>
@@ -931,20 +932,20 @@ const joinPage = (props: Props) => {
     // Show error state if token verification failed
     if (tokenError) {
       return (
-        <Card className="w-full max-w-lg bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
+        <Card className="w-full max-w-lg bg-white backdrop-blur-sm border border-sandstone shadow-2xl relative z-10 rounded-none">
           <CardHeader className="text-center pb-6">
-            <CardTitle className="text-xl md:text-2xl lg:text-5xl font-bold text-white mb-4">
+            <CardTitle className="text-xl md:text-2xl lg:text-5xl font-bold text-[#2C2C2C] mb-4">
               Invalid Invitation
             </CardTitle>
             <div className="w-24 h-1 bg-red-500 rounded-full mx-auto mb-4"></div>
-            <CardDescription className="text-md lg:text-xl text-white/80 leading-relaxed max-w-sm mx-auto">
+            <CardDescription className="text-md lg:text-xl text-[#666666] leading-relaxed max-w-sm mx-auto">
               {tokenError}
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
             <Button
               onClick={() => navigate("/login")}
-              className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer"
+              className="bg-dawn hover:bg-[#B85A1A] text-white text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-sandstone rounded-full cursor-pointer"
             >
               Go to Login
             </Button>
@@ -954,13 +955,13 @@ const joinPage = (props: Props) => {
     }
 
     return (
-      <Card className="w-full max-w-2xl bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
+      <Card className="w-full max-w-2xl bg-white backdrop-blur-sm border border-sandstone shadow-2xl relative z-10 rounded-none">
         <CardHeader className="text-center pb-6">
-          <CardTitle className="text-xl md:text-2xl lg:text-5xl font-bold text-white mb-4">
+          <CardTitle className="text-xl md:text-2xl lg:text-5xl font-bold text-[#2C2C2C] mb-4">
             User Form
           </CardTitle>
-          <div className="w-24 h-1 bg-[#00d8cc] rounded-full mx-auto mb-4"></div>
-          <CardDescription className="text-md lg:text-xl text-white/80 leading-relaxed max-w-sm mx-auto">
+          <div className="w-24 h-1 bg-dawn rounded-full mx-auto mb-4"></div>
+          <CardDescription className="text-md lg:text-xl text-[#666666] leading-relaxed max-w-sm mx-auto">
             Complete your registration by filling out all the required
             information below
           </CardDescription>
@@ -970,8 +971,8 @@ const joinPage = (props: Props) => {
           <form onSubmit={handleForm2Submit} className="space-y-6">
             {/* Personal Information Section */}
             <div className="space-y-6">
-              <div className="border-b border-[#00d8cc]/20 pb-4">
-                <h3 className="text-xl font-semibold text-white mb-4">
+              <div className="border-b border-sandstone pb-4">
+                <h3 className="text-xl font-semibold text-[#2C2C2C] mb-4">
                   Personal Information
                 </h3>
               </div>
@@ -980,7 +981,7 @@ const joinPage = (props: Props) => {
                 <div className="space-y-3">
                   <label
                     htmlFor="first_name"
-                    className="block text-lg font-semibold text-white pl-2"
+                    className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                   >
                     First Name
                   </label>
@@ -992,14 +993,14 @@ const joinPage = (props: Props) => {
                     value={form2Data.first_name}
                     onChange={handleForm2Change}
                     required
-                    className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+                    className="bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
                   />
                 </div>
 
                 <div className="space-y-3">
                   <label
                     htmlFor="last_name"
-                    className="block text-lg font-semibold text-white pl-2"
+                    className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                   >
                     Last Name
                   </label>
@@ -1011,7 +1012,7 @@ const joinPage = (props: Props) => {
                     value={form2Data.last_name}
                     onChange={handleForm2Change}
                     required
-                    className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+                    className="bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
                   />
                 </div>
               </div>
@@ -1019,7 +1020,7 @@ const joinPage = (props: Props) => {
               <div className="space-y-3">
                 <label
                   htmlFor="email"
-                  className="block text-lg font-semibold text-white pl-2"
+                  className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                 >
                   Email
                 </label>
@@ -1031,14 +1032,14 @@ const joinPage = (props: Props) => {
                   value={form2Data.email}
                   onChange={handleForm2Change}
                   required
-                  className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+                  className="bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
                 />
               </div>
 
               <div className="space-y-3">
                 <label
                   htmlFor="password"
-                  className="block text-lg font-semibold text-white pl-2"
+                  className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                 >
                   Password
                 </label>
@@ -1055,7 +1056,7 @@ const joinPage = (props: Props) => {
               <div className="space-y-3">
                 <label
                   htmlFor="confirm_password"
-                  className="block text-lg font-semibold text-white pl-2"
+                  className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                 >
                   Confirm Password
                 </label>
@@ -1072,7 +1073,7 @@ const joinPage = (props: Props) => {
                       : form2Data.confirm_password &&
                         form2Data.password === form2Data.confirm_password
                       ? "border-green-500/60 focus:border-green-500/80 hover:border-green-500/70"
-                      : "border-[#00d8cc]/20 focus:border-[#00d8cc]/40 hover:border-[#00d8cc]/30"
+                      : "border-sandstone focus:border-[#00d8cc]/40 hover:border-dawn"
                   }`}
                 />
                 {userPasswordError && (
@@ -1094,15 +1095,15 @@ const joinPage = (props: Props) => {
 
             {/* Professional Information Section */}
             <div className="space-y-6 mt-12">
-              <div className="border-b border-[#00d8cc]/20 pb-4">
-                <h3 className="text-xl font-semibold text-white mb-4">
+              <div className="border-b border-sandstone pb-4">
+                <h3 className="text-xl font-semibold text-[#2C2C2C] mb-4">
                   Professional Information
                 </h3>
               </div>
               <div className="space-y-3">
                 <label
                   htmlFor="sub_organization"
-                  className="block text-lg font-semibold text-white pl-2"
+                  className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                 >
                   Sub-Organizations
                 </label>
@@ -1117,7 +1118,7 @@ const joinPage = (props: Props) => {
                   }
                 />
                 {!form2Data.organization && (
-                  <p className="text-white/60 text-sm pl-2">
+                  <p className="text-[#2C2C2C]/60 text-sm pl-2">
                     Please select an organization first
                   </p>
                 )}
@@ -1125,7 +1126,7 @@ const joinPage = (props: Props) => {
               <div className="space-y-3">
                 <label
                   htmlFor="role_category"
-                  className="block text-lg font-semibold text-white pl-2"
+                  className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                 >
                   Role Category
                 </label>
@@ -1137,15 +1138,15 @@ const joinPage = (props: Props) => {
                   required
                 >
                   <SelectTrigger
-                    className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 border-2 hover:border-[#00d8cc]/30 rounded-full text-sm ${
+                    className={`w-full bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 border-2 hover:border-dawn rounded-full text-sm ${
                       form2Data.role_category
-                        ? "[&>span]:text-white"
+                        ? "[&>span]:text-[#2C2C2C]"
                         : "[&>span]:text-cyan-50/55"
                     } `}
                   >
                     <SelectValue placeholder="Select role category" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
+                  <SelectContent className="bg-[#003451] border-sandstone text-[#2C2C2C]">
                     {isLoadingRoleCategories ? (
                       <SelectItem value="loading" disabled>
                         Loading categories...
@@ -1167,7 +1168,7 @@ const joinPage = (props: Props) => {
               <div className="space-y-3">
                 <label
                   htmlFor="role"
-                  className="block text-lg font-semibold text-white pl-2"
+                  className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                 >
                   Role
                 </label>
@@ -1179,15 +1180,15 @@ const joinPage = (props: Props) => {
                   required
                 >
                   <SelectTrigger
-                    className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-[#00d8cc]/30 rounded-full ${
+                    className={`w-full bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-dawn rounded-full ${
                       form2Data.role
-                        ? "[&>span]:text-white"
+                        ? "[&>span]:text-[#2C2C2C]"
                         : "[&>span]:text-cyan-50/55"
                     }`}
                   >
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
+                  <SelectContent className="bg-[#003451] border-sandstone text-[#2C2C2C]">
                     {isLoadingRoles ? (
                       <SelectItem value="loading" disabled>
                         Loading roles...
@@ -1218,7 +1219,7 @@ const joinPage = (props: Props) => {
                   <div className="space-y-3 mt-4">
                     <label
                       htmlFor="custom_role"
-                      className="block text-lg font-semibold text-white pl-2"
+                      className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                     >
                       Specify Your Role
                     </label>
@@ -1230,7 +1231,7 @@ const joinPage = (props: Props) => {
                       value={customRole}
                       onChange={(e) => setCustomRole(e.target.value)}
                       required
-                      className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+                      className="bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
                     />
                   </div>
                 )}
@@ -1239,7 +1240,7 @@ const joinPage = (props: Props) => {
               <div className="space-y-3">
                 <label
                   htmlFor="seniority"
-                  className="block text-lg font-semibold text-white pl-2"
+                  className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                 >
                   Seniority
                 </label>
@@ -1251,15 +1252,15 @@ const joinPage = (props: Props) => {
                   required
                 >
                   <SelectTrigger
-                    className={`w-full bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-[#00d8cc]/30 rounded-full ${
+                    className={`w-full bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-dawn rounded-full ${
                       form2Data.seniority
-                        ? "[&>span]:text-white"
+                        ? "[&>span]:text-[#2C2C2C]"
                         : "[&>span]:text-cyan-50/55"
                     }`}
                   >
                     <SelectValue placeholder="Select seniority level" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
+                  <SelectContent className="bg-[#003451] border-sandstone text-[#2C2C2C]">
                     {seniorityLevels.map((level) => (
                       <SelectItem key={level} value={level}>
                         {level}
@@ -1272,7 +1273,7 @@ const joinPage = (props: Props) => {
               <div className="space-y-3">
                 <label
                   htmlFor="eid"
-                  className="block text-lg font-semibold text-white pl-2"
+                  className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                 >
                   EID
                 </label>
@@ -1285,14 +1286,14 @@ const joinPage = (props: Props) => {
                   onChange={handleForm2Change}
                   maxLength={19}
                   required
-                  className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+                  className="bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
                 />
               </div>
 
               <div className="space-y-3">
                 <label
                   htmlFor="phone_number"
-                  className="block text-lg font-semibold text-white pl-2"
+                  className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                 >
                   Phone Number
                 </label>
@@ -1314,7 +1315,7 @@ const joinPage = (props: Props) => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full bg-dawn hover:bg-[#B85A1A] text-white text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-sandstone rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {isLoading ? "Creating Account..." : "Register Now"}
               </Button>

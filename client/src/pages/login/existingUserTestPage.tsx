@@ -12,6 +12,7 @@ import { Label } from "../../components/ui/label";
 import CertificateDialog from "../../components/CertificateDialog";
 import { useAuth } from "../../hooks/useAuth";
 import CertificateFormFiller from "@/components/generatePDF";
+import "@/hompage.css";
 
 // API object for progress operations
 const api = {
@@ -415,7 +416,7 @@ const ExistingUserTestPage = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="text-center">
-              <div className="text-6xl font-bold text-[#00d8cc] mb-2">
+              <div className="text-6xl font-bold text-dawn mb-2">
                 {score}/{quizData.length}
               </div>
               <div className="text-xl text-muted-foreground mb-4">
@@ -423,7 +424,7 @@ const ExistingUserTestPage = () => {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-4 mb-6">
                 <div
-                  className="bg-[#00d8cc] h-4 rounded-full transition-all duration-500"
+                  className="bg-dawn h-4 rounded-full transition-all duration-500"
                   style={{ width: `${(score / quizData.length) * 100}%` }}
                 ></div>
               </div>
@@ -467,7 +468,7 @@ const ExistingUserTestPage = () => {
               <Button
                 onClick={handleRedirect}
                 disabled={isCompleting}
-                className="px-8 py-2 bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-black rounded-full disabled:opacity-50"
+                className="px-8 py-2 bg-dawn hover:bg-[#B85A1A] text-white rounded-full disabled:opacity-50"
               >
                 {isCompleting ? "Completing..." : "Go to Dashboard"}
               </Button>
@@ -490,7 +491,7 @@ const ExistingUserTestPage = () => {
         {/* Navigation Header */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-white">MCQ Quiz</h1>
+            <h1 className="text-2xl font-bold text-[#2C2C2C]">MCQ Quiz</h1>
             <div className="text-sm text-muted-foreground">
               Question {currentQuestionIndex + 1} of {quizData.length}
             </div>
@@ -499,7 +500,7 @@ const ExistingUserTestPage = () => {
           {/* Progress Bar */}
           <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
             <div
-              className="bg-[#00d8cc] h-2 rounded-full transition-all duration-300"
+              className="bg-dawn h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             ></div>
           </div>
@@ -513,7 +514,7 @@ const ExistingUserTestPage = () => {
                 disabled={selectedAnswers[index] === -1}
                 className={`w-8 h-8 rounded-full text-sm font-medium transition-colors ${
                   index === currentQuestionIndex
-                    ? "bg-[#00d8cc] text-black"
+                    ? "bg-dawn text-white"
                     : "bg-gray-300 text-gray-600 hover:bg-gray-400"
                 }`}
               >
@@ -544,7 +545,7 @@ const ExistingUserTestPage = () => {
                   />
                   <Label
                     htmlFor={`option-${index}`}
-                    className="flex-1 cursor-pointer p-3 border rounded-lg hover:bg-[#00d8cc] hover:text-black transition-colors"
+                    className="flex-1 cursor-pointer p-3 border rounded-lg hover:bg-[#B85A1A] hover:text-white transition-colors"
                   >
                     {option}
                   </Label>

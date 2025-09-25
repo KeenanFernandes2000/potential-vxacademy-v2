@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { CheckCircle, ErrorOutline } from "@mui/icons-material";
 import HomeNavigation from "@/components/homeNavigation";
+import "@/hompage.css";
 
 // API object for this page
 const api = {
@@ -97,29 +98,26 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col bg-[#003451] relative overflow-hidden"
-      style={{ backgroundColor: "#003451" }}
-    >
+    <div className="min-h-screen flex flex-col bg-sandstone relative overflow-hidden">
       {/* Navigation Bar with Glassmorphism */}
       <HomeNavigation />
 
       {/* Forgot Password Form */}
       <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center relative z-10 flex-1">
         <div className="w-full max-w-md lg:max-w-lg">
-          <Card className="shadow-2xl bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 overflow-hidden rounded-none">
+          <Card className="shadow-2xl bg-white backdrop-blur-sm border border-sandstone overflow-hidden rounded-none">
             <CardHeader className="pb-8 px-8 pt-10 lg:px-10">
-              <CardTitle className="text-white text-3xl lg:text-4xl font-bold text-center mb-3">
+              <CardTitle className="text-[#2C2C2C] text-3xl lg:text-4xl font-bold text-center mb-3">
                 Forgot Password
               </CardTitle>
-              <CardDescription className="text-white/80 text-center text-lg leading-relaxed">
+              <CardDescription className="text-[#666666] text-center text-lg leading-relaxed">
                 Enter your email address to receive a password reset link
               </CardDescription>
             </CardHeader>
             <CardContent className="px-8 lg:px-10 pb-10">
               <div className="space-y-8">
                 <div className="space-y-3">
-                  <label className="text-white font-semibold text-base tracking-wide pl-2">
+                  <label className="text-[#2C2C2C] font-semibold text-base tracking-wide pl-2">
                     Email Address
                   </label>
                   <input
@@ -129,7 +127,7 @@ export default function ForgotPasswordPage() {
                       setEmail(e.target.value);
                       setError(""); // Clear error when user types
                     }}
-                    className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full w-full px-4 outline-none"
+                    className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full w-full px-4 outline-none"
                     type="email"
                     disabled={isLoading}
                   />
@@ -148,7 +146,7 @@ export default function ForgotPasswordPage() {
                     type="button"
                     onClick={handleSendResetLink}
                     disabled={isLoading}
-                    className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black py-5 lg:py-6 font-bold text-lg lg:text-xl shadow-xl backdrop-blur-sm border-2 border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 hover:shadow-[#00d8cc]/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl rounded-full cursor-pointer"
+                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white py-5 lg:py-6 font-bold text-lg lg:text-xl shadow-xl backdrop-blur-sm border-2 border-dawn transition-all duration-300 hover:scale-105 hover:shadow-dawn/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl rounded-full cursor-pointer"
                   >
                     {isLoading ? "Sending..." : "Send Reset Link"}
                   </Button>
@@ -158,7 +156,7 @@ export default function ForgotPasswordPage() {
                     variant="ghost"
                     onClick={handleBackToLogin}
                     disabled={isLoading}
-                    className="w-full text-[#00d8cc] hover:text-[#00b8b0] hover:bg-[#00d8cc]/10 py-4 font-medium transition-all duration-300 rounded-full cursor-pointer disabled:opacity-50"
+                    className="w-full text-dawn hover:text-[#B85A1A] hover:bg-dawn/10 py-4 font-medium transition-all duration-300 rounded-full cursor-pointer disabled:opacity-50"
                   >
                     Back to Login
                   </Button>
@@ -171,24 +169,24 @@ export default function ForgotPasswordPage() {
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
+        <DialogContent className="bg-white border-sandstone text-[#2C2C2C]">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center text-[#00d8cc]">
+            <DialogTitle className="text-2xl font-bold text-center text-dawn">
               Reset Link Sent!
             </DialogTitle>
-            <DialogDescription className="text-white/80 text-center text-lg mt-4">
+            <DialogDescription className="text-[#666666] text-center text-lg mt-4">
               If an account with this email exists, a password reset link has
               been sent to your email address. Please check your inbox and
               follow the instructions to reset your password.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center mt-6">
-            <CheckCircle className="!h-16 !w-16 text-[#00d8cc]" />
+            <CheckCircle className="!h-16 !w-16 text-dawn" />
           </div>
           <div className="flex justify-center mt-6">
             <Button
               onClick={handleCloseSuccessDialog}
-              className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 py-3 font-bold text-lg shadow-xl transition-all duration-300 hover:scale-105 rounded-full"
+              className="bg-dawn hover:bg-[#B85A1A] text-white px-8 py-3 font-bold text-lg shadow-xl transition-all duration-300 hover:scale-105 rounded-full"
             >
               Back to Login
             </Button>

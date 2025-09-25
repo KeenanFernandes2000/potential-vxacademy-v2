@@ -10,6 +10,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import "@/hompage.css";
 
 // MUI Icons
 import HomeNavigation from "@/components/homeNavigation";
@@ -72,26 +73,26 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#003451] relative overflow-hidden">
+    <div className="min-h-screen bg-sandstone relative overflow-hidden">
       {/* Navigation Bar with Glassmorphism */}
       <HomeNavigation />
 
       {/* Main Content */}
       <div className="flex items-center justify-center p-4 min-h-[calc(100vh-80px)] relative">
-        <Card className="w-full max-w-lg bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl relative z-10 rounded-none">
+        <Card className="w-full max-w-lg bg-white backdrop-blur-sm border border-sandstone shadow-2xl relative z-10 rounded-none">
           <CardHeader className="text-center pb-6">
-            <CardTitle className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+            <CardTitle className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#2C2C2C] mb-4">
               Login
             </CardTitle>
-            <div className="w-24 h-1 bg-[#00d8cc] rounded-full mx-auto mb-4"></div>
-            <CardDescription className="text-lg lg:text-xl text-white/80 leading-relaxed max-w-sm mx-auto">
+            <div className="w-24 h-1 bg-dawn rounded-full mx-auto mb-4"></div>
+            <CardDescription className="text-lg lg:text-xl text-[#666666] leading-relaxed max-w-sm mx-auto">
               Enter your credentials to access your VX Academy dashboard
             </CardDescription>
           </CardHeader>
 
           <CardContent>
             {error && (
-              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-200 text-sm">
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-600 text-sm">
                 {error}
               </div>
             )}
@@ -100,7 +101,7 @@ const AuthPage: React.FC = () => {
               <div className="space-y-3">
                 <label
                   htmlFor="email"
-                  className="block text-lg font-semibold text-white pl-2"
+                  className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                 >
                   Email Address
                 </label>
@@ -113,14 +114,14 @@ const AuthPage: React.FC = () => {
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
-                  className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+                  className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
                 />
               </div>
 
               <div className="space-y-3">
                 <label
                   htmlFor="password"
-                  className="block text-lg font-semibold text-white pl-2"
+                  className="block text-lg font-semibold text-[#2C2C2C] pl-2"
                 >
                   Password
                 </label>
@@ -133,7 +134,7 @@ const AuthPage: React.FC = () => {
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
-                  className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full"
+                  className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
                 />
               </div>
 
@@ -141,7 +142,7 @@ const AuthPage: React.FC = () => {
               <div className="flex justify-end">
                 <Link
                   to="/forgot-password"
-                  className="text-[#00d8cc] hover:text-[#00b8b0] text-sm font-medium transition-all duration-300 hover:underline hover:translate-x-1 transform inline-block"
+                  className="text-dawn hover:text-[#B85A1A] text-sm font-medium transition-all duration-300 hover:underline hover:translate-x-1 transform inline-block"
                 >
                   Forgot Password?
                 </Link>
@@ -150,7 +151,7 @@ const AuthPage: React.FC = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-[#00d8cc]/20 rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-dawn hover:bg-[#B85A1A] text-white text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-dawn rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Signing In..." : "Sign In"}
               </Button>

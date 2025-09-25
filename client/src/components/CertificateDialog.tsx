@@ -177,7 +177,7 @@ const CertificatePDF = ({
     <Page size="A4" style={styles.page} orientation="landscape">
       {/* Header */}
       <View style={styles.header}>
-        <Image style={styles.logo} src="/vx-academy-logo.png" />
+        <Image style={styles.logo} src="/logo.png" />
       </View>
 
       {/* Body */}
@@ -369,7 +369,7 @@ const CertificateDialog: React.FC<CertificateDialogProps> = ({
             <div className="bg-gradient-to-r from-[#003451] to-[#004d6b] text-white p-8 text-center">
               <div className="flex justify-center items-center mb-6">
                 <img
-                  src={"/vx-academy-logo.svg"}
+                  src={"/logo.png"}
                   alt="VX Academy Logo"
                   className="h-16 w-auto filter brightness-0 invert"
                 />

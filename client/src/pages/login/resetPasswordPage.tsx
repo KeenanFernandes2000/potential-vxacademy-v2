@@ -22,6 +22,7 @@ import {
   VisibilityOff,
 } from "@mui/icons-material";
 import HomeNavigation from "@/components/homeNavigation";
+import "@/hompage.css";
 
 // API object for this page
 const api = {
@@ -172,18 +173,15 @@ export default function ResetPasswordPage() {
   // Show loading state while verifying token
   if (isVerifying) {
     return (
-      <div
-        className="min-h-screen flex flex-col bg-[#003451] relative overflow-hidden"
-        style={{ backgroundColor: "#003451" }}
-      >
+      <div className="min-h-screen flex flex-col bg-sandstone relative overflow-hidden">
         <HomeNavigation />
         <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center relative z-10 flex-1">
           <div className="w-full max-w-md lg:max-w-lg">
-            <Card className="shadow-2xl bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 overflow-hidden rounded-none">
+            <Card className="shadow-2xl bg-white backdrop-blur-sm border border-sandstone overflow-hidden rounded-none">
               <CardContent className="px-8 lg:px-10 py-20">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00d8cc] mx-auto mb-4"></div>
-                  <p className="text-white/80 text-lg">
+                  <p className="text-[#666666] text-lg">
                     Verifying reset token...
                   </p>
                 </div>
@@ -198,19 +196,16 @@ export default function ResetPasswordPage() {
   // Show error state if token verification failed
   if (error && !userInfo) {
     return (
-      <div
-        className="min-h-screen flex flex-col bg-[#003451] relative overflow-hidden"
-        style={{ backgroundColor: "#003451" }}
-      >
+      <div className="min-h-screen flex flex-col bg-sandstone relative overflow-hidden">
         <HomeNavigation />
         <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center relative z-10 flex-1">
           <div className="w-full max-w-md lg:max-w-lg">
-            <Card className="shadow-2xl bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 overflow-hidden rounded-none">
+            <Card className="shadow-2xl bg-white backdrop-blur-sm border border-sandstone overflow-hidden rounded-none">
               <CardHeader className="pb-8 px-8 pt-10 lg:px-10">
-                <CardTitle className="text-white text-3xl lg:text-4xl font-bold text-center mb-3">
+                <CardTitle className="text-[#2C2C2C] text-3xl lg:text-4xl font-bold text-center mb-3">
                   Invalid Reset Link
                 </CardTitle>
-                <CardDescription className="text-white/80 text-center text-lg leading-relaxed">
+                <CardDescription className="text-[#666666] text-center text-lg leading-relaxed">
                   This password reset link is invalid or has expired
                 </CardDescription>
               </CardHeader>
@@ -221,7 +216,7 @@ export default function ResetPasswordPage() {
                 </div>
                 <Button
                   onClick={() => navigate("/forgot-password")}
-                  className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black py-5 lg:py-6 font-bold text-lg lg:text-xl shadow-xl backdrop-blur-sm border-2 border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 hover:shadow-[#00d8cc]/25 rounded-full"
+                  className="w-full bg-dawn hover:bg-[#B85A1A] text-white py-5 lg:py-6 font-bold text-lg lg:text-xl shadow-xl backdrop-blur-sm border-2 border-sandstone transition-all duration-300 hover:scale-105 hover:shadow-[#00d8cc]/25 rounded-full"
                 >
                   Request New Reset Link
                 </Button>
@@ -235,7 +230,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col bg-[#003451] relative overflow-hidden"
+      className="min-h-screen flex flex-col bg-sandstone relative overflow-hidden"
       style={{ backgroundColor: "#003451" }}
     >
       <HomeNavigation />
@@ -243,16 +238,16 @@ export default function ResetPasswordPage() {
       {/* Reset Password Form */}
       <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center relative z-10 flex-1">
         <div className="w-full max-w-md lg:max-w-lg">
-          <Card className="shadow-2xl bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 overflow-hidden rounded-none">
+          <Card className="shadow-2xl bg-white backdrop-blur-sm border border-sandstone overflow-hidden rounded-none">
             <CardHeader className="pb-8 px-8 pt-10 lg:px-10">
-              <CardTitle className="text-white text-3xl lg:text-4xl font-bold text-center mb-3">
+              <CardTitle className="text-[#2C2C2C] text-3xl lg:text-4xl font-bold text-center mb-3">
                 Reset Password
               </CardTitle>
-              <CardDescription className="text-white/80 text-center text-lg leading-relaxed">
+              <CardDescription className="text-[#666666] text-center text-lg leading-relaxed">
                 {userInfo ? (
                   <>
                     Reset password for{" "}
-                    <span className="text-[#00d8cc] font-semibold">
+                    <span className="text-dawn font-semibold">
                       {userInfo.email}
                     </span>
                   </>
@@ -264,7 +259,7 @@ export default function ResetPasswordPage() {
             <CardContent className="px-8 lg:px-10 pb-10">
               <div className="space-y-8">
                 <div className="space-y-3">
-                  <label className="text-white font-semibold text-base tracking-wide pl-2">
+                  <label className="text-[#2C2C2C] font-semibold text-base tracking-wide pl-2">
                     New Password
                   </label>
                   <div className="relative">
@@ -275,14 +270,14 @@ export default function ResetPasswordPage() {
                         setPassword(e.target.value);
                         setError(""); // Clear error when user types
                       }}
-                      className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full w-full px-4 pr-12 outline-none"
+                      className="bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full w-full px-4 pr-12 outline-none"
                       type={showPassword ? "text" : "password"}
                       disabled={isLoading}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#666666] hover:text-[#666666] transition-colors"
                       disabled={isLoading}
                     >
                       {showPassword ? (
@@ -295,7 +290,7 @@ export default function ResetPasswordPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-white font-semibold text-base tracking-wide pl-2">
+                  <label className="text-[#2C2C2C] font-semibold text-base tracking-wide pl-2">
                     Confirm New Password
                   </label>
                   <div className="relative">
@@ -306,7 +301,7 @@ export default function ResetPasswordPage() {
                         setConfirmPassword(e.target.value);
                         setError(""); // Clear error when user types
                       }}
-                      className="bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full w-full px-4 pr-12 outline-none"
+                      className="bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full w-full px-4 pr-12 outline-none"
                       type={showConfirmPassword ? "text" : "password"}
                       disabled={isLoading}
                     />
@@ -315,7 +310,7 @@ export default function ResetPasswordPage() {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white/80 transition-colors"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#666666] hover:text-[#666666] transition-colors"
                       disabled={isLoading}
                     >
                       {showConfirmPassword ? (
@@ -340,7 +335,7 @@ export default function ResetPasswordPage() {
                     type="button"
                     onClick={handleUpdatePassword}
                     disabled={isLoading}
-                    className="w-full bg-[#00d8cc] hover:bg-[#00b8b0] text-black py-5 lg:py-6 font-bold text-lg lg:text-xl shadow-xl backdrop-blur-sm border-2 border-[#00d8cc]/20 transition-all duration-300 hover:scale-105 hover:shadow-[#00d8cc]/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl rounded-full"
+                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white py-5 lg:py-6 font-bold text-lg lg:text-xl shadow-xl backdrop-blur-sm border-2 border-sandstone transition-all duration-300 hover:scale-105 hover:shadow-[#00d8cc]/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl rounded-full"
                   >
                     {isLoading ? "Updating Password..." : "Update Password"}
                   </Button>
@@ -353,23 +348,23 @@ export default function ResetPasswordPage() {
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="bg-[#003451] border-[#00d8cc]/20 text-white">
+        <DialogContent className="bg-sandstone border-sandstone text-[#2C2C2C]">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center text-[#00d8cc]">
+            <DialogTitle className="text-2xl font-bold text-center text-dawn">
               Password Updated Successfully!
             </DialogTitle>
-            <DialogDescription className="text-white/80 text-center text-lg mt-4">
+            <DialogDescription className="text-[#666666] text-center text-lg mt-4">
               Your password has been reset successfully. You can now log in with
               your new password.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center mt-6">
-            <CheckCircle className="!h-16 !w-16 text-[#00d8cc]" />
+            <CheckCircle className="!h-16 !w-16 text-dawn" />
           </div>
           <div className="flex justify-center mt-6">
             <Button
               onClick={handleContinueToLogin}
-              className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 py-3 font-bold text-lg shadow-xl transition-all duration-300 hover:scale-105 rounded-full"
+              className="bg-dawn hover:bg-[#B85A1A] text-white px-8 py-3 font-bold text-lg shadow-xl transition-all duration-300 hover:scale-105 rounded-full"
             >
               Continue to Login
             </Button>
