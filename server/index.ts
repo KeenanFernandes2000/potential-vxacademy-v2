@@ -5,6 +5,7 @@ import mediaRouter from "./routes/media.routes";
 import trainingRouter from "./routes/training.routes";
 import assessmentRouter from "./routes/assessment.routes";
 import progressRouter from "./routes/progress.routes";
+import emailRouter from "./routes/email.routes";
 import errorHandling from "./middleware/errorHandling";
 import passport from "passport";
 import path from "path";
@@ -39,6 +40,7 @@ apiRouter.use("/media", mediaRouter);
 apiRouter.use("/training", trainingRouter);
 apiRouter.use("/assessments", assessmentRouter);
 apiRouter.use("/progress", progressRouter);
+apiRouter.use("/email", emailRouter);
 
 // Health check endpoint
 apiRouter.get("/health", async (req, res) => {
