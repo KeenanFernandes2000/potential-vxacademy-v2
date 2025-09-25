@@ -22,21 +22,43 @@ import {
   Eye,
   Loader2,
   TrendingUp,
+  X,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 interface Frontliner {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
+  eid: string;
+  phoneNumber: string;
+  asset: string;
+  subAsset: string;
   organization: string;
-  position: string;
-  coursesCompleted: number;
-  certificatesEarned: number;
-  createdAt: string;
-  lastLogin: string;
+  subOrganization?: string;
+  roleCategory: string;
+  role: string;
+  seniority: string;
+  overallProgress: number;
+  alMidhyaf: number;
+  adInformation: number;
+  generalVxSoftSkills: number;
+  generalVxHardSkills: number;
+  managerialCompetencies: number;
+  vxPoints: number;
+  registrationDate: string;
+  lastLoginDate: string;
   status: "active" | "inactive";
-  progress: number;
 }
 
 const Frontliners = () => {
@@ -49,6 +71,37 @@ const Frontliners = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [organizationFilter, setOrganizationFilter] = useState("all");
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  // Filter states
+  const [selectedAsset, setSelectedAsset] = useState<string>("all");
+  const [selectedSubAsset, setSelectedSubAsset] = useState<string>("all");
+  const [selectedSubOrganization, setSelectedSubOrganization] =
+    useState<string>("all");
+  const [selectedRoleCategory, setSelectedRoleCategory] =
+    useState<string>("all");
+  const [selectedProgress, setSelectedProgress] = useState<string>("all");
+
+  // Extract unique values for filters
+  const uniqueAssets = Array.from(
+    new Set(frontliners.map((frontliner) => frontliner.asset))
+  ).filter(Boolean);
+  const uniqueSubAssets = Array.from(
+    new Set(frontliners.map((frontliner) => frontliner.subAsset))
+  ).filter(Boolean);
+  const uniqueOrganizationsForFilter = Array.from(
+    new Set(frontliners.map((frontliner) => frontliner.organization))
+  ).filter(Boolean);
+  const uniqueSubOrganizations = Array.from(
+    new Set(
+      frontliners
+        .map((frontliner) => frontliner.subOrganization)
+        .filter((org): org is string => Boolean(org))
+    )
+  );
+  const uniqueRoleCategories = Array.from(
+    new Set(frontliners.map((frontliner) => frontliner.roleCategory))
+  ).filter(Boolean);
 
   useEffect(() => {
     const fetchFrontliners = async () => {
@@ -66,84 +119,150 @@ const Frontliners = () => {
             firstName: "John",
             lastName: "Doe",
             email: "john.doe@techsolutions.com",
+            eid: "EID001",
+            phoneNumber: "+971501234567",
+            asset: "Technology",
+            subAsset: "Software Development",
             organization: "Tech Solutions Inc",
-            position: "Customer Service Rep",
-            coursesCompleted: 8,
-            certificatesEarned: 5,
-            createdAt: "2024-01-15",
-            lastLogin: "2024-12-20",
+            subOrganization: "Engineering Division",
+            roleCategory: "Customer Service",
+            role: "Customer Service Rep",
+            seniority: "Senior",
+            overallProgress: 85,
+            alMidhyaf: 90,
+            adInformation: 80,
+            generalVxSoftSkills: 75,
+            generalVxHardSkills: 88,
+            managerialCompetencies: 70,
+            vxPoints: 1250,
+            registrationDate: "2024-01-15",
+            lastLoginDate: "2024-12-20",
             status: "active",
-            progress: 85,
           },
           {
             id: "2",
             firstName: "Jane",
             lastName: "Smith",
             email: "jane.smith@healthcarepartners.com",
+            eid: "EID002",
+            phoneNumber: "+971501234568",
+            asset: "Healthcare",
+            subAsset: "Medical Services",
             organization: "Healthcare Partners",
-            position: "Nurse",
-            coursesCompleted: 12,
-            certificatesEarned: 8,
-            createdAt: "2024-02-20",
-            lastLogin: "2024-12-19",
+            subOrganization: "Emergency Department",
+            roleCategory: "Medical Staff",
+            role: "Nurse",
+            seniority: "Expert",
+            overallProgress: 92,
+            alMidhyaf: 95,
+            adInformation: 88,
+            generalVxSoftSkills: 90,
+            generalVxHardSkills: 85,
+            managerialCompetencies: 80,
+            vxPoints: 1450,
+            registrationDate: "2024-02-20",
+            lastLoginDate: "2024-12-19",
             status: "active",
-            progress: 92,
           },
           {
             id: "3",
             firstName: "Mike",
             lastName: "Johnson",
             email: "mike.johnson@edufoundation.org",
+            eid: "EID003",
+            phoneNumber: "+971501234569",
+            asset: "Education",
+            subAsset: "Academic Programs",
             organization: "Education Foundation",
-            position: "Teacher",
-            coursesCompleted: 6,
-            certificatesEarned: 4,
-            createdAt: "2024-03-10",
-            lastLogin: "2024-12-18",
+            subOrganization: "Primary Education",
+            roleCategory: "Teaching Staff",
+            role: "Teacher",
+            seniority: "Intermediate",
+            overallProgress: 78,
+            alMidhyaf: 75,
+            adInformation: 70,
+            generalVxSoftSkills: 85,
+            generalVxHardSkills: 72,
+            managerialCompetencies: 65,
+            vxPoints: 980,
+            registrationDate: "2024-03-10",
+            lastLoginDate: "2024-12-18",
             status: "active",
-            progress: 78,
           },
           {
             id: "4",
             firstName: "Sarah",
             lastName: "Wilson",
             email: "sarah.wilson@globalservices.com",
+            eid: "EID004",
+            phoneNumber: "+971501234570",
+            asset: "Technology",
+            subAsset: "IT Support",
             organization: "Global Services Ltd",
-            position: "Support Specialist",
-            coursesCompleted: 15,
-            certificatesEarned: 12,
-            createdAt: "2024-01-05",
-            lastLogin: "2024-12-20",
+            subOrganization: "Customer Service",
+            roleCategory: "Technical Support",
+            role: "Support Specialist",
+            seniority: "Expert",
+            overallProgress: 95,
+            alMidhyaf: 98,
+            adInformation: 92,
+            generalVxSoftSkills: 88,
+            generalVxHardSkills: 96,
+            managerialCompetencies: 90,
+            vxPoints: 1650,
+            registrationDate: "2024-01-05",
+            lastLoginDate: "2024-12-20",
             status: "active",
-            progress: 95,
           },
           {
             id: "5",
             firstName: "Tom",
             lastName: "Brown",
             email: "tom.brown@innovationhub.com",
+            eid: "EID005",
+            phoneNumber: "+971501234571",
+            asset: "Technology",
+            subAsset: "Research & Development",
             organization: "Innovation Hub",
-            position: "Sales Rep",
-            coursesCompleted: 3,
-            certificatesEarned: 2,
-            createdAt: "2024-04-12",
-            lastLogin: "2024-11-15",
+            subOrganization: "Innovation Lab",
+            roleCategory: "Sales",
+            role: "Sales Rep",
+            seniority: "Junior",
+            overallProgress: 45,
+            alMidhyaf: 40,
+            adInformation: 35,
+            generalVxSoftSkills: 50,
+            generalVxHardSkills: 42,
+            managerialCompetencies: 30,
+            vxPoints: 450,
+            registrationDate: "2024-04-12",
+            lastLoginDate: "2024-11-15",
             status: "inactive",
-            progress: 45,
           },
           {
             id: "6",
             firstName: "Lisa",
             lastName: "Davis",
             email: "lisa.davis@techsolutions.com",
+            eid: "EID006",
+            phoneNumber: "+971501234572",
+            asset: "Technology",
+            subAsset: "Software Development",
             organization: "Tech Solutions Inc",
-            position: "Technical Support",
-            coursesCompleted: 10,
-            certificatesEarned: 7,
-            createdAt: "2024-02-28",
-            lastLogin: "2024-12-19",
+            subOrganization: "Engineering Division",
+            roleCategory: "Technical Support",
+            role: "Technical Support",
+            seniority: "Senior",
+            overallProgress: 88,
+            alMidhyaf: 85,
+            adInformation: 82,
+            generalVxSoftSkills: 90,
+            generalVxHardSkills: 86,
+            managerialCompetencies: 75,
+            vxPoints: 1180,
+            registrationDate: "2024-02-28",
+            lastLoginDate: "2024-12-19",
             status: "active",
-            progress: 88,
           },
         ];
 
@@ -160,9 +279,74 @@ const Frontliners = () => {
     fetchFrontliners();
   }, []);
 
-  // Filter frontliners based on search term, status, and organization
+  // Filter frontliners based on all criteria
   useEffect(() => {
     let filtered = frontliners;
+
+    // Filter by asset
+    if (selectedAsset !== "all") {
+      filtered = filtered.filter(
+        (frontliner) => frontliner.asset === selectedAsset
+      );
+    }
+
+    // Filter by sub-asset
+    if (selectedSubAsset !== "all") {
+      filtered = filtered.filter(
+        (frontliner) => frontliner.subAsset === selectedSubAsset
+      );
+    }
+
+    // Filter by organization
+    if (organizationFilter !== "all") {
+      filtered = filtered.filter(
+        (frontliner) => frontliner.organization === organizationFilter
+      );
+    }
+
+    // Filter by sub-organization
+    if (selectedSubOrganization !== "all") {
+      filtered = filtered.filter(
+        (frontliner) => frontliner.subOrganization === selectedSubOrganization
+      );
+    }
+
+    // Filter by role category
+    if (selectedRoleCategory !== "all") {
+      filtered = filtered.filter(
+        (frontliner) => frontliner.roleCategory === selectedRoleCategory
+      );
+    }
+
+    // Filter by progress range
+    if (selectedProgress !== "all") {
+      filtered = filtered.filter((frontliner) => {
+        switch (selectedProgress) {
+          case "0-25":
+            return (
+              frontliner.overallProgress >= 0 &&
+              frontliner.overallProgress <= 25
+            );
+          case "26-50":
+            return (
+              frontliner.overallProgress >= 26 &&
+              frontliner.overallProgress <= 50
+            );
+          case "51-75":
+            return (
+              frontliner.overallProgress >= 51 &&
+              frontliner.overallProgress <= 75
+            );
+          case "76-100":
+            return (
+              frontliner.overallProgress >= 76 &&
+              frontliner.overallProgress <= 100
+            );
+          default:
+            return true;
+        }
+      });
+    }
 
     // Filter by search term
     if (searchTerm) {
@@ -175,10 +359,11 @@ const Frontliners = () => {
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
           frontliner.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          frontliner.eid.toLowerCase().includes(searchTerm.toLowerCase()) ||
           frontliner.organization
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          frontliner.position.toLowerCase().includes(searchTerm.toLowerCase())
+          frontliner.role.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -189,42 +374,107 @@ const Frontliners = () => {
       );
     }
 
-    // Filter by organization
-    if (organizationFilter !== "all") {
-      filtered = filtered.filter(
-        (frontliner) => frontliner.organization === organizationFilter
-      );
-    }
-
     setFilteredFrontliners(filtered);
-  }, [frontliners, searchTerm, statusFilter, organizationFilter]);
+  }, [
+    frontliners,
+    selectedAsset,
+    selectedSubAsset,
+    organizationFilter,
+    selectedSubOrganization,
+    selectedRoleCategory,
+    selectedProgress,
+    searchTerm,
+    statusFilter,
+  ]);
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedAsset("all");
+    setSelectedSubAsset("all");
+    setOrganizationFilter("all");
+    setSelectedSubOrganization("all");
+    setSelectedRoleCategory("all");
+    setSelectedProgress("all");
+    setSearchTerm("");
+    setStatusFilter("all");
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    selectedAsset !== "all" ||
+    selectedSubAsset !== "all" ||
+    organizationFilter !== "all" ||
+    selectedSubOrganization !== "all" ||
+    selectedRoleCategory !== "all" ||
+    selectedProgress !== "all" ||
+    searchTerm !== "" ||
+    statusFilter !== "all";
+
+  // Toggle accordion row
+  const toggleRow = (frontlinerId: string) => {
+    setExpandedRows((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(frontlinerId)) {
+        newSet.delete(frontlinerId);
+      } else {
+        newSet.add(frontlinerId);
+      }
+      return newSet;
+    });
+  };
 
   const handleExport = () => {
     // Implement CSV export functionality
     const csvContent = [
       [
-        "Name",
-        "Email",
+        "User ID",
+        "First Name",
+        "Last Name",
+        "Email Address",
+        "EID",
+        "Phone Number",
+        "Asset",
+        "Asset Sub-Category",
         "Organization",
-        "Position",
-        "Courses Completed",
-        "Certificates",
-        "Progress",
+        "Sub-Organization",
+        "Role Category",
+        "Role",
+        "Seniority",
+        "Overall Progress",
+        "Al Midhyaf",
+        "AD Information",
+        "General VX Soft Skills",
+        "General VX Hard Skills",
+        "Managerial Competencies",
+        "VX Points",
+        "Registration Date",
+        "Last Login Date",
         "Status",
-        "Created",
-        "Last Login",
       ],
       ...filteredFrontliners.map((frontliner) => [
-        `${frontliner.firstName} ${frontliner.lastName}`,
+        frontliner.id,
+        frontliner.firstName,
+        frontliner.lastName,
         frontliner.email,
+        frontliner.eid,
+        frontliner.phoneNumber,
+        frontliner.asset,
+        frontliner.subAsset,
         frontliner.organization,
-        frontliner.position,
-        frontliner.coursesCompleted.toString(),
-        frontliner.certificatesEarned.toString(),
-        `${frontliner.progress}%`,
+        frontliner.subOrganization || "N/A",
+        frontliner.roleCategory,
+        frontliner.role,
+        frontliner.seniority,
+        `${frontliner.overallProgress}%`,
+        `${frontliner.alMidhyaf}%`,
+        `${frontliner.adInformation}%`,
+        `${frontliner.generalVxSoftSkills}%`,
+        `${frontliner.generalVxHardSkills}%`,
+        `${frontliner.managerialCompetencies}%`,
+        frontliner.vxPoints.toString(),
+        new Date(frontliner.registrationDate).toLocaleDateString(),
+        new Date(frontliner.lastLoginDate).toLocaleDateString(),
         frontliner.status,
-        new Date(frontliner.createdAt).toLocaleDateString(),
-        new Date(frontliner.lastLogin).toLocaleDateString(),
       ]),
     ]
       .map((row) => row.join(","))
@@ -247,12 +497,12 @@ const Frontliners = () => {
     }
   };
 
-  const totalCoursesCompleted = frontliners.reduce(
-    (sum, frontliner) => sum + frontliner.coursesCompleted,
+  const totalVxPoints = frontliners.reduce(
+    (sum, frontliner) => sum + frontliner.vxPoints,
     0
   );
-  const totalCertificatesEarned = frontliners.reduce(
-    (sum, frontliner) => sum + frontliner.certificatesEarned,
+  const totalAlMidhyaf = frontliners.reduce(
+    (sum, frontliner) => sum + frontliner.alMidhyaf,
     0
   );
   const activeFrontliners = frontliners.filter(
@@ -262,12 +512,12 @@ const Frontliners = () => {
     frontliners.length > 0
       ? Math.round(
           frontliners.reduce(
-            (sum, frontliner) => sum + frontliner.progress,
+            (sum, frontliner) => sum + frontliner.overallProgress,
             0
           ) / frontliners.length
         )
       : 0;
-  const uniqueOrganizations = Array.from(
+  const uniqueOrganizationsForStats = Array.from(
     new Set(frontliners.map((frontliner) => frontliner.organization))
   );
 
@@ -316,13 +566,13 @@ const Frontliners = () => {
           <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-white/80">
-                Courses Completed
+                Total VX Points
               </CardTitle>
-              <BookOpen className="h-4 w-4 text-blue-400" />
+              <Award className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {loading ? "..." : totalCoursesCompleted}
+                {loading ? "..." : totalVxPoints.toLocaleString()}
               </div>
             </CardContent>
           </Card>
@@ -330,13 +580,16 @@ const Frontliners = () => {
           <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-white/80">
-                Certificates Earned
+                Al Midhyaf Progress
               </CardTitle>
-              <Award className="h-4 w-4 text-purple-400" />
+              <BookOpen className="h-4 w-4 text-purple-400" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {loading ? "..." : totalCertificatesEarned}
+                {loading
+                  ? "..."
+                  : Math.round(totalAlMidhyaf / frontliners.length)}
+                %
               </div>
             </CardContent>
           </Card>
@@ -367,47 +620,273 @@ const Frontliners = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
-                {loading ? "..." : uniqueOrganizations.length}
+                {loading ? "..." : uniqueOrganizationsForStats.length}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Search and Filters */}
+        {/* Filters and Actions */}
         <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
           <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="flex flex-col md:flex-row gap-4 flex-1">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
-                  <Input
-                    placeholder="Search frontliners..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                  />
+            <div className="flex flex-wrap gap-4 items-center justify-between">
+              <div className="flex flex-wrap gap-4 items-center">
+                {/* Asset Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">Asset</Label>
+                  <Select
+                    value={selectedAsset}
+                    onValueChange={setSelectedAsset}
+                  >
+                    <SelectTrigger className="w-[120px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Assets" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Assets
+                      </SelectItem>
+                      {uniqueAssets.map((asset) => (
+                        <SelectItem
+                          key={asset}
+                          value={asset}
+                          className="text-white hover:bg-gray-700"
+                        >
+                          {asset}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 bg-white/10 border border-white/20 text-white rounded-md"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-                <select
-                  value={organizationFilter}
-                  onChange={(e) => setOrganizationFilter(e.target.value)}
-                  className="px-3 py-2 bg-white/10 border border-white/20 text-white rounded-md"
-                >
-                  <option value="all">All Organizations</option>
-                  {uniqueOrganizations.map((org) => (
-                    <option key={org} value={org}>
-                      {org}
-                    </option>
-                  ))}
-                </select>
+
+                {/* Asset Sub-Category Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">
+                    Asset Sub-Category
+                  </Label>
+                  <Select
+                    value={selectedSubAsset}
+                    onValueChange={setSelectedSubAsset}
+                  >
+                    <SelectTrigger className="w-[140px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Sub-Categories" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Sub-Categories
+                      </SelectItem>
+                      {uniqueSubAssets.map((subAsset) => (
+                        <SelectItem
+                          key={subAsset}
+                          value={subAsset}
+                          className="text-white hover:bg-gray-700"
+                        >
+                          {subAsset}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Organization Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">Organization</Label>
+                  <Select
+                    value={organizationFilter}
+                    onValueChange={setOrganizationFilter}
+                  >
+                    <SelectTrigger className="w-[140px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Organizations" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Organizations
+                      </SelectItem>
+                      {uniqueOrganizationsForFilter.map((org) => (
+                        <SelectItem
+                          key={org}
+                          value={org}
+                          className="text-white hover:bg-gray-700"
+                        >
+                          {org}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Sub-Organization Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">
+                    Sub-Organization
+                  </Label>
+                  <Select
+                    value={selectedSubOrganization}
+                    onValueChange={setSelectedSubOrganization}
+                  >
+                    <SelectTrigger className="w-[140px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Sub-Orgs" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Sub-Orgs
+                      </SelectItem>
+                      {uniqueSubOrganizations.map((subOrg) => (
+                        <SelectItem
+                          key={subOrg}
+                          value={subOrg}
+                          className="text-white hover:bg-gray-700"
+                        >
+                          {subOrg}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Role Category Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">Role Category</Label>
+                  <Select
+                    value={selectedRoleCategory}
+                    onValueChange={setSelectedRoleCategory}
+                  >
+                    <SelectTrigger className="w-[130px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Roles" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Roles
+                      </SelectItem>
+                      {uniqueRoleCategories.map((role) => (
+                        <SelectItem
+                          key={role}
+                          value={role}
+                          className="text-white hover:bg-gray-700"
+                        >
+                          {role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Overall Progress Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">
+                    Overall Progress
+                  </Label>
+                  <Select
+                    value={selectedProgress}
+                    onValueChange={setSelectedProgress}
+                  >
+                    <SelectTrigger className="w-[130px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Progress" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Progress
+                      </SelectItem>
+                      <SelectItem
+                        value="0-25"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        0-25%
+                      </SelectItem>
+                      <SelectItem
+                        value="26-50"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        26-50%
+                      </SelectItem>
+                      <SelectItem
+                        value="51-75"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        51-75%
+                      </SelectItem>
+                      <SelectItem
+                        value="76-100"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        76-100%
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Status Filter */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">Status</Label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[100px] bg-orange-500/20 border-orange-500/30 text-orange-300">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem
+                        value="all"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        All Status
+                      </SelectItem>
+                      <SelectItem
+                        value="active"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        Active
+                      </SelectItem>
+                      <SelectItem
+                        value="inactive"
+                        className="text-white hover:bg-gray-700"
+                      >
+                        Inactive
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Search */}
+                <div className="flex flex-col gap-1">
+                  <Label className="text-xs text-white/60">Search</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
+                    <Input
+                      placeholder="Search frontliners..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-[180px] pl-10 bg-orange-500/20 border-orange-500/30 text-orange-300 placeholder:text-orange-300/60"
+                    />
+                  </div>
+                </div>
+
+                {/* Clear Filters Button */}
+                {hasActiveFilters && (
+                  <Button
+                    variant="outline"
+                    onClick={clearAllFilters}
+                    className="bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Clear Filters
+                  </Button>
+                )}
               </div>
               <Button
                 onClick={handleExport}
@@ -420,7 +899,7 @@ const Frontliners = () => {
           </CardContent>
         </Card>
 
-        {/* Frontliners Table */}
+        {/* Frontliners Accordion Table */}
         <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
@@ -434,93 +913,326 @@ const Frontliners = () => {
                 <Loader2 className="h-8 w-8 text-[#00d8cc] animate-spin" />
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-white/20">
-                      <TableHead className="text-white/80">Name</TableHead>
-                      <TableHead className="text-white/80">Email</TableHead>
-                      <TableHead className="text-white/80">
-                        Organization
-                      </TableHead>
-                      <TableHead className="text-white/80">Position</TableHead>
-                      <TableHead className="text-white/80">Courses</TableHead>
-                      <TableHead className="text-white/80">
-                        Certificates
-                      </TableHead>
-                      <TableHead className="text-white/80">Progress</TableHead>
-                      <TableHead className="text-white/80">Status</TableHead>
-                      <TableHead className="text-white/80">Created</TableHead>
-                      <TableHead className="text-white/80">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredFrontliners.map((frontliner) => (
-                      <TableRow key={frontliner.id} className="border-white/10">
-                        <TableCell className="text-white font-medium">
-                          {frontliner.firstName} {frontliner.lastName}
-                        </TableCell>
-                        <TableCell className="text-white/80">
-                          {frontliner.email}
-                        </TableCell>
-                        <TableCell className="text-white/80">
-                          {frontliner.organization}
-                        </TableCell>
-                        <TableCell className="text-white/80">
-                          {frontliner.position}
-                        </TableCell>
-                        <TableCell className="text-white/80">
-                          <div className="flex items-center gap-1">
-                            <BookOpen className="h-4 w-4" />
-                            {frontliner.coursesCompleted}
+              <div className="space-y-2">
+                {/* Table Header */}
+                <div className="grid grid-cols-12 gap-4 p-4 bg-white/5 rounded-lg border border-white/10">
+                  <div className="col-span-1 text-white/80 font-medium truncate">
+                    User ID
+                  </div>
+                  <div className="col-span-2 text-white/80 font-medium truncate">
+                    Name
+                  </div>
+                  <div className="col-span-2 text-white/80 font-medium truncate">
+                    Email
+                  </div>
+                  <div className="col-span-1 text-white/80 font-medium truncate">
+                    EID
+                  </div>
+                  <div className="col-span-1 text-white/80 font-medium truncate">
+                    Asset
+                  </div>
+                  <div className="col-span-1 text-white/80 font-medium truncate">
+                    Organization
+                  </div>
+                  <div className="col-span-1 text-white/80 font-medium truncate">
+                    Role
+                  </div>
+                  <div className="col-span-1 text-white/80 font-medium truncate">
+                    Progress
+                  </div>
+                  <div className="col-span-1 text-white/80 font-medium truncate">
+                    Status
+                  </div>
+                  <div className="col-span-1 text-white/80 font-medium truncate">
+                    Actions
+                  </div>
+                </div>
+
+                {/* Accordion Rows */}
+                {filteredFrontliners.map((frontliner) => (
+                  <div
+                    key={frontliner.id}
+                    className="border border-white/10 rounded-lg overflow-hidden"
+                  >
+                    {/* Primary Row */}
+                    <div
+                      className="grid grid-cols-12 gap-4 p-4 bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
+                      onClick={() => toggleRow(frontliner.id)}
+                    >
+                      <div
+                        className="col-span-1 text-white font-medium truncate"
+                        title={frontliner.id}
+                      >
+                        {frontliner.id}
+                      </div>
+                      <div
+                        className="col-span-2 text-white/80 truncate"
+                        title={`${frontliner.firstName} ${frontliner.lastName}`}
+                      >
+                        {frontliner.firstName} {frontliner.lastName}
+                      </div>
+                      <div
+                        className="col-span-2 text-white/80 truncate"
+                        title={frontliner.email}
+                      >
+                        {frontliner.email}
+                      </div>
+                      <div
+                        className="col-span-1 text-white/80 truncate"
+                        title={frontliner.eid}
+                      >
+                        {frontliner.eid}
+                      </div>
+                      <div
+                        className="col-span-1 text-white/80 truncate"
+                        title={frontliner.asset}
+                      >
+                        {frontliner.asset}
+                      </div>
+                      <div
+                        className="col-span-1 text-white/80 truncate"
+                        title={frontliner.organization}
+                      >
+                        {frontliner.organization}
+                      </div>
+                      <div
+                        className="col-span-1 text-white/80 truncate"
+                        title={frontliner.role}
+                      >
+                        {frontliner.role}
+                      </div>
+                      <div className="col-span-1 text-white/80">
+                        <div className="flex items-center gap-2">
+                          <div className="w-12 bg-white/20 rounded-full h-2">
+                            <div
+                              className="bg-[#00d8cc] h-2 rounded-full"
+                              style={{
+                                width: `${frontliner.overallProgress}%`,
+                              }}
+                            ></div>
                           </div>
-                        </TableCell>
-                        <TableCell className="text-white/80">
-                          <div className="flex items-center gap-1">
-                            <Award className="h-4 w-4" />
-                            {frontliner.certificatesEarned}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-white/80">
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 bg-white/20 rounded-full h-2">
-                              <div
-                                className="bg-[#00d8cc] h-2 rounded-full"
-                                style={{ width: `${frontliner.progress}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-xs">
-                              {frontliner.progress}%
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-white/80">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs ${
-                              frontliner.status === "active"
-                                ? "bg-green-500/20 text-green-300"
-                                : "bg-red-500/20 text-red-300"
-                            }`}
-                          >
-                            {frontliner.status}
+                          <span className="text-xs">
+                            {frontliner.overallProgress}%
                           </span>
-                        </TableCell>
-                        <TableCell className="text-white/80">
-                          {formatDate(frontliner.createdAt)}
-                        </TableCell>
-                        <TableCell className="text-white/80">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-white/80 hover:text-white hover:bg-white/10"
+                        </div>
+                      </div>
+                      <div className="col-span-1 text-white/80">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            frontliner.status === "active"
+                              ? "bg-green-500/20 text-green-300"
+                              : "bg-red-500/20 text-red-300"
+                          }`}
+                        >
+                          {frontliner.status}
+                        </span>
+                      </div>
+                      <div className="col-span-1 flex items-center gap-2">
+                        {expandedRows.has(frontliner.id) ? (
+                          <ChevronDown className="h-4 w-4 text-white/60" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-white/60" />
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-white/80 hover:text-white hover:bg-white/10"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Expanded Row */}
+                    {expandedRows.has(frontliner.id) && (
+                      <div className="bg-white/5 border-t border-white/10 p-4">
+                        <div className="grid grid-cols-12 gap-4">
+                          <div className="col-span-2">
+                            <div className="text-xs text-white/60 mb-1">
+                              Phone Number
+                            </div>
+                            <div
+                              className="text-white/80 truncate"
+                              title={frontliner.phoneNumber}
+                            >
+                              {frontliner.phoneNumber}
+                            </div>
+                          </div>
+                          <div className="col-span-2">
+                            <div className="text-xs text-white/60 mb-1">
+                              Asset Sub-Category
+                            </div>
+                            <div
+                              className="text-white/80 truncate"
+                              title={frontliner.subAsset}
+                            >
+                              {frontliner.subAsset}
+                            </div>
+                          </div>
+                          <div className="col-span-2">
+                            <div className="text-xs text-white/60 mb-1">
+                              Sub-Organization
+                            </div>
+                            <div
+                              className="text-white/80 truncate"
+                              title={frontliner.subOrganization || "N/A"}
+                            >
+                              {frontliner.subOrganization || "N/A"}
+                            </div>
+                          </div>
+                          <div className="col-span-2">
+                            <div className="text-xs text-white/60 mb-1">
+                              Role Category
+                            </div>
+                            <div
+                              className="text-white/80 truncate"
+                              title={frontliner.roleCategory}
+                            >
+                              {frontliner.roleCategory}
+                            </div>
+                          </div>
+                          <div className="col-span-2">
+                            <div className="text-xs text-white/60 mb-1">
+                              Seniority
+                            </div>
+                            <div
+                              className="text-white/80 truncate"
+                              title={frontliner.seniority}
+                            >
+                              {frontliner.seniority}
+                            </div>
+                          </div>
+                          <div className="col-span-2">
+                            <div className="text-xs text-white/60 mb-1">
+                              VX Points
+                            </div>
+                            <div
+                              className="text-white/80 truncate"
+                              title={frontliner.vxPoints.toLocaleString()}
+                            >
+                              {frontliner.vxPoints.toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 grid grid-cols-12 gap-4">
+                          <div className="col-span-2">
+                            <div className="text-xs text-white/60 mb-1">
+                              Al Midhyaf
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 bg-white/20 rounded-full h-2">
+                                <div
+                                  className="bg-blue-500 h-2 rounded-full"
+                                  style={{ width: `${frontliner.alMidhyaf}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-xs text-white/80">
+                                {frontliner.alMidhyaf}%
+                              </span>
+                            </div>
+                          </div>
+                          <div className="col-span-2">
+                            <div className="text-xs text-white/60 mb-1">
+                              AD Information
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 bg-white/20 rounded-full h-2">
+                                <div
+                                  className="bg-green-500 h-2 rounded-full"
+                                  style={{
+                                    width: `${frontliner.adInformation}%`,
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="text-xs text-white/80">
+                                {frontliner.adInformation}%
+                              </span>
+                            </div>
+                          </div>
+                          <div className="col-span-2">
+                            <div className="text-xs text-white/60 mb-1">
+                              VX Soft Skills
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 bg-white/20 rounded-full h-2">
+                                <div
+                                  className="bg-purple-500 h-2 rounded-full"
+                                  style={{
+                                    width: `${frontliner.generalVxSoftSkills}%`,
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="text-xs text-white/80">
+                                {frontliner.generalVxSoftSkills}%
+                              </span>
+                            </div>
+                          </div>
+                          <div className="col-span-2">
+                            <div className="text-xs text-white/60 mb-1">
+                              VX Hard Skills
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 bg-white/20 rounded-full h-2">
+                                <div
+                                  className="bg-orange-500 h-2 rounded-full"
+                                  style={{
+                                    width: `${frontliner.generalVxHardSkills}%`,
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="text-xs text-white/80">
+                                {frontliner.generalVxHardSkills}%
+                              </span>
+                            </div>
+                          </div>
+                          <div className="col-span-2">
+                            <div className="text-xs text-white/60 mb-1">
+                              Managerial Competencies
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 bg-white/20 rounded-full h-2">
+                                <div
+                                  className="bg-red-500 h-2 rounded-full"
+                                  style={{
+                                    width: `${frontliner.managerialCompetencies}%`,
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="text-xs text-white/80">
+                                {frontliner.managerialCompetencies}%
+                              </span>
+                            </div>
+                          </div>
+                          <div className="col-span-2">
+                            <div className="text-xs text-white/60 mb-1">
+                              Registration Date
+                            </div>
+                            <div
+                              className="text-white/80 truncate"
+                              title={formatDate(frontliner.registrationDate)}
+                            >
+                              {formatDate(frontliner.registrationDate)}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4">
+                          <div className="text-xs text-white/60 mb-1">
+                            Last Login Date
+                          </div>
+                          <div
+                            className="text-white/80 truncate"
+                            title={formatDate(frontliner.lastLoginDate)}
                           >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                            {formatDate(frontliner.lastLoginDate)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>

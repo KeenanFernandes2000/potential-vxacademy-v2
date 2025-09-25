@@ -370,10 +370,12 @@ const joinPage = (props: Props) => {
   }, []);
 
   // Function to get filtered roles based on selected role category
-  const getFilteredRoles = (categoryId: string) => {
-    if (!categoryId || categoryId === "") return [];
-    const categoryIdNum = parseInt(categoryId);
-    return allRoles.filter((role) => role.categoryId === categoryIdNum);
+  const getFilteredRoles = (categoryName: string) => {
+    if (!categoryName || categoryName === "") return [];
+    // Find the category ID for the given category name
+    const category = roleCategories.find((cat) => cat.name === categoryName);
+    if (!category) return [];
+    return allRoles.filter((role) => role.categoryId === category.id);
   };
 
   // Function to fetch sub-organizations when organization changes
@@ -686,12 +688,19 @@ const joinPage = (props: Props) => {
 
       // If "Other" is selected, create a new role
       if (form2Data.role === "Other" && customRole.trim()) {
-        const categoryId = parseInt(form2Data.role_category);
+        // Find the category ID for the selected category name
+        const category = roleCategories.find(
+          (cat) => cat.name === form2Data.role_category
+        );
+        if (!category) {
+          alert("Invalid role category selected. Please try again.");
+          return;
+        }
 
         try {
           const roleResponse = await api.createRole({
             name: customRole.trim(),
-            categoryId: categoryId,
+            categoryId: category.id,
           });
 
           if (roleResponse.success && roleResponse.data) {
@@ -711,7 +720,7 @@ const joinPage = (props: Props) => {
 
       // Prepare normal user registration data
       const normalUserData = {
-        roleCategory: form2Data.role_category,
+        roleCategory: form2Data.role_category, // This now contains the category name instead of ID
         role: finalRole,
         seniority: form2Data.seniority,
         eid: form2Data.eid,
@@ -1153,10 +1162,7 @@ const joinPage = (props: Props) => {
                       </SelectItem>
                     ) : (
                       roleCategories.map((category) => (
-                        <SelectItem
-                          key={category.id}
-                          value={category.id.toString()}
-                        >
+                        <SelectItem key={category.id} value={category.name}>
                           {category.name}
                         </SelectItem>
                       ))

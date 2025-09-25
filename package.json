@@ -30,6 +30,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "ag-charts-react": "^12.2.0",
     "pdf-lib": "^1.17.1",
     "react-international-phone": "^4.6.0"
   }
