@@ -547,7 +547,7 @@ export default function HomePage() {
             <div className="lg:col-span-6 order-2 lg:order-1">
               <div className="w-full h-full overflow-hidden" data-aos="fade-up">
                 <img
-                  src="./impact.jpg"
+                  src="./impact-1.jpg"
                   alt="Team collaboration and impact"
                   className="w-full h-full object-cover"
                 />
