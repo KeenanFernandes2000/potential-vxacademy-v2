@@ -240,7 +240,7 @@ const Users = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
                 onClick={() => handleViewMore(user)}
                 title="View Full Profile"
               >
@@ -249,7 +249,7 @@ const Users = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
                 onClick={() => handleEditUser(user)}
                 title="Edit"
               >
@@ -258,7 +258,7 @@ const Users = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-600 hover:bg-red-100"
                 onClick={() => handleDeleteUser(user.id)}
                 title="Delete"
               >
@@ -446,7 +446,7 @@ const Users = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
               onClick={() => handleViewMore(user)}
               title="View Full Profile"
             >
@@ -455,7 +455,7 @@ const Users = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
               onClick={() => handleEditUser(user)}
               title="Edit"
             >
@@ -464,7 +464,7 @@ const Users = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-600 hover:bg-red-100"
               onClick={() => handleDeleteUser(user.id)}
               title="Delete"
             >
@@ -541,7 +541,7 @@ const Users = () => {
             onChange={(e) =>
               setFormData({ ...formData, firstName: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full bg-white border-[#E5E5E5]"
             required
           />
         </div>
@@ -553,7 +553,7 @@ const Users = () => {
             onChange={(e) =>
               setFormData({ ...formData, lastName: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full bg-white border-[#E5E5E5]"
             required
           />
         </div>
@@ -566,7 +566,7 @@ const Users = () => {
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full bg-white border-[#E5E5E5]"
             required
           />
         </div>
@@ -578,7 +578,7 @@ const Users = () => {
               setFormData({ ...formData, userType: value })
             }
           >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+            <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5]">
               <SelectValue placeholder="Select user type" />
             </SelectTrigger>
             <SelectContent>
@@ -595,11 +595,15 @@ const Users = () => {
               setIsEditModalOpen(false);
               setSelectedUser(null);
             }}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:bg-sandstone"
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isLoading} className="rounded-full">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="rounded-full bg-dawn hover:bg-[#B85A1A] text-white"
+          >
             {isLoading ? "Updating..." : "Update User"}
           </Button>
         </div>
@@ -628,10 +632,10 @@ const Users = () => {
     <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">
+          <h1 className="text-3xl font-bold tracking-tight text-[#2C2C2C]">
             Frontliners
           </h1>
-          <p className="text-white/80 mt-2">
+          <p className="text-[#666666] mt-2">
             Manage frontliners within your organization
           </p>
         </div>
@@ -646,7 +650,7 @@ const Users = () => {
       {/* Search Bar */}
       <div className="flex items-center space-x-2">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] h-4 w-4" />
           <Input
             placeholder="Search users..."
             value={searchQuery}
@@ -654,13 +658,13 @@ const Users = () => {
               setSearchQuery(e.target.value);
               handleSearch(e.target.value);
             }}
-            className="pl-10 rounded-full bg-[#00d8cc]/30 border-white/20 text-white placeholder:text-white/60 w-full"
+            className="pl-10 rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666] w-full"
           />
         </div>
         <div>
           <Button
             onClick={downloadExcel}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full bg-dawn hover:bg-[#B85A1A] text-white"
             disabled={filteredUsers.length === 0}
           >
             <Download className="h-4 w-4 mr-2" />
@@ -670,12 +674,15 @@ const Users = () => {
       </div>
 
       {/* User Table */}
-      <div className="border bg-white/10 backdrop-blur-sm border-white/20 w-full rounded-lg">
+      <div className="border bg-white border-[#E5E5E5] w-full rounded-lg">
         <Table>
           <TableHeader>
-            <TableRow className="border-white/20">
+            <TableRow className="border-[#E5E5E5]">
               {columns.map((column) => (
-                <TableHead key={column} className="text-white font-semibold">
+                <TableHead
+                  key={column}
+                  className="text-[#2C2C2C] font-semibold"
+                >
                   {column}
                 </TableHead>
               ))}
@@ -685,38 +692,40 @@ const Users = () => {
             {filteredUsers.map((user, index) => (
               <TableRow
                 key={index}
-                className="border-white/20 hover:bg-white/5"
+                className="border-[#E5E5E5] hover:bg-sandstone/50"
               >
-                <TableCell className="text-white/90">{user.id}</TableCell>
-                <TableCell className="text-white/90">
+                <TableCell className="text-[#2C2C2C]">{user.id}</TableCell>
+                <TableCell className="text-[#2C2C2C]">
                   {user.firstName}
                 </TableCell>
-                <TableCell className="text-white/90">{user.lastName}</TableCell>
-                <TableCell className="text-white/90">{user.email}</TableCell>
-                <TableCell className="text-white/90">{user.eid}</TableCell>
-                <TableCell className="text-white/90">
+                <TableCell className="text-[#2C2C2C]">
+                  {user.lastName}
+                </TableCell>
+                <TableCell className="text-[#2C2C2C]">{user.email}</TableCell>
+                <TableCell className="text-[#2C2C2C]">{user.eid}</TableCell>
+                <TableCell className="text-[#2C2C2C]">
                   {user.phoneNumber}
                 </TableCell>
-                <TableCell className="text-white/90">
+                <TableCell className="text-[#2C2C2C]">
                   {user.roleCategory}
                 </TableCell>
-                <TableCell className="text-white/90">{user.role}</TableCell>
-                <TableCell className="text-white/90">
+                <TableCell className="text-[#2C2C2C]">{user.role}</TableCell>
+                <TableCell className="text-[#2C2C2C]">
                   {user.seniority}
                 </TableCell>
-                <TableCell className="text-white/90">
+                <TableCell className="text-[#2C2C2C]">
                   {user.overallProgress}
                 </TableCell>
-                <TableCell className="text-white/90">
+                <TableCell className="text-[#2C2C2C]">
                   {user.certificates}
                 </TableCell>
-                <TableCell className="text-white/90">
+                <TableCell className="text-[#2C2C2C]">
                   {user.registrationDate}
                 </TableCell>
-                <TableCell className="text-white/90">
+                <TableCell className="text-[#2C2C2C]">
                   {user.lastLoginDate}
                 </TableCell>
-                <TableCell className="text-white/90">{user.actions}</TableCell>
+                <TableCell className="text-[#2C2C2C]">{user.actions}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -725,9 +734,9 @@ const Users = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-sandstone border-white/20 text-white">
+        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
           <DialogHeader>
-            <DialogTitle className="text-white">Edit User</DialogTitle>
+            <DialogTitle className="text-[#2C2C2C]">Edit User</DialogTitle>
           </DialogHeader>
           <EditUserForm />
         </DialogContent>
@@ -735,9 +744,9 @@ const Users = () => {
 
       {/* View User Details Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-2xl bg-sandstone border-white/20 text-white max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl bg-white border-[#E5E5E5] text-[#2C2C2C] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-[#2C2C2C]">
               User Profile Details
             </DialogTitle>
           </DialogHeader>
@@ -746,38 +755,38 @@ const Users = () => {
               {/* Basic Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-white/80">First Name</Label>
-                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                  <Label className="text-[#666666]">First Name</Label>
+                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
                     {selectedUser.firstName}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white/80">Last Name</Label>
-                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                  <Label className="text-[#666666]">Last Name</Label>
+                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
                     {selectedUser.lastName}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white/80">Email Address</Label>
-                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                  <Label className="text-[#666666]">Email Address</Label>
+                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
                     {selectedUser.email}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white/80">EID</Label>
-                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                  <Label className="text-[#666666]">EID</Label>
+                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
                     {selectedUser.eid}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white/80">Phone Number</Label>
-                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                  <Label className="text-[#666666]">Phone Number</Label>
+                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
                     {selectedUser.phoneNumber}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white/80">User Type</Label>
-                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                  <Label className="text-[#666666]">User Type</Label>
+                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
                     {selectedUser.userType}
                   </div>
                 </div>
@@ -786,20 +795,20 @@ const Users = () => {
               {/* Role Information */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-white/80">Role Category</Label>
-                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                  <Label className="text-[#666666]">Role Category</Label>
+                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
                     {selectedUser.roleCategory}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white/80">Role</Label>
-                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                  <Label className="text-[#666666]">Role</Label>
+                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
                     {selectedUser.role}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white/80">Seniority</Label>
-                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                  <Label className="text-[#666666]">Seniority</Label>
+                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
                     {selectedUser.seniority}
                   </div>
                 </div>
@@ -808,14 +817,14 @@ const Users = () => {
               {/* Progress and Certificates */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-white/80">Overall Progress</Label>
-                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                  <Label className="text-[#666666]">Overall Progress</Label>
+                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
                     {selectedUser.overallProgress}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white/80">Certificates</Label>
-                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                  <Label className="text-[#666666]">Certificates</Label>
+                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
                     {selectedUser.certificates}
                   </div>
                 </div>
@@ -824,14 +833,14 @@ const Users = () => {
               {/* Dates */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-white/80">Registration Date</Label>
-                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                  <Label className="text-[#666666]">Registration Date</Label>
+                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
                     {selectedUser.registrationDate}
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white/80">Last Login Date</Label>
-                  <div className="p-3 bg-white/10 rounded-lg text-white">
+                  <Label className="text-[#666666]">Last Login Date</Label>
+                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
                     {selectedUser.lastLoginDate}
                   </div>
                 </div>
@@ -842,7 +851,7 @@ const Users = () => {
                 <Button
                   variant="outline"
                   onClick={() => setIsViewModalOpen(false)}
-                  className="rounded-full bg-[#00d8cc]/30 border-white/20 text-white hover:bg-[#00d8cc]/50"
+                  className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:bg-sandstone"
                 >
                   Close
                 </Button>
@@ -851,7 +860,7 @@ const Users = () => {
                     setIsViewModalOpen(false);
                     handleEditUser(selectedUser);
                   }}
-                  className="rounded-full bg-[#00d8cc] hover:bg-[#00d8cc]/80"
+                  className="rounded-full bg-dawn hover:bg-[#B85A1A] text-white"
                 >
                   Edit User
                 </Button>

@@ -51,12 +51,12 @@ const SubAdminSidebar = () => {
       url: "/sub-admin/frontliners",
       badge: null,
     },
-    {
-      title: "Invite Your Frontliners",
-      icon: LinkIcon,
-      url: "/sub-admin/invite",
-      badge: null,
-    },
+    // {
+    //   title: "Invite Your Frontliners",
+    //   icon: LinkIcon,
+    //   url: "/sub-admin/invite",
+    //   badge: null,
+    // },
   ];
 
   return (
