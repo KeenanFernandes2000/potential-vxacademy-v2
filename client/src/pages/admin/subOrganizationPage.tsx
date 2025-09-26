@@ -587,7 +587,7 @@ const SubOrganizationPage = () => {
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
             required
           />
         </div>
@@ -601,7 +601,7 @@ const SubOrganizationPage = () => {
             }
             required
           >
-            <SelectTrigger className="rounded-full bg-[#00d8cc]/30 w-full">
+            <SelectTrigger className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] w-full">
               <SelectValue placeholder="Select an organization" />
             </SelectTrigger>
             <SelectContent>
@@ -624,7 +624,7 @@ const SubOrganizationPage = () => {
             onValueChange={handleAssetChange}
             required
           >
-            <SelectTrigger className="rounded-full bg-[#00d8cc]/30 w-full">
+            <SelectTrigger className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] w-full">
               <SelectValue placeholder="Select an asset" />
             </SelectTrigger>
             <SelectContent>
@@ -647,7 +647,7 @@ const SubOrganizationPage = () => {
             required
             disabled={!formData.assetId}
           >
-            <SelectTrigger className="rounded-full bg-[#00d8cc]/30 w-full">
+            <SelectTrigger className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] w-full">
               <SelectValue placeholder="Select a sub asset" />
             </SelectTrigger>
             <SelectContent>
@@ -719,7 +719,7 @@ const SubOrganizationPage = () => {
             id="edit_name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
             required
           />
         </div>
@@ -733,7 +733,7 @@ const SubOrganizationPage = () => {
             }
             required
           >
-            <SelectTrigger className="rounded-full bg-[#00d8cc]/30 w-full">
+            <SelectTrigger className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] w-full">
               <SelectValue placeholder="Select an organization" />
             </SelectTrigger>
             <SelectContent>
@@ -756,7 +756,7 @@ const SubOrganizationPage = () => {
             onValueChange={handleAssetChange}
             required
           >
-            <SelectTrigger className="rounded-full bg-[#00d8cc]/30 w-full">
+            <SelectTrigger className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] w-full">
               <SelectValue placeholder="Select an asset" />
             </SelectTrigger>
             <SelectContent>
@@ -778,7 +778,7 @@ const SubOrganizationPage = () => {
             }
             required
           >
-            <SelectTrigger className="rounded-full bg-[#00d8cc]/30 w-full">
+            <SelectTrigger className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] w-full">
               <SelectValue placeholder="Select a sub asset" />
             </SelectTrigger>
             <SelectContent>
@@ -799,7 +799,7 @@ const SubOrganizationPage = () => {
               setIsEditModalOpen(false);
               setSelectedSubOrganization(null);
             }}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
           >
             Cancel
           </Button>
@@ -841,9 +841,9 @@ const SubOrganizationPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-sandstone border-white/20 text-white">
+        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-[#2C2C2C]">
               Edit Sub-Organization
             </DialogTitle>
           </DialogHeader>

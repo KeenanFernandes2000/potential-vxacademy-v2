@@ -45,7 +45,6 @@ const api = {
     }
   },
 
-
   async createOrganization(organizationData: any, token: string) {
     try {
       const baseUrl = import.meta.env.VITE_API_URL;
@@ -412,7 +411,7 @@ const OrganizationPage = () => {
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
             placeholder="Type Organization Name"
             required
           />
@@ -445,7 +444,7 @@ const OrganizationPage = () => {
             id="edit_name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
             placeholder="Type Organization Name"
             required
           />
@@ -459,7 +458,7 @@ const OrganizationPage = () => {
               setIsEditModalOpen(false);
               setSelectedOrganization(null);
             }}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
           >
             Cancel
           </Button>
@@ -499,9 +498,11 @@ const OrganizationPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-sandstone border-white/20 text-white">
+        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
           <DialogHeader className="relative">
-            <DialogTitle className="text-white">Edit Organization</DialogTitle>
+            <DialogTitle className="text-[#2C2C2C]">
+              Edit Organization
+            </DialogTitle>
             <Button
               variant="ghost"
               size="sm"

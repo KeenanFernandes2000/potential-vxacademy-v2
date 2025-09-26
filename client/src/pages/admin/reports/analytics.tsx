@@ -162,9 +162,9 @@ const Analytics = () => {
     const getColor = (type: string, index: number) => {
       switch (type) {
         case "organization":
-          return "#00d8cc";
+          return "#d2691e";
         case "category":
-          return "#0088FE";
+          return "#B85A1A";
         case "role":
           return COLORS[index % COLORS.length];
         default:
@@ -321,19 +321,19 @@ const Analytics = () => {
     changeType?: "positive" | "negative" | "neutral";
     loading?: boolean;
   }) => (
-    <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 hover:bg-[#00d8cc]/15 transition-all duration-300 rounded-none">
+    <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-white/80">
+        <CardTitle className="text-sm font-medium text-[#2C2C2C]">
           {title}
         </CardTitle>
         {loading ? (
-          <Loader2 className="h-4 w-4 text-[#00d8cc] animate-spin" />
+          <Loader2 className="h-4 w-4 text-dawn animate-spin" />
         ) : (
-          <Icon className="h-4 w-4 text-[#00d8cc]" />
+          <Icon className="h-4 w-4 text-dawn" />
         )}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-white">
+        <div className="text-2xl font-bold text-[#2C2C2C]">
           {loading ? "..." : value}
         </div>
         {change && !loading && (
@@ -343,7 +343,7 @@ const Analytics = () => {
                 ? "text-green-400"
                 : changeType === "negative"
                 ? "text-red-400"
-                : "text-white/60"
+                : "text-[#2C2C2C]/60"
             }`}
           >
             {change}
@@ -432,62 +432,64 @@ const Analytics = () => {
         {/* Charts Row 1: User Growth and Role Distribution */}
         <div className="grid gap-4 md:grid-cols-2">
           {/* Chart 1: Bar Chart - User Growth Over Time */}
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-[#00d8cc]" />
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-dawn" />
                 User Growth Over Time
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={userGrowth}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                  <XAxis dataKey="period" stroke="#ffffff80" />
-                  <YAxis stroke="#ffffff80" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                  <XAxis dataKey="period" stroke="#666666" />
+                  <YAxis stroke="#666666" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #00d8cc",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
                       borderRadius: "8px",
-                      color: "#ffffff",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="totalUsers" fill="#00d8cc" name="Total Users" />
-                  <Bar dataKey="newUsers" fill="#00C49F" name="New Users" />
+                  <Bar dataKey="totalUsers" fill="#d2691e" name="Total Users" />
+                  <Bar dataKey="newUsers" fill="#B85A1A" name="New Users" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
           {/* Chart 2: Stacked Bar Chart - Role Distribution by Asset */}
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-[#00d8cc]" />
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-dawn" />
                 Role Distribution by Asset
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={roleDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                  <XAxis dataKey="asset" stroke="#ffffff80" />
-                  <YAxis stroke="#ffffff80" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                  <XAxis dataKey="asset" stroke="#666666" />
+                  <YAxis stroke="#666666" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #00d8cc",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
                       borderRadius: "8px",
-                      color: "#ffffff",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                   <Legend />
                   <Bar
                     dataKey="userCount"
                     stackId="a"
-                    fill="#8884D8"
+                    fill="#d2691e"
                     name="Users"
                   />
                 </BarChart>
@@ -499,10 +501,10 @@ const Analytics = () => {
         {/* Charts Row 2: Pie Charts - Asset and Seniority Distribution */}
         <div className="grid gap-4 md:grid-cols-2">
           {/* Chart 3: Pie Chart - Asset Distribution */}
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <PieChartIcon className="h-5 w-5 text-[#00d8cc]" />
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <PieChartIcon className="h-5 w-5 text-dawn" />
                 Platform Users by Asset
               </CardTitle>
             </CardHeader>
@@ -516,7 +518,7 @@ const Analytics = () => {
                     labelLine={false}
                     label={({ name, percentage }) => `${name} (${percentage}%)`}
                     outerRadius={80}
-                    fill="#8884d8"
+                    fill="#d2691e"
                     dataKey="userCount"
                   >
                     {assetDistribution.map((entry, index) => (
@@ -528,10 +530,11 @@ const Analytics = () => {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #00d8cc",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
                       borderRadius: "8px",
-                      color: "#ffffff",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                 </PieChart>
@@ -540,10 +543,10 @@ const Analytics = () => {
           </Card>
 
           {/* Chart 4: Pie Chart - Seniority Distribution */}
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Target className="h-5 w-5 text-[#00d8cc]" />
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <Target className="h-5 w-5 text-dawn" />
                 Manager vs Staff Distribution
               </CardTitle>
             </CardHeader>
@@ -557,7 +560,7 @@ const Analytics = () => {
                     labelLine={false}
                     label={({ name, percentage }) => `${name} (${percentage}%)`}
                     outerRadius={80}
-                    fill="#8884d8"
+                    fill="#d2691e"
                     dataKey="userCount"
                   >
                     {seniorityDistribution.map((entry, index) => (
@@ -569,10 +572,11 @@ const Analytics = () => {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #00d8cc",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
                       borderRadius: "8px",
-                      color: "#ffffff",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                 </PieChart>
@@ -584,38 +588,39 @@ const Analytics = () => {
         {/* Charts Row 3: Line and Area Charts - Trends */}
         <div className="grid gap-4 md:grid-cols-2">
           {/* Chart 5: Line Chart - Registration Trends */}
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Activity className="h-5 w-5 text-[#00d8cc]" />
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <Activity className="h-5 w-5 text-dawn" />
                 Registration Trends
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={registrationTrends}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                  <XAxis dataKey="period" stroke="#ffffff80" />
-                  <YAxis stroke="#ffffff80" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                  <XAxis dataKey="period" stroke="#666666" />
+                  <YAxis stroke="#666666" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #00d8cc",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
                       borderRadius: "8px",
-                      color: "#ffffff",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                   <Legend />
                   <Line
                     type="monotone"
                     dataKey="newRegistrations"
-                    stroke="#00d8cc"
+                    stroke="#d2691e"
                     name="New Registrations"
                   />
                   <Line
                     type="monotone"
                     dataKey="cumulativeRegistrations"
-                    stroke="#00C49F"
+                    stroke="#B85A1A"
                     name="Cumulative"
                   />
                 </LineChart>
@@ -624,25 +629,26 @@ const Analytics = () => {
           </Card>
 
           {/* Chart 6: Area Chart - Active vs Inactive Users */}
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Users className="h-5 w-5 text-[#00d8cc]" />
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <Users className="h-5 w-5 text-dawn" />
                 Active vs Inactive Users
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={activeInactiveUsers}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                  <XAxis dataKey="period" stroke="#ffffff80" />
-                  <YAxis stroke="#ffffff80" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                  <XAxis dataKey="period" stroke="#666666" />
+                  <YAxis stroke="#666666" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #00d8cc",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
                       borderRadius: "8px",
-                      color: "#ffffff",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                   <Legend />
@@ -650,16 +656,16 @@ const Analytics = () => {
                     type="monotone"
                     dataKey="activeUsers"
                     stackId="1"
-                    stroke="#00C49F"
-                    fill="#00C49F"
+                    stroke="#d2691e"
+                    fill="#d2691e"
                     name="Active Users"
                   />
                   <Area
                     type="monotone"
                     dataKey="inactiveUsers"
                     stackId="1"
-                    stroke="#FF8042"
-                    fill="#FF8042"
+                    stroke="#B85A1A"
+                    fill="#B85A1A"
                     name="Inactive Users"
                   />
                 </AreaChart>
@@ -671,25 +677,26 @@ const Analytics = () => {
         {/* Charts Row 4: Usage and Training Analytics */}
         <div className="grid gap-4 md:grid-cols-2">
           {/* Chart 7: Bar Chart - Peak Usage Times */}
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-[#00d8cc]" />
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-dawn" />
                 Peak Usage Times
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={peakUsageTimes.slice(0, 10)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                  <XAxis dataKey="timePeriod" stroke="#ffffff80" />
-                  <YAxis stroke="#ffffff80" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                  <XAxis dataKey="timePeriod" stroke="#666666" />
+                  <YAxis stroke="#666666" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #00d8cc",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
                       borderRadius: "8px",
-                      color: "#ffffff",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                   <Legend />
@@ -705,36 +712,37 @@ const Analytics = () => {
           </Card>
 
           {/* Chart 8: Grouped Bar Chart - Training Area Enrollments */}
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-[#00d8cc]" />
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-dawn" />
                 Training Area Enrollments
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={trainingAreaEnrollments}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                  <XAxis dataKey="period" stroke="#ffffff80" />
-                  <YAxis stroke="#ffffff80" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                  <XAxis dataKey="period" stroke="#666666" />
+                  <YAxis stroke="#666666" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #00d8cc",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
                       borderRadius: "8px",
-                      color: "#ffffff",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                   <Legend />
                   <Bar
                     dataKey="enrollments"
-                    fill="#8884D8"
+                    fill="#d2691e"
                     name="Enrollments"
                   />
                   <Bar
                     dataKey="completions"
-                    fill="#82CA9D"
+                    fill="#B85A1A"
                     name="Completions"
                   />
                 </BarChart>
@@ -746,31 +754,32 @@ const Analytics = () => {
         {/* Charts Row 5: Completion Rates and Certificate Trends */}
         <div className="grid gap-4 md:grid-cols-2">
           {/* Chart 9: Gauge Chart - Course Completion Rates */}
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Target className="h-5 w-5 text-[#00d8cc]" />
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <Target className="h-5 w-5 text-dawn" />
                 Course Completion Rates
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={courseCompletionRates}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                  <XAxis dataKey="trainingArea" stroke="#ffffff80" />
-                  <YAxis stroke="#ffffff80" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                  <XAxis dataKey="trainingArea" stroke="#666666" />
+                  <YAxis stroke="#666666" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #00d8cc",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
                       borderRadius: "8px",
-                      color: "#ffffff",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                   <Legend />
                   <Bar
                     dataKey="completionRate"
-                    fill="#00C49F"
+                    fill="#d2691e"
                     name="Completion Rate (%)"
                   />
                 </BarChart>
@@ -779,25 +788,26 @@ const Analytics = () => {
           </Card>
 
           {/* Chart 11: Stacked Column Chart - Certificate Trends */}
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Award className="h-5 w-5 text-[#00d8cc]" />
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <Award className="h-5 w-5 text-dawn" />
                 Certificate Trends
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={certificateTrends}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                  <XAxis dataKey="period" stroke="#ffffff80" />
-                  <YAxis stroke="#ffffff80" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                  <XAxis dataKey="period" stroke="#666666" />
+                  <YAxis stroke="#666666" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #00d8cc",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
                       borderRadius: "8px",
-                      color: "#ffffff",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                   <Legend />
@@ -813,10 +823,10 @@ const Analytics = () => {
         </div>
 
         {/* Chart 10: Heatmap - Training Completion Rates (Full Width) */}
-        <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+        <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Activity className="h-5 w-5 text-[#00d8cc]" />
+            <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+              <Activity className="h-5 w-5 text-dawn" />
               Training Completion Heatmap
             </CardTitle>
           </CardHeader>
@@ -825,23 +835,23 @@ const Analytics = () => {
               {trainingCompletionHeatmap.map((item: any, index: number) => (
                 <div
                   key={index}
-                  className="p-4 border border-[#00d8cc]/20 rounded-lg bg-white/5"
+                  className="p-4 border border-[#E5E5E5] rounded-lg bg-sandstone"
                 >
-                  <div className="font-medium text-sm mb-2 text-white/80">
+                  <div className="font-medium text-sm mb-2 text-[#2C2C2C]">
                     {item.trainingArea}
                   </div>
-                  <div className="text-xs text-white/60 mb-1">
+                  <div className="text-xs text-[#2C2C2C]/60 mb-1">
                     {item.roleCategory} - {item.asset}
                   </div>
                   <div
                     className="text-lg font-bold"
                     style={{
-                      color: item.completionRate > 50 ? "#00C49F" : "#FF8042",
+                      color: item.completionRate > 50 ? "#d2691e" : "#B85A1A",
                     }}
                   >
                     {item.completionRate}%
                   </div>
-                  <div className="text-xs text-white/50">
+                  <div className="text-xs text-[#2C2C2C]/50">
                     {item.completedUsers}/{item.totalUsers} users
                   </div>
                 </div>
@@ -853,39 +863,40 @@ const Analytics = () => {
         {/* Charts Row 6: Organization Analytics */}
         <div className="grid gap-4 md:grid-cols-2">
           {/* Chart 12: Stacked Bar Chart - Organization Role Distribution */}
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-[#00d8cc]" />
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-dawn" />
                 Organization Role Distribution
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={organizationRoleDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                  <XAxis dataKey="organization" stroke="#ffffff80" />
-                  <YAxis stroke="#ffffff80" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                  <XAxis dataKey="organization" stroke="#666666" />
+                  <YAxis stroke="#666666" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #00d8cc",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
                       borderRadius: "8px",
-                      color: "#ffffff",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                   <Legend />
-                  <Bar dataKey="userCount" fill="#8884D8" name="Users" />
+                  <Bar dataKey="userCount" fill="#d2691e" name="Users" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
           {/* Chart 13: Pie Chart - Training Area Seniority Distribution */}
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <PieChartIcon className="h-5 w-5 text-[#00d8cc]" />
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <PieChartIcon className="h-5 w-5 text-dawn" />
                 Training Area Seniority Distribution
               </CardTitle>
             </CardHeader>
@@ -901,7 +912,7 @@ const Analytics = () => {
                       `${name} - ${seniority} (${percentage}%)`
                     }
                     outerRadius={80}
-                    fill="#8884d8"
+                    fill="#d2691e"
                     dataKey="userCount"
                   >
                     {trainingAreaSeniorityDistribution.map((entry, index) => (
@@ -913,10 +924,11 @@ const Analytics = () => {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #00d8cc",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
                       borderRadius: "8px",
-                      color: "#ffffff",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                   />
                 </PieChart>
@@ -926,10 +938,10 @@ const Analytics = () => {
         </div>
 
         {/* Chart 14: TreeMap - Organization Role Breakdown (Full Width) */}
-        <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+        <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-[#00d8cc]" />
+            <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-dawn" />
               Organization Role Breakdown (TreeMap)
             </CardTitle>
           </CardHeader>
@@ -941,15 +953,16 @@ const Analytics = () => {
                   dataKey="size"
                   aspectRatio={4 / 3}
                   stroke="#ffffff"
-                  fill="#8884d8"
+                  fill="#d2691e"
                   content={<CustomizedContent />}
                 >
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#1a1a1a",
-                      border: "1px solid #00d8cc",
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
                       borderRadius: "8px",
-                      color: "#ffffff",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
                     formatter={(value: any, name: any, props: any) => [
                       `${value} users`,
@@ -959,9 +972,9 @@ const Analytics = () => {
                 </Treemap>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-96 text-white/60">
+              <div className="flex items-center justify-center h-96 text-[#2C2C2C]/60">
                 <div className="text-center">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-4 text-[#00d8cc]/50" />
+                  <BarChart3 className="h-12 w-12 mx-auto mb-4 text-dawn/50" />
                   <p>No organization role data available</p>
                   <p className="text-sm mt-2">
                     TreeMap will appear when data is loaded

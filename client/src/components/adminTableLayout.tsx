@@ -908,36 +908,44 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
         )}
 
       {/* Table */}
-      <div className="border bg-card/50 backdrop-blur-sm border-border w-full max-w-8xl mx-auto rounded-lg overflow-x-auto">
-        <div className="min-w-[800px]">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border">
-                {columns.map((column) => (
-                  <SortableTableHead key={column} column={column} />
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {getSortedData().map((row, index) => (
-                <TableRow
-                  key={index}
-                  className="border-border hover:bg-muted/50"
-                >
-                  {Object.values(row).map((cell, cellIndex) => (
-                    <TableCell
-                      key={cellIndex}
-                      className="text-foreground/90 whitespace-nowrap max-w-[200px] truncate"
-                    >
-                      {typeof cell === "string" || typeof cell === "number"
-                        ? String(cell)
-                        : cell}
-                    </TableCell>
+      <div className="border bg-card/50 backdrop-blur-sm border-border w-full max-w-8xl mx-auto rounded-lg overflow-hidden">
+        <div className="overflow-x-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sandstone/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sandstone/50 [&::-webkit-scrollbar-corner]:bg-transparent">
+          <div className="min-w-[800px]">
+            <Table>
+              <TableHeader className="sticky top-0 bg-card/50 backdrop-blur-sm z-10">
+                <TableRow className="border-border">
+                  {columns.map((column) => (
+                    <SortableTableHead key={column} column={column} />
                   ))}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+            </Table>
+          </div>
+        </div>
+        <div className="overflow-y-auto max-h-[500px] overflow-x-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sandstone/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sandstone/50 [&::-webkit-scrollbar-corner]:bg-transparent">
+          <div className="min-w-[800px]">
+            <Table>
+              <TableBody>
+                {getSortedData().map((row, index) => (
+                  <TableRow
+                    key={index}
+                    className="border-border hover:bg-muted/50"
+                  >
+                    {Object.values(row).map((cell, cellIndex) => (
+                      <TableCell
+                        key={cellIndex}
+                        className="text-foreground/90 whitespace-nowrap max-w-[200px] truncate"
+                      >
+                        {typeof cell === "string" || typeof cell === "number"
+                          ? String(cell)
+                          : cell}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
     </div>

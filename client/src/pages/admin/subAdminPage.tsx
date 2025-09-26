@@ -636,7 +636,7 @@ const SubAdminPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, first_name: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
               placeholder="Type Sub-Admin's First Name"
               required
             />
@@ -649,7 +649,7 @@ const SubAdminPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, last_name: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
               placeholder="Type Sub-Admin's Last Name"
               required
             />
@@ -665,7 +665,7 @@ const SubAdminPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
             placeholder="Type Sub-Admin's Email Address"
             required
           />
@@ -678,7 +678,7 @@ const SubAdminPage = () => {
             onValueChange={(value) => handleOrgChange(parseInt(value))}
             required
           >
-            <SelectTrigger className="w-full rounded-full bg-[#00d8cc]/30">
+            <SelectTrigger className="w-full rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
               <SelectValue placeholder="Select organization" />
             </SelectTrigger>
             <SelectContent>
@@ -698,7 +698,7 @@ const SubAdminPage = () => {
             onValueChange={(value) => handleSubOrgChange(parseInt(value))}
             disabled={!selectedOrgId || formSubOrganizations.length === 0}
           >
-            <SelectTrigger className="w-full rounded-full bg-[#00d8cc]/30">
+            <SelectTrigger className="w-full rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
               <SelectValue
                 placeholder={
                   !selectedOrgId
@@ -831,7 +831,7 @@ const SubAdminPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, first_name: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
               placeholder="Type Sub-Admin's First Name"
               required
             />
@@ -844,7 +844,7 @@ const SubAdminPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, last_name: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
               placeholder="Type Sub-Admin's Last Name"
               required
             />
@@ -860,7 +860,7 @@ const SubAdminPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, email: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
             placeholder="Type Sub-Admin's Email Address"
             required
           />
@@ -873,7 +873,7 @@ const SubAdminPage = () => {
             onValueChange={(value) => handleOrgChange(parseInt(value))}
             required
           >
-            <SelectTrigger className="w-full rounded-full bg-[#00d8cc]/30">
+            <SelectTrigger className="w-full rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
               <SelectValue placeholder="Select organization" />
             </SelectTrigger>
             <SelectContent>
@@ -893,7 +893,7 @@ const SubAdminPage = () => {
             onValueChange={(value) => handleSubOrgChange(parseInt(value))}
             disabled={!selectedOrgId || formSubOrganizations.length === 0}
           >
-            <SelectTrigger className="w-full rounded-full bg-[#00d8cc]/30">
+            <SelectTrigger className="w-full rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
               <SelectValue
                 placeholder={
                   !selectedOrgId
@@ -970,9 +970,9 @@ const SubAdminPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl bg-sandstone border-white/20 text-white">
+        <DialogContent className="max-w-2xl bg-white border-[#E5E5E5] text-[#2C2C2C]">
           <DialogHeader className="relative">
-            <DialogTitle className="text-white">Edit Sub-Admin</DialogTitle>
+            <DialogTitle className="text-[#2C2C2C]">Edit Sub-Admin</DialogTitle>
             <Button
               variant="ghost"
               size="sm"
@@ -993,18 +993,18 @@ const SubAdminPage = () => {
 
       {/* Email Modal */}
       <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
-        <DialogContent className="max-w-md bg-sandstone border-white/20 text-white">
+        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
           <DialogHeader>
-            <DialogTitle className="text-white">Email Sent</DialogTitle>
+            <DialogTitle className="text-[#2C2C2C]">Email Sent</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-white/90">
+            <p className="text-[#666666]">
               An invitation email has been sent to {selectedUser?.email}
             </p>
             <div className="space-y-2">
-              <Label className="text-white/90">Join URL:</Label>
-              <div className="p-3 bg-white/10 rounded-lg border border-white/20">
-                <code className="text-[#00d8cc] break-all">
+              <Label className="text-[#2C2C2C]">Join URL:</Label>
+              <div className="p-3 bg-sandstone rounded-lg border border-[#E5E5E5]">
+                <code className="text-dawn break-all">
                   {import.meta.env.VITE_FRONTEND_URL || window.location.origin}
                   /join?id={selectedUser?.id}
                 </code>

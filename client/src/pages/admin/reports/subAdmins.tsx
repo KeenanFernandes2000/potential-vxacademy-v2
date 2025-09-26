@@ -290,57 +290,57 @@ const SubAdmins = () => {
 
         {/* Summary Cards */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Total Sub-Admins
               </CardTitle>
-              <Shield className="h-4 w-4 text-[#00d8cc]" />
+              <Shield className="h-4 w-4 text-dawn" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {loading ? "..." : subAdmins.length}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Active Sub-Admins
               </CardTitle>
               <Shield className="h-4 w-4 text-green-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {loading ? "..." : activeSubAdmins}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Total Users Managed
               </CardTitle>
               <Users className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {loading ? "..." : totalUsers}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Organizations
               </CardTitle>
               <Building2 className="h-4 w-4 text-purple-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {loading ? "..." : uniqueOrganizations}
               </div>
             </CardContent>
@@ -348,13 +348,13 @@ const SubAdmins = () => {
         </div>
 
         {/* Filters and Actions */}
-        <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+        <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex flex-wrap gap-4 items-center justify-between">
               <div className="flex flex-wrap gap-4 items-center">
                 {/* Asset Filter */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">Asset</Label>
+                  <Label className="text-xs text-[#2C2C2C]/60">Asset</Label>
                   <Select
                     value={selectedAsset}
                     onValueChange={setSelectedAsset}
@@ -365,7 +365,7 @@ const SubAdmins = () => {
                     <SelectContent className="bg-gray-800 border-gray-700">
                       <SelectItem
                         value="all"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         All Assets
                       </SelectItem>
@@ -373,7 +373,7 @@ const SubAdmins = () => {
                         <SelectItem
                           key={asset}
                           value={asset}
-                          className="text-white hover:bg-gray-700"
+                          className="text-[#2C2C2C] hover:bg-gray-700"
                         >
                           {asset}
                         </SelectItem>
@@ -384,7 +384,7 @@ const SubAdmins = () => {
 
                 {/* Asset Sub-Category Filter */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">
+                  <Label className="text-xs text-[#2C2C2C]/60">
                     Asset Sub-Category
                   </Label>
                   <Select
@@ -397,7 +397,7 @@ const SubAdmins = () => {
                     <SelectContent className="bg-gray-800 border-gray-700">
                       <SelectItem
                         value="all"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         All Sub-Categories
                       </SelectItem>
@@ -405,7 +405,7 @@ const SubAdmins = () => {
                         <SelectItem
                           key={subAsset}
                           value={subAsset}
-                          className="text-white hover:bg-gray-700"
+                          className="text-[#2C2C2C] hover:bg-gray-700"
                         >
                           {subAsset}
                         </SelectItem>
@@ -416,7 +416,7 @@ const SubAdmins = () => {
 
                 {/* Status Filter */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">Status</Label>
+                  <Label className="text-xs text-[#2C2C2C]/60">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-[120px] bg-orange-500/20 border-orange-500/30 text-orange-300">
                       <SelectValue placeholder="All Status" />
@@ -424,19 +424,19 @@ const SubAdmins = () => {
                     <SelectContent className="bg-gray-800 border-gray-700">
                       <SelectItem
                         value="all"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         All Status
                       </SelectItem>
                       <SelectItem
                         value="active"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         Active
                       </SelectItem>
                       <SelectItem
                         value="inactive"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         Inactive
                       </SelectItem>
@@ -446,9 +446,9 @@ const SubAdmins = () => {
 
                 {/* Search */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">Search</Label>
+                  <Label className="text-xs text-[#2C2C2C]/60">Search</Label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#2C2C2C]/60 h-4 w-4" />
                     <Input
                       placeholder="Search sub-admins..."
                       value={searchTerm}
@@ -472,7 +472,7 @@ const SubAdmins = () => {
               </div>
               <Button
                 onClick={handleExport}
-                className="bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-white"
+                className="bg-dawn hover:bg-[#B85A1A] text-[#2C2C2C]"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Export CSV
@@ -482,61 +482,61 @@ const SubAdmins = () => {
         </Card>
 
         {/* Sub-Admins Table */}
-        <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+        <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Shield className="h-5 w-5 text-[#00d8cc]" />
+            <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+              <Shield className="h-5 w-5 text-dawn" />
               Sub-Admins List ({filteredSubAdmins.length} results)
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 text-[#00d8cc] animate-spin" />
+                <Loader2 className="h-8 w-8 text-dawn animate-spin" />
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="border-white/20">
-                      <TableHead className="text-white/80">Name</TableHead>
-                      <TableHead className="text-white/80">Email</TableHead>
-                      <TableHead className="text-white/80">
+                      <TableHead className="text-[#2C2C2C]">Name</TableHead>
+                      <TableHead className="text-[#2C2C2C]">Email</TableHead>
+                      <TableHead className="text-[#2C2C2C]">
                         Organization
                       </TableHead>
-                      <TableHead className="text-white/80">
+                      <TableHead className="text-[#2C2C2C]">
                         Users Managed
                       </TableHead>
-                      <TableHead className="text-white/80">Status</TableHead>
-                      <TableHead className="text-white/80">Created</TableHead>
-                      <TableHead className="text-white/80">
+                      <TableHead className="text-[#2C2C2C]">Status</TableHead>
+                      <TableHead className="text-[#2C2C2C]">Created</TableHead>
+                      <TableHead className="text-[#2C2C2C]">
                         Last Login
                       </TableHead>
-                      <TableHead className="text-white/80">
+                      <TableHead className="text-[#2C2C2C]">
                         Permissions
                       </TableHead>
-                      <TableHead className="text-white/80">Actions</TableHead>
+                      <TableHead className="text-[#2C2C2C]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredSubAdmins.map((subAdmin) => (
                       <TableRow key={subAdmin.id} className="border-white/10">
-                        <TableCell className="text-white font-medium">
+                        <TableCell className="text-[#2C2C2C] font-medium">
                           {subAdmin.firstName} {subAdmin.lastName}
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           {subAdmin.email}
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           {subAdmin.organization}
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           <div className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
                             {subAdmin.userCount}
                           </div>
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           <span
                             className={`px-2 py-1 rounded-full text-xs ${
                               subAdmin.status === "active"
@@ -547,13 +547,13 @@ const SubAdmins = () => {
                             {subAdmin.status}
                           </span>
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           {formatDate(subAdmin.createdAt)}
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           {formatDate(subAdmin.lastLogin)}
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           <div className="flex flex-wrap gap-1">
                             {subAdmin.permissions.map((permission, index) => (
                               <span
@@ -565,11 +565,11 @@ const SubAdmins = () => {
                             ))}
                           </div>
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-white/80 hover:text-white hover:bg-white/10"
+                            className="text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-white/10"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>

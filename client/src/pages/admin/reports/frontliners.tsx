@@ -535,57 +535,57 @@ const Frontliners = () => {
 
         {/* Summary Cards */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Total Frontliners
               </CardTitle>
-              <Users className="h-4 w-4 text-[#00d8cc]" />
+              <Users className="h-4 w-4 text-dawn" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {loading ? "..." : frontliners.length}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Active Frontliners
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-green-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {loading ? "..." : activeFrontliners}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Total VX Points
               </CardTitle>
               <Award className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {loading ? "..." : totalVxPoints.toLocaleString()}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Al Midhyaf Progress
               </CardTitle>
               <BookOpen className="h-4 w-4 text-purple-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {loading
                   ? "..."
                   : Math.round(totalAlMidhyaf / frontliners.length)}
@@ -597,29 +597,29 @@ const Frontliners = () => {
 
         {/* Additional Stats */}
         <div className="grid gap-4 md:grid-cols-2">
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Average Progress
               </CardTitle>
-              <TrendingUp className="h-4 w-4 text-[#00d8cc]" />
+              <TrendingUp className="h-4 w-4 text-dawn" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {loading ? "..." : `${averageProgress}%`}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Organizations
               </CardTitle>
-              <Building2 className="h-4 w-4 text-[#00d8cc]" />
+              <Building2 className="h-4 w-4 text-dawn" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {loading ? "..." : uniqueOrganizationsForStats.length}
               </div>
             </CardContent>
@@ -627,13 +627,13 @@ const Frontliners = () => {
         </div>
 
         {/* Filters and Actions */}
-        <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+        <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex flex-wrap gap-4 items-center justify-between">
               <div className="flex flex-wrap gap-4 items-center">
                 {/* Asset Filter */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">Asset</Label>
+                  <Label className="text-xs text-[#2C2C2C]/60">Asset</Label>
                   <Select
                     value={selectedAsset}
                     onValueChange={setSelectedAsset}
@@ -644,7 +644,7 @@ const Frontliners = () => {
                     <SelectContent className="bg-gray-800 border-gray-700">
                       <SelectItem
                         value="all"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         All Assets
                       </SelectItem>
@@ -652,7 +652,7 @@ const Frontliners = () => {
                         <SelectItem
                           key={asset}
                           value={asset}
-                          className="text-white hover:bg-gray-700"
+                          className="text-[#2C2C2C] hover:bg-gray-700"
                         >
                           {asset}
                         </SelectItem>
@@ -663,7 +663,7 @@ const Frontliners = () => {
 
                 {/* Asset Sub-Category Filter */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">
+                  <Label className="text-xs text-[#2C2C2C]/60">
                     Asset Sub-Category
                   </Label>
                   <Select
@@ -676,7 +676,7 @@ const Frontliners = () => {
                     <SelectContent className="bg-gray-800 border-gray-700">
                       <SelectItem
                         value="all"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         All Sub-Categories
                       </SelectItem>
@@ -684,7 +684,7 @@ const Frontliners = () => {
                         <SelectItem
                           key={subAsset}
                           value={subAsset}
-                          className="text-white hover:bg-gray-700"
+                          className="text-[#2C2C2C] hover:bg-gray-700"
                         >
                           {subAsset}
                         </SelectItem>
@@ -695,7 +695,9 @@ const Frontliners = () => {
 
                 {/* Organization Filter */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">Organization</Label>
+                  <Label className="text-xs text-[#2C2C2C]/60">
+                    Organization
+                  </Label>
                   <Select
                     value={organizationFilter}
                     onValueChange={setOrganizationFilter}
@@ -706,7 +708,7 @@ const Frontliners = () => {
                     <SelectContent className="bg-gray-800 border-gray-700">
                       <SelectItem
                         value="all"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         All Organizations
                       </SelectItem>
@@ -714,7 +716,7 @@ const Frontliners = () => {
                         <SelectItem
                           key={org}
                           value={org}
-                          className="text-white hover:bg-gray-700"
+                          className="text-[#2C2C2C] hover:bg-gray-700"
                         >
                           {org}
                         </SelectItem>
@@ -725,7 +727,7 @@ const Frontliners = () => {
 
                 {/* Sub-Organization Filter */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">
+                  <Label className="text-xs text-[#2C2C2C]/60">
                     Sub-Organization
                   </Label>
                   <Select
@@ -738,7 +740,7 @@ const Frontliners = () => {
                     <SelectContent className="bg-gray-800 border-gray-700">
                       <SelectItem
                         value="all"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         All Sub-Orgs
                       </SelectItem>
@@ -746,7 +748,7 @@ const Frontliners = () => {
                         <SelectItem
                           key={subOrg}
                           value={subOrg}
-                          className="text-white hover:bg-gray-700"
+                          className="text-[#2C2C2C] hover:bg-gray-700"
                         >
                           {subOrg}
                         </SelectItem>
@@ -757,7 +759,9 @@ const Frontliners = () => {
 
                 {/* Role Category Filter */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">Role Category</Label>
+                  <Label className="text-xs text-[#2C2C2C]/60">
+                    Role Category
+                  </Label>
                   <Select
                     value={selectedRoleCategory}
                     onValueChange={setSelectedRoleCategory}
@@ -768,7 +772,7 @@ const Frontliners = () => {
                     <SelectContent className="bg-gray-800 border-gray-700">
                       <SelectItem
                         value="all"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         All Roles
                       </SelectItem>
@@ -776,7 +780,7 @@ const Frontliners = () => {
                         <SelectItem
                           key={role}
                           value={role}
-                          className="text-white hover:bg-gray-700"
+                          className="text-[#2C2C2C] hover:bg-gray-700"
                         >
                           {role}
                         </SelectItem>
@@ -787,7 +791,7 @@ const Frontliners = () => {
 
                 {/* Overall Progress Filter */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">
+                  <Label className="text-xs text-[#2C2C2C]/60">
                     Overall Progress
                   </Label>
                   <Select
@@ -800,31 +804,31 @@ const Frontliners = () => {
                     <SelectContent className="bg-gray-800 border-gray-700">
                       <SelectItem
                         value="all"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         All Progress
                       </SelectItem>
                       <SelectItem
                         value="0-25"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         0-25%
                       </SelectItem>
                       <SelectItem
                         value="26-50"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         26-50%
                       </SelectItem>
                       <SelectItem
                         value="51-75"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         51-75%
                       </SelectItem>
                       <SelectItem
                         value="76-100"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         76-100%
                       </SelectItem>
@@ -834,7 +838,7 @@ const Frontliners = () => {
 
                 {/* Status Filter */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">Status</Label>
+                  <Label className="text-xs text-[#2C2C2C]/60">Status</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-[100px] bg-orange-500/20 border-orange-500/30 text-orange-300">
                       <SelectValue placeholder="All Status" />
@@ -842,19 +846,19 @@ const Frontliners = () => {
                     <SelectContent className="bg-gray-800 border-gray-700">
                       <SelectItem
                         value="all"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         All Status
                       </SelectItem>
                       <SelectItem
                         value="active"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         Active
                       </SelectItem>
                       <SelectItem
                         value="inactive"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         Inactive
                       </SelectItem>
@@ -864,9 +868,9 @@ const Frontliners = () => {
 
                 {/* Search */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">Search</Label>
+                  <Label className="text-xs text-[#2C2C2C]/60">Search</Label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#2C2C2C]/60 h-4 w-4" />
                     <Input
                       placeholder="Search frontliners..."
                       value={searchTerm}
@@ -890,7 +894,7 @@ const Frontliners = () => {
               </div>
               <Button
                 onClick={handleExport}
-                className="bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-white"
+                className="bg-dawn hover:bg-[#B85A1A] text-[#2C2C2C]"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Export CSV
@@ -900,50 +904,50 @@ const Frontliners = () => {
         </Card>
 
         {/* Frontliners Accordion Table */}
-        <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+        <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Users className="h-5 w-5 text-[#00d8cc]" />
+            <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+              <Users className="h-5 w-5 text-dawn" />
               Frontliners List ({filteredFrontliners.length} results)
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 text-[#00d8cc] animate-spin" />
+                <Loader2 className="h-8 w-8 text-dawn animate-spin" />
               </div>
             ) : (
               <div className="space-y-2">
                 {/* Table Header */}
                 <div className="grid grid-cols-12 gap-4 p-4 bg-white/5 rounded-lg border border-white/10">
-                  <div className="col-span-1 text-white/80 font-medium truncate">
+                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
                     User ID
                   </div>
-                  <div className="col-span-2 text-white/80 font-medium truncate">
+                  <div className="col-span-2 text-[#2C2C2C] font-medium truncate">
                     Name
                   </div>
-                  <div className="col-span-2 text-white/80 font-medium truncate">
+                  <div className="col-span-2 text-[#2C2C2C] font-medium truncate">
                     Email
                   </div>
-                  <div className="col-span-1 text-white/80 font-medium truncate">
+                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
                     EID
                   </div>
-                  <div className="col-span-1 text-white/80 font-medium truncate">
+                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
                     Asset
                   </div>
-                  <div className="col-span-1 text-white/80 font-medium truncate">
+                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
                     Organization
                   </div>
-                  <div className="col-span-1 text-white/80 font-medium truncate">
+                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
                     Role
                   </div>
-                  <div className="col-span-1 text-white/80 font-medium truncate">
+                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
                     Progress
                   </div>
-                  <div className="col-span-1 text-white/80 font-medium truncate">
+                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
                     Status
                   </div>
-                  <div className="col-span-1 text-white/80 font-medium truncate">
+                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
                     Actions
                   </div>
                 </div>
@@ -960,48 +964,48 @@ const Frontliners = () => {
                       onClick={() => toggleRow(frontliner.id)}
                     >
                       <div
-                        className="col-span-1 text-white font-medium truncate"
+                        className="col-span-1 text-[#2C2C2C] font-medium truncate"
                         title={frontliner.id}
                       >
                         {frontliner.id}
                       </div>
                       <div
-                        className="col-span-2 text-white/80 truncate"
+                        className="col-span-2 text-[#2C2C2C] truncate"
                         title={`${frontliner.firstName} ${frontliner.lastName}`}
                       >
                         {frontliner.firstName} {frontliner.lastName}
                       </div>
                       <div
-                        className="col-span-2 text-white/80 truncate"
+                        className="col-span-2 text-[#2C2C2C] truncate"
                         title={frontliner.email}
                       >
                         {frontliner.email}
                       </div>
                       <div
-                        className="col-span-1 text-white/80 truncate"
+                        className="col-span-1 text-[#2C2C2C] truncate"
                         title={frontliner.eid}
                       >
                         {frontliner.eid}
                       </div>
                       <div
-                        className="col-span-1 text-white/80 truncate"
+                        className="col-span-1 text-[#2C2C2C] truncate"
                         title={frontliner.asset}
                       >
                         {frontliner.asset}
                       </div>
                       <div
-                        className="col-span-1 text-white/80 truncate"
+                        className="col-span-1 text-[#2C2C2C] truncate"
                         title={frontliner.organization}
                       >
                         {frontliner.organization}
                       </div>
                       <div
-                        className="col-span-1 text-white/80 truncate"
+                        className="col-span-1 text-[#2C2C2C] truncate"
                         title={frontliner.role}
                       >
                         {frontliner.role}
                       </div>
-                      <div className="col-span-1 text-white/80">
+                      <div className="col-span-1 text-[#2C2C2C]">
                         <div className="flex items-center gap-2">
                           <div className="w-12 bg-white/20 rounded-full h-2">
                             <div
@@ -1016,7 +1020,7 @@ const Frontliners = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="col-span-1 text-white/80">
+                      <div className="col-span-1 text-[#2C2C2C]">
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${
                             frontliner.status === "active"
@@ -1029,14 +1033,14 @@ const Frontliners = () => {
                       </div>
                       <div className="col-span-1 flex items-center gap-2">
                         {expandedRows.has(frontliner.id) ? (
-                          <ChevronDown className="h-4 w-4 text-white/60" />
+                          <ChevronDown className="h-4 w-4 text-[#2C2C2C]/60" />
                         ) : (
-                          <ChevronRight className="h-4 w-4 text-white/60" />
+                          <ChevronRight className="h-4 w-4 text-[#2C2C2C]/60" />
                         )}
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-white/80 hover:text-white hover:bg-white/10"
+                          className="text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-white/10"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Eye className="h-4 w-4" />
@@ -1049,66 +1053,66 @@ const Frontliners = () => {
                       <div className="bg-white/5 border-t border-white/10 p-4">
                         <div className="grid grid-cols-12 gap-4">
                           <div className="col-span-2">
-                            <div className="text-xs text-white/60 mb-1">
+                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
                               Phone Number
                             </div>
                             <div
-                              className="text-white/80 truncate"
+                              className="text-[#2C2C2C] truncate"
                               title={frontliner.phoneNumber}
                             >
                               {frontliner.phoneNumber}
                             </div>
                           </div>
                           <div className="col-span-2">
-                            <div className="text-xs text-white/60 mb-1">
+                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
                               Asset Sub-Category
                             </div>
                             <div
-                              className="text-white/80 truncate"
+                              className="text-[#2C2C2C] truncate"
                               title={frontliner.subAsset}
                             >
                               {frontliner.subAsset}
                             </div>
                           </div>
                           <div className="col-span-2">
-                            <div className="text-xs text-white/60 mb-1">
+                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
                               Sub-Organization
                             </div>
                             <div
-                              className="text-white/80 truncate"
+                              className="text-[#2C2C2C] truncate"
                               title={frontliner.subOrganization || "N/A"}
                             >
                               {frontliner.subOrganization || "N/A"}
                             </div>
                           </div>
                           <div className="col-span-2">
-                            <div className="text-xs text-white/60 mb-1">
+                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
                               Role Category
                             </div>
                             <div
-                              className="text-white/80 truncate"
+                              className="text-[#2C2C2C] truncate"
                               title={frontliner.roleCategory}
                             >
                               {frontliner.roleCategory}
                             </div>
                           </div>
                           <div className="col-span-2">
-                            <div className="text-xs text-white/60 mb-1">
+                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
                               Seniority
                             </div>
                             <div
-                              className="text-white/80 truncate"
+                              className="text-[#2C2C2C] truncate"
                               title={frontliner.seniority}
                             >
                               {frontliner.seniority}
                             </div>
                           </div>
                           <div className="col-span-2">
-                            <div className="text-xs text-white/60 mb-1">
+                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
                               VX Points
                             </div>
                             <div
-                              className="text-white/80 truncate"
+                              className="text-[#2C2C2C] truncate"
                               title={frontliner.vxPoints.toLocaleString()}
                             >
                               {frontliner.vxPoints.toLocaleString()}
@@ -1118,7 +1122,7 @@ const Frontliners = () => {
 
                         <div className="mt-4 grid grid-cols-12 gap-4">
                           <div className="col-span-2">
-                            <div className="text-xs text-white/60 mb-1">
+                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
                               Al Midhyaf
                             </div>
                             <div className="flex items-center gap-2">
@@ -1128,13 +1132,13 @@ const Frontliners = () => {
                                   style={{ width: `${frontliner.alMidhyaf}%` }}
                                 ></div>
                               </div>
-                              <span className="text-xs text-white/80">
+                              <span className="text-xs text-[#2C2C2C]">
                                 {frontliner.alMidhyaf}%
                               </span>
                             </div>
                           </div>
                           <div className="col-span-2">
-                            <div className="text-xs text-white/60 mb-1">
+                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
                               AD Information
                             </div>
                             <div className="flex items-center gap-2">
@@ -1146,13 +1150,13 @@ const Frontliners = () => {
                                   }}
                                 ></div>
                               </div>
-                              <span className="text-xs text-white/80">
+                              <span className="text-xs text-[#2C2C2C]">
                                 {frontliner.adInformation}%
                               </span>
                             </div>
                           </div>
                           <div className="col-span-2">
-                            <div className="text-xs text-white/60 mb-1">
+                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
                               VX Soft Skills
                             </div>
                             <div className="flex items-center gap-2">
@@ -1164,13 +1168,13 @@ const Frontliners = () => {
                                   }}
                                 ></div>
                               </div>
-                              <span className="text-xs text-white/80">
+                              <span className="text-xs text-[#2C2C2C]">
                                 {frontliner.generalVxSoftSkills}%
                               </span>
                             </div>
                           </div>
                           <div className="col-span-2">
-                            <div className="text-xs text-white/60 mb-1">
+                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
                               VX Hard Skills
                             </div>
                             <div className="flex items-center gap-2">
@@ -1182,13 +1186,13 @@ const Frontliners = () => {
                                   }}
                                 ></div>
                               </div>
-                              <span className="text-xs text-white/80">
+                              <span className="text-xs text-[#2C2C2C]">
                                 {frontliner.generalVxHardSkills}%
                               </span>
                             </div>
                           </div>
                           <div className="col-span-2">
-                            <div className="text-xs text-white/60 mb-1">
+                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
                               Managerial Competencies
                             </div>
                             <div className="flex items-center gap-2">
@@ -1200,17 +1204,17 @@ const Frontliners = () => {
                                   }}
                                 ></div>
                               </div>
-                              <span className="text-xs text-white/80">
+                              <span className="text-xs text-[#2C2C2C]">
                                 {frontliner.managerialCompetencies}%
                               </span>
                             </div>
                           </div>
                           <div className="col-span-2">
-                            <div className="text-xs text-white/60 mb-1">
+                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
                               Registration Date
                             </div>
                             <div
-                              className="text-white/80 truncate"
+                              className="text-[#2C2C2C] truncate"
                               title={formatDate(frontliner.registrationDate)}
                             >
                               {formatDate(frontliner.registrationDate)}
@@ -1219,11 +1223,11 @@ const Frontliners = () => {
                         </div>
 
                         <div className="mt-4">
-                          <div className="text-xs text-white/60 mb-1">
+                          <div className="text-xs text-[#2C2C2C]/60 mb-1">
                             Last Login Date
                           </div>
                           <div
-                            className="text-white/80 truncate"
+                            className="text-[#2C2C2C] truncate"
                             title={formatDate(frontliner.lastLoginDate)}
                           >
                             {formatDate(frontliner.lastLoginDate)}

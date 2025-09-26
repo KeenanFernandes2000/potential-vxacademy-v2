@@ -1225,7 +1225,7 @@ const LearningPathsPage = () => {
           className="space-y-6 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
         >
           <div className="space-y-3">
-            <Label htmlFor="name" className="text-white font-medium">
+            <Label htmlFor="name" className="text-[#2C2C2C] font-medium">
               Learning Path Name *
             </Label>
             <Input
@@ -1235,12 +1235,12 @@ const LearningPathsPage = () => {
                 setFormData({ ...formData, name: e.target.value })
               }
               placeholder="Type Learning Path Name"
-              className="rounded-full bg-[#00d8cc]/30 text-white placeholder:text-white/60 border-white/30 focus:border-[#00d8cc]"
+              className="rounded-full bg-white text-[#2C2C2C] placeholder:text-[#666666] border-[#E5E5E5] focus:border-dawn"
               required
             />
           </div>
           <div className="space-y-3">
-            <Label htmlFor="assetsId" className="text-white font-medium">
+            <Label htmlFor="assetsId" className="text-[#2C2C2C] font-medium">
               Asset *
             </Label>
             <div className="relative">
@@ -1250,7 +1250,7 @@ const LearningPathsPage = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, assetsId: e.target.value })
                 }
-                className="w-full px-3 py-2 pr-8 border border-white/30 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent appearance-none"
+                className="w-full px-3 py-2 pr-8 border border-[#E5E5E5] rounded-full bg-white text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-dawn focus:border-transparent appearance-none"
                 required
               >
                 <option value="" className="text-gray-900">
@@ -1286,7 +1286,7 @@ const LearningPathsPage = () => {
           <div className="space-y-3">
             <Label
               htmlFor="roleCategoriesId"
-              className="text-white font-medium"
+              className="text-[#2C2C2C] font-medium"
             >
               Role Category *
             </Label>
@@ -1297,7 +1297,7 @@ const LearningPathsPage = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, roleCategoriesId: e.target.value })
                 }
-                className="w-full px-3 py-2 pr-8 border border-white/30 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent appearance-none"
+                className="w-full px-3 py-2 pr-8 border border-[#E5E5E5] rounded-full bg-white text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-dawn focus:border-transparent appearance-none"
                 required
               >
                 <option value="" className="text-gray-900">
@@ -1333,7 +1333,7 @@ const LearningPathsPage = () => {
           <div className="space-y-3">
             <Label
               htmlFor="seniorityLevelId"
-              className="text-white font-medium"
+              className="text-[#2C2C2C] font-medium"
             >
               Seniority Level *
             </Label>
@@ -1344,7 +1344,7 @@ const LearningPathsPage = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, seniorityLevelId: e.target.value })
                 }
-                className="w-full px-3 py-2 pr-8 border border-white/30 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent appearance-none"
+                className="w-full px-3 py-2 pr-8 border border-[#E5E5E5] rounded-full bg-white text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-dawn focus:border-transparent appearance-none"
                 required
               >
                 <option value="" className="text-gray-900">
@@ -1635,11 +1635,11 @@ const LearningPathsPage = () => {
       )}
 
       {/* Filter Section */}
-      <div className="mb-6 p-4 bg-sandstone rounded-lg border border-white/20">
-        <h3 className="text-lg font-semibold text-[#00d8cc] mb-4">Filter By</h3>
+      <div className="mb-6 p-4 bg-sandstone rounded-lg border border-[#E5E5E5]">
+        <h3 className="text-lg font-semibold text-dawn mb-4">Filter By</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="assetFilter" className="text-white">
+            <Label htmlFor="assetFilter" className="text-[#2C2C2C]">
               Asset
             </Label>
             <Select
@@ -1648,7 +1648,7 @@ const LearningPathsPage = () => {
                 handleTableFilterChange("assetId", value)
               }
             >
-              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 border-white/30">
+              <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
                 <SelectValue placeholder="Select an asset" />
               </SelectTrigger>
               <SelectContent>
@@ -1661,7 +1661,7 @@ const LearningPathsPage = () => {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="roleCategoryFilter" className="text-white">
+            <Label htmlFor="roleCategoryFilter" className="text-[#2C2C2C]">
               Role Category
             </Label>
             <Select
@@ -1670,7 +1670,7 @@ const LearningPathsPage = () => {
                 handleTableFilterChange("roleCategoryId", value)
               }
             >
-              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 border-white/30">
+              <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
                 <SelectValue placeholder="Select a role category" />
               </SelectTrigger>
               <SelectContent>

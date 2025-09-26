@@ -352,29 +352,29 @@ const AllUsers = () => {
 
         {/* Summary Cards */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Total Users
               </CardTitle>
-              <Users className="h-4 w-4 text-[#00d8cc]" />
+              <Users className="h-4 w-4 text-dawn" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {loading ? "..." : users.length}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Active Users
               </CardTitle>
               <Users className="h-4 w-4 text-green-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {loading
                   ? "..."
                   : users.filter((u) => u.status === "active").length}
@@ -382,15 +382,15 @@ const AllUsers = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Organizations
               </CardTitle>
               <Users className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {loading
                   ? "..."
                   : new Set(users.map((u) => u.organization)).size}
@@ -398,15 +398,15 @@ const AllUsers = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Filtered Results
               </CardTitle>
-              <Filter className="h-4 w-4 text-[#00d8cc]" />
+              <Filter className="h-4 w-4 text-dawn" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {filteredUsers.length}
               </div>
             </CardContent>
@@ -414,13 +414,13 @@ const AllUsers = () => {
         </div>
 
         {/* Filters and Actions - Right above the table */}
-        <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+        <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex flex-wrap gap-4 items-center justify-between">
               <div className="flex flex-wrap gap-4 items-center">
                 {/* User Type Filter */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">User Type</Label>
+                  <Label className="text-xs text-[#2C2C2C]/60">User Type</Label>
                   <Select
                     value={selectedUserType}
                     onValueChange={setSelectedUserType}
@@ -431,7 +431,7 @@ const AllUsers = () => {
                     <SelectContent className="bg-gray-800 border-gray-700">
                       <SelectItem
                         value="all"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         All Types
                       </SelectItem>
@@ -439,7 +439,7 @@ const AllUsers = () => {
                         <SelectItem
                           key={type}
                           value={type}
-                          className="text-white hover:bg-gray-700"
+                          className="text-[#2C2C2C] hover:bg-gray-700"
                         >
                           {type}
                         </SelectItem>
@@ -450,7 +450,9 @@ const AllUsers = () => {
 
                 {/* Organization Filter */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">Organization</Label>
+                  <Label className="text-xs text-[#2C2C2C]/60">
+                    Organization
+                  </Label>
                   <Select
                     value={selectedOrganization}
                     onValueChange={setSelectedOrganization}
@@ -461,7 +463,7 @@ const AllUsers = () => {
                     <SelectContent className="bg-gray-800 border-gray-700">
                       <SelectItem
                         value="all"
-                        className="text-white hover:bg-gray-700"
+                        className="text-[#2C2C2C] hover:bg-gray-700"
                       >
                         All Organizations
                       </SelectItem>
@@ -469,7 +471,7 @@ const AllUsers = () => {
                         <SelectItem
                           key={org}
                           value={org}
-                          className="text-white hover:bg-gray-700"
+                          className="text-[#2C2C2C] hover:bg-gray-700"
                         >
                           {org}
                         </SelectItem>
@@ -480,7 +482,7 @@ const AllUsers = () => {
 
                 {/* Registration Date Filter */}
                 <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-white/60">
+                  <Label className="text-xs text-[#2C2C2C]/60">
                     Registration Date
                   </Label>
                   <div className="flex gap-2">
@@ -525,7 +527,7 @@ const AllUsers = () => {
               </div>
               <Button
                 onClick={handleExport}
-                className="bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-white"
+                className="bg-dawn hover:bg-[#B85A1A] text-[#2C2C2C]"
               >
                 <Download className="h-4 w-4 mr-2" />
                 Download CSV
@@ -535,47 +537,47 @@ const AllUsers = () => {
         </Card>
 
         {/* Data Table */}
-        <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+        <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Users className="h-5 w-5 text-[#00d8cc]" />
+            <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+              <Users className="h-5 w-5 text-dawn" />
               Users List ({filteredUsers.length} results)
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 text-[#00d8cc] animate-spin" />
+                <Loader2 className="h-8 w-8 text-dawn animate-spin" />
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="border-white/20">
-                      <TableHead className="text-white/80">Name</TableHead>
-                      <TableHead className="text-white/80">Email</TableHead>
-                      <TableHead className="text-white/80">Type</TableHead>
-                      <TableHead className="text-white/80">
+                      <TableHead className="text-[#2C2C2C]">Name</TableHead>
+                      <TableHead className="text-[#2C2C2C]">Email</TableHead>
+                      <TableHead className="text-[#2C2C2C]">Type</TableHead>
+                      <TableHead className="text-[#2C2C2C]">
                         Organization
                       </TableHead>
-                      <TableHead className="text-white/80">Status</TableHead>
-                      <TableHead className="text-white/80">Created</TableHead>
-                      <TableHead className="text-white/80">
+                      <TableHead className="text-[#2C2C2C]">Status</TableHead>
+                      <TableHead className="text-[#2C2C2C]">Created</TableHead>
+                      <TableHead className="text-[#2C2C2C]">
                         Last Login
                       </TableHead>
-                      <TableHead className="text-white/80">Actions</TableHead>
+                      <TableHead className="text-[#2C2C2C]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredUsers.map((user) => (
                       <TableRow key={user.id} className="border-white/10">
-                        <TableCell className="text-white">
+                        <TableCell className="text-[#2C2C2C]">
                           {user.firstName} {user.lastName}
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           {user.email}
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           <span
                             className={`px-2 py-1 rounded-full text-xs ${
                               user.userType === "admin"
@@ -588,10 +590,10 @@ const AllUsers = () => {
                             {user.userType}
                           </span>
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           {user.organization}
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           <span
                             className={`px-2 py-1 rounded-full text-xs ${
                               user.status === "active"
@@ -602,17 +604,17 @@ const AllUsers = () => {
                             {user.status}
                           </span>
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           {formatDate(user.createdAt)}
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           {formatDate(user.lastLogin)}
                         </TableCell>
-                        <TableCell className="text-white/80">
+                        <TableCell className="text-[#2C2C2C]">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-white/80 hover:text-white hover:bg-white/10"
+                            className="text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-white/10"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
