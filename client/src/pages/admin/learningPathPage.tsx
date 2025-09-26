@@ -1214,15 +1214,9 @@ const LearningPathsPage = () => {
           <Close sx={{ fontSize: 20 }} />
         </Button>
 
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-white">
-            Create Learning Path
-          </h2>
-        </div>
-
         <form
           onSubmit={handleSubmit}
-          className="space-y-6 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
+          className="space-y-6 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent mt-6"
         >
           <div className="space-y-3">
             <Label htmlFor="name" className="text-[#2C2C2C] font-medium">
@@ -1243,45 +1237,23 @@ const LearningPathsPage = () => {
             <Label htmlFor="assetsId" className="text-[#2C2C2C] font-medium">
               Asset *
             </Label>
-            <div className="relative">
-              <select
-                id="assetsId"
-                value={formData.assetsId}
-                onChange={(e) =>
-                  setFormData({ ...formData, assetsId: e.target.value })
-                }
-                className="w-full px-3 py-2 pr-8 border border-[#E5E5E5] rounded-full bg-white text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-dawn focus:border-transparent appearance-none"
-                required
-              >
-                <option value="" className="text-gray-900">
-                  Select an asset
-                </option>
+            <Select
+              value={formData.assetsId}
+              onValueChange={(value) =>
+                setFormData({ ...formData, assetsId: value })
+              }
+            >
+              <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:border-dawn transition-all duration-200">
+                <SelectValue placeholder="Select an asset" />
+              </SelectTrigger>
+              <SelectContent>
                 {assets.map((asset) => (
-                  <option
-                    key={asset.id}
-                    value={asset.id}
-                    className="text-gray-900"
-                  >
+                  <SelectItem key={asset.id} value={asset.id.toString()}>
                     {asset.name}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-3">
             <Label
@@ -1290,45 +1262,23 @@ const LearningPathsPage = () => {
             >
               Role Category *
             </Label>
-            <div className="relative">
-              <select
-                id="roleCategoriesId"
-                value={formData.roleCategoriesId}
-                onChange={(e) =>
-                  setFormData({ ...formData, roleCategoriesId: e.target.value })
-                }
-                className="w-full px-3 py-2 pr-8 border border-[#E5E5E5] rounded-full bg-white text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-dawn focus:border-transparent appearance-none"
-                required
-              >
-                <option value="" className="text-gray-900">
-                  Select a role category
-                </option>
+            <Select
+              value={formData.roleCategoriesId}
+              onValueChange={(value) =>
+                setFormData({ ...formData, roleCategoriesId: value })
+              }
+            >
+              <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:border-dawn transition-all duration-200">
+                <SelectValue placeholder="Select a role category" />
+              </SelectTrigger>
+              <SelectContent>
                 {roleCategories.map((category) => (
-                  <option
-                    key={category.id}
-                    value={category.id}
-                    className="text-gray-900"
-                  >
+                  <SelectItem key={category.id} value={category.id.toString()}>
                     {category.name}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-3">
             <Label
@@ -1337,45 +1287,26 @@ const LearningPathsPage = () => {
             >
               Seniority Level *
             </Label>
-            <div className="relative">
-              <select
-                id="seniorityLevelId"
-                value={formData.seniorityLevelId}
-                onChange={(e) =>
-                  setFormData({ ...formData, seniorityLevelId: e.target.value })
-                }
-                className="w-full px-3 py-2 pr-8 border border-[#E5E5E5] rounded-full bg-white text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-dawn focus:border-transparent appearance-none"
-                required
-              >
-                <option value="" className="text-gray-900">
-                  Select a seniority level
-                </option>
+            <Select
+              value={formData.seniorityLevelId}
+              onValueChange={(value) =>
+                setFormData({ ...formData, seniorityLevelId: value })
+              }
+            >
+              <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:border-dawn transition-all duration-200">
+                <SelectValue placeholder="Select a seniority level" />
+              </SelectTrigger>
+              <SelectContent>
                 {seniorityLevels.map((seniority) => (
-                  <option
+                  <SelectItem
                     key={seniority.id}
-                    value={seniority.id}
-                    className="text-gray-900"
+                    value={seniority.id.toString()}
                   >
                     {seniority.name}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex justify-end gap-2">
             <Button type="submit" disabled={isLoading} className="rounded-full">
@@ -1648,7 +1579,7 @@ const LearningPathsPage = () => {
                 handleTableFilterChange("assetId", value)
               }
             >
-              <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+              <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:border-dawn transition-all duration-200">
                 <SelectValue placeholder="Select an asset" />
               </SelectTrigger>
               <SelectContent>
@@ -1670,7 +1601,7 @@ const LearningPathsPage = () => {
                 handleTableFilterChange("roleCategoryId", value)
               }
             >
-              <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+              <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:border-dawn transition-all duration-200">
                 <SelectValue placeholder="Select a role category" />
               </SelectTrigger>
               <SelectContent>
