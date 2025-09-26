@@ -2,6 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
@@ -432,31 +439,30 @@ const SubAssetsPage = () => {
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             placeholder="Type your Asset Sub-Category Name"
             required
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="parentAsset">Parent Asset *</Label>
-          <select
-            id="parentAsset"
+          <Select
             value={formData.parentAsset}
-            onChange={(e) =>
-              setFormData({ ...formData, parentAsset: e.target.value })
+            onValueChange={(value) =>
+              setFormData({ ...formData, parentAsset: value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-            required
           >
-            <option value="" className="text-gray-900">
-              Select an asset
-            </option>
-            {assets.map((asset) => (
-              <option key={asset.id} value={asset.id} className="text-gray-900">
-                {asset.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectValue placeholder="Select an asset" />
+            </SelectTrigger>
+            <SelectContent>
+              {assets.map((asset) => (
+                <SelectItem key={asset.id} value={asset.id.toString()}>
+                  {asset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex justify-end gap-2">
           <Button type="submit" disabled={isLoading} className="rounded-full">
@@ -489,31 +495,30 @@ const SubAssetsPage = () => {
             id="edit_name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             placeholder="Type your Asset Sub-Category Name"
             required
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="edit_parentAsset">Parent Asset *</Label>
-          <select
-            id="edit_parentAsset"
+          <Select
             value={formData.parentAsset}
-            onChange={(e) =>
-              setFormData({ ...formData, parentAsset: e.target.value })
+            onValueChange={(value) =>
+              setFormData({ ...formData, parentAsset: value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-            required
           >
-            <option value="" className="text-gray-900">
-              Select an asset
-            </option>
-            {assets.map((asset) => (
-              <option key={asset.id} value={asset.id} className="text-gray-900">
-                {asset.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectValue placeholder="Select an asset" />
+            </SelectTrigger>
+            <SelectContent>
+              {assets.map((asset) => (
+                <SelectItem key={asset.id} value={asset.id.toString()}>
+                  {asset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex justify-end gap-2">
           <Button

@@ -782,7 +782,7 @@ const UnitsPage = () => {
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             placeholder="Type your Learning Unit name"
             required
           />
@@ -795,7 +795,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             placeholder="Add a description"
           />
         </div>
@@ -869,7 +869,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, internal_note: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
           />
         </div>
         <div className="space-y-2">
@@ -881,7 +881,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, order: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             min="1"
             required
           />
@@ -895,7 +895,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, duration: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             min="1"
             required
           />
@@ -924,7 +924,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, xp_points: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             min="0"
             required
           />
@@ -1010,7 +1010,7 @@ const UnitsPage = () => {
             id="edit_name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             placeholder="Type your Learning Unit name"
             required
           />
@@ -1023,7 +1023,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             placeholder="Add a description"
           />
         </div>
@@ -1097,7 +1097,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, internal_note: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
           />
         </div>
         <div className="space-y-2">
@@ -1109,7 +1109,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, order: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             min="1"
             required
           />
@@ -1123,7 +1123,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, duration: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             min="1"
             required
           />
@@ -1152,7 +1152,7 @@ const UnitsPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, xp_points: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             min="0"
             required
           />

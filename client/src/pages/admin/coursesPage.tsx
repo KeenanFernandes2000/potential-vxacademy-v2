@@ -522,7 +522,7 @@ const CoursesPage = () => {
             id="name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             required
           />
         </div>
@@ -534,27 +534,28 @@ const CoursesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="module_id">Module *</Label>
-          <select
-            id="module_id"
+          <Select
             value={formData.module_id}
-            onChange={(e) =>
-              setFormData({ ...formData, module_id: e.target.value })
+            onValueChange={(value) =>
+              setFormData({ ...formData, module_id: value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-            required
           >
-            <option value="">Select a module</option>
-            {modules.map((module) => (
-              <option key={module.id} value={module.id}>
-                {module.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectValue placeholder="Select a module" />
+            </SelectTrigger>
+            <SelectContent>
+              {modules.map((module) => (
+                <SelectItem key={module.id} value={module.id.toString()}>
+                  {module.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label>Image</Label>
@@ -572,7 +573,7 @@ const CoursesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, internal_note: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
           />
         </div>
         <div className="space-y-2">
@@ -600,7 +601,7 @@ const CoursesPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, duration: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               required
             />
           </div>
@@ -683,7 +684,7 @@ const CoursesPage = () => {
             id="edit_name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             required
           />
         </div>
@@ -695,27 +696,28 @@ const CoursesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, description: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="edit_module_id">Module *</Label>
-          <select
-            id="edit_module_id"
+          <Select
             value={formData.module_id}
-            onChange={(e) =>
-              setFormData({ ...formData, module_id: e.target.value })
+            onValueChange={(value) =>
+              setFormData({ ...formData, module_id: value })
             }
-            className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-            required
           >
-            <option value="">Select a module</option>
-            {modules.map((module) => (
-              <option key={module.id} value={module.id}>
-                {module.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectValue placeholder="Select a module" />
+            </SelectTrigger>
+            <SelectContent>
+              {modules.map((module) => (
+                <SelectItem key={module.id} value={module.id.toString()}>
+                  {module.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label>Image</Label>
@@ -733,7 +735,7 @@ const CoursesPage = () => {
             onChange={(e) =>
               setFormData({ ...formData, internal_note: e.target.value })
             }
-            className="rounded-full bg-[#00d8cc]/30"
+            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
           />
         </div>
         <div className="space-y-2">
@@ -761,7 +763,7 @@ const CoursesPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, duration: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               required
             />
           </div>
@@ -831,10 +833,7 @@ const CoursesPage = () => {
   ];
 
   return (
-    <AdminPageLayout
-      title="Courses"
-      description="Manage your Courses"
-    >
+    <AdminPageLayout title="Courses" description="Manage your Courses">
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
           {error}

@@ -260,9 +260,9 @@ const InsertImage: React.FC<InsertImageProps> = ({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="bg-[#00d8cc] text-black hover:bg-[#00c4b8] px-2 py-1 rounded-full text-xs"
+                className="bg-[#00d8cc] text-black hover:bg-[#00c4b8] px-3 py-2 rounded-full text-sm font-medium transition-all duration-300"
               >
-                <Plus className="w-3 h-3 mr-1" />
+                <Plus className="w-4 h-4 mr-1" />
                 {isUploading ? "Uploading..." : "Select Image"}
               </Button>
             </div>
@@ -286,12 +286,12 @@ const InsertImage: React.FC<InsertImageProps> = ({
               placeholder="https://example.com/image.jpg"
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
-              className="w-full rounded-full"
+              className="w-full bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             />
             <Button
               type="button"
               onClick={handleUrlInsert}
-              className="w-full bg-[#00d8cc] text-black hover:bg-[#00c4b8] rounded-full py-1 text-xs"
+              className="w-full bg-[#00d8cc] text-black hover:bg-[#00c4b8] rounded-full py-2 text-sm font-medium transition-all duration-300"
             >
               Insert Image
             </Button>

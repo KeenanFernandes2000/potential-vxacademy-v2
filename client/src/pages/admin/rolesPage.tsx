@@ -1142,35 +1142,30 @@ const RolesPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               placeholder="Type your Role Name"
               required
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="categoryId">Category *</Label>
-            <select
-              id="categoryId"
+            <Select
               value={formData.categoryId}
-              onChange={(e) =>
-                setFormData({ ...formData, categoryId: e.target.value })
+              onValueChange={(value) =>
+                setFormData({ ...formData, categoryId: value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-              required
             >
-              <option value="" className="text-gray-900">
-                Select a category
-              </option>
-              {roleCategories.map((category) => (
-                <option
-                  key={category.id}
-                  value={category.id}
-                  className="text-gray-900"
-                >
-                  {category.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {roleCategories.map((category) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex justify-end gap-2">
             <Button type="submit" disabled={isLoading} className="rounded-full">
@@ -1222,35 +1217,30 @@ const RolesPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               placeholder="Type your Role Name"
               required
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit-categoryId">Category *</Label>
-            <select
-              id="edit-categoryId"
+            <Select
               value={formData.categoryId}
-              onChange={(e) =>
-                setFormData({ ...formData, categoryId: e.target.value })
+              onValueChange={(value) =>
+                setFormData({ ...formData, categoryId: value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-              required
             >
-              <option value="" className="text-gray-900">
-                Select a category
-              </option>
-              {roleCategories.map((category) => (
-                <option
-                  key={category.id}
-                  value={category.id}
-                  className="text-gray-900"
-                >
-                  {category.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {roleCategories.map((category) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex justify-end gap-2">
             <Button type="submit" disabled={isLoading} className="rounded-full">
@@ -1295,7 +1285,7 @@ const RolesPage = () => {
                       handleFilterChange("trainingAreaId", value)
                     }
                   >
-                    <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+                    <SelectTrigger className="rounded-full w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base">
                       <SelectValue placeholder="Select training area" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1317,7 +1307,7 @@ const RolesPage = () => {
                     }
                     disabled={!filters.trainingAreaId}
                   >
-                    <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+                    <SelectTrigger className="rounded-full w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base">
                       <SelectValue placeholder="Select module" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1342,7 +1332,7 @@ const RolesPage = () => {
                     }
                     disabled={!filters.moduleId}
                   >
-                    <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+                    <SelectTrigger className="rounded-full w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base">
                       <SelectValue placeholder="Select course" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1374,7 +1364,7 @@ const RolesPage = () => {
                       handleFilterChange("seniorityId", value)
                     }
                   >
-                    <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+                    <SelectTrigger className="rounded-full w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base">
                       <SelectValue placeholder="Select seniority level" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1398,7 +1388,7 @@ const RolesPage = () => {
                       handleFilterChange("assetId", value)
                     }
                   >
-                    <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+                    <SelectTrigger className="rounded-full w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base">
                       <SelectValue placeholder="Select asset" />
                     </SelectTrigger>
                     <SelectContent>

@@ -433,7 +433,7 @@ const TrainingAreaPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               required
             />
           </div>
@@ -445,7 +445,7 @@ const TrainingAreaPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             />
           </div>
           <div className="space-y-2">
@@ -500,7 +500,7 @@ const TrainingAreaPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               required
             />
           </div>
@@ -512,7 +512,7 @@ const TrainingAreaPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
             />
           </div>
           <div className="space-y-2">

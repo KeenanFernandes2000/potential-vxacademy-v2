@@ -2,6 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
@@ -611,7 +618,7 @@ const ModulesPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               placeholder="Type your Module name"
               required
             />
@@ -624,30 +631,29 @@ const ModulesPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               placeholder="Add a description"
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="training_area_id">Training Area *</Label>
-            <select
-              id="training_area_id"
+            <Select
               value={formData.training_area_id}
-              onChange={(e) =>
-                setFormData({ ...formData, training_area_id: e.target.value })
+              onValueChange={(value) =>
+                setFormData({ ...formData, training_area_id: value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-              required
             >
-              <option value="" className="text-gray-900">
-                Select a training area
-              </option>
-              {trainingAreas.map((area) => (
-                <option key={area.id} value={area.id} className="text-gray-900">
-                  {area.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select a training area" />
+              </SelectTrigger>
+              <SelectContent>
+                {trainingAreas.map((area) => (
+                  <SelectItem key={area.id} value={area.id.toString()}>
+                    {area.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="image_url">Image URL</Label>
@@ -657,7 +663,7 @@ const ModulesPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, image_url: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               placeholder="Paste your image URL"
             />
           </div>
@@ -719,7 +725,7 @@ const ModulesPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               placeholder="Type your Module name"
               required
             />
@@ -732,30 +738,29 @@ const ModulesPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               placeholder="Add a description"
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit_training_area_id">Training Area *</Label>
-            <select
-              id="edit_training_area_id"
+            <Select
               value={formData.training_area_id}
-              onChange={(e) =>
-                setFormData({ ...formData, training_area_id: e.target.value })
+              onValueChange={(value) =>
+                setFormData({ ...formData, training_area_id: value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-full bg-[#00d8cc]/30 text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-transparent"
-              required
             >
-              <option value="" className="text-gray-900">
-                Select a training area
-              </option>
-              {trainingAreas.map((area) => (
-                <option key={area.id} value={area.id} className="text-gray-900">
-                  {area.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select a training area" />
+              </SelectTrigger>
+              <SelectContent>
+                {trainingAreas.map((area) => (
+                  <SelectItem key={area.id} value={area.id.toString()}>
+                    {area.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit_image_url">Image URL</Label>
@@ -765,7 +770,7 @@ const ModulesPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, image_url: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               placeholder="Paste your image URL"
             />
           </div>
