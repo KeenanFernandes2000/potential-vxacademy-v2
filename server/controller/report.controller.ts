@@ -11,5 +11,28 @@ export const reportController = {
       console.error("Error fetching overall analytics:", error);
       res.status(500).json({ success: false, error: "Failed to fetch overall analytics data" });
     }
+  },
+
+  // Training Area Report - Single endpoint for specific training area
+  getTrainingAreaReport: async (req: Request, res: Response) => {
+    try {
+      const { trainingAreaId } = req.params;
+      
+      if (!trainingAreaId) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Training area ID is required" 
+        });
+      }
+
+      const data = await reportServices.getTrainingAreaReportData(parseInt(trainingAreaId));
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error("Error fetching training area report:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to fetch training area report data" 
+      });
+    }
   }
 };

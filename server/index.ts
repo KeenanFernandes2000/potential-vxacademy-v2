@@ -13,7 +13,7 @@ import path from "path";
 import { db } from "./db/connection";
 
 const app = express();
-const PORT = process.env.PORT as string;
+const PORT = process.env.PORT || "3001";
 
 // Create router for /api routes
 const apiRouter = express.Router();
