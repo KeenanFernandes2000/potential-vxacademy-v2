@@ -163,28 +163,13 @@ const HomeFooter: React.FC<HomeFooterProps> = ({
           <div className="hidden lg:block space-y-6">
             <h3 className="text-lg font-bold">Contact Us</h3>
             <div className="space-y-4">
-              <div className="flex items-start space-x-3 group">
-                <div className="w-6 h-6 bg-dawn/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-dawn/40 transition-colors">
-                  <Icon Component={LocationOnIcon} size={16} color="#D2691E" />
-                </div>
-                <span className="text-[#666666] text-sm leading-relaxed font-light">
-                  Abu Dhabi Tourism Building, Corniche Road, Abu Dhabi, UAE
-                </span>
-              </div>
+            
               <div className="flex items-start space-x-3 group">
                 <div className="w-6 h-6 bg-dawn/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-dawn/40 transition-colors">
                   <Icon Component={EmailIcon} size={16} color="#D2691E" />
                 </div>
                 <span className="text-[#666666] text-sm font-light">
-                  info@vxacademy.ae
-                </span>
-              </div>
-              <div className="flex items-start space-x-3 group">
-                <div className="w-6 h-6 bg-dawn/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-dawn/40 transition-colors">
-                  <Icon Component={PhoneIcon} size={16} color="#D2691E" />
-                </div>
-                <span className="text-[#666666] text-sm font-light">
-                  +971 2 123 4567
+                vxacademy@dctabudhabi.ae
                 </span>
               </div>
             </div>
