@@ -386,7 +386,7 @@ export default function HomePage() {
                 description:
                   "Master communication, empathy, and service delivery skills that ensure every guest feels welcomed and valued.",
                 icon: GroupsIcon,
-                imageSrc: "soft.jpg",
+                imageSrc: "soft-1.jpg",
                 imageAlt: "Professional hospitality training session",
               },
               {
@@ -394,7 +394,7 @@ export default function HomePage() {
                 description:
                   "Develop technical expertise and operational knowledge for specialized frontline positions across Abu Dhabi's visitor landscape.",
                 icon: BuildIcon,
-                imageSrc: "hard.jpg",
+                imageSrc: "hard-1.jpg",
                 imageAlt: "Specialized training and skill development",
               },
               {
@@ -411,7 +411,7 @@ export default function HomePage() {
                 description:
                   "Learn the essential standards, regulations, and ethical guidelines that define excellence in Abu Dhabi's hospitality sector.",
                 icon: VerifiedIcon,
-                imageSrc: "almidhyaf.jpg",
+                imageSrc: "almidhyaf-1.jpg",
                 imageAlt: "Code of conduct and regulations",
               },
             ].map((area, index) => (
@@ -470,11 +470,11 @@ export default function HomePage() {
                 {[
                   {
                     title: "Museums & Cultural Sites",
-                    image: "./museum.jpg",
+                    image: "museum-1.jpg",
                   },
                   {
                     title: "Events & Entertainment Venues",
-                    image: "events.jpg",
+                    image: "events-1.jpg",
                   },
                   {
                     title: "Mobility Operators & Airports",
@@ -488,23 +488,23 @@ export default function HomePage() {
                   },
                   {
                     title: "Hotels & Hospitality",
-                    image: "hotel.jpg",
+                    image: "hotel-1.jpg",
                   },
                   {
                     title: "Malls & Retail",
-                    image: "mall.jpg",
+                    image: "mall-1.jpg",
                   },
                   {
                     title: "Tour Guides & Operators",
-                    image: "tour.jpg",
+                    image: "tour-1.jpg",
                   },
                   {
                     title: "Visitor Information Centers",
-                    image: "visitor.jpg",
+                    image: "visitor-1.jpg",
                   },
                   {
                     title: "Attractions & Theme Parks",
-                    image: "attraction.jpg",
+                    image: "attraction-1.jpg",
                   },
                 ].map((item, index) => (
                   <CarouselItem
@@ -587,7 +587,7 @@ export default function HomePage() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <img
-            src="./join.jpg"
+            src="./join-1.png"
             alt="VX Academy Join Background"
             className="w-full h-full object-cover"
           />
