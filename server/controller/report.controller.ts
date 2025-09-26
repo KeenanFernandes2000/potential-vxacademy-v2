@@ -34,5 +34,19 @@ export const reportController = {
         error: "Failed to fetch training area report data" 
       });
     }
+  },
+
+  // Certificate Report - All frontliners with their certificate data
+  getCertificateReport: async (req: Request, res: Response) => {
+    try {
+      const data = await reportServices.getCertificateReportData();
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error("Error fetching certificate report:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to fetch certificate report data" 
+      });
+    }
   }
 };

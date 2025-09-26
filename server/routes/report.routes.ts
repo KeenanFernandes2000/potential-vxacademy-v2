@@ -9,4 +9,7 @@ router.get("/overall-analytics", reportController.getOverallAnalytics);
 // Training Area Report - Single endpoint for specific training area
 router.get("/training-area/:trainingAreaId", reportController.getTrainingAreaReport);
 
+// Certificate Report - All frontliners with their certificate data
+router.get("/certificates", reportController.getCertificateReport);
+
 export default router;

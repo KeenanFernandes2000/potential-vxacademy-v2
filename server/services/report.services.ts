@@ -568,5 +568,243 @@ export const reportServices = {
       console.error("Error in getTrainingAreaReportData:", error);
       throw error;
     }
+  },
+
+  // Certificate Report Data - All frontliners with their certificate completion status
+  getCertificateReportData: async () => {
+    try {
+      const [
+        // Filter options
+        assetOptions,
+        subAssetOptions,
+        organizationOptions,
+        subOrganizationOptions,
+        roleCategoryOptions,
+        
+        // Frontliner data with certificate status
+        frontlinersData,
+        
+        // General numerical stats
+        totalFrontliners,
+        totalOrganizations,
+        totalCertificatesIssued,
+        totalVxPointsEarned,
+        averageOverallProgress,
+        
+        // Training area names for certificate mapping
+        trainingAreasData
+      ] = await Promise.all([
+        // Asset options for filters
+        db.select({
+          value: users.asset,
+          label: users.asset
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .groupBy(users.asset),
+
+        // Sub-asset options for filters
+        db.select({
+          value: users.subAsset,
+          label: users.subAsset
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .groupBy(users.subAsset),
+
+        // Organization options for filters
+        db.select({
+          value: users.organization,
+          label: users.organization
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .groupBy(users.organization),
+
+        // Sub-organization options for filters
+        db.select({
+          value: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`,
+          label: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .groupBy(users.subOrganization),
+
+        // Role category options for filters
+        db.select({
+          value: normalUsers.roleCategory,
+          label: normalUsers.roleCategory
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .groupBy(normalUsers.roleCategory),
+
+        // Frontliners data with certificate completion status
+        db.select({
+          userId: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          eid: normalUsers.eid,
+          phoneNumber: normalUsers.phoneNumber,
+          asset: users.asset,
+          subAsset: users.subAsset,
+          organization: users.organization,
+          subOrganization: users.subOrganization,
+          roleCategory: normalUsers.roleCategory,
+          role: normalUsers.role,
+          seniority: normalUsers.seniority,
+          frontlinerType: sql<string>`CASE WHEN ${normalUsers.existing} THEN 'Existing' ELSE 'New' END`,
+          vxPoints: users.xp,
+          registrationDate: users.createdAt,
+          lastLoginDate: users.lastLogin,
+          // Certificate completion status - checking for passed assessments in each training area
+          alMidhyafCertificate: sql<boolean>`EXISTS (
+            SELECT 1 FROM assessment_attempts aa 
+            INNER JOIN assessments a ON aa.assessment_id = a.id 
+            INNER JOIN training_areas ta ON a.training_area_id = ta.id 
+            WHERE aa.user_id = ${users.id} 
+            AND aa.passed = true 
+            AND LOWER(ta.name) LIKE '%midhyaf%'
+          )`,
+          adInformationCertificate: sql<boolean>`EXISTS (
+            SELECT 1 FROM assessment_attempts aa 
+            INNER JOIN assessments a ON aa.assessment_id = a.id 
+            INNER JOIN training_areas ta ON a.training_area_id = ta.id 
+            WHERE aa.user_id = ${users.id} 
+            AND aa.passed = true 
+            AND LOWER(ta.name) LIKE '%information%'
+          )`,
+          generalVXSoftSkillsCertificate: sql<boolean>`EXISTS (
+            SELECT 1 FROM assessment_attempts aa 
+            INNER JOIN assessments a ON aa.assessment_id = a.id 
+            INNER JOIN training_areas ta ON a.training_area_id = ta.id 
+            WHERE aa.user_id = ${users.id} 
+            AND aa.passed = true 
+            AND LOWER(ta.name) LIKE '%soft%'
+          )`,
+          generalVXHardSkillsCertificate: sql<boolean>`EXISTS (
+            SELECT 1 FROM assessment_attempts aa 
+            INNER JOIN assessments a ON aa.assessment_id = a.id 
+            INNER JOIN training_areas ta ON a.training_area_id = ta.id 
+            WHERE aa.user_id = ${users.id} 
+            AND aa.passed = true 
+            AND LOWER(ta.name) LIKE '%hard%'
+          )`,
+          managerialCompetenciesCertificate: sql<boolean>`EXISTS (
+            SELECT 1 FROM assessment_attempts aa 
+            INNER JOIN assessments a ON aa.assessment_id = a.id 
+            INNER JOIN training_areas ta ON a.training_area_id = ta.id 
+            WHERE aa.user_id = ${users.id} 
+            AND aa.passed = true 
+            AND LOWER(ta.name) LIKE '%managerial%'
+          )`,
+          // Overall progress calculation across all training areas
+          overallProgress: sql<number>`COALESCE((
+            SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
+            FROM user_training_area_progress utap
+            WHERE utap.user_id = ${users.id}
+          ), 0)`
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .orderBy(users.createdAt),
+
+        // Total frontliners count
+        db.select({ count: count() })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+
+        // Total organizations count
+        db.select({ count: count() })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .groupBy(users.organization),
+
+        // Total certificates issued (passed assessments)
+        db.select({ count: count() })
+        .from(assessmentAttempts)
+        .where(eq(assessmentAttempts.passed, true)),
+
+        // Total VX points earned
+        db.select({ total: sum(users.xp) })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+
+        // Average overall progress
+        db.select({ 
+          avgProgress: sql<number>`AVG(COALESCE((
+            SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
+            FROM user_training_area_progress utap
+            WHERE utap.user_id = ${users.id}
+          ), 0))`
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+
+        // Get all training areas for reference
+        db.select({
+          id: trainingAreas.id,
+          name: trainingAreas.name
+        })
+        .from(trainingAreas)
+      ]);
+
+      return {
+        // Filter options
+        filters: {
+          assets: assetOptions,
+          subAssets: subAssetOptions,
+          organizations: organizationOptions,
+          subOrganizations: subOrganizationOptions,
+          roleCategories: roleCategoryOptions
+        },
+        
+        // Data table columns
+        dataTableColumns: [
+          "User ID",
+          "First Name", 
+          "Last Name",
+          "Email Address",
+          "EID",
+          "Phone Number",
+          "Asset",
+          "Asset Sub-Category",
+          "Organization",
+          "Sub-Organization",
+          "Role Category",
+          "Role",
+          "Seniority",
+          "Frontliner Type",
+          "VX Points",
+          "Overall Progress",
+          "Registration Date",
+          "Last Login Date",
+          "Al Midhyaf Certificate",
+          "AD Information Certificate",
+          "General VX Soft Skills Certificate",
+          "General VX Hard Skills Certificate",
+          "Managerial Competencies Certificate"
+        ],
+        
+        // Data table rows
+        dataTableRows: frontlinersData,
+        
+        // General numerical stats
+        generalStats: {
+          totalFrontliners: totalFrontliners[0]?.count || 0,
+          totalOrganizations: totalOrganizations.length,
+          totalCertificatesIssued: totalCertificatesIssued[0]?.count || 0,
+          totalVxPointsEarned: totalVxPointsEarned[0]?.total || 0,
+          averageOverallProgress: Math.round((averageOverallProgress[0]?.avgProgress || 0) * 100) / 100
+        },
+
+        // Training areas for reference
+        trainingAreas: trainingAreasData
+      };
+    } catch (error) {
+      console.error("Error in getCertificateReportData:", error);
+      throw error;
+    }
   }
 };
