@@ -506,7 +506,7 @@ export const withAuth = <P extends object>(
 
     if (isLoading) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-[#003451]">
+        <div className="min-h-screen flex items-center justify-center bg-sandstone">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00d8cc] mx-auto mb-4"></div>
             <p className="text-white/80 text-lg">Loading...</p>

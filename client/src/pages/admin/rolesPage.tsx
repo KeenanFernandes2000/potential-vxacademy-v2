@@ -1273,7 +1273,7 @@ const RolesPage = () => {
           if (!open) handleModalClose();
         }}
       >
-        <DialogContent className="max-w-6xl bg-[#003451] border-white/20 text-white max-h-[90%]">
+        <DialogContent className="max-w-6xl bg-sandstone border-white/20 text-white max-h-[90%]">
           <DialogHeader>
             <DialogTitle className="text-white">
               Assign Units - {selectedRole?.name}

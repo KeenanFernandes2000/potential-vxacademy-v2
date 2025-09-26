@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -352,13 +349,15 @@ const ProfilePage = (props: Props) => {
   if (!user || loading) {
     return (
       <SidebarProvider>
-        <div className="min-h-screen bg-[#003451] relative overflow-hidden flex w-full">
+        <div className="min-h-screen bg-background relative overflow-hidden flex w-full">
           <UserSidebar />
           <SidebarInset className="flex-1 w-full">
             <div className="flex items-center justify-center min-h-screen">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00d8cc] mx-auto mb-4"></div>
-                <p className="text-white/80 text-lg">Loading profile...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground text-lg">
+                  Loading profile...
+                </p>
               </div>
             </div>
           </SidebarInset>
@@ -369,7 +368,7 @@ const ProfilePage = (props: Props) => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-[#003451] relative overflow-hidden flex w-full">
+      <div className="min-h-screen bg-background relative overflow-hidden flex w-full">
         {/* Sidebar */}
         {renderSidebar()}
 
@@ -378,37 +377,43 @@ const ProfilePage = (props: Props) => {
           {/* Main Content */}
           <div className="w-full px-8 py-12">
             {/* User Details Header */}
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-none p-6 mb-8">
+            <div className="bg-card/80 backdrop-blur-sm border border-border rounded-lg p-6 mb-8">
               <div className="flex items-center space-x-6">
                 {/* Avatar */}
                 <div className="relative">
-                  <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-2xl font-bold">
                     {currentUser.avatar}
                   </div>
                 </div>
 
                 {/* User Info */}
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-white mb-1">
+                  <h1 className="text-2xl font-bold text-card-foreground mb-1">
                     {currentUser.name}
                   </h1>
-                  <p className="text-white/80 mb-3">{currentUser.email}</p>
+                  <p className="text-muted-foreground mb-3">
+                    {currentUser.email}
+                  </p>
 
                   {/* Stats */}
                   <div className="flex items-center space-x-6 text-sm">
                     <div className="flex items-center space-x-2">
                       <span className="text-black">⭐</span>
-                      <span className="text-white font-medium">
+                      <span className="text-card-foreground font-medium">
                         {currentUser.xp} XP
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className="text-gray-400">🏅</span>
-                      <span className="text-gray-400">{currentUser.level}</span>
+                      <span className="text-muted-foreground">🏅</span>
+                      <span className="text-muted-foreground">
+                        {currentUser.level}
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className="text-gray-400">🛡️</span>
-                      <span className="text-gray-400">{currentUser.role}</span>
+                      <span className="text-muted-foreground">🛡️</span>
+                      <span className="text-muted-foreground">
+                        {currentUser.role}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -416,19 +421,19 @@ const ProfilePage = (props: Props) => {
             </div>
 
             {/* Tabs Section */}
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-none">
+            <div className="bg-card/80 backdrop-blur-sm border border-border rounded-lg">
               <Tabs defaultValue="overview" className="w-full">
-                <div className="border-b border-white/20">
+                <div className="border-b border-border">
                   <TabsList className="bg-transparent h-auto p-0 w-full justify-start">
                     <TabsTrigger
                       value="overview"
-                      className="bg-transparent border-0 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white rounded-none px-6 py-4"
+                      className="bg-transparent border-0 text-foreground data-[state=active]:bg-muted/50 data-[state=active]:text-foreground rounded-lg px-6 py-4"
                     >
                       Overview
                     </TabsTrigger>
                     <TabsTrigger
                       value="details"
-                      className="bg-transparent border-0 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white rounded-none px-6 py-4"
+                      className="bg-transparent border-0 text-foreground data-[state=active]:bg-muted/50 data-[state=active]:text-foreground rounded-lg px-6 py-4"
                     >
                       User Details
                     </TabsTrigger>
@@ -438,19 +443,19 @@ const ProfilePage = (props: Props) => {
                 {/* Overview Tab */}
                 <TabsContent value="overview" className="p-6 min-w-full">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <Card className="bg-white/5 border-white/20 rounded-none">
+                    <Card className="bg-card/50 border-border rounded-lg">
                       <CardContent className="p-6">
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-[#00d8cc]/20 flex items-center justify-center">
-                            <BarChart className="text-[#00d8cc] text-xl" />
+                          <div className="w-12 h-12 bg-primary/20 flex items-center justify-center rounded-lg">
+                            <BarChart className="text-primary text-xl" />
                           </div>
                           <div>
-                            <p className="text-white/60 text-sm">
+                            <p className="text-muted-foreground text-sm">
                               Total Courses
                             </p>
-                            <p className="text-white text-2xl font-bold">
+                            <p className="text-card-foreground text-2xl font-bold">
                               {overviewData.loading ? (
-                                <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
+                                <div className="animate-pulse bg-muted/50 h-8 w-12 rounded"></div>
                               ) : (
                                 overviewData.totalCourses
                               )}
@@ -460,17 +465,19 @@ const ProfilePage = (props: Props) => {
                       </CardContent>
                     </Card>
 
-                    <Card className="bg-white/5 border-white/20 rounded-none">
+                    <Card className="bg-card/50 border-border rounded-lg">
                       <CardContent className="p-6">
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-[#00d8cc]/20 flex items-center justify-center">
-                            <CheckCircle className="text-[#00d8cc] text-xl" />
+                          <div className="w-12 h-12 bg-primary/20 flex items-center justify-center rounded-lg">
+                            <CheckCircle className="text-primary text-xl" />
                           </div>
                           <div>
-                            <p className="text-white/60 text-sm">Completed</p>
-                            <p className="text-white text-2xl font-bold">
+                            <p className="text-muted-foreground text-sm">
+                              Completed
+                            </p>
+                            <p className="text-card-foreground text-2xl font-bold">
                               {overviewData.loading ? (
-                                <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
+                                <div className="animate-pulse bg-muted/50 h-8 w-12 rounded"></div>
                               ) : (
                                 overviewData.completedCourses
                               )}
@@ -480,17 +487,19 @@ const ProfilePage = (props: Props) => {
                       </CardContent>
                     </Card>
 
-                    <Card className="bg-white/5 border-white/20 rounded-none">
+                    <Card className="bg-card/50 border-border rounded-lg">
                       <CardContent className="p-6">
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-[#00d8cc]/20 flex items-center justify-center">
-                            <TrackChanges className="text-[#00d8cc] text-xl" />
+                          <div className="w-12 h-12 bg-primary/20 flex items-center justify-center rounded-lg">
+                            <TrackChanges className="text-primary text-xl" />
                           </div>
                           <div>
-                            <p className="text-white/60 text-sm">Progress</p>
-                            <p className="text-white text-2xl font-bold">
+                            <p className="text-muted-foreground text-sm">
+                              Progress
+                            </p>
+                            <p className="text-card-foreground text-2xl font-bold">
                               {overviewData.loading ? (
-                                <div className="animate-pulse bg-white/20 h-8 w-12 rounded"></div>
+                                <div className="animate-pulse bg-muted/50 h-8 w-12 rounded"></div>
                               ) : (
                                 `${overviewData.overallProgress}%`
                               )}
@@ -507,18 +516,18 @@ const ProfilePage = (props: Props) => {
                   {loading ? (
                     <div className="flex items-center justify-center py-12">
                       <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00d8cc] mx-auto mb-4"></div>
-                        <p className="text-white/80 text-lg">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                        <p className="text-muted-foreground text-lg">
                           Loading profile...
                         </p>
                       </div>
                     </div>
                   ) : error ? (
                     <div className="text-center py-12">
-                      <p className="text-red-400 text-lg mb-4">
+                      <p className="text-destructive text-lg mb-4">
                         Error loading profile
                       </p>
-                      <p className="text-white/60">{error}</p>
+                      <p className="text-muted-foreground">{error}</p>
                     </div>
                   ) : (
                     <form onSubmit={handleProfileUpdate} className="space-y-6">
@@ -527,7 +536,7 @@ const ProfilePage = (props: Props) => {
                         <div className="space-y-2">
                           <label
                             htmlFor="first_name"
-                            className="block text-white font-medium"
+                            className="block text-foreground font-medium"
                           >
                             First Name
                           </label>
@@ -536,13 +545,13 @@ const ProfilePage = (props: Props) => {
                             name="first_name"
                             value={userData.first_name}
                             onChange={handleUserChange}
-                            className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
+                            className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg"
                           />
                         </div>
                         <div className="space-y-2">
                           <label
                             htmlFor="last_name"
-                            className="block text-white font-medium"
+                            className="block text-foreground font-medium"
                           >
                             Last Name
                           </label>
@@ -551,14 +560,14 @@ const ProfilePage = (props: Props) => {
                             name="last_name"
                             value={userData.last_name}
                             onChange={handleUserChange}
-                            className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
+                            className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg"
                           />
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label
                           htmlFor="email"
-                          className="block text-white font-medium"
+                          className="block text-foreground font-medium"
                         >
                           Email
                         </label>
@@ -568,20 +577,20 @@ const ProfilePage = (props: Props) => {
                           type="email"
                           value={userData.email}
                           onChange={handleUserChange}
-                          className="bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-full"
+                          className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg"
                         />
                       </div>
 
                       <div className="flex justify-end items-center gap-4">
                         <Link
                           to="/forgot-password"
-                          className="text-[#00d8cc] hover:text-[#00b8b0] underline transition-colors duration-200"
+                          className="text-primary hover:text-primary/80 underline transition-colors duration-200"
                         >
                           Reset Password
                         </Link>
                         <Button
                           type="submit"
-                          className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black px-8 rounded-full"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 rounded-lg"
                         >
                           Update Profile
                         </Button>

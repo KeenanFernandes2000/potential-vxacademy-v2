@@ -27,7 +27,7 @@ const UnauthorizedPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#003451] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-sandstone flex items-center justify-center p-4">
       <Card className="w-full max-w-md bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 shadow-2xl">
         <CardHeader className="text-center">
           <div className="text-6xl mb-4">🚫</div>

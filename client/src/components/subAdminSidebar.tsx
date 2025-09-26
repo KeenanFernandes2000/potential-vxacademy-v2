@@ -64,10 +64,10 @@ const SubAdminSidebar = () => {
       <SidebarHeader>
         <Button
           onClick={toggleSidebar}
-          className="flex w-full items-center justify-between px-2 py-2 hover:bg-sidebar-accent rounded-md transition-colors bg-transparent text-white"
+          className="flex w-full items-center justify-between px-2 py-2 hover:bg-sidebar-accent rounded-lg transition-colors bg-transparent text-sidebar-foreground"
         >
           <div className="flex items-center gap-2">
-            <School sx={{ fontSize: 16, color: "#00d8cc" }} />
+            <School sx={{ fontSize: 16, color: "var(--sidebar-primary)" }} />
             {state === "expanded" && (
               <div className="flex flex-col">
                 <h2 className="text-sm font-semibold">VX Academy</h2>

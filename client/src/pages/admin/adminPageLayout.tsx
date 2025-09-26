@@ -15,10 +15,12 @@ const AdminPageLayout: React.FC<AdminPageLayoutProps> = ({
     <>
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             {title}
           </h1>
-          {description && <p className="text-white/80 mt-2">{description}</p>}
+          {description && (
+            <p className="text-muted-foreground mt-2">{description}</p>
+          )}
         </div>
       </header>
 

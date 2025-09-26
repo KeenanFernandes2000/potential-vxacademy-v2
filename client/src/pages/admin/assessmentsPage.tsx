@@ -2074,7 +2074,7 @@ const AssessmentsPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-4xl bg-[#003451] border-white/20 text-white max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl bg-sandstone border-white/20 text-white max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">Edit Assessment</DialogTitle>
             <Button
@@ -2097,7 +2097,7 @@ const AssessmentsPage = () => {
         open={isQuestionsModalOpen}
         onOpenChange={setIsQuestionsModalOpen}
       >
-        <DialogContent className="max-w-6xl bg-[#003451] border-white/20 text-white max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl bg-sandstone border-white/20 text-white max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">
               Questions for: {selectedAssessment?.title}
@@ -2169,7 +2169,7 @@ const AssessmentsPage = () => {
         open={isEditQuestionModalOpen}
         onOpenChange={setIsEditQuestionModalOpen}
       >
-        <DialogContent className="max-w-2xl bg-[#003451] border-white/20 text-white max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl bg-sandstone border-white/20 text-white max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">
               {selectedQuestion ? "Edit Question" : "Create Question"}

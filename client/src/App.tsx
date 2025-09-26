@@ -71,12 +71,12 @@ import { ThemeProvider } from "./context/themeContext";
 const AdminRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full bg-[#003451]">
+      <div className="flex h-screen w-full bg-sandstone">
         {/* Persistent Admin Sidebar */}
         <AdminSidebar />
 
         {/* Main Content Area */}
-        <SidebarInset className="max-w-[80%]">
+        <SidebarInset className="max-w-[100%]">
           <div className="flex flex-col h-full">
             <main className="flex-1 p-6">
               <div className="space-y-6">{children}</div>
@@ -92,12 +92,12 @@ const AdminRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
 const SubAdminRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full bg-[#003451]">
+      <div className="flex h-screen w-full bg-sandstone">
         {/* Persistent Sub-Admin Sidebar */}
         <SubAdminSidebar />
 
         {/* Main Content Area */}
-        <SidebarInset className="max-w-[80%]">
+        <SidebarInset className="max-w-[100%]">
           <div className="flex flex-col h-full">
             <main className="flex-1 p-6">
               <div className="space-y-6">{children}</div>

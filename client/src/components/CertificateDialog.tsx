@@ -469,7 +469,7 @@ const CertificateDialog: React.FC<CertificateDialogProps> = ({
             <Button
               onClick={handleDownloadPDF}
               disabled={isDownloading || isDownloadingImage}
-              className="bg-[#003451] text-white px-6 py-2 hover:bg-[#004d6b] transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-sandstone text-white px-6 py-2 hover:bg-[#004d6b] transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isDownloading ? "Generating PDF..." : "Download PDF"}
             </Button>

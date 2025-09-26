@@ -663,8 +663,8 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
 
     return (
       <TableHead
-        className={`text-white font-semibold ${
-          isSortable ? "cursor-pointer hover:bg-white/10 select-none" : ""
+        className={`text-foreground font-semibold ${
+          isSortable ? "cursor-pointer hover:bg-muted/50 select-none" : ""
         }`}
         onClick={() => {
           console.log(
@@ -683,15 +683,15 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
               <ChevronUp
                 className={`h-3 w-3 ${
                   isActive && sortDirection === "asc"
-                    ? "text-[#00d8cc]"
-                    : "text-white/40"
+                    ? "text-primary"
+                    : "text-muted-foreground"
                 }`}
               />
               <ChevronDown
                 className={`h-3 w-3 -mt-1 ${
                   isActive && sortDirection === "desc"
-                    ? "text-[#00d8cc]"
-                    : "text-white/40"
+                    ? "text-primary"
+                    : "text-muted-foreground"
                 }`}
               />
             </div>
@@ -706,13 +706,13 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       {/* Search and Create Section */}
       <div className="flex items-center gap-4 justify-between w-full">
         <div className="relative flex-1 w-full">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-white/60" />
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder={searchPlaceholder}
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
-            className="pl-8 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#00d8cc] focus:ring-[#00d8cc] rounded-full"
+            className="pl-8 bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary rounded-lg"
           />
         </div>
 
@@ -720,16 +720,16 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
           <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
             <DialogTrigger asChild>
               <Button
-                className="bg-[#00d8cc] hover:bg-[#00b8b0] text-black font-semibold rounded-full"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg"
                 style={{ minWidth: "120px", height: "40px" }}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 {createButtonText}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl bg-[#003451] border-white/20 text-white max-h-[80%] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent">
+            <DialogContent className="max-w-2xl bg-card border-border text-card-foreground max-h-[80%] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-muted">
               <DialogHeader>
-                <DialogTitle className="text-white">
+                <DialogTitle className="text-card-foreground">
                   {createButtonText}
                 </DialogTitle>
               </DialogHeader>
@@ -747,7 +747,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
             onValueChange={setSelectedTrainingArea}
             disabled={loadingTrainingAreas}
           >
-            <SelectTrigger className="w-full rounded-full bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#00d8cc] focus:ring-[#00d8cc]">
+            <SelectTrigger className="w-full rounded-lg bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary">
               <SelectValue
                 placeholder={
                   loadingTrainingAreas ? "Loading..." : "Select a training area"
@@ -771,7 +771,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
             onValueChange={setSelectedModule}
             disabled={!selectedTrainingArea || loadingModules}
           >
-            <SelectTrigger className="w-full rounded-full bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#00d8cc] focus:ring-[#00d8cc]">
+            <SelectTrigger className="w-full rounded-lg bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary">
               <SelectValue
                 placeholder={
                   !selectedTrainingArea
@@ -799,7 +799,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
             onValueChange={setSelectedCourse}
             disabled={!selectedModule || loadingCourses}
           >
-            <SelectTrigger className="w-full rounded-full bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#00d8cc] focus:ring-[#00d8cc]">
+            <SelectTrigger className="w-full rounded-lg bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary">
               <SelectValue
                 placeholder={
                   !selectedModule
@@ -827,7 +827,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
             onValueChange={setSelectedUnit}
             disabled={!selectedCourse || loadingUnits}
           >
-            <SelectTrigger className="w-full rounded-full bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#00d8cc] focus:ring-[#00d8cc]">
+            <SelectTrigger className="w-full rounded-lg bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary">
               <SelectValue
                 placeholder={
                   !selectedCourse
@@ -855,7 +855,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
             onValueChange={setSelectedAssessment}
             disabled={loadingAssessments}
           >
-            <SelectTrigger className="w-full rounded-full bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-[#00d8cc] focus:ring-[#00d8cc]">
+            <SelectTrigger className="w-full rounded-lg bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary">
               <SelectValue
                 placeholder={
                   loadingAssessments ? "Loading..." : "Select an assessment"
@@ -883,7 +883,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
           selectedCourse ||
           selectedUnit ||
           selectedAssessment) && (
-          <div className="text-sm text-white/70 bg-white/5 px-3 py-2 rounded-lg border border-white/10">
+          <div className="text-sm text-muted-foreground bg-muted/50 px-3 py-2 rounded-lg border border-border">
             Showing {filteredTableData.length} of {tableData.length} results
             {(selectedTrainingArea ||
               selectedModule ||
@@ -908,10 +908,10 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
         )}
 
       {/* Table */}
-      <div className="border bg-white/10 backdrop-blur-sm border-white/20 w-full">
+      <div className="border bg-card/50 backdrop-blur-sm border-border w-full rounded-lg">
         <Table>
           <TableHeader>
-            <TableRow className="border-white/20">
+            <TableRow className="border-border">
               {columns.map((column) => (
                 <SortableTableHead key={column} column={column} />
               ))}
@@ -919,12 +919,9 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
           </TableHeader>
           <TableBody>
             {getSortedData().map((row, index) => (
-              <TableRow
-                key={index}
-                className="border-white/20 hover:bg-white/5"
-              >
+              <TableRow key={index} className="border-border hover:bg-muted/50">
                 {Object.values(row).map((cell, cellIndex) => (
-                  <TableCell key={cellIndex} className="text-white/90">
+                  <TableCell key={cellIndex} className="text-foreground/90">
                     {typeof cell === "string" || typeof cell === "number"
                       ? String(cell)
                       : cell}

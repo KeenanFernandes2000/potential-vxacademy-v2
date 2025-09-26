@@ -841,7 +841,7 @@ const SubOrganizationPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-[#003451] border-white/20 text-white">
+        <DialogContent className="max-w-md bg-sandstone border-white/20 text-white">
           <DialogHeader>
             <DialogTitle className="text-white">
               Edit Sub-Organization

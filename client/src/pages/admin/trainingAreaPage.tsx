@@ -574,7 +574,7 @@ const TrainingAreaPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl bg-[#003451] border-white/20 text-white">
+        <DialogContent className="max-w-2xl bg-sandstone border-white/20 text-white">
           <DialogHeader>
             <DialogTitle className="text-white">Edit Training Area</DialogTitle>
           </DialogHeader>

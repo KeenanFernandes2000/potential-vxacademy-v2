@@ -1221,7 +1221,7 @@ const UnitsPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-[#003451] border-white/20 text-white max-h-[80%]">
+        <DialogContent className="max-w-md bg-sandstone border-white/20 text-white max-h-[80%]">
           <DialogHeader>
             <DialogTitle className="text-white">Edit Learning Unit</DialogTitle>
             <Button

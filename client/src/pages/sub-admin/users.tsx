@@ -725,7 +725,7 @@ const Users = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-[#003451] border-white/20 text-white">
+        <DialogContent className="max-w-md bg-sandstone border-white/20 text-white">
           <DialogHeader>
             <DialogTitle className="text-white">Edit User</DialogTitle>
           </DialogHeader>
@@ -735,7 +735,7 @@ const Users = () => {
 
       {/* View User Details Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-2xl bg-[#003451] border-white/20 text-white max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl bg-sandstone border-white/20 text-white max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">
               User Profile Details

@@ -12,7 +12,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "app",
+  defaultTheme = "homepage",
 }: {
   children: React.ReactNode;
   defaultTheme?: Theme;
@@ -33,7 +33,7 @@ export function ThemeProvider({
       return "homepage";
     }
     // All other routes use app theme
-    return "app";
+    return "homepage";
   };
 
   // Update theme when route changes

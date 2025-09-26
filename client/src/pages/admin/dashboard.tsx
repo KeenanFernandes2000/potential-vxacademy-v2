@@ -322,29 +322,29 @@ const Dashboard = () => {
     changeType?: "positive" | "negative" | "neutral";
     loading?: boolean;
   }) => (
-    <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 hover:bg-[#00d8cc]/15 transition-all duration-300 rounded-none">
+    <Card className="bg-card/80 backdrop-blur-sm border border-border hover:bg-card/90 transition-all duration-300 rounded-lg">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-white/80">
+        <CardTitle className="text-sm font-medium text-card-foreground/80">
           {title}
         </CardTitle>
         {loading ? (
-          <Loader2 className="h-4 w-4 text-[#00d8cc] animate-spin" />
+          <Loader2 className="h-4 w-4 text-primary animate-spin" />
         ) : (
-          <Icon className="h-4 w-4 text-[#00d8cc]" />
+          <Icon className="h-4 w-4 text-primary" />
         )}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-white">
+        <div className="text-2xl font-bold text-card-foreground">
           {loading ? "..." : value}
         </div>
         {change && !loading && (
           <p
             className={`text-xs ${
               changeType === "positive"
-                ? "text-green-400"
+                ? "text-green-600"
                 : changeType === "negative"
-                ? "text-red-400"
-                : "text-white/60"
+                ? "text-red-600"
+                : "text-card-foreground/60"
             }`}
           >
             {change}

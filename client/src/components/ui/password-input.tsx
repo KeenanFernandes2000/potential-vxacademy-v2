@@ -31,7 +31,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
     setShowPassword(!showPassword);
   };
 
-  const baseClassName = `bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-[#00d8cc]/30 rounded-full pr-12`;
+  const baseClassName = `bg-background/50 backdrop-blur-sm border-border text-foreground placeholder:text-muted-foreground focus:bg-background/70 focus:border-primary transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-primary/50 rounded-lg pr-12`;
 
   return (
     <div className="relative">
@@ -50,7 +50,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
         <button
           type="button"
           onClick={togglePasswordVisibility}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white/80 transition-colors duration-200 focus:outline-none focus:text-white"
+          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-200 focus:outline-none focus:text-foreground"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
           {showPassword ? (

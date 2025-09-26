@@ -1403,7 +1403,7 @@ const joinPage = (props: Props) => {
                   >
                     <SelectValue placeholder="Select role category" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#003451] border-sandstone text-[#2C2C2C]">
+                  <SelectContent className="bg-sandstone border-sandstone text-[#2C2C2C]">
                     {isLoadingRoleCategories ? (
                       <SelectItem value="loading" disabled>
                         Loading categories...
@@ -1442,7 +1442,7 @@ const joinPage = (props: Props) => {
                   >
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#003451] border-sandstone text-[#2C2C2C]">
+                  <SelectContent className="bg-sandstone border-sandstone text-[#2C2C2C]">
                     {isLoadingRoles ? (
                       <SelectItem value="loading" disabled>
                         Loading roles...
@@ -1514,7 +1514,7 @@ const joinPage = (props: Props) => {
                   >
                     <SelectValue placeholder="Select seniority level" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#003451] border-sandstone text-[#2C2C2C]">
+                  <SelectContent className="bg-sandstone border-sandstone text-[#2C2C2C]">
                     {seniorityLevels.map((level) => (
                       <SelectItem key={level} value={level}>
                         {level}
@@ -1591,7 +1591,7 @@ const joinPage = (props: Props) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#003451] relative overflow-hidden">
+    <div className="min-h-screen bg-sandstone relative overflow-hidden">
       {/* Navigation Bar with Glassmorphism */}
       <HomeNavigation />
 

@@ -1405,7 +1405,7 @@ const LearningPathsPage = () => {
           if (!open) handleModalClose();
         }}
       >
-        <DialogContent className="max-w-6xl bg-[#003451] border-white/20 text-white max-h-[90%]">
+        <DialogContent className="max-w-6xl bg-sandstone border-white/20 text-white max-h-[90%]">
           <DialogHeader>
             <DialogTitle className="text-white">
               Assign Units - {selectedRole?.name}
@@ -1635,7 +1635,7 @@ const LearningPathsPage = () => {
       )}
 
       {/* Filter Section */}
-      <div className="mb-6 p-4 bg-[#003451] rounded-lg border border-white/20">
+      <div className="mb-6 p-4 bg-sandstone rounded-lg border border-white/20">
         <h3 className="text-lg font-semibold text-[#00d8cc] mb-4">Filter By</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">

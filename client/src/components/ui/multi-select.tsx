@@ -77,8 +77,10 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled || loading}
-        className={`w-full justify-between bg-[#00d8cc]/10 backdrop-blur-sm border-[#00d8cc]/20 text-white focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-4 lg:py-5 border-2 hover:border-[#00d8cc]/30 rounded-full text-left ${
-          value.length > 0 ? "[&>span]:text-white" : "[&>span]:text-cyan-50/55"
+        className={`w-full justify-between bg-background/50 backdrop-blur-sm border-border text-foreground focus:bg-background/70 focus:border-primary transition-all duration-300 py-4 lg:py-5 border-2 hover:border-primary/50 rounded-lg text-left ${
+          value.length > 0
+            ? "[&>span]:text-foreground"
+            : "[&>span]:text-muted-foreground"
         } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
       >
         <span className="truncate">{displayText}</span>
@@ -90,26 +92,26 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
       </Button>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-[#003451] border border-[#00d8cc]/20 rounded-lg shadow-lg max-h-60 overflow-hidden">
+        <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-hidden">
           {/* Search input */}
-          <div className="p-3 border-b border-[#00d8cc]/20">
+          <div className="p-3 border-b border-border">
             <input
               type="text"
               placeholder="Search options..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#00d8cc]/10 border border-[#00d8cc]/20 text-white placeholder:text-white/50 focus:bg-[#00d8cc]/20 focus:border-[#00d8cc]/40 transition-all duration-300 py-2 px-3 rounded-md text-sm"
+              className="w-full bg-background/50 border border-border text-foreground placeholder:text-muted-foreground focus:bg-background/70 focus:border-primary transition-all duration-300 py-2 px-3 rounded-lg text-sm"
             />
           </div>
 
           {/* Options list */}
           <div className="max-h-48 overflow-y-auto">
             {loading ? (
-              <div className="p-3 text-white/60 text-sm text-center">
+              <div className="p-3 text-muted-foreground text-sm text-center">
                 Loading options...
               </div>
             ) : filteredOptions.length === 0 ? (
-              <div className="p-3 text-white/60 text-sm text-center">
+              <div className="p-3 text-muted-foreground text-sm text-center">
                 {searchTerm ? "No options found" : "No options available"}
               </div>
             ) : (
@@ -118,11 +120,11 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
                   key={option.id}
                   type="button"
                   onClick={() => toggleOption(option.id)}
-                  className="w-full flex items-center justify-between p-3 text-left hover:bg-[#00d8cc]/10 transition-colors duration-200"
+                  className="w-full flex items-center justify-between p-3 text-left hover:bg-muted/50 transition-colors duration-200"
                 >
-                  <span className="text-white text-sm">{option.name}</span>
+                  <span className="text-foreground text-sm">{option.name}</span>
                   {value.includes(option.id) && (
-                    <Check className="h-4 w-4 text-[#00d8cc]" />
+                    <Check className="h-4 w-4 text-primary" />
                   )}
                 </button>
               ))
@@ -131,11 +133,11 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
 
           {/* Clear all button */}
           {value.length > 0 && (
-            <div className="p-3 border-t border-[#00d8cc]/20">
+            <div className="p-3 border-t border-border">
               <button
                 type="button"
                 onClick={clearAll}
-                className="w-full flex items-center justify-center gap-2 text-red-400 hover:text-red-300 text-sm transition-colors duration-200"
+                className="w-full flex items-center justify-center gap-2 text-destructive hover:text-destructive/80 text-sm transition-colors duration-200"
               >
                 <X className="h-4 w-4" />
                 Clear all selections
