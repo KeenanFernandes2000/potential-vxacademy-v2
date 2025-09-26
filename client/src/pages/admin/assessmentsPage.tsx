@@ -441,14 +441,10 @@ const AssessmentsPage = () => {
               placement: assessment.placement || "N/A",
               passing_score:
                 assessment.passing_score || assessment.passingScore || 0,
-              unit_name: unit?.name || "N/A",
-              course_name: course?.name || "N/A",
-              module_name: module?.name || "N/A",
-              training_area_name: trainingArea?.name || "N/A",
-              trainingAreaId: assessment.trainingAreaId, // Keep for filtering
-              moduleId: assessment.moduleId, // Keep for filtering
-              courseId: assessment.courseId, // Keep for filtering
-              unitId: assessment.unitId, // Keep for filtering
+                unitId: assessment.unitId, // Keep for filtering
+                courseId: assessment.courseId, // Keep for filtering
+                moduleId: assessment.moduleId, // Keep for filtering
+                trainingAreaId: assessment.trainingAreaId, // Keep for filtering
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -881,14 +877,10 @@ const AssessmentsPage = () => {
           placement: assessment.placement || "N/A",
           passing_score:
             assessment.passing_score || assessment.passingScore || 0,
-          unit_name: unit?.name || "N/A",
-          course_name: course?.name || "N/A",
-          module_name: module?.name || "N/A",
-          training_area_name: trainingArea?.name || "N/A",
-          trainingAreaId: assessment.trainingAreaId, // Keep for filtering
-          moduleId: assessment.moduleId, // Keep for filtering
-          courseId: assessment.courseId, // Keep for filtering
-          unitId: assessment.unitId, // Keep for filtering
+            unitId: assessment.unitId, // Keep for filtering
+            courseId: assessment.courseId, // Keep for filtering
+            moduleId: assessment.moduleId, // Keep for filtering
+            trainingAreaId: assessment.trainingAreaId, // Keep for filtering
           actions: (
             <div className="flex gap-1">
               <Button
@@ -2033,6 +2025,7 @@ const AssessmentsPage = () => {
     "ID",
     "Assessment",
     "Placement",
+    "Passing Score",
     "Learning Unit",
     "Course",
     "Module",
