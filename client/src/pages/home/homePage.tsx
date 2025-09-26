@@ -165,7 +165,7 @@ export default function HomePage() {
         {/* Full Background Image */}
         <div className="absolute inset-0 -top-20">
           <img
-            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80"
+            src="bg.avif"
             alt="VX Academy Hero Background"
             className="w-full h-full object-cover"
           />
@@ -262,7 +262,7 @@ export default function HomePage() {
             <div className="lg:col-span-6">
               <div className="w-full h-full overflow-hidden" data-aos="fade-up">
                 <img
-                  src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80"
+                  src="about.avif"
                   alt="Woman working on laptop"
                   className="w-full h-full object-cover"
                 />
@@ -378,7 +378,7 @@ export default function HomePage() {
                   "Immerse yourself in Abu Dhabi's rich cultural heritage, tourism strategy, and infrastructure knowledge essential for frontline professionals.",
                 icon: InfoIcon,
                 imageSrc:
-                  "https://images.unsplash.com/photo-1624317937315-0ced8736c9e9?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8YWJ1JTIwZGhhYml8ZW58MHx8MHx8fDA%3D",
+                  "info.avif",
                 imageAlt: "Abu Dhabi skyline and cultural landmarks",
               },
               {
@@ -403,7 +403,7 @@ export default function HomePage() {
                   "Build leadership skills, team management, and strategic thinking capabilities for supervisory and management roles.",
                 icon: TrendingUpIcon,
                 imageSrc:
-                  "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
+                  "managerial.avif",
                 imageAlt: "Leadership and management training",
               },
               {
@@ -479,12 +479,12 @@ export default function HomePage() {
                   {
                     title: "Mobility Operators & Airports",
                     image:
-                      "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                      "mobility.avif",
                   },
                   {
                     title: "Cruise Terminals",
                     image:
-                      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+                      "cruise.avif",
                   },
                   {
                     title: "Hotels & Hospitality",
