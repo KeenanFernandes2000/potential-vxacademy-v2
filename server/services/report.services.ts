@@ -349,5 +349,224 @@ export const reportServices = {
         organizationRoleTreeMap: []
       };
     }
+  },
+
+  // Training Area Report Data - Single endpoint for specific training area
+  getTrainingAreaReportData: async (trainingAreaId: number) => {
+    try {
+      // First, get the training area by ID
+      const [trainingArea] = await db
+        .select()
+        .from(trainingAreas)
+        .where(eq(trainingAreas.id, trainingAreaId))
+        .limit(1);
+
+      if (!trainingArea) {
+        throw new Error(`Training area with ID '${trainingAreaId}' not found`);
+      }
+
+      const [
+        // Filter options
+        assetOptions,
+        subAssetOptions,
+        organizationOptions,
+        subOrganizationOptions,
+        roleCategoryOptions,
+        progressOptions,
+        
+        // Data table data
+        userProgressData,
+        
+        // General numerical stats
+        totalFrontliners,
+        totalOrganizations,
+        totalCertificatesIssued,
+        totalCompletedAlMidhyaf,
+        totalVxPointsEarned,
+        alMidhyafOverallProgress
+      ] = await Promise.all([
+        // Asset options for filters - get from all users
+        db.select({
+          value: users.asset,
+          label: users.asset
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .groupBy(users.asset),
+
+        // Sub-asset options for filters - get from all users
+        db.select({
+          value: users.subAsset,
+          label: users.subAsset
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .groupBy(users.subAsset),
+
+        // Organization options for filters - get from all users
+        db.select({
+          value: users.organization,
+          label: users.organization
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .groupBy(users.organization),
+
+        // Sub-organization options for filters - get from all users
+        db.select({
+          value: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`,
+          label: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .groupBy(users.subOrganization),
+
+        // Role category options for filters - get from all users
+        db.select({
+          value: normalUsers.roleCategory,
+          label: normalUsers.roleCategory
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .groupBy(normalUsers.roleCategory),
+
+        // Progress options for filters
+        db.select({
+          value: userTrainingAreaProgress.status,
+          label: userTrainingAreaProgress.status
+        })
+        .from(userTrainingAreaProgress)
+        .where(eq(userTrainingAreaProgress.trainingAreaId, trainingArea.id))
+        .groupBy(userTrainingAreaProgress.status),
+
+        // Data table data - get all users who have enrolled in this training area
+        db.select({
+          userId: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          eid: normalUsers.eid,
+          phoneNumber: normalUsers.phoneNumber,
+          asset: users.asset,
+          subAsset: users.subAsset,
+          organization: users.organization,
+          subOrganization: users.subOrganization,
+          roleCategory: normalUsers.roleCategory,
+          role: normalUsers.role,
+          seniority: normalUsers.seniority,
+          frontlinerType: sql<string>`CASE WHEN ${normalUsers.existing} THEN 'Existing' ELSE 'New' END`,
+          alMidhyafOverallProgress: sql<string>`COALESCE(CAST(${userTrainingAreaProgress.completionPercentage} AS TEXT), '0')`,
+          module1Progress: sql<number>`COALESCE((
+            SELECT AVG(CAST(ump.completion_percentage AS FLOAT))
+            FROM user_module_progress ump
+            INNER JOIN modules m ON ump.module_id = m.id
+            WHERE ump.user_id = ${users.id} 
+            AND m.training_area_id = ${trainingArea.id}
+            AND m.name ILIKE '%module 1%'
+          ), 0)`,
+          vxPoints: users.xp,
+          registrationDate: users.createdAt,
+          lastLoginDate: users.lastLogin
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .leftJoin(userTrainingAreaProgress, and(
+          eq(users.id, userTrainingAreaProgress.userId),
+          eq(userTrainingAreaProgress.trainingAreaId, trainingArea.id)
+        ))
+        .orderBy(users.createdAt),
+
+        // General numerical stats - get all frontliners (users with normalUsers)
+        db.select({ count: count() })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+
+        // Total organizations
+        db.select({ count: count() })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .groupBy(users.organization),
+
+        // Total certificates issued for this training area
+        db.select({ count: count() })
+        .from(assessmentAttempts)
+        .innerJoin(assessments, eq(assessmentAttempts.assessmentId, assessments.id))
+        .where(and(
+          eq(assessments.trainingAreaId, trainingArea.id),
+          eq(assessmentAttempts.passed, true)
+        )),
+
+        // Total completed for this training area
+        db.select({ count: count() })
+        .from(userTrainingAreaProgress)
+        .where(and(
+          eq(userTrainingAreaProgress.trainingAreaId, trainingArea.id),
+          eq(userTrainingAreaProgress.status, "completed")
+        )),
+
+        // Total VX points earned by all users
+        db.select({ total: sum(users.xp) })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+
+        // Average progress for this training area
+        db.select({ 
+          avgProgress: sql<number>`AVG(CAST(${userTrainingAreaProgress.completionPercentage} AS FLOAT))`
+        })
+        .from(userTrainingAreaProgress)
+        .where(eq(userTrainingAreaProgress.trainingAreaId, trainingArea.id))
+      ]);
+
+      return {
+        // Filter options
+        filters: {
+          assets: assetOptions,
+          subAssets: subAssetOptions,
+          organizations: organizationOptions,
+          subOrganizations: subOrganizationOptions,
+          roleCategories: roleCategoryOptions,
+          progressStatuses: progressOptions
+        },
+        
+        // Data table columns (matching the image exactly)
+        dataTableColumns: [
+          "User ID",
+          "First Name", 
+          "Last Name",
+          "Email Address",
+          "EID",
+          "Phone Number",
+          "Asset",
+          "Asset Sub-Category",
+          "Organization",
+          "Sub-Organization",
+          "Role Category",
+          "Role",
+          "Seniority",
+          "Frontliner Type",
+          "Al Midhyaf Overall Progress",
+          "Module 1 Progress",
+          "VX Points",
+          "Registration Date",
+          "Last Login Date"
+        ],
+        
+        // Data table rows
+        dataTableRows: userProgressData,
+        
+        // General numerical stats
+        generalStats: {
+          totalFrontliners: totalFrontliners[0]?.count || 0,
+          totalOrganizations: totalOrganizations.length,
+          totalCertificatesIssued: totalCertificatesIssued[0]?.count || 0,
+          totalCompletedAlMidhyaf: totalCompletedAlMidhyaf[0]?.count || 0,
+          totalVxPointsEarned: totalVxPointsEarned[0]?.total || 0,
+          alMidhyafOverallProgress: Math.round((alMidhyafOverallProgress[0]?.avgProgress || 0) * 100) / 100
+        }
+      };
+    } catch (error) {
+      console.error("Error in getTrainingAreaReportData:", error);
+      throw error;
+    }
   }
 };
