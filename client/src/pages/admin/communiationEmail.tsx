@@ -8,6 +8,58 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// API object for user-related API calls
+const api = {
+  async fetchUsers(userType: string, progressFilter?: string) {
+    const baseUrl = import.meta.env.VITE_API_URL;
+    let url = `${baseUrl}/api/users/users`;
+    let params = new URLSearchParams();
+
+    if (userType === "user" && progressFilter && progressFilter !== "all") {
+      // Use progress threshold endpoint
+      url = `${baseUrl}/api/users/users/by-progress-threshold`;
+      params.append("progressThreshold", progressFilter);
+    }
+
+    const response = await fetch(`${url}?${params.toString()}`);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const responseData = await response.json();
+
+    let data;
+    if (userType === "user" && progressFilter && progressFilter !== "all") {
+      // Handle progress threshold response structure
+      data = responseData.data.users || [];
+      // Filter for userType === "user" and extract user objects
+      const frontliners = data
+        .filter((item: any) => item.user && item.user.userType === "user")
+        .map((item: any) => item.user);
+      return frontliners;
+    } else {
+      // Handle regular users endpoint response structure
+      data = responseData.data || responseData;
+
+      // Filter users by userType if we got all users
+      if (userType === "sub_admin") {
+        const subAdmins = data.filter(
+          (user: any) => user.userType === "sub_admin"
+        );
+        return subAdmins;
+      } else if (userType === "user") {
+        const frontliners = data.filter(
+          (user: any) => user.userType === "user"
+        );
+        return frontliners;
+      } else {
+        return data;
+      }
+    }
+  },
+};
+
 const CommunicationEmail = () => {
   const [userType, setUserType] = useState<string>("sub_admin");
   const [emailContent, setEmailContent] = useState<string>("");
@@ -45,53 +97,8 @@ const CommunicationEmail = () => {
     setError("");
 
     try {
-      const baseUrl = import.meta.env.VITE_API_URL;
-
-      let url = `${baseUrl}/api/users/users`;
-      let params = new URLSearchParams();
-
-      if (userType === "user" && progressFilter && progressFilter !== "all") {
-        // Use progress threshold endpoint
-        url = `${baseUrl}/api/users/users/by-progress-threshold`;
-        params.append("progressThreshold", progressFilter);
-      }
-
-      const response = await fetch(`${url}?${params.toString()}`);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const responseData = await response.json();
-
-      let data;
-      if (userType === "user" && progressFilter && progressFilter !== "all") {
-        // Handle progress threshold response structure
-        data = responseData.data.users || [];
-        // Filter for userType === "user" and extract user objects
-        const frontliners = data
-          .filter((item: any) => item.user && item.user.userType === "user")
-          .map((item: any) => item.user);
-        setUsers(frontliners);
-      } else {
-        // Handle regular users endpoint response structure
-        data = responseData.data || responseData;
-
-        // Filter users by userType if we got all users
-        if (userType === "sub_admin") {
-          const subAdmins = data.filter(
-            (user: any) => user.userType === "sub_admin"
-          );
-          setUsers(subAdmins);
-        } else if (userType === "user") {
-          const frontliners = data.filter(
-            (user: any) => user.userType === "user"
-          );
-          setUsers(frontliners);
-        } else {
-          setUsers(data);
-        }
-      }
+      const users = await api.fetchUsers(userType, progressFilter);
+      setUsers(users);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
       console.error("Error fetching users:", err);
@@ -193,8 +200,6 @@ const CommunicationEmail = () => {
           </div>
         </div>
       )}
-
- 
 
       {/* User Emails Display */}
       {users.length > 0 && (
