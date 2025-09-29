@@ -666,6 +666,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
         className={`text-foreground font-semibold ${
           isSortable ? "cursor-pointer hover:bg-muted/50 select-none" : ""
         }`}
+        style={{ minWidth: "120px", maxWidth: "200px" }}
         onClick={() => {
           console.log(
             `Clicked on column: "${column}", isSortable:`,
@@ -677,7 +678,9 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
         }}
       >
         <div className="flex items-center gap-2">
-          <span>{column}</span>
+          <span className="truncate max-w-[150px]" title={column}>
+            {column}
+          </span>
           {isSortable && (
             <div className="flex flex-col">
               <ChevronUp

@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Frontliner {
   id: string;
@@ -61,8 +62,28 @@ interface Frontliner {
   status: "active" | "inactive";
 }
 
+interface ReportData {
+  filters: {
+    assets: Array<{ value: string; label: string }>;
+    subAssets: Array<{ value: string; label: string }>;
+    organizations: Array<{ value: string; label: string }>;
+    subOrganizations: Array<{ value: string; label: string }>;
+    roleCategories: Array<{ value: string; label: string }>;
+  };
+  frontliners: Frontliner[];
+  generalStats: {
+    totalFrontliners: number;
+    activeFrontliners: number;
+    totalVxPoints: number;
+    averageAlMidhyaf: number;
+    averageProgress: number;
+    totalOrganizations: number;
+  };
+}
+
 const Frontliners = () => {
-  const [frontliners, setFrontliners] = useState<Frontliner[]>([]);
+  const { token } = useAuth();
+  const [reportData, setReportData] = useState<ReportData | null>(null);
   const [filteredFrontliners, setFilteredFrontliners] = useState<Frontliner[]>(
     []
   );
@@ -82,206 +103,65 @@ const Frontliners = () => {
     useState<string>("all");
   const [selectedProgress, setSelectedProgress] = useState<string>("all");
 
-  // Extract unique values for filters
-  const uniqueAssets = Array.from(
-    new Set(frontliners.map((frontliner) => frontliner.asset))
-  ).filter(Boolean);
-  const uniqueSubAssets = Array.from(
-    new Set(frontliners.map((frontliner) => frontliner.subAsset))
-  ).filter(Boolean);
-  const uniqueOrganizationsForFilter = Array.from(
-    new Set(frontliners.map((frontliner) => frontliner.organization))
-  ).filter(Boolean);
-  const uniqueSubOrganizations = Array.from(
-    new Set(
-      frontliners
-        .map((frontliner) => frontliner.subOrganization)
-        .filter((org): org is string => Boolean(org))
-    )
-  );
-  const uniqueRoleCategories = Array.from(
-    new Set(frontliners.map((frontliner) => frontliner.roleCategory))
-  ).filter(Boolean);
+  // API object for frontliner operations
+  const api = {
+    async getFrontlinersReport(token: string) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${baseUrl}/api/reports/frontliners`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Failed to fetch frontliners report:", error);
+        throw error;
+      }
+    },
+  };
 
   useEffect(() => {
-    const fetchFrontliners = async () => {
+    const fetchFrontlinersReport = async () => {
+      if (!token) {
+        setError("Authentication required");
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
 
-        // Simulate API call - replace with actual API endpoints
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const response = await api.getFrontlinersReport(token);
+        const reportData = response.data;
 
-        // Mock data - replace with real API data
-        const mockFrontliners: Frontliner[] = [
-          {
-            id: "1",
-            firstName: "John",
-            lastName: "Doe",
-            email: "john.doe@techsolutions.com",
-            eid: "EID001",
-            phoneNumber: "+971501234567",
-            asset: "Technology",
-            subAsset: "Software Development",
-            organization: "Tech Solutions Inc",
-            subOrganization: "Engineering Division",
-            roleCategory: "Customer Service",
-            role: "Customer Service Rep",
-            seniority: "Senior",
-            overallProgress: 85,
-            alMidhyaf: 90,
-            adInformation: 80,
-            generalVxSoftSkills: 75,
-            generalVxHardSkills: 88,
-            managerialCompetencies: 70,
-            vxPoints: 1250,
-            registrationDate: "2024-01-15",
-            lastLoginDate: "2024-12-20",
-            status: "active",
-          },
-          {
-            id: "2",
-            firstName: "Jane",
-            lastName: "Smith",
-            email: "jane.smith@healthcarepartners.com",
-            eid: "EID002",
-            phoneNumber: "+971501234568",
-            asset: "Healthcare",
-            subAsset: "Medical Services",
-            organization: "Healthcare Partners",
-            subOrganization: "Emergency Department",
-            roleCategory: "Medical Staff",
-            role: "Nurse",
-            seniority: "Expert",
-            overallProgress: 92,
-            alMidhyaf: 95,
-            adInformation: 88,
-            generalVxSoftSkills: 90,
-            generalVxHardSkills: 85,
-            managerialCompetencies: 80,
-            vxPoints: 1450,
-            registrationDate: "2024-02-20",
-            lastLoginDate: "2024-12-19",
-            status: "active",
-          },
-          {
-            id: "3",
-            firstName: "Mike",
-            lastName: "Johnson",
-            email: "mike.johnson@edufoundation.org",
-            eid: "EID003",
-            phoneNumber: "+971501234569",
-            asset: "Education",
-            subAsset: "Academic Programs",
-            organization: "Education Foundation",
-            subOrganization: "Primary Education",
-            roleCategory: "Teaching Staff",
-            role: "Teacher",
-            seniority: "Intermediate",
-            overallProgress: 78,
-            alMidhyaf: 75,
-            adInformation: 70,
-            generalVxSoftSkills: 85,
-            generalVxHardSkills: 72,
-            managerialCompetencies: 65,
-            vxPoints: 980,
-            registrationDate: "2024-03-10",
-            lastLoginDate: "2024-12-18",
-            status: "active",
-          },
-          {
-            id: "4",
-            firstName: "Sarah",
-            lastName: "Wilson",
-            email: "sarah.wilson@globalservices.com",
-            eid: "EID004",
-            phoneNumber: "+971501234570",
-            asset: "Technology",
-            subAsset: "IT Support",
-            organization: "Global Services Ltd",
-            subOrganization: "Customer Service",
-            roleCategory: "Technical Support",
-            role: "Support Specialist",
-            seniority: "Expert",
-            overallProgress: 95,
-            alMidhyaf: 98,
-            adInformation: 92,
-            generalVxSoftSkills: 88,
-            generalVxHardSkills: 96,
-            managerialCompetencies: 90,
-            vxPoints: 1650,
-            registrationDate: "2024-01-05",
-            lastLoginDate: "2024-12-20",
-            status: "active",
-          },
-          {
-            id: "5",
-            firstName: "Tom",
-            lastName: "Brown",
-            email: "tom.brown@innovationhub.com",
-            eid: "EID005",
-            phoneNumber: "+971501234571",
-            asset: "Technology",
-            subAsset: "Research & Development",
-            organization: "Innovation Hub",
-            subOrganization: "Innovation Lab",
-            roleCategory: "Sales",
-            role: "Sales Rep",
-            seniority: "Junior",
-            overallProgress: 45,
-            alMidhyaf: 40,
-            adInformation: 35,
-            generalVxSoftSkills: 50,
-            generalVxHardSkills: 42,
-            managerialCompetencies: 30,
-            vxPoints: 450,
-            registrationDate: "2024-04-12",
-            lastLoginDate: "2024-11-15",
-            status: "inactive",
-          },
-          {
-            id: "6",
-            firstName: "Lisa",
-            lastName: "Davis",
-            email: "lisa.davis@techsolutions.com",
-            eid: "EID006",
-            phoneNumber: "+971501234572",
-            asset: "Technology",
-            subAsset: "Software Development",
-            organization: "Tech Solutions Inc",
-            subOrganization: "Engineering Division",
-            roleCategory: "Technical Support",
-            role: "Technical Support",
-            seniority: "Senior",
-            overallProgress: 88,
-            alMidhyaf: 85,
-            adInformation: 82,
-            generalVxSoftSkills: 90,
-            generalVxHardSkills: 86,
-            managerialCompetencies: 75,
-            vxPoints: 1180,
-            registrationDate: "2024-02-28",
-            lastLoginDate: "2024-12-19",
-            status: "active",
-          },
-        ];
-
-        setFrontliners(mockFrontliners);
-        setFilteredFrontliners(mockFrontliners);
+        setReportData(reportData);
+        setFilteredFrontliners(reportData.frontliners);
       } catch (err) {
-        console.error("Failed to fetch frontliners:", err);
-        setError("Failed to load frontliners data");
+        console.error("Failed to fetch frontliners report:", err);
+        setError("Failed to load frontliners report data");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFrontliners();
-  }, []);
+    fetchFrontlinersReport();
+  }, [token]);
 
   // Filter frontliners based on all criteria
   useEffect(() => {
-    let filtered = frontliners;
+    if (!reportData) return;
+
+    let filtered = reportData.frontliners;
 
     // Filter by asset
     if (selectedAsset !== "all") {
@@ -376,7 +256,7 @@ const Frontliners = () => {
 
     setFilteredFrontliners(filtered);
   }, [
-    frontliners,
+    reportData,
     selectedAsset,
     selectedSubAsset,
     organizationFilter,
@@ -497,29 +377,48 @@ const Frontliners = () => {
     }
   };
 
-  const totalVxPoints = frontliners.reduce(
-    (sum, frontliner) => sum + frontliner.vxPoints,
-    0
-  );
-  const totalAlMidhyaf = frontliners.reduce(
-    (sum, frontliner) => sum + frontliner.alMidhyaf,
-    0
-  );
-  const activeFrontliners = frontliners.filter(
-    (frontliner) => frontliner.status === "active"
-  ).length;
-  const averageProgress =
-    frontliners.length > 0
-      ? Math.round(
-          frontliners.reduce(
-            (sum, frontliner) => sum + frontliner.overallProgress,
-            0
-          ) / frontliners.length
-        )
-      : 0;
-  const uniqueOrganizationsForStats = Array.from(
-    new Set(frontliners.map((frontliner) => frontliner.organization))
-  );
+  const formatProgress = (value: number) => {
+    return Math.round(value * 100) / 100;
+  };
+
+  if (loading) {
+    return (
+      <AdminPageLayout
+        title="Frontliners Report"
+        description="Complete overview of all frontliner users in the system"
+      >
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 text-dawn animate-spin" />
+        </div>
+      </AdminPageLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AdminPageLayout
+        title="Frontliners Report"
+        description="Complete overview of all frontliner users in the system"
+      >
+        <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
+          <p className="text-red-300 text-sm">{error}</p>
+        </div>
+      </AdminPageLayout>
+    );
+  }
+
+  if (!reportData) {
+    return (
+      <AdminPageLayout
+        title="Frontliners Report"
+        description="Complete overview of all frontliner users in the system"
+      >
+        <div className="text-center py-8">
+          <p className="text-gray-500">No data available</p>
+        </div>
+      </AdminPageLayout>
+    );
+  }
 
   return (
     <AdminPageLayout
@@ -544,7 +443,7 @@ const Frontliners = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#2C2C2C]">
-                {loading ? "..." : frontliners.length}
+                {reportData.generalStats.totalFrontliners}
               </div>
             </CardContent>
           </Card>
@@ -558,7 +457,7 @@ const Frontliners = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#2C2C2C]">
-                {loading ? "..." : activeFrontliners}
+                {reportData.generalStats.activeFrontliners}
               </div>
             </CardContent>
           </Card>
@@ -572,7 +471,7 @@ const Frontliners = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#2C2C2C]">
-                {loading ? "..." : totalVxPoints.toLocaleString()}
+                {reportData.generalStats.totalVxPoints.toLocaleString()}
               </div>
             </CardContent>
           </Card>
@@ -586,10 +485,7 @@ const Frontliners = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#2C2C2C]">
-                {loading
-                  ? "..."
-                  : Math.round(totalAlMidhyaf / frontliners.length)}
-                %
+                {reportData.generalStats.averageAlMidhyaf}%
               </div>
             </CardContent>
           </Card>
@@ -606,7 +502,7 @@ const Frontliners = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#2C2C2C]">
-                {loading ? "..." : `${averageProgress}%`}
+                {reportData.generalStats.averageProgress}%
               </div>
             </CardContent>
           </Card>
@@ -620,288 +516,183 @@ const Frontliners = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#2C2C2C]">
-                {loading ? "..." : uniqueOrganizationsForStats.length}
+                {reportData.generalStats.totalOrganizations}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Filters and Actions */}
-        <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex flex-wrap gap-4 items-center justify-between">
-              <div className="flex flex-wrap gap-4 items-center">
-                {/* Asset Filter */}
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-[#2C2C2C]/60">Asset</Label>
-                  <Select
-                    value={selectedAsset}
-                    onValueChange={setSelectedAsset}
-                  >
-                    <SelectTrigger className="w-[120px] bg-orange-500/20 border-orange-500/30 text-orange-300">
-                      <SelectValue placeholder="All Assets" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                      <SelectItem
-                        value="all"
-                        className="text-[#2C2C2C] hover:bg-gray-700"
-                      >
-                        All Assets
-                      </SelectItem>
-                      {uniqueAssets.map((asset) => (
-                        <SelectItem
-                          key={asset}
-                          value={asset}
-                          className="text-[#2C2C2C] hover:bg-gray-700"
-                        >
-                          {asset}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Asset Sub-Category Filter */}
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-[#2C2C2C]/60">
-                    Asset Sub-Category
-                  </Label>
-                  <Select
-                    value={selectedSubAsset}
-                    onValueChange={setSelectedSubAsset}
-                  >
-                    <SelectTrigger className="w-[140px] bg-orange-500/20 border-orange-500/30 text-orange-300">
-                      <SelectValue placeholder="All Sub-Categories" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                      <SelectItem
-                        value="all"
-                        className="text-[#2C2C2C] hover:bg-gray-700"
-                      >
-                        All Sub-Categories
-                      </SelectItem>
-                      {uniqueSubAssets.map((subAsset) => (
-                        <SelectItem
-                          key={subAsset}
-                          value={subAsset}
-                          className="text-[#2C2C2C] hover:bg-gray-700"
-                        >
-                          {subAsset}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Organization Filter */}
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-[#2C2C2C]/60">
-                    Organization
-                  </Label>
-                  <Select
-                    value={organizationFilter}
-                    onValueChange={setOrganizationFilter}
-                  >
-                    <SelectTrigger className="w-[140px] bg-orange-500/20 border-orange-500/30 text-orange-300">
-                      <SelectValue placeholder="All Organizations" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                      <SelectItem
-                        value="all"
-                        className="text-[#2C2C2C] hover:bg-gray-700"
-                      >
-                        All Organizations
-                      </SelectItem>
-                      {uniqueOrganizationsForFilter.map((org) => (
-                        <SelectItem
-                          key={org}
-                          value={org}
-                          className="text-[#2C2C2C] hover:bg-gray-700"
-                        >
-                          {org}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Sub-Organization Filter */}
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-[#2C2C2C]/60">
-                    Sub-Organization
-                  </Label>
-                  <Select
-                    value={selectedSubOrganization}
-                    onValueChange={setSelectedSubOrganization}
-                  >
-                    <SelectTrigger className="w-[140px] bg-orange-500/20 border-orange-500/30 text-orange-300">
-                      <SelectValue placeholder="All Sub-Orgs" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                      <SelectItem
-                        value="all"
-                        className="text-[#2C2C2C] hover:bg-gray-700"
-                      >
-                        All Sub-Orgs
-                      </SelectItem>
-                      {uniqueSubOrganizations.map((subOrg) => (
-                        <SelectItem
-                          key={subOrg}
-                          value={subOrg}
-                          className="text-[#2C2C2C] hover:bg-gray-700"
-                        >
-                          {subOrg}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Role Category Filter */}
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-[#2C2C2C]/60">
-                    Role Category
-                  </Label>
-                  <Select
-                    value={selectedRoleCategory}
-                    onValueChange={setSelectedRoleCategory}
-                  >
-                    <SelectTrigger className="w-[130px] bg-orange-500/20 border-orange-500/30 text-orange-300">
-                      <SelectValue placeholder="All Roles" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                      <SelectItem
-                        value="all"
-                        className="text-[#2C2C2C] hover:bg-gray-700"
-                      >
-                        All Roles
-                      </SelectItem>
-                      {uniqueRoleCategories.map((role) => (
-                        <SelectItem
-                          key={role}
-                          value={role}
-                          className="text-[#2C2C2C] hover:bg-gray-700"
-                        >
-                          {role}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Overall Progress Filter */}
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-[#2C2C2C]/60">
-                    Overall Progress
-                  </Label>
-                  <Select
-                    value={selectedProgress}
-                    onValueChange={setSelectedProgress}
-                  >
-                    <SelectTrigger className="w-[130px] bg-orange-500/20 border-orange-500/30 text-orange-300">
-                      <SelectValue placeholder="All Progress" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                      <SelectItem
-                        value="all"
-                        className="text-[#2C2C2C] hover:bg-gray-700"
-                      >
-                        All Progress
-                      </SelectItem>
-                      <SelectItem
-                        value="0-25"
-                        className="text-[#2C2C2C] hover:bg-gray-700"
-                      >
-                        0-25%
-                      </SelectItem>
-                      <SelectItem
-                        value="26-50"
-                        className="text-[#2C2C2C] hover:bg-gray-700"
-                      >
-                        26-50%
-                      </SelectItem>
-                      <SelectItem
-                        value="51-75"
-                        className="text-[#2C2C2C] hover:bg-gray-700"
-                      >
-                        51-75%
-                      </SelectItem>
-                      <SelectItem
-                        value="76-100"
-                        className="text-[#2C2C2C] hover:bg-gray-700"
-                      >
-                        76-100%
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Status Filter */}
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-[#2C2C2C]/60">Status</Label>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[100px] bg-orange-500/20 border-orange-500/30 text-orange-300">
-                      <SelectValue placeholder="All Status" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                      <SelectItem
-                        value="all"
-                        className="text-[#2C2C2C] hover:bg-gray-700"
-                      >
-                        All Status
-                      </SelectItem>
-                      <SelectItem
-                        value="active"
-                        className="text-[#2C2C2C] hover:bg-gray-700"
-                      >
-                        Active
-                      </SelectItem>
-                      <SelectItem
-                        value="inactive"
-                        className="text-[#2C2C2C] hover:bg-gray-700"
-                      >
-                        Inactive
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Search */}
-                <div className="flex flex-col gap-1">
-                  <Label className="text-xs text-[#2C2C2C]/60">Search</Label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#2C2C2C]/60 h-4 w-4" />
-                    <Input
-                      placeholder="Search frontliners..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-[180px] pl-10 bg-orange-500/20 border-orange-500/30 text-orange-300 placeholder:text-orange-300/60"
-                    />
-                  </div>
-                </div>
-
-                {/* Clear Filters Button */}
-                {hasActiveFilters && (
-                  <Button
-                    variant="outline"
-                    onClick={clearAllFilters}
-                    className="bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30"
-                  >
-                    <X className="h-3 w-3 mr-1" />
-                    Clear Filters
-                  </Button>
-                )}
-              </div>
-              <Button
-                onClick={handleExport}
-                className="bg-dawn hover:bg-[#B85A1A] text-[#2C2C2C]"
+        {/* Filter Section */}
+        <div className="mb-6 p-4 bg-sandstone rounded-lg border border-[#E5E5E5]">
+          <h3 className="text-lg font-semibold text-dawn mb-4">Filter By</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="assetFilter" className="text-[#2C2C2C]">
+                Asset
+              </Label>
+              <Select value={selectedAsset} onValueChange={setSelectedAsset}>
+                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+                  <SelectValue placeholder="Select asset" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Assets</SelectItem>
+                  {reportData.filters.assets.map((asset) => (
+                    <SelectItem key={asset.value} value={asset.value}>
+                      {asset.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subAssetFilter" className="text-[#2C2C2C]">
+                Asset Sub-Category
+              </Label>
+              <Select
+                value={selectedSubAsset}
+                onValueChange={setSelectedSubAsset}
               >
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
+                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+                  <SelectValue placeholder="Select sub-category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sub-Categories</SelectItem>
+                  {reportData.filters.subAssets.map((subAsset) => (
+                    <SelectItem key={subAsset.value} value={subAsset.value}>
+                      {subAsset.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="organizationFilter" className="text-[#2C2C2C]">
+                Organization
+              </Label>
+              <Select
+                value={organizationFilter}
+                onValueChange={setOrganizationFilter}
+              >
+                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+                  <SelectValue placeholder="Select organization" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Organizations</SelectItem>
+                  {reportData.filters.organizations.map((org) => (
+                    <SelectItem key={org.value} value={org.value}>
+                      {org.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subOrganizationFilter" className="text-[#2C2C2C]">
+                Sub-Organization
+              </Label>
+              <Select
+                value={selectedSubOrganization}
+                onValueChange={setSelectedSubOrganization}
+              >
+                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+                  <SelectValue placeholder="Select sub-organization" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sub-Organizations</SelectItem>
+                  {reportData.filters.subOrganizations.map((subOrg) => (
+                    <SelectItem key={subOrg.value} value={subOrg.value}>
+                      {subOrg.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor="roleCategoryFilter" className="text-[#2C2C2C]">
+                Role Category
+              </Label>
+              <Select
+                value={selectedRoleCategory}
+                onValueChange={setSelectedRoleCategory}
+              >
+                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+                  <SelectValue placeholder="Select role category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Role Categories</SelectItem>
+                  {reportData.filters.roleCategories.map((role) => (
+                    <SelectItem key={role.value} value={role.value}>
+                      {role.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="progressFilter" className="text-[#2C2C2C]">
+                Overall Progress
+              </Label>
+              <Select
+                value={selectedProgress}
+                onValueChange={setSelectedProgress}
+              >
+                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+                  <SelectValue placeholder="Select progress range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Progress</SelectItem>
+                  <SelectItem value="0-25">0-25%</SelectItem>
+                  <SelectItem value="26-50">26-50%</SelectItem>
+                  <SelectItem value="51-75">51-75%</SelectItem>
+                  <SelectItem value="76-100">76-100%</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="statusFilter" className="text-[#2C2C2C]">
+                Status
+              </Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="searchFilter" className="text-[#2C2C2C]">
+                Search
+              </Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#2C2C2C]/60 h-4 w-4" />
+                <Input
+                  placeholder="Search frontliners..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#2C2C2C]/60"
+                />
+              </div>
+            </div>
+          </div>
+          {hasActiveFilters && (
+            <div className="mt-4 flex justify-end">
+              <Button
+                variant="outline"
+                onClick={clearAllFilters}
+                className="bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30"
+              >
+                <X className="h-3 w-3 mr-1" />
+                Clear Filters
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </div>
 
         {/* Frontliners Accordion Table */}
         <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
@@ -1011,12 +802,14 @@ const Frontliners = () => {
                             <div
                               className="bg-[#00d8cc] h-2 rounded-full"
                               style={{
-                                width: `${frontliner.overallProgress}%`,
+                                width: `${formatProgress(
+                                  frontliner.overallProgress
+                                )}%`,
                               }}
                             ></div>
                           </div>
                           <span className="text-xs">
-                            {frontliner.overallProgress}%
+                            {formatProgress(frontliner.overallProgress)}%
                           </span>
                         </div>
                       </div>
@@ -1129,11 +922,15 @@ const Frontliners = () => {
                               <div className="w-16 bg-white/20 rounded-full h-2">
                                 <div
                                   className="bg-blue-500 h-2 rounded-full"
-                                  style={{ width: `${frontliner.alMidhyaf}%` }}
+                                  style={{
+                                    width: `${formatProgress(
+                                      frontliner.alMidhyaf
+                                    )}%`,
+                                  }}
                                 ></div>
                               </div>
                               <span className="text-xs text-[#2C2C2C]">
-                                {frontliner.alMidhyaf}%
+                                {formatProgress(frontliner.alMidhyaf)}%
                               </span>
                             </div>
                           </div>
@@ -1146,12 +943,14 @@ const Frontliners = () => {
                                 <div
                                   className="bg-green-500 h-2 rounded-full"
                                   style={{
-                                    width: `${frontliner.adInformation}%`,
+                                    width: `${formatProgress(
+                                      frontliner.adInformation
+                                    )}%`,
                                   }}
                                 ></div>
                               </div>
                               <span className="text-xs text-[#2C2C2C]">
-                                {frontliner.adInformation}%
+                                {formatProgress(frontliner.adInformation)}%
                               </span>
                             </div>
                           </div>
@@ -1164,12 +963,15 @@ const Frontliners = () => {
                                 <div
                                   className="bg-purple-500 h-2 rounded-full"
                                   style={{
-                                    width: `${frontliner.generalVxSoftSkills}%`,
+                                    width: `${formatProgress(
+                                      frontliner.generalVxSoftSkills
+                                    )}%`,
                                   }}
                                 ></div>
                               </div>
                               <span className="text-xs text-[#2C2C2C]">
-                                {frontliner.generalVxSoftSkills}%
+                                {formatProgress(frontliner.generalVxSoftSkills)}
+                                %
                               </span>
                             </div>
                           </div>
@@ -1182,12 +984,15 @@ const Frontliners = () => {
                                 <div
                                   className="bg-orange-500 h-2 rounded-full"
                                   style={{
-                                    width: `${frontliner.generalVxHardSkills}%`,
+                                    width: `${formatProgress(
+                                      frontliner.generalVxHardSkills
+                                    )}%`,
                                   }}
                                 ></div>
                               </div>
                               <span className="text-xs text-[#2C2C2C]">
-                                {frontliner.generalVxHardSkills}%
+                                {formatProgress(frontliner.generalVxHardSkills)}
+                                %
                               </span>
                             </div>
                           </div>
@@ -1200,12 +1005,17 @@ const Frontliners = () => {
                                 <div
                                   className="bg-red-500 h-2 rounded-full"
                                   style={{
-                                    width: `${frontliner.managerialCompetencies}%`,
+                                    width: `${formatProgress(
+                                      frontliner.managerialCompetencies
+                                    )}%`,
                                   }}
                                 ></div>
                               </div>
                               <span className="text-xs text-[#2C2C2C]">
-                                {frontliner.managerialCompetencies}%
+                                {formatProgress(
+                                  frontliner.managerialCompetencies
+                                )}
+                                %
                               </span>
                             </div>
                           </div>

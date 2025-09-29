@@ -15,4 +15,13 @@ router.get("/certificates", reportController.getCertificateReport);
 // Users Report - All users with normal user data and filters
 router.get("/users", reportController.getUsersReport);
 
+// Organizations Report - All organizations with frontliner statistics
+router.get("/organizations", reportController.getOrganizationsReport);
+
+// Sub-Admins Report - All sub-admins with comprehensive statistics
+router.get("/sub-admins", reportController.getSubAdminsReport);
+
+// Frontliners Report - All frontliners with comprehensive statistics
+router.get("/frontliners", reportController.getFrontlinersReport);
+
 export default router;

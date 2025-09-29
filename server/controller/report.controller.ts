@@ -62,5 +62,47 @@ export const reportController = {
         error: "Failed to fetch users report data" 
       });
     }
+  },
+
+  // Organizations Report - All organizations with frontliner statistics
+  getOrganizationsReport: async (req: Request, res: Response) => {
+    try {
+      const data = await reportServices.getOrganizationsReportData();
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error("Error fetching organizations report:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to fetch organizations report data" 
+      });
+    }
+  },
+
+  // Sub-Admins Report - All sub-admins with comprehensive statistics
+  getSubAdminsReport: async (req: Request, res: Response) => {
+    try {
+      const data = await reportServices.getSubAdminsReportData();
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error("Error fetching sub-admins report:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to fetch sub-admins report data" 
+      });
+    }
+  },
+
+  // Frontliners Report - All frontliners with comprehensive statistics
+  getFrontlinersReport: async (req: Request, res: Response) => {
+    try {
+      const data = await reportServices.getFrontlinersReportData();
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error("Error fetching frontliners report:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to fetch frontliners report data" 
+      });
+    }
   }
 };
