@@ -1,4 +1,4 @@
-import { eq, and, lt, gt, ne } from "drizzle-orm";
+import { eq, and, lt, gt, ne, lte, sql } from "drizzle-orm";
 import { db } from "../db/connection";
 import {
   users,
@@ -13,6 +13,10 @@ import {
   roleCategories,
   seniorityLevels,
 } from "../db/schema/users";
+import {
+  userTrainingAreaProgress,
+  userCourseProgress,
+} from "../db/schema/progress";
 import type {
   User,
   NewUser,
@@ -293,6 +297,120 @@ export class UserService {
       .limit(1);
 
     return user || null;
+  }
+
+  /**
+   * Get users filtered by total course progress percentage (≤ threshold)
+   * Progress is calculated as: completed courses / total courses * 100
+   * Progress threshold should be in increments of 10 (0, 10, 20, ..., 100)
+   */
+  static async getUsersByProgressThreshold(
+    progressThreshold: number,
+    limit?: number,
+    offset?: number
+  ): Promise<{
+    users: Array<{
+      user: User;
+      normalUserDetails: any;
+      totalProgress: number;
+      completedCourses: number;
+      totalCourses: number;
+    }>;
+    totalCount: number;
+  }> {
+    // Calculate progress based on completed courses / total courses
+    const baseQuery = db
+      .select({
+        user: users,
+        normalUserDetails: normalUsers,
+        completedCourses: sql<number>`
+            COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END)
+          `,
+        totalCourses: sql<number>`
+            COUNT(${userCourseProgress.courseId})
+          `,
+        totalProgress: sql<number>`
+            CASE
+              WHEN COUNT(${userCourseProgress.courseId}) = 0 THEN 0
+              ELSE ROUND(
+                (COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0) /
+                COUNT(${userCourseProgress.courseId}),
+                2
+              )
+            END
+          `,
+      })
+      .from(users)
+      .leftJoin(normalUsers, eq(users.id, normalUsers.userId))
+      .leftJoin(userCourseProgress, eq(users.id, userCourseProgress.userId))
+      .groupBy(users.id, normalUsers.userId)
+      .having(
+        lte(
+          sql`CASE
+              WHEN COUNT(${userCourseProgress.courseId}) = 0 THEN 0
+              ELSE ROUND(
+                (COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0) /
+                COUNT(${userCourseProgress.courseId}),
+                2
+              )
+            END`,
+          progressThreshold
+        )
+      )
+      .orderBy(users.createdAt);
+
+    // Get total count
+    const countQuery = db.select({ count: sql<number>`COUNT(*)` }).from(
+      db
+        .select({
+          userId: users.id,
+          courseProgress: sql<number>`
+              CASE
+                WHEN COUNT(${userCourseProgress.courseId}) = 0 THEN 0
+                ELSE ROUND(
+                  (COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0) /
+                  COUNT(${userCourseProgress.courseId}),
+                  2
+                )
+              END
+            `,
+        })
+        .from(users)
+        .leftJoin(userCourseProgress, eq(users.id, userCourseProgress.userId))
+        .groupBy(users.id)
+        .having(
+          lte(
+            sql`CASE
+                WHEN COUNT(${userCourseProgress.courseId}) = 0 THEN 0
+                ELSE ROUND(
+                  (COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0) /
+                  COUNT(${userCourseProgress.courseId}),
+                  2
+                )
+              END`,
+            progressThreshold
+          )
+        )
+        .as("filtered_users")
+    );
+
+    // Apply pagination if provided
+    if (limit !== undefined) {
+      baseQuery.limit(limit);
+    }
+    if (offset !== undefined) {
+      baseQuery.offset(offset);
+    }
+
+    const [usersResult, countResult] = await Promise.all([
+      baseQuery,
+      countQuery,
+    ]);
+
+    return {
+      users: usersResult,
+      totalCount: countResult[0]?.count || 0,
+    };
   }
 
   /**

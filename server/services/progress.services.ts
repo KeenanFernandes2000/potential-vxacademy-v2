@@ -18,6 +18,8 @@ import {
 import { assessments, assessmentAttempts } from "../db/schema/assessments";
 import { courseEnrollments } from "../db/schema/system";
 import { certificates } from "../db/schema/gamification";
+import { users } from "../db/schema/users";
+import { sendByType } from "./email.services";
 import type {
   UserTrainingAreaProgress,
   NewUserTrainingAreaProgress,
@@ -134,6 +136,22 @@ export class CertificateHelper {
           status: "active",
         })
         .returning({ id: certificates.id });
+
+      const user = await tx.select().from(users).where(eq(users.id, userId));
+      const trainingArea = await tx
+        .select()
+        .from(trainingAreas)
+        .where(eq(trainingAreas.id, trainingAreaId));
+
+      sendByType({
+        type: "certificate_available",
+        to: "keenan@potential.com",
+        data: {
+          name: user[0].firstName,
+          trainingAreaName: trainingArea.name,
+          url: `${process.env.FRONTEND_URL}/certificate/${newCertificate[0].id}`,
+        },
+      });
 
       return {
         success: true,

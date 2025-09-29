@@ -21,6 +21,10 @@ router.post("/password-reset/reset", userControllers.resetPassword);
 
 // ==================== USER CRUD FUNCTIONS ====================
 router.get("/users", userControllers.getAllUsers);
+router.get(
+  "/users/by-progress-threshold",
+  userControllers.getUsersByProgressThreshold
+);
 router.get("/users/:id", userControllers.getUserById);
 router.post("/users", userControllers.create);
 router.put("/users/:id", userControllers.updateUser);
@@ -97,6 +101,7 @@ router.get(
   userControllers.getSubAdminRegistrationDetails
 );
 router.get("/sub-admins/check/:id", userControllers.checkSubAdminExists);
+router.post("/sub-admins/reminder", userControllers.sendSubAdminReminderEmail);
 
 // ==================== NORMAL USER REGISTRATION & UPDATE FUNCTIONS ====================
 router.post(

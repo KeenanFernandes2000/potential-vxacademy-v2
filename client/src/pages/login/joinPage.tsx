@@ -1108,6 +1108,29 @@ const joinPage = (props: Props) => {
               )}
           </div>
 
+          {/* Disclaimer */}
+          <div className="text-center text-sm text-[#666666] leading-relaxed mb-6">
+            By completing your registration, you agree to the{" "}
+            <a
+              href="https://dct.gov.ae/en/terms.conditions.aspx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-dawn hover:text-[#B85A1A] underline transition-colors duration-200 font-medium"
+            >
+              Terms and Conditions
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://dct.gov.ae/en/privacy.policy.aspx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-dawn hover:text-[#B85A1A] underline transition-colors duration-200 font-medium"
+            >
+              Privacy Policy
+            </a>
+            .
+          </div>
+
           <Button
             type="submit"
             disabled={isLoading}
@@ -1566,6 +1589,29 @@ const joinPage = (props: Props) => {
 
             {/* Submit Button */}
             <div className="pt-6">
+              {/* Disclaimer */}
+              <div className="text-center text-sm text-[#666666] leading-relaxed mb-6">
+                By registering, you agree to the{" "}
+                <a
+                  href="https://dct.gov.ae/en/terms.conditions.aspx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-dawn hover:text-[#B85A1A] underline transition-colors duration-200 font-medium"
+                >
+                  Terms and Conditions
+                </a>{" "}
+                and{" "}
+                <a
+                  href="https://dct.gov.ae/en/privacy.policy.aspx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-dawn hover:text-[#B85A1A] underline transition-colors duration-200 font-medium"
+                >
+                  Privacy Policy
+                </a>
+                .
+              </div>
+
               <Button
                 type="submit"
                 disabled={isLoading}

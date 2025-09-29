@@ -114,7 +114,7 @@ const SubAdminRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
 const UserRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full bg-[#003451]">
+      <div className="flex h-screen w-full bg-white">
         {/* Persistent User Sidebar */}
         <UserSidebar />
 
