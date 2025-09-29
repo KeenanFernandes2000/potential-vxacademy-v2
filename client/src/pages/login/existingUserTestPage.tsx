@@ -170,6 +170,32 @@ const api = {
       throw error;
     }
   },
+
+  async getCertificate(certificateId: number, token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/certificate/${certificateId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to get certificate:", error);
+      throw error;
+    }
+  },
 };
 
 const quizData = [
@@ -443,6 +469,14 @@ const ExistingUserTestPage = () => {
           console.log("Initial assessment passed email sent successfully");
         } catch (error) {
           console.error("Failed to send passed assessment email:", error);
+        }
+
+        // Get certificate for passed assessment
+        try {
+          await api.getCertificate(1, token);
+          console.log("Certificate retrieved successfully");
+        } catch (error) {
+          console.error("Failed to get certificate:", error);
         }
 
         // Complete all required learning blocks
