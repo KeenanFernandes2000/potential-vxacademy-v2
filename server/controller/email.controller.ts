@@ -1,9 +1,15 @@
 import type { Request, Response } from "express";
 import { createEvent } from "ics";
-import { TrainingAreaService } from "../services/training.services";
+import {
+  TrainingAreaService,
+  LearningBlockService,
+} from "../services/training.services";
 import { UserService } from "../services/user.services";
 import { sendByType, sendCustomTextEmail } from "../services/email.services";
-import { CertificateHelper } from "../services/progress.services";
+import {
+  CertificateHelper,
+  LearningBlockProgressService,
+} from "../services/progress.services";
 import type { CustomError } from "../middleware/errorHandling";
 
 const createError = (
@@ -116,6 +122,60 @@ export class EmailController {
     const user = await UserService.getUserById(userId);
     if (!trainingArea || !user) {
       throw createError("Training area or user not found", 404);
+    }
+
+    // Get all learning blocks for the training area
+    const learningBlocks =
+      await LearningBlockService.getLearningBlocksByTrainingArea(
+        trainingAreaId
+      );
+
+    // Auto-complete all learning blocks for the user
+    if (learningBlocks.length > 0) {
+      console.log(
+        `Auto-completing ${learningBlocks.length} learning blocks for user ${userId} in training area ${trainingAreaId}`
+      );
+
+      const completionPromises = learningBlocks.map((learningBlock: any) =>
+        LearningBlockProgressService.completeLearningBlock(
+          userId,
+          learningBlock.id
+        )
+      );
+
+      try {
+        const completionResults = await Promise.all(completionPromises);
+
+        // Log completion results
+        completionResults.forEach((result: any, index: number) => {
+          const learningBlock = learningBlocks[index];
+          if (learningBlock) {
+            if (result.success) {
+              console.log(
+                `✅ Learning block ${learningBlock.id} (${learningBlock.title}) completed successfully`
+              );
+            } else {
+              console.log(
+                `❌ Learning block ${learningBlock.id} (${learningBlock.title}) failed to complete: ${result.message}`
+              );
+            }
+          }
+        });
+
+        const successfulCompletions = completionResults.filter(
+          (result: any) => result.success
+        ).length;
+        console.log(
+          `Successfully completed ${successfulCompletions}/${learningBlocks.length} learning blocks`
+        );
+      } catch (error) {
+        console.error("Error auto-completing learning blocks:", error);
+        // Continue with certificate generation even if some learning blocks fail
+      }
+    } else {
+      console.log(
+        `No learning blocks found for training area ${trainingAreaId}`
+      );
     }
 
     // Use the CertificateHelper to generate the certificate

@@ -102,6 +102,74 @@ const api = {
       throw error;
     }
   },
+
+  async sendInitialAssessmentPassed(
+    userId: number,
+    trainingAreaId: number,
+    token: string
+  ) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/email/sendInitialAssessmentPassed`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId,
+            trainingAreaId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to send initial assessment passed email:", error);
+      throw error;
+    }
+  },
+
+  async sendInitialAssessmentFailed(
+    userId: number,
+    trainingAreaId: number,
+    token: string
+  ) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/email/sendInitialAssessmentFailed`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId,
+            trainingAreaId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to send initial assessment failed email:", error);
+      throw error;
+    }
+  },
 };
 
 const quizData = [
@@ -213,6 +281,9 @@ const MINIMUM_CERTIFICATE_SCORE = 60;
 
 // Learning blocks that need to be completed for this quiz
 const LEARNING_BLOCK_IDS = [4, 5];
+
+// Training area ID for this initial assessment (Al Midhyaf)
+const TRAINING_AREA_ID = 1;
 
 const ExistingUserTestPage = () => {
   const { user, token, updateUser } = useAuth();
@@ -362,15 +433,38 @@ const ExistingUserTestPage = () => {
 
       // Only complete learning blocks if user passed the assessment (60% or higher)
       if (percentageScore >= MINIMUM_CERTIFICATE_SCORE) {
-        // Complete all required learning blocks
-        for (const learningBlockId of LEARNING_BLOCK_IDS) {
-          await api.completeLearningBlock(user.id, learningBlockId, token);
+        // Send email notification for passed assessment
+        try {
+          await api.sendInitialAssessmentPassed(
+            user.id,
+            TRAINING_AREA_ID,
+            token
+          );
+          console.log("Initial assessment passed email sent successfully");
+        } catch (error) {
+          console.error("Failed to send passed assessment email:", error);
         }
-        console.log("Learning blocks completed successfully");
+
+        // Complete all required learning blocks
+        // for (const learningBlockId of LEARNING_BLOCK_IDS) {
+        //   await api.completeLearningBlock(user.id, learningBlockId, token);
+        // }
+        // console.log("Learning blocks completed successfully");
       } else {
-        console.log(
-          "User did not pass assessment, skipping learning block completion"
-        );
+        // Send email notification for failed assessment
+        try {
+          await api.sendInitialAssessmentFailed(
+            user.id,
+            TRAINING_AREA_ID,
+            token
+          );
+          console.log("Initial assessment failed email sent successfully");
+        } catch (error) {
+          console.error("Failed to send failed assessment email:", error);
+        }
+        // console.log(
+        //   "User did not pass assessment, skipping learning block completion"
+        // );
       }
     } catch (error) {
       console.error("Failed to complete assessment:", error);

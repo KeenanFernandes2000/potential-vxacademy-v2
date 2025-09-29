@@ -670,6 +670,36 @@ export class LearningBlockService {
   }
 
   /**
+   * Get all learning blocks for a training area
+   */
+  static async getLearningBlocksByTrainingArea(
+    trainingAreaId: number
+  ): Promise<LearningBlock[]> {
+    return await db
+      .select({
+        id: learningBlocks.id,
+        unitId: learningBlocks.unitId,
+        type: learningBlocks.type,
+        title: learningBlocks.title,
+        content: learningBlocks.content,
+        videoUrl: learningBlocks.videoUrl,
+        imageUrl: learningBlocks.imageUrl,
+        interactiveData: learningBlocks.interactiveData,
+        order: learningBlocks.order,
+        xpPoints: learningBlocks.xpPoints,
+        createdAt: learningBlocks.createdAt,
+        updatedAt: learningBlocks.updatedAt,
+      })
+      .from(learningBlocks)
+      .innerJoin(units, eq(units.id, learningBlocks.unitId))
+      .innerJoin(courseUnits, eq(courseUnits.unitId, units.id))
+      .innerJoin(courses, eq(courses.id, courseUnits.courseId))
+      .innerJoin(modules, eq(modules.id, courses.moduleId))
+      .where(eq(modules.trainingAreaId, trainingAreaId))
+      .orderBy(learningBlocks.order);
+  }
+
+  /**
    * Update learning block by ID
    */
   static async updateLearningBlock(
