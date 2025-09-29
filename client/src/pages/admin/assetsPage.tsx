@@ -158,7 +158,7 @@ const AssetsPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
                   onClick={() => handleEditAsset(asset)}
                   title="Edit"
                 >
@@ -167,7 +167,7 @@ const AssetsPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
                   onClick={() => handleDeleteAsset(asset.id)}
                   title="Delete"
                 >
@@ -410,7 +410,7 @@ const AssetsPage = () => {
               setIsEditModalOpen(false);
               setSelectedAsset(null);
             }}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full hover:bg-accent/30 hover:text-black"
           >
             Cancel
           </Button>
@@ -450,13 +450,13 @@ const AssetsPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-sandstone border-white/20 text-white">
+        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
           <DialogHeader className="relative">
-            <DialogTitle className="text-white">Edit Asset</DialogTitle>
+            <DialogTitle className="text-[#2C2C2C]">Edit Asset</DialogTitle>
             <Button
               variant="ghost"
               size="sm"
-              className="absolute right-0 top-0 h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+              className="absolute right-0 top-0 h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
               onClick={() => {
                 setIsEditModalOpen(false);
                 setSelectedAsset(null);

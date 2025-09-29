@@ -666,6 +666,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
         className={`text-foreground font-semibold ${
           isSortable ? "cursor-pointer hover:bg-muted/50 select-none" : ""
         }`}
+        style={{ minWidth: "120px", maxWidth: "200px" }}
         onClick={() => {
           console.log(
             `Clicked on column: "${column}", isSortable:`,
@@ -677,7 +678,9 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
         }}
       >
         <div className="flex items-center gap-2">
-          <span>{column}</span>
+          <span className="truncate max-w-[150px]" title={column}>
+            {column}
+          </span>
           {isSortable && (
             <div className="flex flex-col">
               <ChevronUp
@@ -911,7 +914,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       <div className="border bg-card/50 backdrop-blur-sm border-border w-full max-w-8xl mx-auto rounded-lg overflow-hidden">
         <div className="overflow-x-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sandstone/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sandstone/50 [&::-webkit-scrollbar-corner]:bg-transparent">
           <div className="min-w-[800px]">
-            <Table>
+            <Table className="table-fixed w-full">
               <TableHeader className="sticky top-0 bg-card/50 backdrop-blur-sm z-10">
                 <TableRow className="border-border">
                   {columns.map((column) => (
@@ -919,12 +922,6 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
                   ))}
                 </TableRow>
               </TableHeader>
-            </Table>
-          </div>
-        </div>
-        <div className="overflow-y-auto max-h-[500px] overflow-x-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sandstone/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sandstone/50 [&::-webkit-scrollbar-corner]:bg-transparent">
-          <div className="min-w-[800px]">
-            <Table>
               <TableBody>
                 {getSortedData().map((row, index) => (
                   <TableRow

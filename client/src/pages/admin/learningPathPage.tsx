@@ -459,7 +459,7 @@ const LearningPathsPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-orange-500 hover:bg-orange-500/10"
                   onClick={() => handleAssignUnits(learningPath)}
                   title="Assign Units"
                 >
@@ -468,7 +468,7 @@ const LearningPathsPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
                   onClick={() => handleDeleteLearningPath(learningPath.id)}
                   title="Delete"
                 >
@@ -665,7 +665,7 @@ const LearningPathsPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
               onClick={() => handleAssignUnits(learningPath)}
               title="Assign Units"
             >
@@ -674,7 +674,7 @@ const LearningPathsPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
               onClick={() => handleDeleteLearningPath(learningPath.id)}
               title="Delete"
             >
@@ -1208,7 +1208,7 @@ const LearningPathsPage = () => {
           type="button"
           variant="ghost"
           size="sm"
-          className="absolute top-0 right-0 h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10 z-10"
+          className="absolute top-0 right-0 h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10 z-10"
           onClick={onClose}
         >
           <Close sx={{ fontSize: 20 }} />
@@ -1336,9 +1336,9 @@ const LearningPathsPage = () => {
           if (!open) handleModalClose();
         }}
       >
-        <DialogContent className="max-w-6xl bg-sandstone border-white/20 text-white max-h-[90%]">
+        <DialogContent className="max-w-6xl bg-sandstone border-white/20 text-[#2C2C2C] max-h-[90%]">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-[#2C2C2C]">
               Assign Units - {selectedRole?.name}
             </DialogTitle>
           </DialogHeader>
@@ -1346,19 +1346,21 @@ const LearningPathsPage = () => {
           <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent">
             {/* Unit Filtering Row */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-[#00d8cc]">
+              <h3 className="text-lg font-semibold text-orange-500">
                 Filter Units
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="trainingArea">Training Area</Label>
+                  <Label htmlFor="trainingArea" className="text-[#2C2C2C]">
+                    Training Area
+                  </Label>
                   <Select
                     value={filters.trainingAreaId}
                     onValueChange={(value) =>
                       handleFilterChange("trainingAreaId", value)
                     }
                   >
-                    <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+                    <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black">
                       <SelectValue placeholder="Select training area" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1372,7 +1374,9 @@ const LearningPathsPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="module">Module</Label>
+                  <Label htmlFor="module" className="text-[#2C2C2C]">
+                    Module
+                  </Label>
                   <Select
                     value={filters.moduleId}
                     onValueChange={(value) =>
@@ -1380,7 +1384,7 @@ const LearningPathsPage = () => {
                     }
                     disabled={!filters.trainingAreaId}
                   >
-                    <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+                    <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black">
                       <SelectValue placeholder="Select module" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1397,7 +1401,9 @@ const LearningPathsPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="course">Course</Label>
+                  <Label htmlFor="course" className="text-[#2C2C2C]">
+                    Course
+                  </Label>
                   <Select
                     value={filters.courseId}
                     onValueChange={(value) =>
@@ -1405,7 +1411,7 @@ const LearningPathsPage = () => {
                     }
                     disabled={!filters.moduleId}
                   >
-                    <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+                    <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black">
                       <SelectValue placeholder="Select course" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1425,7 +1431,7 @@ const LearningPathsPage = () => {
 
             {/* Existing Assignments */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-[#00d8cc]">
+              <h3 className="text-lg font-semibold text-orange-500">
                 Existing Units ({existingUnits.length})
               </h3>
               {existingUnits.length > 0 ? (
@@ -1437,7 +1443,7 @@ const LearningPathsPage = () => {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <h4 className="text-sm font-medium text-white">
+                          <h4 className="text-sm font-medium text-[#2C2C2C]">
                             {unit.name}
                           </h4>
                         </div>
@@ -1457,7 +1463,7 @@ const LearningPathsPage = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-white/60">
+                <div className="text-center py-8 text-[#2C2C2C]/60">
                   No units assigned for the selected filters.
                 </div>
               )}
@@ -1466,7 +1472,7 @@ const LearningPathsPage = () => {
             {/* Units Display */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#00d8cc]">
+                <h3 className="text-lg font-semibold text-orange-500">
                   Available Units ({filteredUnits.length})
                 </h3>
                 {filteredUnits.length > 0 && (
@@ -1479,9 +1485,12 @@ const LearningPathsPage = () => {
                         filteredUnits.length > 0
                       }
                       onChange={(e) => handleSelectAllUnits(e.target.checked)}
-                      className="w-4 h-4 text-[#00d8cc] bg-transparent border-white/30 rounded focus:ring-[#00d8cc] focus:ring-2"
+                      className="w-4 h-4 text-orange-500 bg-transparent border-white/30 rounded focus:ring-orange-500 focus:ring-2"
                     />
-                    <Label htmlFor="selectAll" className="text-sm text-white">
+                    <Label
+                      htmlFor="selectAll"
+                      className="text-sm text-[#2C2C2C]"
+                    >
                       Select All ({selectedUnits.size} selected)
                     </Label>
                   </div>
@@ -1495,7 +1504,7 @@ const LearningPathsPage = () => {
                       key={unit.id}
                       className={`border border-white/20 rounded-lg p-4 transition-all duration-200 ${
                         selectedUnits.has(unit.id)
-                          ? "bg-[#00d8cc]/20 border-[#00d8cc]/50"
+                          ? "bg-orange-500/20 border-orange-500/50"
                           : "bg-white/5 hover:bg-white/10"
                       }`}
                     >
@@ -1507,9 +1516,9 @@ const LearningPathsPage = () => {
                           onChange={(e) =>
                             handleUnitSelection(unit.id, e.target.checked)
                           }
-                          className="w-4 h-4 text-[#00d8cc] bg-transparent border-white/30 rounded focus:ring-[#00d8cc] focus:ring-2"
+                          className="w-4 h-4 text-orange-500 bg-transparent border-white/30 rounded focus:ring-orange-500 focus:ring-2"
                         />
-                        <h4 className="text-sm font-medium text-white">
+                        <h4 className="text-sm font-medium text-[#2C2C2C]">
                           {unit.name}
                         </h4>
                       </div>
@@ -1517,7 +1526,7 @@ const LearningPathsPage = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-white/60">
+                <div className="text-center py-8 text-[#2C2C2C]/60">
                   No units found matching the selected filters.
                 </div>
               )}
@@ -1528,14 +1537,14 @@ const LearningPathsPage = () => {
             <Button
               variant="outline"
               onClick={handleModalClose}
-              className="rounded-full bg-[#00d8cc]/30"
+              className="rounded-full hover:bg-accent/30 hover:text-black"
             >
               Cancel
             </Button>
             <Button
               onClick={handleAssignUnitsSubmit}
               disabled={isLoading || selectedUnits.size === 0}
-              className="rounded-full bg-[#00d8cc] hover:bg-[#00d8cc]/80"
+              className="rounded-full bg-orange-500 hover:bg-orange-600"
             >
               {isLoading
                 ? "Assigning..."

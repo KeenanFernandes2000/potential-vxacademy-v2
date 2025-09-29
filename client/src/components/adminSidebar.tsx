@@ -45,6 +45,26 @@ const AdminSidebar = () => {
     logout();
   };
 
+  // Enhanced toggle function that closes training areas first
+  const handleToggleSidebar = () => {
+    // If training areas dropdown is open and we're about to collapse
+    if (sectionStates.trainingAreas && state === "expanded") {
+      // First close the training areas dropdown
+      setSectionStates((prev) => ({
+        ...prev,
+        trainingAreas: false,
+      }));
+
+      // Then collapse the sidebar after a delay
+      setTimeout(() => {
+        toggleSidebar();
+      }, 200); // Wait for dropdown animation to complete (slightly longer for smooth transition)
+    } else {
+      // Normal toggle behavior
+      toggleSidebar();
+    }
+  };
+
   // Dynamic state management for all sections
   const [sectionStates, setSectionStates] = React.useState({
     main: true,
@@ -341,24 +361,34 @@ const AdminSidebar = () => {
     <Sidebar collapsible="icon" className="border-r">
       <SidebarHeader>
         <Button
-          onClick={toggleSidebar}
+          onClick={handleToggleSidebar}
           className="flex w-full items-center justify-between px-2 py-2 hover:bg-sidebar-accent rounded-lg transition-colors bg-transparent text-sidebar-foreground"
         >
           <div className="flex items-center gap-2">
             <School sx={{ fontSize: 16, color: "var(--sidebar-primary)" }} />
-            {state === "expanded" && (
-              <div className="flex flex-col">
-                <h2 className="text-sm font-semibold">VX Academy</h2>
-                <p className="text-xs text-muted-foreground"></p>
-              </div>
-            )}
+            <div
+              className={`flex flex-col transition-all duration-300 ease-in-out overflow-hidden ${
+                state === "expanded"
+                  ? "max-w-32 opacity-100"
+                  : "max-w-0 opacity-0"
+              }`}
+            >
+              <h2 className="text-sm font-semibold whitespace-nowrap">
+                VX Academy
+              </h2>
+              <p className="text-xs text-muted-foreground"></p>
+            </div>
           </div>
 
-          {state === "expanded" && (
-            <div className="cursor-pointer">
-              <ArrowLeft />
-            </div>
-          )}
+          <div
+            className={`cursor-pointer transition-all duration-300 ease-in-out ${
+              state === "expanded"
+                ? "opacity-100 transform rotate-0"
+                : "opacity-0 transform rotate-180"
+            }`}
+          >
+            <ArrowLeft />
+          </div>
         </Button>
       </SidebarHeader>
 
@@ -410,40 +440,12 @@ const AdminSidebar = () => {
                           </SidebarMenuItem>
                         ))}
 
-                        {/* Training Areas dropdown */}
-                        <SidebarMenuItem>
-                          <SidebarMenuButton
-                            asChild
-                            className="cursor-pointer hover:bg-sidebar-accent"
-                            onClick={() => toggleSection("trainingAreas")}
-                          >
-                            <button className="w-full text-left flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <School sx={{ fontSize: 16 }} />
-                                <span>Training Areas</span>
-                              </div>
-                              <ChevronDown
-                                sx={{
-                                  ml: "auto",
-                                  transition: "transform 200ms",
-                                  transform: sectionStates.trainingAreas
-                                    ? "rotate(180deg)"
-                                    : "rotate(0deg)",
-                                  fontSize: 16,
-                                }}
-                              />
-                            </button>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-
-                        {/* Training Areas sub-items */}
-                        {sectionStates.trainingAreas && (
+                        {/* Training Areas - different rendering for collapsed vs expanded */}
+                        {state === "collapsed" ? (
+                          /* Collapsed state: show individual training area items as icons */
                           <>
                             {trainingAreasNavItems.map((trainingItem) => (
-                              <SidebarMenuItem
-                                key={trainingItem.title}
-                                className="ml-4"
-                              >
+                              <SidebarMenuItem key={trainingItem.title}>
                                 <SidebarMenuButton
                                   asChild
                                   isActive={
@@ -457,6 +459,67 @@ const AdminSidebar = () => {
                                 </SidebarMenuButton>
                               </SidebarMenuItem>
                             ))}
+                          </>
+                        ) : (
+                          /* Expanded state: show dropdown structure */
+                          <>
+                            {/* Training Areas dropdown */}
+                            <SidebarMenuItem>
+                              <SidebarMenuButton
+                                asChild
+                                className="cursor-pointer hover:bg-sidebar-accent"
+                                onClick={() => toggleSection("trainingAreas")}
+                              >
+                                <button className="w-full text-left flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <School sx={{ fontSize: 16 }} />
+                                    <span>Training Areas</span>
+                                  </div>
+                                  <ChevronDown
+                                    sx={{
+                                      ml: "auto",
+                                      transition: "transform 200ms",
+                                      transform: sectionStates.trainingAreas
+                                        ? "rotate(180deg)"
+                                        : "rotate(0deg)",
+                                      fontSize: 16,
+                                    }}
+                                  />
+                                </button>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+                            {/* Training Areas sub-items with animation */}
+                            <div
+                              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                                sectionStates.trainingAreas
+                                  ? "max-h-96 opacity-100"
+                                  : "max-h-0 opacity-0"
+                              }`}
+                            >
+                              <div className="space-y-1">
+                                {trainingAreasNavItems.map((trainingItem) => (
+                                  <SidebarMenuItem
+                                    key={trainingItem.title}
+                                    className="ml-4"
+                                  >
+                                    <SidebarMenuButton
+                                      asChild
+                                      isActive={
+                                        location.pathname === trainingItem.url
+                                      }
+                                    >
+                                      <Link to={trainingItem.url || "#"}>
+                                        <trainingItem.icon
+                                          sx={{ fontSize: 16 }}
+                                        />
+                                        <span>{trainingItem.title}</span>
+                                      </Link>
+                                    </SidebarMenuButton>
+                                  </SidebarMenuItem>
+                                ))}
+                              </div>
+                            </div>
                           </>
                         )}
 

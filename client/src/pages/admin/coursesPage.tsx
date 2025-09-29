@@ -246,7 +246,7 @@ const CoursesPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
                     onClick={() => handleEditCourse(course)}
                     title="Edit"
                   >
@@ -255,7 +255,7 @@ const CoursesPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
                     onClick={() => handleDeleteCourse(course.id)}
                     title="Delete"
                   >
@@ -453,7 +453,7 @@ const CoursesPage = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
                 onClick={() => handleEditCourse(course)}
                 title="Edit"
               >
@@ -462,7 +462,7 @@ const CoursesPage = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
                 onClick={() => handleDeleteCourse(course.id)}
                 title="Delete"
               >
@@ -630,7 +630,7 @@ const CoursesPage = () => {
                 setFormData({ ...formData, level: value })
               }
             >
-              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+              <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black">
                 <SelectValue placeholder="Select level" />
               </SelectTrigger>
               <SelectContent>
@@ -792,7 +792,7 @@ const CoursesPage = () => {
                 setFormData({ ...formData, level: value })
               }
             >
-              <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
+              <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black">
                 <SelectValue placeholder="Select level" />
               </SelectTrigger>
               <SelectContent>
@@ -811,7 +811,7 @@ const CoursesPage = () => {
               setIsEditModalOpen(false);
               setSelectedCourse(null);
             }}
-            className="rounded-full bg-[#00d8cc]/30"
+            className="rounded-full hover:bg-accent/30 hover:text-black"
           >
             Cancel
           </Button>

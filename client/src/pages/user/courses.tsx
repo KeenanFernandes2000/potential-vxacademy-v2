@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import CourseCard from "@/components/CourseCard";
 import { useAuth } from "@/hooks/useAuth";
+import { ChevronDownIcon } from "lucide-react";
 
 // Types for the API responses
 interface TrainingArea {
@@ -146,6 +147,12 @@ const Courses = () => {
   >(null);
   const [selectedModule, setSelectedModule] = useState<number | null>(null);
 
+  // Custom dropdown states
+  const [isTrainingAreaOpen, setIsTrainingAreaOpen] = useState(false);
+  const [isModuleOpen, setIsModuleOpen] = useState(false);
+  const trainingAreaRef = useRef<HTMLDivElement>(null);
+  const moduleRef = useRef<HTMLDivElement>(null);
+
   // Helper function to format duration
   const formatDuration = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
@@ -212,7 +219,31 @@ const Courses = () => {
   const handleTrainingAreaChange = (trainingAreaId: number | null) => {
     setSelectedTrainingArea(trainingAreaId);
     setSelectedModule(null); // Reset module filter
+    setIsTrainingAreaOpen(false);
   };
+
+  // Handle click outside to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        trainingAreaRef.current &&
+        !trainingAreaRef.current.contains(event.target as Node)
+      ) {
+        setIsTrainingAreaOpen(false);
+      }
+      if (
+        moduleRef.current &&
+        !moduleRef.current.contains(event.target as Node)
+      ) {
+        setIsModuleOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Fetch all data
   useEffect(() => {
@@ -325,7 +356,7 @@ const Courses = () => {
             <p className="text-red-500 mb-4">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-white px-4 py-2 rounded"
+              className="bg-dawn hover:bg-[#B85A1A] text-[#2C2C2C] px-4 py-2 rounded"
             >
               Try Again
             </button>
@@ -343,35 +374,55 @@ const Courses = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+      <div className="bg-white p-6 rounded-lg border border-[#E5E5E5]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Training Area Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-3">
               Training Area
             </label>
-            <select
-              value={selectedTrainingArea || ""}
-              onChange={(e) =>
-                handleTrainingAreaChange(
-                  e.target.value ? parseInt(e.target.value) : null
-                )
-              }
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-[#00d8cc] transition-colors"
-            >
-              <option value="" className="bg-gray-700 text-white">
-                All Training Areas
-              </option>
-              {trainingAreas.map((area) => (
-                <option
-                  key={area.id}
-                  value={area.id}
-                  className="bg-gray-700 text-white"
-                >
-                  {area.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative" ref={trainingAreaRef}>
+              <button
+                type="button"
+                onClick={() => setIsTrainingAreaOpen(!isTrainingAreaOpen)}
+                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#00d8cc]/20 focus:border-[#00d8cc] transition-all duration-200 cursor-pointer hover:border-gray-300 hover:shadow-sm shadow-sm font-medium flex items-center justify-between"
+              >
+                <span>
+                  {selectedTrainingArea
+                    ? trainingAreas.find(
+                        (area) => area.id === selectedTrainingArea
+                      )?.name
+                    : "All Training Areas"}
+                </span>
+                <ChevronDownIcon
+                  className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                    isTrainingAreaOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {isTrainingAreaOpen && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+                  <button
+                    type="button"
+                    onClick={() => handleTrainingAreaChange(null)}
+                    className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 font-medium transition-colors duration-150"
+                  >
+                    All Training Areas
+                  </button>
+                  {trainingAreas.map((area) => (
+                    <button
+                      key={area.id}
+                      type="button"
+                      onClick={() => handleTrainingAreaChange(area.id)}
+                      className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 font-medium transition-colors duration-150"
+                    >
+                      {area.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Module Filter */}
@@ -379,33 +430,61 @@ const Courses = () => {
             <label className="block text-sm font-medium text-gray-300 mb-3">
               Module
             </label>
-            <select
-              value={selectedModule || ""}
-              onChange={(e) =>
-                setSelectedModule(
-                  e.target.value ? parseInt(e.target.value) : null
-                )
-              }
-              className={`w-full px-4 py-3 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-[#00d8cc] transition-colors ${
-                !selectedTrainingArea
-                  ? "bg-gray-600 border-gray-500 cursor-not-allowed"
-                  : "bg-gray-700 border-gray-600"
-              }`}
-              disabled={!selectedTrainingArea}
-            >
-              <option value="" className="bg-gray-700 text-white">
-                All Modules
-              </option>
-              {getFilteredModules().map((module) => (
-                <option
-                  key={module.id}
-                  value={module.id}
-                  className="bg-gray-700 text-white"
-                >
-                  {module.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative" ref={moduleRef}>
+              <button
+                type="button"
+                onClick={() =>
+                  selectedTrainingArea && setIsModuleOpen(!isModuleOpen)
+                }
+                disabled={!selectedTrainingArea}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00d8cc]/20 focus:border-[#00d8cc] transition-all duration-200 shadow-sm font-medium flex items-center justify-between ${
+                  !selectedTrainingArea
+                    ? "bg-gray-50 border-gray-200 cursor-not-allowed text-gray-400"
+                    : "bg-white border-gray-200 cursor-pointer hover:border-gray-300 hover:shadow-sm text-gray-900"
+                }`}
+              >
+                <span>
+                  {selectedModule
+                    ? getFilteredModules().find(
+                        (module) => module.id === selectedModule
+                      )?.name
+                    : "All Modules"}
+                </span>
+                <ChevronDownIcon
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    !selectedTrainingArea ? "text-gray-300" : "text-gray-500"
+                  } ${isModuleOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {isModuleOpen && selectedTrainingArea && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedModule(null);
+                      setIsModuleOpen(false);
+                    }}
+                    className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 font-medium transition-colors duration-150"
+                  >
+                    All Modules
+                  </button>
+                  {getFilteredModules().map((module) => (
+                    <button
+                      key={module.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedModule(module.id);
+                        setIsModuleOpen(false);
+                      }}
+                      className="w-full px-4 py-3 text-left text-gray-700 hover:bg-gray-50 font-medium transition-colors duration-150"
+                    >
+                      {module.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -462,7 +541,7 @@ const Courses = () => {
                 <div key={trainingArea.id} className="space-y-6">
                   {/* Training Area Header */}
                   <div className="border-b pb-4">
-                    <h2 className="text-2xl font-semibold text-white">
+                    <h2 className="text-2xl font-semibold text-[#2C2C2C]">
                       {trainingArea.name}
                     </h2>
                   </div>
@@ -473,7 +552,7 @@ const Courses = () => {
                       <div key={module.id} className="space-y-4">
                         {/* Module Header */}
                         <div className="ml-4">
-                          <h3 className="text-xl font-medium text-gray-200">
+                          <h3 className="text-xl font-medium text-gray-600">
                             {module.name}
                           </h3>
                         </div>

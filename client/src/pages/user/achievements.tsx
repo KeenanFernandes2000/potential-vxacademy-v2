@@ -273,10 +273,6 @@ const Achievements = () => {
               <p className="text-gray-500 mb-4">
                 Complete a full training area to earn your first certificate!
               </p>
-              <Button variant="outline" className="mt-2">
-                <Target className="h-4 w-4 mr-2" />
-                Start Learning
-              </Button>
             </div>
           </CardContent>
         </Card>

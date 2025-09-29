@@ -450,15 +450,19 @@ const CourseCard: React.FC<CourseCardProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-sm bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 overflow-hidden rounded-none py-0 flex flex-col h-full">
+    <Card className="w-full max-w-sm bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden rounded-lg py-0 flex flex-col h-full group hover:border-gray-300">
       {/* Course Image or Initials Fallback */}
-      <div className="relative w-full h-48">
+      <div className="relative w-full h-48 overflow-hidden">
         {image && image !== "null" ? (
-          <img src={image} alt={title} className="w-full h-full object-cover" />
+          <img
+            src={image}
+            alt={title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="w-20 h-20 bg-[#00d8cc] backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30">
-              <span className="text-2xl font-bold text-black">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-sandstone to-sandstone/80">
+            <div className="w-20 h-20 bg-dawn backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30 shadow-lg">
+              <span className="text-2xl font-bold text-white">
                 {title
                   .split(" ")
                   .map((word) => word.charAt(0))
@@ -471,33 +475,33 @@ const CourseCard: React.FC<CourseCardProps> = ({
         )}
         {/* Duration overlay */}
         {duration && (
-          <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 flex items-center">
+          <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1.5 flex items-center rounded-full backdrop-blur-sm">
             <Clock className="w-3 h-3" />
-            <span className="ml-1 text-xs">{duration}</span>
+            <span className="ml-1.5 text-xs font-medium">{duration}</span>
           </div>
         )}
       </div>
 
-      <CardContent className="px-4 flex-1 flex flex-col">
+      <CardContent className="px-6 py-4 flex-1 flex flex-col">
         {/* Course Title */}
-        <h3 className="text-xl font-bold text-black mb-1 break-words min-h-[3rem] flex items-start">
+        <h3 className="text-xl font-bold text-[#2C2C2C] mb-3 break-words min-h-[3rem] flex items-start group-hover:text-dawn transition-colors duration-300">
           {title}
         </h3>
 
         {/* Course Description */}
-        <p className="text-sm text-gray-500 line-clamp-3 h-16 overflow-hidden flex-1">
+        <p className="text-sm text-[#666666] leading-relaxed font-light line-clamp-3 h-16 overflow-hidden flex-1">
           {description}
         </p>
       </CardContent>
 
-      <CardFooter className="px-4 pb-4 mt-auto">
+      <CardFooter className="px-6 pb-6 mt-auto">
         <div className="w-full">
           {/* Progress Section */}
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-sm font-medium text-[#2C2C2C]">
               Course Progress
             </span>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-[#666666] font-light">
               {Math.round(progress)}% Complete
             </span>
           </div>
@@ -505,7 +509,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           {/* Progress Bar */}
           <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
             <div
-              className={`h-2 rounded-full transition-all duration-300 bg-[#00d8cc]`}
+              className={`h-2 rounded-full transition-all duration-300 bg-dawn`}
               style={{ width: `${progress}%` }}
             ></div>
           </div>
@@ -513,7 +517,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
           {/* Start/Continue Button */}
           <Button
             onClick={handleStart}
-            className="w-full bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-white font-semibold py-2 px-4 shadow-sm transition-colors duration-200"
+            className="w-full bg-dawn hover:bg-[#B85A1A] text-white font-semibold py-3 px-4 shadow-sm transition-all duration-300 hover:scale-105 rounded-lg border border-dawn"
           >
             <Play className="w-4 h-4 mr-2" />
             {progress === 0 ? "Start" : "Continue"}
