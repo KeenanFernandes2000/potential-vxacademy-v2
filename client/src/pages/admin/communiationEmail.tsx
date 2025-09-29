@@ -194,25 +194,7 @@ const CommunicationEmail = () => {
         </div>
       )}
 
-      {/* Debug Info - Remove this section later */}
-      <div className="mb-6 p-4 bg-gray-100 rounded-lg">
-        <h3 className="font-semibold text-gray-800 mb-2">Debug Info:</h3>
-        <p className="text-sm text-gray-600">User Type: {userType}</p>
-        <p className="text-sm text-gray-600">
-          Progress Filter: {progressFilter || "None selected"}
-        </p>
-        <p className="text-sm text-gray-600">
-          Should make API call: {shouldMakeApiCall() ? "Yes" : "No"}
-        </p>
-        <p className="text-sm text-gray-600">
-          Progress Percentage: {getProgressPercentage() || "N/A"}
-        </p>
-        <p className="text-sm text-gray-600">
-          Loading: {loading ? "Yes" : "No"}
-        </p>
-        <p className="text-sm text-gray-600">Users Found: {users.length}</p>
-        {error && <p className="text-sm text-red-600">Error: {error}</p>}
-      </div>
+ 
 
       {/* User Emails Display */}
       {users.length > 0 && (
