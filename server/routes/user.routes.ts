@@ -97,6 +97,7 @@ router.get(
   userControllers.getSubAdminRegistrationDetails
 );
 router.get("/sub-admins/check/:id", userControllers.checkSubAdminExists);
+router.post("/sub-admins/reminder", userControllers.sendSubAdminReminderEmail);
 
 // ==================== NORMAL USER REGISTRATION & UPDATE FUNCTIONS ====================
 router.post(

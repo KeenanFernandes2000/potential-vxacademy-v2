@@ -32,6 +32,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import passport from "../middleware/passport";
+import { sendByType } from "../services/email.services";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
@@ -607,6 +608,17 @@ export class userControllers {
       { expiresIn: "3h" }
     );
 
+    if (newUser.userType === "sub_admin") {
+      sendByType({
+        type: "welcome",
+        to: "keenan@potential.com",
+        data: {
+          name: newUser.firstName,
+          url: `${process.env.FRONTEND_URL}/join?id=${newUser.id}`,
+        },
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: "User created and logged in successfully",
@@ -856,6 +868,15 @@ export class userControllers {
       { expiresIn: "3h" }
     );
 
+    sendByType({
+      type: "registration_success",
+      to: "keenan@potential.com",
+      data: {
+        name: existingUser.firstName,
+        url: `${process.env.FRONTEND_URL}/sub-admin/dashboard`,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: "Sub-admin registration completed successfully",
@@ -1013,6 +1034,30 @@ export class userControllers {
     });
   }
 
+  static async sendSubAdminReminderEmail(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const { userId } = req.body;
+    const user = await UserService.getUserById(userId);
+    if (!user) {
+      throw createError("User not found", 404);
+    }
+
+    if (user.userType !== "sub_admin") {
+      throw createError("User is not a sub-admin", 400);
+    }
+
+    sendByType({
+      type: "onboarding_reminder",
+      to: "keenan@potential.com",
+      data: {
+        name: user.firstName,
+        url: `${process.env.FRONTEND_URL}/sub-admin/dashboard`,
+      },
+    });
+  }
+
   // ==================== NORMAL USER CU FUNCTIONS ====================
 
   /**
@@ -1088,6 +1133,15 @@ export class userControllers {
 
     // Update the main users table timestamp
     await UserService.updateUserTimestamp(userId);
+
+    sendByType({
+      type: "frontliner_registration_success",
+      to: "keenan@potential.com",
+      data: {
+        name: existingUser.firstName,
+        url: `${process.env.FRONTEND_URL}/user/dashboard`,
+      },
+    });
 
     res.status(201).json({
       success: true,
@@ -2823,15 +2877,21 @@ export class userControllers {
           "If an account with this email exists, a password reset link has been sent.",
       });
 
-      // In a real application, you would send an email here with the reset link
-      // Example: await EmailService.sendPasswordResetEmail(email, result?.token);
+      const user = await UserService.getUserByEmail(email);
+
+      if (!user) {
+        throw createError("User not found", 404);
+      }
+
       if (result?.token) {
-        console.log(`Password reset token for ${email}: ${result.token}`);
-        console.log(
-          `Reset link: ${
-            process.env.FRONTEND_URL || "http://localhost:3000"
-          }/reset-password?token=${result.token}`
-        );
+        sendByType({
+          type: "password_reset",
+          to: "keenan@potential.com",
+          data: {
+            name: user.firstName,
+            url: `${process.env.FRONTEND_URL}/reset-password?token=${result.token}`,
+          },
+        });
       }
     } catch (error: any) {
       console.error("Password reset request error:", error);
