@@ -781,7 +781,7 @@ const CourseDetails = () => {
           <Button
             onClick={() => navigate("/user/courses")}
             variant="outline"
-            className="flex items-center gap-2 text-white hover:text-white"
+            className="flex items-center gap-2 text-[#2C2C2C] hover:text-[#2C2C2C]"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to My Courses

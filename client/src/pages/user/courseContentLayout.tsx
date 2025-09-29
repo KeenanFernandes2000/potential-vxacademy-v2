@@ -1737,7 +1737,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                             disabled={
                               selectedAnswer === null || isSubmittingAssessment
                             }
-                            className="px-6 py-2 bg-gray-700 hover:bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-6 py-2 bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {isSubmittingAssessment
                               ? "Submitting..."
@@ -1977,7 +1977,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                               className={`px-8 py-3 text-lg font-medium ${
                                 hasExceededAttemptLimit()
                                   ? "bg-gray-400 hover:bg-gray-400 text-white cursor-not-allowed"
-                                  : "bg-blue-600 hover:bg-blue-700 text-white"
+                                  : "bg-dawn hover:bg-[#B85A1A] text-white"
                               }`}
                               disabled={
                                 hasExceededAttemptLimit() ||
@@ -2035,7 +2035,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                         selectedContent?.type === "learningBlock" &&
                         isCurrentLearningBlockCompleted()
                           ? "bg-gray-400 hover:bg-gray-400 text-white px-6 py-2 cursor-not-allowed"
-                          : "bg-blue-700 hover:bg-blue-800 text-white px-6 py-2"
+                          : "bg-dawn hover:bg-[#B85A1A] text-white px-6 py-2"
                       }
                       onClick={handleCompleteLearningBlock}
                       disabled={

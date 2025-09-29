@@ -12,4 +12,7 @@ router.get("/training-area/:trainingAreaId", reportController.getTrainingAreaRep
 // Certificate Report - All frontliners with their certificate data
 router.get("/certificates", reportController.getCertificateReport);
 
+// Users Report - All users with normal user data and filters
+router.get("/users", reportController.getUsersReport);
+
 export default router;

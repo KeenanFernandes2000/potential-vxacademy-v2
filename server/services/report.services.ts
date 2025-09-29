@@ -806,5 +806,165 @@ export const reportServices = {
       console.error("Error in getCertificateReportData:", error);
       throw error;
     }
+  },
+
+  // Users Report Data - All users with normal user data and comprehensive filters
+  getUsersReportData: async () => {
+    try {
+      const [
+        // Filter options
+        userTypeOptions,
+        organizationOptions,
+        registrationDateOptions,
+        
+        // All users data with normal user information
+        usersData,
+        
+        // General numerical stats
+        totalFrontliners,
+        totalOrganizations,
+        totalCertificatesIssued,
+        totalCompletedAlMidhyaf,
+        totalVxPointsEarned,
+        overallProgress
+      ] = await Promise.all([
+        // User type options for filters
+        db.select({
+          value: users.userType,
+          label: users.userType
+        })
+        .from(users)
+        .groupBy(users.userType),
+
+        // Organization options for filters
+        db.select({
+          value: users.organization,
+          label: users.organization
+        })
+        .from(users)
+        .groupBy(users.organization),
+
+        // Registration date options for filters (monthly)
+        db.select({
+          value: sql<string>`to_char(${users.createdAt}, 'YYYY-MM')`,
+          label: sql<string>`to_char(${users.createdAt}, 'YYYY-MM')`
+        })
+        .from(users)
+        .groupBy(sql`to_char(${users.createdAt}, 'YYYY-MM')`)
+        .orderBy(sql`to_char(${users.createdAt}, 'YYYY-MM')`),
+
+        // All users data with normal user information
+        db.select({
+          userId: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          eid: normalUsers.eid,
+          phoneNumber: normalUsers.phoneNumber,
+          userType: users.userType,
+          organization: users.organization,
+          subOrganization: users.subOrganization,
+          registrationDate: users.createdAt,
+          lastLoginDate: users.lastLogin,
+          // Additional normal user fields
+          asset: users.asset,
+          subAsset: users.subAsset,
+          roleCategory: normalUsers.roleCategory,
+          role: normalUsers.role,
+          seniority: normalUsers.seniority,
+          frontlinerType: sql<string>`CASE WHEN ${normalUsers.existing} THEN 'Existing' ELSE 'New' END`,
+          vxPoints: users.xp,
+          // Overall progress calculation
+          overallProgress: sql<number>`COALESCE((
+            SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
+            FROM user_training_area_progress utap
+            WHERE utap.user_id = ${users.id}
+          ), 0)`
+        })
+        .from(users)
+        .leftJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .orderBy(users.createdAt),
+
+        // Total frontliners (users with normal user data)
+        db.select({ count: count() })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+
+        // Total organizations
+        db.select({ count: count() })
+        .from(users)
+        .groupBy(users.organization),
+
+        // Total certificates issued
+        db.select({ count: count() })
+        .from(assessmentAttempts)
+        .where(eq(assessmentAttempts.passed, true)),
+
+        // Total completed Al Midhyaf
+        db.select({ count: count() })
+        .from(userTrainingAreaProgress)
+        .innerJoin(trainingAreas, eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id))
+        .where(and(
+          eq(userTrainingAreaProgress.status, "completed"),
+          sql`LOWER(${trainingAreas.name}) LIKE '%midhyaf%'`
+        )),
+
+        // Total VX points earned
+        db.select({ total: sum(users.xp) })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+
+        // Overall progress average
+        db.select({ 
+          avgProgress: sql<number>`AVG(COALESCE((
+            SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
+            FROM user_training_area_progress utap
+            WHERE utap.user_id = ${users.id}
+          ), 0))`
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+      ]);
+
+      return {
+        // Filter options
+        filters: {
+          userTypes: userTypeOptions,
+          organizations: organizationOptions,
+          registrationDates: registrationDateOptions
+        },
+        
+        // Data table columns (matching the image exactly)
+        dataTableColumns: [
+          "User ID",
+          "First Name",
+          "Last Name", 
+          "Email Address",
+          "EID",
+          "Phone Number",
+          "User Type",
+          "Organization",
+          "Sub-Organization",
+          "Registration Date",
+          "Last Login Date"
+        ],
+        
+        // Data table rows
+        dataTableRows: usersData,
+        
+        // General numerical stats (matching the image)
+        generalStats: {
+          totalFrontliners: totalFrontliners[0]?.count || 0,
+          totalOrganizations: totalOrganizations.length,
+          totalCertificatesIssued: totalCertificatesIssued[0]?.count || 0,
+          totalCompletedAlMidhyaf: totalCompletedAlMidhyaf[0]?.count || 0,
+          totalVxPointsEarned: totalVxPointsEarned[0]?.total || 0,
+          overallProgress: Math.round((overallProgress[0]?.avgProgress || 0) * 100) / 100
+        }
+      };
+    } catch (error) {
+      console.error("Error in getUsersReportData:", error);
+      throw error;
+    }
   }
 };

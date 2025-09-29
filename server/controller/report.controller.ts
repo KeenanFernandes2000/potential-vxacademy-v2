@@ -48,5 +48,19 @@ export const reportController = {
         error: "Failed to fetch certificate report data" 
       });
     }
+  },
+
+  // Users Report - All users with normal user data and filters
+  getUsersReport: async (req: Request, res: Response) => {
+    try {
+      const data = await reportServices.getUsersReportData();
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error("Error fetching users report:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to fetch users report data" 
+      });
+    }
   }
 };

@@ -178,7 +178,7 @@ const Dashboard = () => {
   return (
     <div className="space-y-8">
       {/* Welcome Card */}
-      <Card className="bg-white/10 backdrop-blur-md border border-white/20 shadow-xl text-white rounded-none">
+      <Card className="bg-white border border-[#E5E5E5] shadow-xl text-[#2C2C2C] rounded-lg">
         <CardContent className="p-8">
           <div className="flex items-center justify-between">
             <div>
@@ -243,7 +243,7 @@ const Dashboard = () => {
         ) : (
           <Card className="p-12 text-center bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200">
             <div className="max-w-md mx-auto">
-              <div className="w-20 h-20 bg-[#00d8cc] rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-dawn rounded-full flex items-center justify-center mx-auto mb-6">
                 <BookOpen className="w-10 h-10 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">
@@ -255,7 +255,7 @@ const Dashboard = () => {
               </p>
               <div className="space-y-4">
                 <Button
-                  className="bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-white px-8 py-3 text-lg font-semibold"
+                  className="bg-dawn hover:bg-[#B85A1A] text-white px-8 py-3 text-lg font-semibold"
                   onClick={() => {
                     window.location.href = "/user/courses";
                   }}

@@ -325,7 +325,7 @@ const Courses = () => {
             <p className="text-red-500 mb-4">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-white px-4 py-2 rounded"
+              className="bg-dawn hover:bg-[#B85A1A] text-[#2C2C2C] px-4 py-2 rounded"
             >
               Try Again
             </button>
@@ -343,7 +343,7 @@ const Courses = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+      <div className="bg-white p-6 rounded-lg border border-[#E5E5E5]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Training Area Filter */}
           <div>
@@ -357,16 +357,16 @@ const Courses = () => {
                   e.target.value ? parseInt(e.target.value) : null
                 )
               }
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-[#00d8cc] transition-colors"
+              className="w-full px-4 py-3 bg-white border border-[#E5E5E5] rounded-lg text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-dawn focus:border-dawn transition-colors"
             >
-              <option value="" className="bg-gray-700 text-white">
+              <option value="" className="bg-white text-[#2C2C2C]">
                 All Training Areas
               </option>
               {trainingAreas.map((area) => (
                 <option
                   key={area.id}
                   value={area.id}
-                  className="bg-gray-700 text-white"
+                  className="bg-white text-[#2C2C2C]"
                 >
                   {area.name}
                 </option>
@@ -386,21 +386,21 @@ const Courses = () => {
                   e.target.value ? parseInt(e.target.value) : null
                 )
               }
-              className={`w-full px-4 py-3 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#00d8cc] focus:border-[#00d8cc] transition-colors ${
+              className={`w-full px-4 py-3 border rounded-lg text-[#2C2C2C] focus:outline-none focus:ring-2 focus:ring-dawn focus:border-dawn transition-colors ${
                 !selectedTrainingArea
                   ? "bg-gray-600 border-gray-500 cursor-not-allowed"
-                  : "bg-gray-700 border-gray-600"
+                  : "bg-white border-[#E5E5E5]"
               }`}
               disabled={!selectedTrainingArea}
             >
-              <option value="" className="bg-gray-700 text-white">
+              <option value="" className="bg-white text-[#2C2C2C]">
                 All Modules
               </option>
               {getFilteredModules().map((module) => (
                 <option
                   key={module.id}
                   value={module.id}
-                  className="bg-gray-700 text-white"
+                  className="bg-white text-[#2C2C2C]"
                 >
                   {module.name}
                 </option>
@@ -462,7 +462,7 @@ const Courses = () => {
                 <div key={trainingArea.id} className="space-y-6">
                   {/* Training Area Header */}
                   <div className="border-b pb-4">
-                    <h2 className="text-2xl font-semibold text-white">
+                    <h2 className="text-2xl font-semibold text-[#2C2C2C]">
                       {trainingArea.name}
                     </h2>
                   </div>
