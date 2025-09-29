@@ -3,6 +3,7 @@ import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -19,17 +20,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Download,
-  Search,
+  Users,
   Filter,
-  Loader2,
+  Download,
   Eye,
+  Loader2,
   ChevronDown,
-  ChevronRight,
+  X,
+  Building2,
+  Award,
+  BookOpen,
+  TrendingUp,
 } from "lucide-react";
-
-// API endpoint for training area reports
-const baseUrl = import.meta.env.VITE_API_URL;
+import { useAuth } from "@/hooks/useAuth";
+import AdminTableLayout from "@/components/adminTableLayout";
 
 // Interface for the API response
 interface TrainingAreaReportData {
@@ -74,254 +78,239 @@ interface TrainingAreaReportData {
 }
 
 const AlMidhyafCoc = () => {
+  const { token } = useAuth();
   const [reportData, setReportData] = useState<TrainingAreaReportData | null>(
     null
   );
-  const [filteredData, setFilteredData] = useState<any[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [organizationFilter, setOrganizationFilter] = useState("all");
-  const [assetFilter, setAssetFilter] = useState("all");
-  const [subAssetFilter, setSubAssetFilter] = useState("all");
-  const [roleCategoryFilter, setRoleCategoryFilter] = useState("all");
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
-  const toggleRow = (userId: number) => {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      if (next.has(userId)) next.delete(userId);
-      else next.add(userId);
-      return next;
-    });
+  // Filter states
+  const [selectedOrganization, setSelectedOrganization] =
+    useState<string>("all");
+  const [selectedAsset, setSelectedAsset] = useState<string>("all");
+  const [selectedSubAsset, setSelectedSubAsset] = useState<string>("all");
+  const [selectedRoleCategory, setSelectedRoleCategory] =
+    useState<string>("all");
+
+  // API object for training area operations
+  const api = {
+    async getTrainingAreaReport(token: string, trainingAreaId: number) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(
+          `${baseUrl}/api/reports/training-area/${trainingAreaId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Failed to fetch training area report:", error);
+        throw error;
+      }
+    },
   };
 
-  // Fetch training area report data
-  const fetchReportData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch(`${baseUrl}/api/reports/training-area/2`);
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch data: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        setReportData(result.data);
-        setFilteredData(result.data.dataTableRows);
-      } else {
-        throw new Error(result.error || "Failed to fetch report data");
-      }
-    } catch (err) {
-      console.error("Error fetching report data:", err);
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Calculate summary statistics
-  const totalParticipants = reportData?.generalStats.totalFrontliners || 0;
-  const completedParticipants =
-    reportData?.generalStats.totalCompletedAlMidhyaf || 0;
-  const inProgressParticipants = filteredData.filter(
-    (item) =>
-      item.alMidhyafOverallProgress &&
-      parseFloat(item.alMidhyafOverallProgress) > 0 &&
-      parseFloat(item.alMidhyafOverallProgress) < 100
-  ).length;
-  const notStartedParticipants = filteredData.filter(
-    (item) =>
-      !item.alMidhyafOverallProgress ||
-      parseFloat(item.alMidhyafOverallProgress) === 0
-  ).length;
-  const averageScore = reportData?.generalStats.alMidhyafOverallProgress || 0;
-
-  // Initial data fetch
   useEffect(() => {
-    fetchReportData();
-  }, []);
+    const fetchTrainingAreaReport = async () => {
+      if (!token) {
+        setError("Authentication required");
+        setLoading(false);
+        return;
+      }
 
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await api.getTrainingAreaReport(token, 2); // Al Midhyaf COC training area ID
+        const reportData = response.data;
+
+        setReportData(reportData);
+        setFilteredUsers(reportData.dataTableRows);
+      } catch (err) {
+        console.error("Failed to fetch training area report:", err);
+        setError("Failed to load training area report data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrainingAreaReport();
+  }, [token]);
+
+  // Filter users based on all criteria
   useEffect(() => {
     if (!reportData) return;
 
     let filtered = reportData.dataTableRows;
 
-    // Apply search filter
-    if (searchTerm) {
+    // Filter by organization
+    if (selectedOrganization !== "all") {
       filtered = filtered.filter(
-        (item) =>
-          `${item.firstName} ${item.lastName}`
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          item.organization.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.roleCategory.toLowerCase().includes(searchTerm.toLowerCase())
+        (user) => user.organization === selectedOrganization
       );
     }
 
-    // Apply status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((item) => {
-        const progress = parseFloat(item.alMidhyafOverallProgress);
-        if (statusFilter === "Completed") return progress === 100;
-        if (statusFilter === "In Progress")
-          return progress > 0 && progress < 100;
-        if (statusFilter === "Not Started") return progress === 0;
-        return true;
-      });
+    // Filter by asset
+    if (selectedAsset !== "all") {
+      filtered = filtered.filter((user) => user.asset === selectedAsset);
     }
 
-    // Apply organization filter
-    if (organizationFilter !== "all") {
+    // Filter by sub-asset
+    if (selectedSubAsset !== "all") {
+      filtered = filtered.filter((user) => user.subAsset === selectedSubAsset);
+    }
+
+    // Filter by role category
+    if (selectedRoleCategory !== "all") {
       filtered = filtered.filter(
-        (item) => item.organization === organizationFilter
+        (user) => user.roleCategory === selectedRoleCategory
       );
     }
 
-    // Apply asset filter
-    if (assetFilter !== "all") {
-      filtered = filtered.filter((item) => item.asset === assetFilter);
-    }
-
-    // Apply sub-asset filter
-    if (subAssetFilter !== "all") {
-      filtered = filtered.filter((item) => item.subAsset === subAssetFilter);
-    }
-
-    // Apply role category filter
-    if (roleCategoryFilter !== "all") {
-      filtered = filtered.filter(
-        (item) => item.roleCategory === roleCategoryFilter
-      );
-    }
-
-    setFilteredData(filtered);
+    setFilteredUsers(filtered);
   }, [
     reportData,
-    searchTerm,
-    statusFilter,
-    organizationFilter,
-    assetFilter,
-    subAssetFilter,
-    roleCategoryFilter,
+    selectedOrganization,
+    selectedAsset,
+    selectedSubAsset,
+    selectedRoleCategory,
   ]);
 
-  const handleExportCSV = () => {
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedOrganization("all");
+    setSelectedAsset("all");
+    setSelectedSubAsset("all");
+    setSelectedRoleCategory("all");
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    selectedOrganization !== "all" ||
+    selectedAsset !== "all" ||
+    selectedSubAsset !== "all" ||
+    selectedRoleCategory !== "all";
+
+  // Handle search
+  const handleSearch = (query: string) => {
     if (!reportData) return;
 
-    const csvContent = [
-      reportData.dataTableColumns,
-      ...filteredData.map((item) => [
-        item.userId,
-        item.firstName,
-        item.lastName,
-        item.email,
-        item.eid,
-        item.phoneNumber,
-        item.asset,
-        item.subAsset,
-        item.organization,
-        item.subOrganization?.join(", ") || "N/A",
-        item.roleCategory,
-        item.role,
-        item.seniority,
-        item.frontlinerType,
-        item.alMidhyafOverallProgress,
-        item.module1Progress,
-        item.vxPoints,
-        new Date(item.registrationDate).toLocaleDateString(),
-        new Date(item.lastLoginDate).toLocaleDateString(),
-      ]),
-    ]
-      .map((row) => row.join(","))
-      .join("\n");
+    let filtered = reportData.dataTableRows;
 
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "al-midhyaf-coc-report.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
+    if (query) {
+      filtered = filtered.filter(
+        (user) =>
+          user.firstName.toLowerCase().includes(query.toLowerCase()) ||
+          user.lastName.toLowerCase().includes(query.toLowerCase()) ||
+          user.email.toLowerCase().includes(query.toLowerCase()) ||
+          user.organization.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    setFilteredUsers(filtered);
   };
 
-  const getStatusColor = (progress: string) => {
-    const progressValue = parseFloat(progress);
-    if (progressValue === 100) return "text-green-400 bg-green-400/20";
-    if (progressValue > 0) return "text-blue-400 bg-blue-400/20";
-    return "text-white/60 bg-white/10";
-  };
-
-  const getStatusText = (progress: string) => {
-    const progressValue = parseFloat(progress);
-    if (progressValue === 100) return "Completed";
-    if (progressValue > 0) return "In Progress";
-    return "Not Started";
-  };
-
-  const getClassificationColor = (frontlinerType: string) => {
-    switch (frontlinerType) {
-      case "Existing":
-        return "text-blue-400 bg-blue-400/20";
-      case "New":
-        return "text-green-400 bg-green-400/20";
-      default:
-        return "text-white/60 bg-white/10";
+  const formatDate = (dateString: string) => {
+    if (dateString === "N/A" || !dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return "N/A";
     }
   };
 
-  // Loading state
+  // Prepare table data for AdminTableLayout
+  const tableData = filteredUsers.map((user) => ({
+    "User ID": user.userId,
+    "First Name": user.firstName,
+    "Last Name": user.lastName,
+    "Email Address": user.email,
+    EID: user.eid || "N/A",
+    "Phone Number": user.phoneNumber || "N/A",
+    Asset: user.asset,
+    "Sub-Asset": user.subAsset,
+    Organization: user.organization,
+    "Sub-Organization": Array.isArray(user.subOrganization)
+      ? user.subOrganization?.join(", ")
+      : user.subOrganization ?? "N/A",
+    "Role Category": user.roleCategory,
+    Role: user.role,
+    Seniority: user.seniority,
+    "Frontliner Type": user.frontlinerType,
+    "Al Midhyaf Progress": user.alMidhyafOverallProgress + "%",
+    "Module 1 Progress": user.module1Progress + "%",
+    "VX Points": user.vxPoints,
+    "Registration Date": formatDate(user.registrationDate),
+    "Last Login Date": formatDate(user.lastLoginDate),
+  }));
+
   if (loading) {
     return (
       <AdminPageLayout
         title="Al Midhyaf COC Report"
         description="Comprehensive report on Al Midhyaf Code of Conduct training participation and completion"
       >
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-white" />
-          <span className="ml-2 text-white">Loading report data...</span>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 text-dawn animate-spin" />
         </div>
       </AdminPageLayout>
     );
   }
 
-  // Error state
   if (error) {
     return (
       <AdminPageLayout
         title="Al Midhyaf COC Report"
         description="Comprehensive report on Al Midhyaf Code of Conduct training participation and completion"
       >
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <p className="text-red-400 mb-4">
-              Error loading report data: {error}
-            </p>
-            <Button
-              onClick={fetchReportData}
-              className="bg-[#00d8cc] hover:bg-[#00d8cc]/80"
-            >
-              Try Again
-            </Button>
-          </div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card className="w-full max-w-md mx-auto bg-white border border-gray-200 shadow-lg">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <BookOpen className="h-8 w-8 text-green-600" />
+              </div>
+              <CardTitle className="text-xl font-semibold text-gray-900">
+                Coming Soon
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-gray-600 mb-4">
+                The Al Midhyaf COC training area is currently under development.
+              </p>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-green-700 font-medium text-sm">
+                  This feature will be available soon!
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </AdminPageLayout>
     );
   }
 
-  // No data state
   if (!reportData) {
     return (
       <AdminPageLayout
         title="Al Midhyaf COC Report"
         description="Comprehensive report on Al Midhyaf Code of Conduct training participation and completion"
       >
-        <div className="flex items-center justify-center h-64">
-          <p className="text-white/60">No data available</p>
+        <div className="text-center py-8">
+          <p className="text-gray-500">Coming Soon</p>
         </div>
       </AdminPageLayout>
     );
@@ -334,346 +323,190 @@ const AlMidhyafCoc = () => {
     >
       <div className="space-y-6">
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Total Frontliners
               </CardTitle>
+              <Users className="h-4 w-4 text-dawn" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalFrontliners}
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
-                Organizations
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
+                Total Organizations
               </CardTitle>
+              <Building2 className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-400">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalOrganizations}
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
-                Certificates Issued
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
+                Total Certificates Issued
               </CardTitle>
+              <Award className="h-4 w-4 text-green-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-400">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalCertificatesIssued}
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
-                Completed Al Midhyaf
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
+                Total VX Points Earned
               </CardTitle>
+              <Award className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-400">
-                {reportData.generalStats.totalCompletedAlMidhyaf}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
-                VX Points Earned
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-400">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalVxPointsEarned.toLocaleString()}
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
+        </div>
+
+        {/* Additional Stats */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-white/80">
-                Overall Progress
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
+                Total who completed Al Midyaf
               </CardTitle>
+              <BookOpen className="h-4 w-4 text-purple-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-cyan-400">
+              <div className="text-2xl font-bold text-[#2C2C2C]">
+                {reportData.generalStats.totalCompletedAlMidhyaf}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
+                Overall Progress
+              </CardTitle>
+              <TrendingUp className="h-4 w-4 text-dawn" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.alMidhyafOverallProgress.toFixed(1)}%
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Filters and Actions */}
-        <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
-          <CardHeader>
-            <CardTitle className="text-white">Filters & Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60"
-                    size={16}
-                  />
-                  <Input
-                    placeholder="Search participants, organizations, or departments..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                  />
-                </div>
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="Not Started">Not Started</SelectItem>
-                </SelectContent>
-              </Select>
+        {/* Filter Section */}
+        <div className="mb-6 p-4 bg-sandstone rounded-lg border border-[#E5E5E5]">
+          <h3 className="text-lg font-semibold text-dawn mb-4">Filter By</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="organizationFilter" className="text-[#2C2C2C]">
+                Organization
+              </Label>
               <Select
-                value={organizationFilter}
-                onValueChange={setOrganizationFilter}
+                value={selectedOrganization}
+                onValueChange={setSelectedOrganization}
               >
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Filter by organization" />
+                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+                  <SelectValue placeholder="Select organization" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Organizations</SelectItem>
-                  <SelectItem value="Ministry of Health">
-                    Ministry of Health
-                  </SelectItem>
-                  <SelectItem value="Dubai Health Authority">
-                    Dubai Health Authority
-                  </SelectItem>
-                  <SelectItem value="Abu Dhabi Health Services">
-                    Abu Dhabi Health Services
-                  </SelectItem>
-                  <SelectItem value="Sharjah Health Authority">
-                    Sharjah Health Authority
-                  </SelectItem>
+                  {reportData.filters.organizations.map((org) => (
+                    <SelectItem key={org.value} value={org.value}>
+                      {org.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              <Button onClick={handleExportCSV} className="w-full sm:w-auto">
-                <Download className="mr-2" size={16} />
-                Export CSV
-              </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Accordion Table */}
-        <Card className="bg-[#00d8cc]/10 backdrop-blur-sm border border-[#00d8cc]/20 rounded-none">
-          <CardHeader>
-            <CardTitle className="text-white">
-              Al Midhyaf COC Training Data
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* Header - Simplified */}
-            <div className="grid grid-cols-8 gap-4 p-4 bg-white/5 rounded-lg border border-white/10">
-              <div className="col-span-1 text-white/80 font-medium truncate">
-                User ID
-              </div>
-              <div className="col-span-2 text-white/80 font-medium truncate">
-                Name
-              </div>
-              <div className="col-span-2 text-white/80 font-medium truncate">
-                Email
-              </div>
-              <div className="col-span-1 text-white/80 font-medium truncate">
-                Status
-              </div>
-              <div className="col-span-1 text-white/80 font-medium truncate">
-                Progress
-              </div>
-              <div className="col-span-1 text-white/80 font-medium truncate">
-                Actions
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="assetFilter" className="text-[#2C2C2C]">
+                Asset
+              </Label>
+              <Select value={selectedAsset} onValueChange={setSelectedAsset}>
+                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+                  <SelectValue placeholder="Select asset" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Assets</SelectItem>
+                  {reportData.filters.assets.map((asset) => (
+                    <SelectItem key={asset.value} value={asset.value}>
+                      {asset.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-
-            {/* Rows */}
-            <div className="mt-2 space-y-2">
-              {filteredData.map((item: any) => (
-                <div
-                  key={item.userId}
-                  className="border border-white/10 rounded-lg overflow-hidden"
-                >
-                  {/* Primary Row - Basic Info Only */}
-                  <div
-                    className="grid grid-cols-8 gap-4 p-4 bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
-                    onClick={() => toggleRow(item.userId)}
-                  >
-                    <div className="col-span-1 text-white font-medium truncate">
-                      {item.userId}
-                    </div>
-                    <div className="col-span-2 text-white/80 truncate">
-                      {item.firstName} {item.lastName}
-                    </div>
-                    <div className="col-span-2 text-white/80 truncate">
-                      {item.email}
-                    </div>
-                    <div className="col-span-1 text-white/80">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getClassificationColor(
-                          item.frontlinerType
-                        )}`}
-                      >
-                        {item.frontlinerType}
-                      </span>
-                    </div>
-                    <div className="col-span-1 text-white/80 truncate">
-                      {item.alMidhyafOverallProgress}%
-                    </div>
-                    <div className="col-span-1 flex items-center gap-2">
-                      {expandedRows.has(item.userId) ? (
-                        <ChevronDown className="h-4 w-4 text-white/60" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 text-white/60" />
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-white/80 hover:text-white hover:bg-white/10"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Dropdown Row - All Additional Details */}
-                  {expandedRows.has(item.userId) && (
-                    <div className="bg-white/5 border-t border-white/10 p-4">
-                      <div className="grid grid-cols-12 gap-4">
-                        <div className="col-span-2">
-                          <div className="text-xs text-white/60 mb-1">EID</div>
-                          <div className="text-white/80 truncate">
-                            {item.eid}
-                          </div>
-                        </div>
-                        <div className="col-span-2">
-                          <div className="text-xs text-white/60 mb-1">
-                            Phone Number
-                          </div>
-                          <div className="text-white/80 truncate">
-                            {item.phoneNumber}
-                          </div>
-                        </div>
-                        <div className="col-span-2">
-                          <div className="text-xs text-white/60 mb-1">
-                            Asset
-                          </div>
-                          <div className="text-white/80 truncate">
-                            {item.asset}
-                          </div>
-                        </div>
-                        <div className="col-span-2">
-                          <div className="text-xs text-white/60 mb-1">
-                            Asset Sub-Category
-                          </div>
-                          <div className="text-white/80 truncate">
-                            {item.subAsset}
-                          </div>
-                        </div>
-                        <div className="col-span-2">
-                          <div className="text-xs text-white/60 mb-1">
-                            Organization
-                          </div>
-                          <div className="text-white/80 truncate">
-                            {item.organization}
-                          </div>
-                        </div>
-                        <div className="col-span-2">
-                          <div className="text-xs text-white/60 mb-1">
-                            Sub-Organization
-                          </div>
-                          <div className="text-white/80 truncate">
-                            {Array.isArray(item.subOrganization)
-                              ? item.subOrganization?.join(", ")
-                              : item.subOrganization ?? "N/A"}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid grid-cols-12 gap-4">
-                        <div className="col-span-2">
-                          <div className="text-xs text-white/60 mb-1">
-                            Role Category
-                          </div>
-                          <div className="text-white/80 truncate">
-                            {item.roleCategory}
-                          </div>
-                        </div>
-                        <div className="col-span-2">
-                          <div className="text-xs text-white/60 mb-1">Role</div>
-                          <div className="text-white/80 truncate">
-                            {item.role}
-                          </div>
-                        </div>
-                        <div className="col-span-2">
-                          <div className="text-xs text-white/60 mb-1">
-                            Seniority
-                          </div>
-                          <div className="text-white/80 truncate">
-                            {item.seniority}
-                          </div>
-                        </div>
-                        <div className="col-span-2">
-                          <div className="text-xs text-white/60 mb-1">
-                            Module 1 Progress
-                          </div>
-                          <div className="text-white/80 truncate">
-                            {item.module1Progress}%
-                          </div>
-                        </div>
-                        <div className="col-span-2">
-                          <div className="text-xs text-white/60 mb-1">
-                            VX Points
-                          </div>
-                          <div className="text-white/80 truncate">
-                            {item.vxPoints}
-                          </div>
-                        </div>
-                        <div className="col-span-2">
-                          <div className="text-xs text-white/60 mb-1">
-                            Registration Date
-                          </div>
-                          <div className="text-white/80 truncate">
-                            {new Date(
-                              item.registrationDate
-                            ).toLocaleDateString()}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 grid grid-cols-12 gap-4">
-                        <div className="col-span-3">
-                          <div className="text-xs text-white/60 mb-1">
-                            Last Login Date
-                          </div>
-                          <div className="text-white/80 truncate">
-                            {new Date(item.lastLoginDate).toLocaleDateString()}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="space-y-2">
+              <Label htmlFor="subAssetFilter" className="text-[#2C2C2C]">
+                Sub-Asset
+              </Label>
+              <Select
+                value={selectedSubAsset}
+                onValueChange={setSelectedSubAsset}
+              >
+                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+                  <SelectValue placeholder="Select sub-asset" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sub-Assets</SelectItem>
+                  {reportData.filters.subAssets.map((subAsset) => (
+                    <SelectItem key={subAsset.value} value={subAsset.value}>
+                      {subAsset.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </CardContent>
-        </Card>
+            <div className="space-y-2">
+              <Label htmlFor="roleCategoryFilter" className="text-[#2C2C2C]">
+                Role Category
+              </Label>
+              <Select
+                value={selectedRoleCategory}
+                onValueChange={setSelectedRoleCategory}
+              >
+                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+                  <SelectValue placeholder="Select role category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Role Categories</SelectItem>
+                  {reportData.filters.roleCategories.map((role) => (
+                    <SelectItem key={role.value} value={role.value}>
+                      {role.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* Data Table */}
+        <AdminTableLayout
+          searchPlaceholder="Search users..."
+          tableData={tableData}
+          columns={reportData.dataTableColumns}
+          onSearch={handleSearch}
+        />
       </div>
     </AdminPageLayout>
   );
