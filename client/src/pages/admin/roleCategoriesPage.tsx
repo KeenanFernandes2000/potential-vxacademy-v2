@@ -167,7 +167,7 @@ const RoleCategoriesPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-blue-400 hover:bg-blue-400/10"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-blue-400 hover:bg-blue-400/10"
                   onClick={() => handleEditRoleCategory(category)}
                   title="Edit"
                 >
@@ -176,7 +176,7 @@ const RoleCategoriesPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
                   onClick={() => handleDeleteRoleCategory(category.id)}
                   title="Delete"
                 >
@@ -481,8 +481,8 @@ const RoleCategoriesPage = () => {
         onSearch={handleSearch}
       />
       {editingCategory && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4 border border-[#E5E5E5]">
             <EditRoleCategoryForm onClose={() => setEditingCategory(null)} />
           </div>
         </div>

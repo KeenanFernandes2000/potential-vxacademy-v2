@@ -13,7 +13,7 @@ import { Editor } from "@/components/blocks/editor-00/editor";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { MoreVert, Edit, Delete } from "@mui/icons-material";
+import { MoreVert, Edit, Delete, Close } from "@mui/icons-material";
 import {
   Dialog,
   DialogContent,
@@ -215,7 +215,7 @@ const LearningBlockPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
                     onClick={() => handleEditLearningBlock(learningBlock)}
                     title="Edit"
                   >
@@ -224,7 +224,7 @@ const LearningBlockPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
                     onClick={() => handleDeleteLearningBlock(learningBlock.id)}
                     title="Delete"
                   >
@@ -409,7 +409,7 @@ const LearningBlockPage = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
                 onClick={() => handleEditLearningBlock(learningBlock)}
                 title="Edit"
               >
@@ -418,7 +418,7 @@ const LearningBlockPage = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
                 onClick={() => handleDeleteLearningBlock(learningBlock.id)}
                 title="Delete"
               >
@@ -473,144 +473,147 @@ const LearningBlockPage = () => {
     };
 
     return (
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
-      >
-        <div className="space-y-2">
-          <Label htmlFor="unit_id">Unit *</Label>
-          <Select
-            value={formData.unit_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, unit_id: value })
-            }
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
-              <SelectValue placeholder="Select a unit" />
-            </SelectTrigger>
-            <SelectContent>
-              {units.map((unit) => (
-                <SelectItem key={unit.id} value={unit.id.toString()}>
-                  {unit.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="type">Type *</Label>
-          <Select
-            value={formData.type}
-            onValueChange={(value) => setFormData({ ...formData, type: value })}
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="text">Text</SelectItem>
-              <SelectItem value="video">Video</SelectItem>
-              <SelectItem value="image">Image</SelectItem>
-              <SelectItem value="interactive">Interactive</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="title">Title *</Label>
-          <Input
-            id="title"
-            value={formData.title}
-            onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            required
-          />
-        </div>
-        {formData.type === "text" && (
+      <div>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="content">Content *</Label>
-            <div className="min-h-[200px]">
-              <Editor onChange={setEditorState} />
+            <Label htmlFor="unit_id">Unit *</Label>
+            <Select
+              value={formData.unit_id}
+              onValueChange={(value) =>
+                setFormData({ ...formData, unit_id: value })
+              }
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select a unit" />
+              </SelectTrigger>
+              <SelectContent>
+                {units.map((unit) => (
+                  <SelectItem key={unit.id} value={unit.id.toString()}>
+                    {unit.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="type">Type *</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) =>
+                setFormData({ ...formData, type: value })
+              }
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="text">Text</SelectItem>
+                <SelectItem value="video">Video</SelectItem>
+                <SelectItem value="image">Image</SelectItem>
+                <SelectItem value="interactive">Interactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="title">Title *</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              required
+            />
+          </div>
+          {formData.type === "text" && (
+            <div className="space-y-2">
+              <Label htmlFor="content">Content *</Label>
+              <div className="min-h-[200px]">
+                <Editor onChange={setEditorState} />
+              </div>
             </div>
-          </div>
-        )}
-        {formData.type === "video" && (
+          )}
+          {formData.type === "video" && (
+            <div className="space-y-2">
+              <Label htmlFor="video_url">Video URL *</Label>
+              <Input
+                id="video_url"
+                value={formData.video_url}
+                onChange={(e) =>
+                  setFormData({ ...formData, video_url: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                required
+              />
+            </div>
+          )}
+          {formData.type === "image" && (
+            <div className="space-y-2">
+              <Label htmlFor="image_url">Image URL *</Label>
+              <Input
+                id="image_url"
+                value={formData.image_url}
+                onChange={(e) =>
+                  setFormData({ ...formData, image_url: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                required
+              />
+            </div>
+          )}
+          {formData.type === "interactive" && (
+            <div className="space-y-2">
+              <Label htmlFor="interactive_data">
+                Interactive Data (JSON) *
+              </Label>
+              <Input
+                id="interactive_data"
+                value={formData.interactive_data}
+                onChange={(e) =>
+                  setFormData({ ...formData, interactive_data: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                placeholder='{"type": "quiz", "questions": []}'
+                required
+              />
+            </div>
+          )}
           <div className="space-y-2">
-            <Label htmlFor="video_url">Video URL *</Label>
+            <Label htmlFor="order">Order *</Label>
             <Input
-              id="video_url"
-              value={formData.video_url}
+              id="order"
+              type="number"
+              value={formData.order}
               onChange={(e) =>
-                setFormData({ ...formData, video_url: e.target.value })
+                setFormData({ ...formData, order: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              min="1"
               required
             />
           </div>
-        )}
-        {formData.type === "image" && (
           <div className="space-y-2">
-            <Label htmlFor="image_url">Image URL *</Label>
+            <Label htmlFor="xp_points">XP Points *</Label>
             <Input
-              id="image_url"
-              value={formData.image_url}
+              id="xp_points"
+              type="number"
+              value={formData.xp_points}
               onChange={(e) =>
-                setFormData({ ...formData, image_url: e.target.value })
+                setFormData({ ...formData, xp_points: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              min="0"
               required
             />
           </div>
-        )}
-        {formData.type === "interactive" && (
-          <div className="space-y-2">
-            <Label htmlFor="interactive_data">Interactive Data (JSON) *</Label>
-            <Input
-              id="interactive_data"
-              value={formData.interactive_data}
-              onChange={(e) =>
-                setFormData({ ...formData, interactive_data: e.target.value })
-              }
-              className="rounded-full bg-[#00d8cc]/30"
-              placeholder='{"type": "quiz", "questions": []}'
-              required
-            />
+          <div className="flex justify-end gap-2">
+            <Button type="submit" disabled={isLoading} className="rounded-full">
+              {isLoading ? "Creating..." : "Create Learning Block"}
+            </Button>
           </div>
-        )}
-        <div className="space-y-2">
-          <Label htmlFor="order">Order *</Label>
-          <Input
-            id="order"
-            type="number"
-            value={formData.order}
-            onChange={(e) =>
-              setFormData({ ...formData, order: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            min="1"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="xp_points">XP Points *</Label>
-          <Input
-            id="xp_points"
-            type="number"
-            value={formData.xp_points}
-            onChange={(e) =>
-              setFormData({ ...formData, xp_points: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            min="0"
-            required
-          />
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoading} className="rounded-full">
-            {isLoading ? "Creating..." : "Create Learning Block"}
-          </Button>
-        </div>
-      </form>
+        </form>
+      </div>
     );
   };
 
@@ -642,160 +645,161 @@ const LearningBlockPage = () => {
     };
 
     return (
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
-      >
-        <div className="space-y-2">
-          <Label htmlFor="edit_unit_id">Unit *</Label>
-          <Select
-            value={formData.unit_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, unit_id: value })
-            }
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
-              <SelectValue placeholder="Select a unit" />
-            </SelectTrigger>
-            <SelectContent>
-              {units.map((unit) => (
-                <SelectItem key={unit.id} value={unit.id.toString()}>
-                  {unit.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit_type">Type *</Label>
-          <Select
-            value={formData.type}
-            onValueChange={(value) => setFormData({ ...formData, type: value })}
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="text">Text</SelectItem>
-              <SelectItem value="video">Video</SelectItem>
-              <SelectItem value="image">Image</SelectItem>
-              <SelectItem value="interactive">Interactive</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit_title">Title *</Label>
-          <Input
-            id="edit_title"
-            value={formData.title}
-            onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            required
-          />
-        </div>
-        {formData.type === "text" && (
+      <div>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="edit_content">Content *</Label>
-            <div className="min-h-[200px]">
-              <Editor
-                content={selectedLearningBlock?.content}
-                onChange={setEditorState}
+            <Label htmlFor="edit_unit_id">Unit *</Label>
+            <Select
+              value={formData.unit_id}
+              onValueChange={(value) =>
+                setFormData({ ...formData, unit_id: value })
+              }
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select a unit" />
+              </SelectTrigger>
+              <SelectContent>
+                {units.map((unit) => (
+                  <SelectItem key={unit.id} value={unit.id.toString()}>
+                    {unit.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit_type">Type *</Label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) =>
+                setFormData({ ...formData, type: value })
+              }
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="text">Text</SelectItem>
+                <SelectItem value="video">Video</SelectItem>
+                <SelectItem value="image">Image</SelectItem>
+                <SelectItem value="interactive">Interactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit_title">Title *</Label>
+            <Input
+              id="edit_title"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              required
+            />
+          </div>
+          {formData.type === "text" && (
+            <div className="space-y-2">
+              <Label htmlFor="edit_content">Content *</Label>
+              <div className="min-h-[200px]">
+                <Editor
+                  content={selectedLearningBlock?.content}
+                  onChange={setEditorState}
+                />
+              </div>
+            </div>
+          )}
+          {formData.type === "video" && (
+            <div className="space-y-2">
+              <Label htmlFor="edit_video_url">Video URL *</Label>
+              <Input
+                id="edit_video_url"
+                value={formData.video_url}
+                onChange={(e) =>
+                  setFormData({ ...formData, video_url: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                required
               />
             </div>
-          </div>
-        )}
-        {formData.type === "video" && (
+          )}
+          {formData.type === "image" && (
+            <div className="space-y-2">
+              <Label htmlFor="edit_image_url">Image URL *</Label>
+              <Input
+                id="edit_image_url"
+                value={formData.image_url}
+                onChange={(e) =>
+                  setFormData({ ...formData, image_url: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                required
+              />
+            </div>
+          )}
+          {formData.type === "interactive" && (
+            <div className="space-y-2">
+              <Label htmlFor="edit_interactive_data">
+                Interactive Data (JSON) *
+              </Label>
+              <Input
+                id="edit_interactive_data"
+                value={formData.interactive_data}
+                onChange={(e) =>
+                  setFormData({ ...formData, interactive_data: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                placeholder='{"type": "quiz", "questions": []}'
+                required
+              />
+            </div>
+          )}
           <div className="space-y-2">
-            <Label htmlFor="edit_video_url">Video URL *</Label>
+            <Label htmlFor="edit_order">Order *</Label>
             <Input
-              id="edit_video_url"
-              value={formData.video_url}
+              id="edit_order"
+              type="number"
+              value={formData.order}
               onChange={(e) =>
-                setFormData({ ...formData, video_url: e.target.value })
+                setFormData({ ...formData, order: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              min="1"
               required
             />
           </div>
-        )}
-        {formData.type === "image" && (
           <div className="space-y-2">
-            <Label htmlFor="edit_image_url">Image URL *</Label>
+            <Label htmlFor="edit_xp_points">XP Points *</Label>
             <Input
-              id="edit_image_url"
-              value={formData.image_url}
+              id="edit_xp_points"
+              type="number"
+              value={formData.xp_points}
               onChange={(e) =>
-                setFormData({ ...formData, image_url: e.target.value })
+                setFormData({ ...formData, xp_points: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              min="0"
               required
             />
           </div>
-        )}
-        {formData.type === "interactive" && (
-          <div className="space-y-2">
-            <Label htmlFor="edit_interactive_data">
-              Interactive Data (JSON) *
-            </Label>
-            <Input
-              id="edit_interactive_data"
-              value={formData.interactive_data}
-              onChange={(e) =>
-                setFormData({ ...formData, interactive_data: e.target.value })
-              }
-              className="rounded-full bg-[#00d8cc]/30"
-              placeholder='{"type": "quiz", "questions": []}'
-              required
-            />
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setSelectedLearningBlock(null);
+              }}
+              className="rounded-full hover:bg-accent/30 hover:text-black"
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading} className="rounded-full">
+              {isLoading ? "Updating..." : "Update Learning Block"}
+            </Button>
           </div>
-        )}
-        <div className="space-y-2">
-          <Label htmlFor="edit_order">Order *</Label>
-          <Input
-            id="edit_order"
-            type="number"
-            value={formData.order}
-            onChange={(e) =>
-              setFormData({ ...formData, order: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            min="1"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="edit_xp_points">XP Points *</Label>
-          <Input
-            id="edit_xp_points"
-            type="number"
-            value={formData.xp_points}
-            onChange={(e) =>
-              setFormData({ ...formData, xp_points: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            min="0"
-            required
-          />
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setIsEditModalOpen(false);
-              setSelectedLearningBlock(null);
-            }}
-            className="rounded-full bg-[#00d8cc]/30"
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading} className="rounded-full">
-            {isLoading ? "Updating..." : "Update Learning Block"}
-          </Button>
-        </div>
-      </form>
+        </form>
+      </div>
     );
   };
 
@@ -805,9 +809,6 @@ const LearningBlockPage = () => {
     "Type",
     "Order",
     "Learning Unit",
-    "Course",
-    "Module",
-    "Training Area",
     "Actions",
   ];
 
@@ -842,13 +843,23 @@ const LearningBlockPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-sandstone border-white/20 text-white max-h-[80%]">
+        <DialogContent className="max-w-4xl bg-sandstone border-white/20 text-[#2C2C2C] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-[#2C2C2C]">
               Edit Learning Block
             </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </Button>
           </DialogHeader>
-          <EditLearningBlockForm />
+          <div className="mt-4">
+            <EditLearningBlockForm />
+          </div>
         </DialogContent>
       </Dialog>
     </AdminPageLayout>

@@ -218,7 +218,7 @@ const TrainingAreaPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
                   onClick={() => handleEditTrainingArea(trainingArea)}
                   title="Edit"
                 >
@@ -227,7 +227,7 @@ const TrainingAreaPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
                   onClick={() => handleDeleteTrainingArea(trainingArea.id)}
                   title="Delete"
                 >

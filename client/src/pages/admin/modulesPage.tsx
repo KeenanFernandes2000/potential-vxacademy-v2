@@ -274,7 +274,7 @@ const ModulesPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-white hover:text-blue-400 hover:bg-blue-400/10"
+                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-blue-400 hover:bg-blue-400/10"
                     onClick={() => handleEditModule(module)}
                     title="Edit"
                   >
@@ -284,7 +284,7 @@ const ModulesPage = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 text-white hover:text-green-400 hover:bg-green-400/10"
+                      className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-green-400 hover:bg-green-400/10"
                       onClick={() => handlePublishModule(module.id)}
                       title="Publish"
                     >
@@ -294,7 +294,7 @@ const ModulesPage = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 text-white hover:text-yellow-400 hover:bg-yellow-400/10"
+                      className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-yellow-400 hover:bg-yellow-400/10"
                       onClick={() => handleDraftModule(module.id)}
                       title="Draft"
                     >
@@ -304,7 +304,7 @@ const ModulesPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
                     onClick={() => handleDeleteModule(module.id)}
                     title="Delete"
                   >
@@ -527,7 +527,7 @@ const ModulesPage = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-blue-400 hover:bg-blue-400/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-blue-400 hover:bg-blue-400/10"
                 onClick={() => handleEditModule(module)}
                 title="Edit"
               >
@@ -537,7 +537,7 @@ const ModulesPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-green-400 hover:bg-green-400/10"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-green-400 hover:bg-green-400/10"
                   onClick={() => handlePublishModule(module.id)}
                   title="Publish"
                 >
@@ -547,7 +547,7 @@ const ModulesPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-yellow-400 hover:bg-yellow-400/10"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-yellow-400 hover:bg-yellow-400/10"
                   onClick={() => handleDraftModule(module.id)}
                   title="Draft"
                 >
@@ -557,7 +557,7 @@ const ModulesPage = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
                 onClick={() => handleDeleteModule(module.id)}
                 title="Delete"
               >

@@ -450,7 +450,7 @@ const AssessmentsPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
                     onClick={() => handleEditAssessment(assessment)}
                     title="Edit"
                   >
@@ -459,7 +459,7 @@ const AssessmentsPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-white hover:text-blue-400 hover:bg-blue-400/10"
+                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-blue-400 hover:bg-blue-400/10"
                     onClick={() => handleOpenQuestionsModal(assessment)}
                     title="Questions"
                   >
@@ -468,7 +468,7 @@ const AssessmentsPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
                     onClick={() => handleDeleteAssessment(assessment.id)}
                     title="Delete"
                   >
@@ -705,7 +705,7 @@ const AssessmentsPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
               onClick={() => handleEditQuestion(question)}
               title="Edit"
             >
@@ -714,7 +714,7 @@ const AssessmentsPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
               onClick={() => handleDeleteQuestion(question.id)}
               title="Delete"
             >
@@ -886,7 +886,7 @@ const AssessmentsPage = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
                 onClick={() => handleEditAssessment(assessment)}
                 title="Edit"
               >
@@ -895,7 +895,7 @@ const AssessmentsPage = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
                 onClick={() => handleDeleteAssessment(assessment.id)}
                 title="Delete"
               >
@@ -1013,277 +1013,279 @@ const AssessmentsPage = () => {
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="title">Assessment Title *</Label>
-          <Input
-            id="title"
-            value={formData.title}
-            onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            placeholder="Type your Assessment Title"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Input
-            id="description"
-            value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            placeholder="Add a description"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="training_area_id">Training Area *</Label>
-          <Select
-            value={formData.training_area_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, training_area_id: value })
-            }
-            required
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
-              <SelectValue placeholder="Select training area" />
-            </SelectTrigger>
-            <SelectContent>
-              {trainingAreas.map((area) => (
-                <SelectItem key={area.id} value={area.id.toString()}>
-                  {area.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="module_id">Module *</Label>
-          <Select
-            value={formData.module_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, module_id: value })
-            }
-            disabled={!formData.training_area_id}
-            required
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
-              <SelectValue placeholder="Select module" />
-            </SelectTrigger>
-            <SelectContent>
-              {filteredModules.map((module) => (
-                <SelectItem key={module.id} value={module.id.toString()}>
-                  {module.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="course_id">Course *</Label>
-          <Select
-            value={formData.course_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, course_id: value })
-            }
-            disabled={!formData.module_id}
-            required
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
-              <SelectValue placeholder="Select course" />
-            </SelectTrigger>
-            <SelectContent>
-              {filteredCourses.map((course) => (
-                <SelectItem key={course.id} value={course.id.toString()}>
-                  {course.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="unit_id">Unit *</Label>
-          <Select
-            value={formData.unit_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, unit_id: value })
-            }
-            disabled={!formData.course_id}
-            required
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
-              <SelectValue placeholder="Select unit" />
-            </SelectTrigger>
-            <SelectContent>
-              {filteredUnits.map((unit) => (
-                <SelectItem key={unit.id} value={unit.id.toString()}>
-                  {unit.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="placement">Placement *</Label>
-          <Select
-            value={formData.placement}
-            onValueChange={(value) =>
-              setFormData({ ...formData, placement: value })
-            }
-            required
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
-              <SelectValue placeholder="Select placement" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="start">Start</SelectItem>
-              <SelectItem value="end">End</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="is_graded"
-              checked={formData.is_graded}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, is_graded: checked })
-              }
-            />
-            <Label htmlFor="is_graded">Is Graded</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="show_correct_answers"
-              checked={formData.show_correct_answers}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, show_correct_answers: checked })
-              }
-            />
-            <Label htmlFor="show_correct_answers">Show Correct Answers</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="has_time_limit"
-              checked={formData.has_time_limit}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, has_time_limit: checked })
-              }
-            />
-            <Label htmlFor="has_time_limit">Has Time Limit</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="has_certificate"
-              checked={formData.has_certificate}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, has_certificate: checked })
-              }
-            />
-            <Label htmlFor="has_certificate">Has Certificate</Label>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
+      <div>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="passing_score">Passing Score (%)</Label>
+            <Label htmlFor="title">Assessment Title *</Label>
             <Input
-              id="passing_score"
-              type="number"
-              min="0"
-              max="100"
-              value={formData.passing_score}
+              id="title"
+              value={formData.title}
               onChange={(e) =>
-                setFormData({ ...formData, passing_score: e.target.value })
+                setFormData({ ...formData, title: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
-              placeholder="Add a passing score out of 100"
-              disabled={!formData.is_graded}
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              placeholder="Type your Assessment Title"
+              required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="time_limit">Time Limit (minutes)</Label>
+            <Label htmlFor="description">Description</Label>
             <Input
-              id="time_limit"
-              type="number"
-              min="1"
-              value={formData.time_limit}
+              id="description"
+              value={formData.description}
               onChange={(e) =>
-                setFormData({ ...formData, time_limit: e.target.value })
+                setFormData({ ...formData, description: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
-              placeholder="Add time limit in minutes"
-              disabled={!formData.has_time_limit}
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              placeholder="Add a description"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="max_retakes">Max Retakes</Label>
-            <Input
-              id="max_retakes"
-              type="number"
-              min="0"
-              value={formData.max_retakes}
-              onChange={(e) =>
-                setFormData({ ...formData, max_retakes: e.target.value })
+            <Label htmlFor="training_area_id">Training Area *</Label>
+            <Select
+              value={formData.training_area_id}
+              onValueChange={(value) =>
+                setFormData({ ...formData, training_area_id: value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
-            />
+              required
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select training area" />
+              </SelectTrigger>
+              <SelectContent>
+                {trainingAreas.map((area) => (
+                  <SelectItem key={area.id} value={area.id.toString()}>
+                    {area.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="xp_points">VX Points</Label>
-            <Input
-              id="xp_points"
-              type="number"
-              min="0"
-              value={formData.xp_points}
-              onChange={(e) =>
-                setFormData({ ...formData, xp_points: e.target.value })
+            <Label htmlFor="module_id">Module *</Label>
+            <Select
+              value={formData.module_id}
+              onValueChange={(value) =>
+                setFormData({ ...formData, module_id: value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
-            />
+              disabled={!formData.training_area_id}
+              required
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select module" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredModules.map((module) => (
+                  <SelectItem key={module.id} value={module.id.toString()}>
+                    {module.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </div>
 
-        {formData.has_certificate && (
           <div className="space-y-2">
-            <Label htmlFor="certificate_template">Certificate Template</Label>
-            <Input
-              id="certificate_template"
-              value={formData.certificate_template}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  certificate_template: e.target.value,
-                })
+            <Label htmlFor="course_id">Course *</Label>
+            <Select
+              value={formData.course_id}
+              onValueChange={(value) =>
+                setFormData({ ...formData, course_id: value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
-              placeholder="Paste certificate template URL"
-            />
+              disabled={!formData.module_id}
+              required
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select course" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredCourses.map((course) => (
+                  <SelectItem key={course.id} value={course.id.toString()}>
+                    {course.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
 
-        <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoading} className="rounded-full">
-            {isLoading ? "Creating..." : "Create Assessment"}
-          </Button>
-        </div>
-      </form>
+          <div className="space-y-2">
+            <Label htmlFor="unit_id">Unit *</Label>
+            <Select
+              value={formData.unit_id}
+              onValueChange={(value) =>
+                setFormData({ ...formData, unit_id: value })
+              }
+              disabled={!formData.course_id}
+              required
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select unit" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredUnits.map((unit) => (
+                  <SelectItem key={unit.id} value={unit.id.toString()}>
+                    {unit.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="placement">Placement *</Label>
+            <Select
+              value={formData.placement}
+              onValueChange={(value) =>
+                setFormData({ ...formData, placement: value })
+              }
+              required
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select placement" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="start">Start</SelectItem>
+                <SelectItem value="end">End</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="is_graded"
+                checked={formData.is_graded}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, is_graded: checked })
+                }
+              />
+              <Label htmlFor="is_graded">Is Graded</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="show_correct_answers"
+                checked={formData.show_correct_answers}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, show_correct_answers: checked })
+                }
+              />
+              <Label htmlFor="show_correct_answers">Show Correct Answers</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="has_time_limit"
+                checked={formData.has_time_limit}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, has_time_limit: checked })
+                }
+              />
+              <Label htmlFor="has_time_limit">Has Time Limit</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="has_certificate"
+                checked={formData.has_certificate}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, has_certificate: checked })
+                }
+              />
+              <Label htmlFor="has_certificate">Has Certificate</Label>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="passing_score">Passing Score (%)</Label>
+              <Input
+                id="passing_score"
+                type="number"
+                min="0"
+                max="100"
+                value={formData.passing_score}
+                onChange={(e) =>
+                  setFormData({ ...formData, passing_score: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                placeholder="Add a passing score out of 100"
+                disabled={!formData.is_graded}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="time_limit">Time Limit (minutes)</Label>
+              <Input
+                id="time_limit"
+                type="number"
+                min="1"
+                value={formData.time_limit}
+                onChange={(e) =>
+                  setFormData({ ...formData, time_limit: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                placeholder="Add time limit in minutes"
+                disabled={!formData.has_time_limit}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="max_retakes">Max Retakes</Label>
+              <Input
+                id="max_retakes"
+                type="number"
+                min="0"
+                value={formData.max_retakes}
+                onChange={(e) =>
+                  setFormData({ ...formData, max_retakes: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="xp_points">VX Points</Label>
+              <Input
+                id="xp_points"
+                type="number"
+                min="0"
+                value={formData.xp_points}
+                onChange={(e) =>
+                  setFormData({ ...formData, xp_points: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              />
+            </div>
+          </div>
+
+          {formData.has_certificate && (
+            <div className="space-y-2">
+              <Label htmlFor="certificate_template">Certificate Template</Label>
+              <Input
+                id="certificate_template"
+                value={formData.certificate_template}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    certificate_template: e.target.value,
+                  })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                placeholder="Paste certificate template URL"
+              />
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <Button type="submit" disabled={isLoading} className="rounded-full">
+              {isLoading ? "Creating..." : "Create Assessment"}
+            </Button>
+          </div>
+        </form>
+      </div>
     );
   };
 
@@ -1338,138 +1340,142 @@ const AssessmentsPage = () => {
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="question_text">Question Text *</Label>
-          <Input
-            id="question_text"
-            value={formData.question_text}
-            onChange={(e) =>
-              setFormData({ ...formData, question_text: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            placeholder="Type your question text"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="question_type">Question Type *</Label>
-          <Select
-            value={formData.question_type}
-            onValueChange={(value) =>
-              setFormData({
-                ...formData,
-                question_type: value,
-                correct_answer: "",
-              })
-            }
-            required
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
-              <SelectValue placeholder="Select question type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mcq">Multiple Choice (MCQ)</SelectItem>
-              <SelectItem value="true_false">True or False</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {formData.question_type === "mcq" && (
+      <div>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>MCQ Options *</Label>
-            {mcqOptions.map((option, index) => (
-              <div key={index} className="flex gap-2 items-center">
-                <Input
-                  value={option}
-                  onChange={(e) => handleMcqOptionChange(index, e.target.value)}
-                  placeholder={`Option ${index + 1}`}
-                  className="rounded-full bg-[#00d8cc]/30"
-                />
-                {mcqOptions.length > 2 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeMcqOption(index)}
-                    className="rounded-full bg-[#00d8cc]/30"
-                  >
-                    Remove
-                  </Button>
-                )}
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addMcqOption}
-              className="rounded-full bg-[#00d8cc]/30"
+            <Label htmlFor="question_text">Question Text *</Label>
+            <Input
+              id="question_text"
+              value={formData.question_text}
+              onChange={(e) =>
+                setFormData({ ...formData, question_text: e.target.value })
+              }
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              placeholder="Type your question text"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="question_type">Question Type *</Label>
+            <Select
+              value={formData.question_type}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  question_type: value,
+                  correct_answer: "",
+                })
+              }
+              required
             >
-              Add Option
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select question type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mcq">Multiple Choice (MCQ)</SelectItem>
+                <SelectItem value="true_false">True or False</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {formData.question_type === "mcq" && (
+            <div className="space-y-2">
+              <Label>MCQ Options *</Label>
+              {mcqOptions.map((option, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <Input
+                    value={option}
+                    onChange={(e) =>
+                      handleMcqOptionChange(index, e.target.value)
+                    }
+                    placeholder={`Option ${index + 1}`}
+                    className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                  />
+                  {mcqOptions.length > 2 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeMcqOption(index)}
+                      className="rounded-full hover:bg-accent/30 hover:text-black"
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addMcqOption}
+                className="rounded-full hover:bg-accent/30 hover:text-black"
+              >
+                Add Option
+              </Button>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>Correct Answer *</Label>
+            {formData.question_type === "mcq" ? (
+              <RadioGroup
+                value={formData.correct_answer}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, correct_answer: value })
+                }
+              >
+                {mcqOptions
+                  .filter((opt) => opt.trim() !== "")
+                  .map((option, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <RadioGroupItem value={option} id={`mcq-${index}`} />
+                      <Label htmlFor={`mcq-${index}`}>{option}</Label>
+                    </div>
+                  ))}
+              </RadioGroup>
+            ) : formData.question_type === "true_false" ? (
+              <RadioGroup
+                value={formData.correct_answer}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, correct_answer: value })
+                }
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="True" id="true" />
+                  <Label htmlFor="true">True</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="False" id="false" />
+                  <Label htmlFor="false">False</Label>
+                </div>
+              </RadioGroup>
+            ) : null}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="order">Order in Assessment *</Label>
+            <Input
+              id="order"
+              type="number"
+              min="1"
+              value={formData.order}
+              onChange={(e) =>
+                setFormData({ ...formData, order: e.target.value })
+              }
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              placeholder="Add order in assessment"
+              required
+            />
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button type="submit" disabled={isLoading} className="rounded-full">
+              {isLoading ? "Creating..." : "Create Question"}
             </Button>
           </div>
-        )}
-
-        <div className="space-y-2">
-          <Label>Correct Answer *</Label>
-          {formData.question_type === "mcq" ? (
-            <RadioGroup
-              value={formData.correct_answer}
-              onValueChange={(value) =>
-                setFormData({ ...formData, correct_answer: value })
-              }
-            >
-              {mcqOptions
-                .filter((opt) => opt.trim() !== "")
-                .map((option, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`mcq-${index}`} />
-                    <Label htmlFor={`mcq-${index}`}>{option}</Label>
-                  </div>
-                ))}
-            </RadioGroup>
-          ) : formData.question_type === "true_false" ? (
-            <RadioGroup
-              value={formData.correct_answer}
-              onValueChange={(value) =>
-                setFormData({ ...formData, correct_answer: value })
-              }
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="True" id="true" />
-                <Label htmlFor="true">True</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="False" id="false" />
-                <Label htmlFor="false">False</Label>
-              </div>
-            </RadioGroup>
-          ) : null}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="order">Order in Assessment *</Label>
-          <Input
-            id="order"
-            type="number"
-            min="1"
-            value={formData.order}
-            onChange={(e) =>
-              setFormData({ ...formData, order: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            placeholder="Add order in assessment"
-            required
-          />
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoading} className="rounded-full">
-            {isLoading ? "Creating..." : "Create Question"}
-          </Button>
-        </div>
-      </form>
+        </form>
+      </div>
     );
   };
 
@@ -1519,149 +1525,153 @@ const AssessmentsPage = () => {
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="edit_question_text">Question Text *</Label>
-          <Input
-            id="edit_question_text"
-            value={formData.question_text}
-            onChange={(e) =>
-              setFormData({ ...formData, question_text: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            placeholder="Type your question text"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="edit_question_type">Question Type *</Label>
-          <Select
-            value={formData.question_type}
-            onValueChange={(value) =>
-              setFormData({
-                ...formData,
-                question_type: value,
-                correct_answer: "",
-              })
-            }
-            required
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
-              <SelectValue placeholder="Select question type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mcq">Multiple Choice (MCQ)</SelectItem>
-              <SelectItem value="true_false">True or False</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {formData.question_type === "mcq" && (
+      <div>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>MCQ Options *</Label>
-            {mcqOptions.map((option, index) => (
-              <div key={index} className="flex gap-2 items-center">
-                <Input
-                  value={option}
-                  onChange={(e) => handleMcqOptionChange(index, e.target.value)}
-                  placeholder={`Option ${index + 1}`}
-                  className="rounded-full bg-[#00d8cc]/30"
-                />
-                {mcqOptions.length > 2 && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeMcqOption(index)}
-                    className="rounded-full bg-[#00d8cc]/30"
-                  >
-                    Remove
-                  </Button>
-                )}
-              </div>
-            ))}
+            <Label htmlFor="edit_question_text">Question Text *</Label>
+            <Input
+              id="edit_question_text"
+              value={formData.question_text}
+              onChange={(e) =>
+                setFormData({ ...formData, question_text: e.target.value })
+              }
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              placeholder="Type your question text"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit_question_type">Question Type *</Label>
+            <Select
+              value={formData.question_type}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  question_type: value,
+                  correct_answer: "",
+                })
+              }
+              required
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select question type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mcq">Multiple Choice (MCQ)</SelectItem>
+                <SelectItem value="true_false">True or False</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {formData.question_type === "mcq" && (
+            <div className="space-y-2">
+              <Label>MCQ Options *</Label>
+              {mcqOptions.map((option, index) => (
+                <div key={index} className="flex gap-2 items-center">
+                  <Input
+                    value={option}
+                    onChange={(e) =>
+                      handleMcqOptionChange(index, e.target.value)
+                    }
+                    placeholder={`Option ${index + 1}`}
+                    className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                  />
+                  {mcqOptions.length > 2 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeMcqOption(index)}
+                      className="rounded-full hover:bg-accent/30 hover:text-black"
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addMcqOption}
+                className="rounded-full hover:bg-accent/30 hover:text-black"
+              >
+                Add Option
+              </Button>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>Correct Answer *</Label>
+            {formData.question_type === "mcq" ? (
+              <RadioGroup
+                value={formData.correct_answer}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, correct_answer: value })
+                }
+              >
+                {mcqOptions
+                  .filter((opt) => opt.trim() !== "")
+                  .map((option, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <RadioGroupItem value={option} id={`edit-mcq-${index}`} />
+                      <Label htmlFor={`edit-mcq-${index}`}>{option}</Label>
+                    </div>
+                  ))}
+              </RadioGroup>
+            ) : formData.question_type === "true_false" ? (
+              <RadioGroup
+                value={formData.correct_answer}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, correct_answer: value })
+                }
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="True" id="edit-true" />
+                  <Label htmlFor="edit-true">True</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="False" id="edit-false" />
+                  <Label htmlFor="edit-false">False</Label>
+                </div>
+              </RadioGroup>
+            ) : null}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit_order">Order in Assessment *</Label>
+            <Input
+              id="edit_order"
+              type="number"
+              min="1"
+              value={formData.order}
+              onChange={(e) =>
+                setFormData({ ...formData, order: e.target.value })
+              }
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              placeholder="Add order in assessment"
+              required
+            />
+          </div>
+
+          <div className="flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"
-              onClick={addMcqOption}
-              className="rounded-full bg-[#00d8cc]/30"
+              onClick={() => {
+                setIsEditQuestionModalOpen(false);
+                setSelectedQuestion(null);
+              }}
+              className="rounded-full hover:bg-accent/30 hover:text-black"
             >
-              Add Option
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading} className="rounded-full">
+              {isLoading ? "Updating..." : "Update Question"}
             </Button>
           </div>
-        )}
-
-        <div className="space-y-2">
-          <Label>Correct Answer *</Label>
-          {formData.question_type === "mcq" ? (
-            <RadioGroup
-              value={formData.correct_answer}
-              onValueChange={(value) =>
-                setFormData({ ...formData, correct_answer: value })
-              }
-            >
-              {mcqOptions
-                .filter((opt) => opt.trim() !== "")
-                .map((option, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`edit-mcq-${index}`} />
-                    <Label htmlFor={`edit-mcq-${index}`}>{option}</Label>
-                  </div>
-                ))}
-            </RadioGroup>
-          ) : formData.question_type === "true_false" ? (
-            <RadioGroup
-              value={formData.correct_answer}
-              onValueChange={(value) =>
-                setFormData({ ...formData, correct_answer: value })
-              }
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="True" id="edit-true" />
-                <Label htmlFor="edit-true">True</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="False" id="edit-false" />
-                <Label htmlFor="edit-false">False</Label>
-              </div>
-            </RadioGroup>
-          ) : null}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="edit_order">Order in Assessment *</Label>
-          <Input
-            id="edit_order"
-            type="number"
-            min="1"
-            value={formData.order}
-            onChange={(e) =>
-              setFormData({ ...formData, order: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            placeholder="Add order in assessment"
-            required
-          />
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setIsEditQuestionModalOpen(false);
-              setSelectedQuestion(null);
-            }}
-            className="rounded-full bg-[#00d8cc]/30"
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading} className="rounded-full">
-            {isLoading ? "Updating..." : "Update Question"}
-          </Button>
-        </div>
-      </form>
+        </form>
+      </div>
     );
   };
 
@@ -1731,293 +1741,295 @@ const AssessmentsPage = () => {
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="edit_title">Assessment Title *</Label>
-          <Input
-            id="edit_title"
-            value={formData.title}
-            onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            placeholder="Type your Assessment Title"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="edit_description">Description</Label>
-          <Input
-            id="edit_description"
-            value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            className="rounded-full bg-[#00d8cc]/30"
-            placeholder="Add a description"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="edit_training_area_id">Training Area *</Label>
-          <Select
-            value={formData.training_area_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, training_area_id: value })
-            }
-            required
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
-              <SelectValue placeholder="Select training area" />
-            </SelectTrigger>
-            <SelectContent>
-              {trainingAreas.map((area) => (
-                <SelectItem key={area.id} value={area.id.toString()}>
-                  {area.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="edit_module_id">Module *</Label>
-          <Select
-            value={formData.module_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, module_id: value })
-            }
-            disabled={!formData.training_area_id}
-            required
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
-              <SelectValue placeholder="Select module" />
-            </SelectTrigger>
-            <SelectContent>
-              {filteredModules.map((module) => (
-                <SelectItem key={module.id} value={module.id.toString()}>
-                  {module.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="edit_course_id">Course *</Label>
-          <Select
-            value={formData.course_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, course_id: value })
-            }
-            disabled={!formData.module_id}
-            required
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
-              <SelectValue placeholder="Select course" />
-            </SelectTrigger>
-            <SelectContent>
-              {filteredCourses.map((course) => (
-                <SelectItem key={course.id} value={course.id.toString()}>
-                  {course.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="edit_unit_id">Unit *</Label>
-          <Select
-            value={formData.unit_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, unit_id: value })
-            }
-            disabled={!formData.course_id}
-            required
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30 text-white">
-              <SelectValue placeholder="Select unit" />
-            </SelectTrigger>
-            <SelectContent>
-              {filteredUnits.map((unit) => (
-                <SelectItem key={unit.id} value={unit.id.toString()}>
-                  {unit.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="edit_placement">Placement *</Label>
-          <Select
-            value={formData.placement}
-            onValueChange={(value) =>
-              setFormData({ ...formData, placement: value })
-            }
-            required
-          >
-            <SelectTrigger className="rounded-full w-full bg-[#00d8cc]/30">
-              <SelectValue placeholder="Select placement" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="start">Start</SelectItem>
-              <SelectItem value="middle">Middle</SelectItem>
-              <SelectItem value="end">End</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="edit_is_graded"
-              checked={formData.is_graded}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, is_graded: checked })
-              }
-            />
-            <Label htmlFor="edit_is_graded">Is Graded</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="edit_show_correct_answers"
-              checked={formData.show_correct_answers}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, show_correct_answers: checked })
-              }
-            />
-            <Label htmlFor="edit_show_correct_answers">
-              Show Correct Answers
-            </Label>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="edit_has_time_limit"
-              checked={formData.has_time_limit}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, has_time_limit: checked })
-              }
-            />
-            <Label htmlFor="edit_has_time_limit">Has Time Limit</Label>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="edit_has_certificate"
-              checked={formData.has_certificate}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, has_certificate: checked })
-              }
-            />
-            <Label htmlFor="edit_has_certificate">Has Certificate</Label>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
+      <div>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="edit_passing_score">Passing Score (%)</Label>
+            <Label htmlFor="edit_title">Assessment Title *</Label>
             <Input
-              id="edit_passing_score"
-              type="number"
-              min="0"
-              max="100"
-              value={formData.passing_score}
+              id="edit_title"
+              value={formData.title}
               onChange={(e) =>
-                setFormData({ ...formData, passing_score: e.target.value })
+                setFormData({ ...formData, title: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
-              placeholder="Add a passing score out of 100"
-              disabled={!formData.is_graded}
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              placeholder="Type your Assessment Title"
+              required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit_time_limit">Time Limit (minutes)</Label>
+            <Label htmlFor="edit_description">Description</Label>
             <Input
-              id="edit_time_limit"
-              type="number"
-              min="1"
-              value={formData.time_limit}
+              id="edit_description"
+              value={formData.description}
               onChange={(e) =>
-                setFormData({ ...formData, time_limit: e.target.value })
+                setFormData({ ...formData, description: e.target.value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
-              placeholder="Add time limit in minutes"
-              disabled={!formData.has_time_limit}
+              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              placeholder="Add a description"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit_max_retakes">Max Retakes</Label>
-            <Input
-              id="edit_max_retakes"
-              type="number"
-              min="0"
-              value={formData.max_retakes}
-              onChange={(e) =>
-                setFormData({ ...formData, max_retakes: e.target.value })
+            <Label htmlFor="edit_training_area_id">Training Area *</Label>
+            <Select
+              value={formData.training_area_id}
+              onValueChange={(value) =>
+                setFormData({ ...formData, training_area_id: value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
-            />
+              required
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select training area" />
+              </SelectTrigger>
+              <SelectContent>
+                {trainingAreas.map((area) => (
+                  <SelectItem key={area.id} value={area.id.toString()}>
+                    {area.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit_xp_points">VX Points</Label>
-            <Input
-              id="edit_xp_points"
-              type="number"
-              min="0"
-              value={formData.xp_points}
-              onChange={(e) =>
-                setFormData({ ...formData, xp_points: e.target.value })
+            <Label htmlFor="edit_module_id">Module *</Label>
+            <Select
+              value={formData.module_id}
+              onValueChange={(value) =>
+                setFormData({ ...formData, module_id: value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
-            />
+              disabled={!formData.training_area_id}
+              required
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select module" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredModules.map((module) => (
+                  <SelectItem key={module.id} value={module.id.toString()}>
+                    {module.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </div>
 
-        {formData.has_certificate && (
           <div className="space-y-2">
-            <Label htmlFor="edit_certificate_template">
-              Certificate Template
-            </Label>
-            <Input
-              id="edit_certificate_template"
-              value={formData.certificate_template}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  certificate_template: e.target.value,
-                })
+            <Label htmlFor="edit_course_id">Course *</Label>
+            <Select
+              value={formData.course_id}
+              onValueChange={(value) =>
+                setFormData({ ...formData, course_id: value })
               }
-              className="rounded-full bg-[#00d8cc]/30"
-              placeholder="Paste certificate template URL"
-            />
+              disabled={!formData.module_id}
+              required
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select course" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredCourses.map((course) => (
+                  <SelectItem key={course.id} value={course.id.toString()}>
+                    {course.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
 
-        <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setIsEditModalOpen(false);
-              setSelectedAssessment(null);
-            }}
-            className="rounded-full bg-[#00d8cc]/30"
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading} className="rounded-full">
-            {isLoading ? "Updating..." : "Update Assessment"}
-          </Button>
-        </div>
-      </form>
+          <div className="space-y-2">
+            <Label htmlFor="edit_unit_id">Unit *</Label>
+            <Select
+              value={formData.unit_id}
+              onValueChange={(value) =>
+                setFormData({ ...formData, unit_id: value })
+              }
+              disabled={!formData.course_id}
+              required
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select unit" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredUnits.map((unit) => (
+                  <SelectItem key={unit.id} value={unit.id.toString()}>
+                    {unit.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit_placement">Placement *</Label>
+            <Select
+              value={formData.placement}
+              onValueChange={(value) =>
+                setFormData({ ...formData, placement: value })
+              }
+              required
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select placement" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="start">Start</SelectItem>
+                <SelectItem value="middle">Middle</SelectItem>
+                <SelectItem value="end">End</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="edit_is_graded"
+                checked={formData.is_graded}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, is_graded: checked })
+                }
+              />
+              <Label htmlFor="edit_is_graded">Is Graded</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="edit_show_correct_answers"
+                checked={formData.show_correct_answers}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, show_correct_answers: checked })
+                }
+              />
+              <Label htmlFor="edit_show_correct_answers">
+                Show Correct Answers
+              </Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="edit_has_time_limit"
+                checked={formData.has_time_limit}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, has_time_limit: checked })
+                }
+              />
+              <Label htmlFor="edit_has_time_limit">Has Time Limit</Label>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="edit_has_certificate"
+                checked={formData.has_certificate}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, has_certificate: checked })
+                }
+              />
+              <Label htmlFor="edit_has_certificate">Has Certificate</Label>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit_passing_score">Passing Score (%)</Label>
+              <Input
+                id="edit_passing_score"
+                type="number"
+                min="0"
+                max="100"
+                value={formData.passing_score}
+                onChange={(e) =>
+                  setFormData({ ...formData, passing_score: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                placeholder="Add a passing score out of 100"
+                disabled={!formData.is_graded}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit_time_limit">Time Limit (minutes)</Label>
+              <Input
+                id="edit_time_limit"
+                type="number"
+                min="1"
+                value={formData.time_limit}
+                onChange={(e) =>
+                  setFormData({ ...formData, time_limit: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                placeholder="Add time limit in minutes"
+                disabled={!formData.has_time_limit}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit_max_retakes">Max Retakes</Label>
+              <Input
+                id="edit_max_retakes"
+                type="number"
+                min="0"
+                value={formData.max_retakes}
+                onChange={(e) =>
+                  setFormData({ ...formData, max_retakes: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit_xp_points">VX Points</Label>
+              <Input
+                id="edit_xp_points"
+                type="number"
+                min="0"
+                value={formData.xp_points}
+                onChange={(e) =>
+                  setFormData({ ...formData, xp_points: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              />
+            </div>
+          </div>
+
+          {formData.has_certificate && (
+            <div className="space-y-2">
+              <Label htmlFor="edit_certificate_template">
+                Certificate Template
+              </Label>
+              <Input
+                id="edit_certificate_template"
+                value={formData.certificate_template}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    certificate_template: e.target.value,
+                  })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                placeholder="Paste certificate template URL"
+              />
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setSelectedAssessment(null);
+              }}
+              className="rounded-full hover:bg-accent/30 hover:text-black"
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isLoading} className="rounded-full">
+              {isLoading ? "Updating..." : "Update Assessment"}
+            </Button>
+          </div>
+        </form>
+      </div>
     );
   };
 
@@ -2067,13 +2079,15 @@ const AssessmentsPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-4xl bg-sandstone border-white/20 text-white max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl bg-sandstone border-white/20 text-[#2C2C2C] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">Edit Assessment</DialogTitle>
+            <DialogTitle className="text-[#2C2C2C]">
+              Edit Assessment
+            </DialogTitle>
             <Button
               variant="ghost"
               size="sm"
-              className="absolute right-4 top-4 h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
               onClick={() => setIsEditModalOpen(false)}
             >
               <Close sx={{ fontSize: 16 }} />
@@ -2090,15 +2104,15 @@ const AssessmentsPage = () => {
         open={isQuestionsModalOpen}
         onOpenChange={setIsQuestionsModalOpen}
       >
-        <DialogContent className="max-w-6xl bg-sandstone border-white/20 text-white max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl bg-sandstone border-white/20 text-[#2C2C2C] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-[#2C2C2C]">
               Questions for: {selectedAssessment?.title}
             </DialogTitle>
             <Button
               variant="ghost"
               size="sm"
-              className="absolute right-4 top-4 h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
               onClick={() => setIsQuestionsModalOpen(false)}
             >
               <Close sx={{ fontSize: 16 }} />
@@ -2162,15 +2176,15 @@ const AssessmentsPage = () => {
         open={isEditQuestionModalOpen}
         onOpenChange={setIsEditQuestionModalOpen}
       >
-        <DialogContent className="max-w-2xl bg-sandstone border-white/20 text-white max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl bg-sandstone border-white/20 text-[#2C2C2C] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-[#2C2C2C]">
               {selectedQuestion ? "Edit Question" : "Create Question"}
             </DialogTitle>
             <Button
               variant="ghost"
               size="sm"
-              className="absolute right-4 top-4 h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
               onClick={() => setIsEditQuestionModalOpen(false)}
             >
               <Close sx={{ fontSize: 16 }} />

@@ -484,14 +484,13 @@ const RolesPage = () => {
           rolesResponse.data?.map((role: any) => ({
             id: role.id,
             name: role.name,
-            categoryId: role.categoryId,
             categoryName: categoryMap.get(role.categoryId) || "Unknown",
             actions: (
               <div className="flex gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-blue-400 hover:bg-blue-400/10"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-blue-400 hover:bg-blue-400/10"
                   onClick={() => handleEditRole(role)}
                   title="Edit"
                 >
@@ -500,7 +499,7 @@ const RolesPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
                   onClick={() => handleDeleteRole(role.id)}
                   title="Delete"
                 >
@@ -654,7 +653,6 @@ const RolesPage = () => {
       rolesResponse.data?.map((role: any) => ({
         id: role.id,
         name: role.name,
-        categoryId: role.categoryId,
         categoryName: categoryMap.get(role.categoryId) || "Unknown",
         actions: (
           <div className="flex gap-1">
@@ -1263,9 +1261,9 @@ const RolesPage = () => {
           if (!open) handleModalClose();
         }}
       >
-        <DialogContent className="max-w-6xl bg-sandstone border-white/20 text-white max-h-[90%]">
+        <DialogContent className="max-w-6xl bg-white border-[#E5E5E5] text-[#2C2C2C] max-h-[90%]">
           <DialogHeader>
-            <DialogTitle className="text-white">
+            <DialogTitle className="text-[#2C2C2C]">
               Assign Units - {selectedRole?.name}
             </DialogTitle>
           </DialogHeader>
@@ -1273,7 +1271,7 @@ const RolesPage = () => {
           <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent">
             {/* Unit Filtering Row */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-[#00d8cc]">
+              <h3 className="text-lg font-semibold text-orange-500">
                 Filter Units
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1352,7 +1350,7 @@ const RolesPage = () => {
 
             {/* Seniority & Assets Row */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-[#00d8cc]">
+              <h3 className="text-lg font-semibold text-orange-500">
                 Additional Filters
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1404,7 +1402,7 @@ const RolesPage = () => {
             </div>
             {/* Existing Assignments */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-[#00d8cc]">
+              <h3 className="text-lg font-semibold text-orange-500">
                 Existing Units ({existingUnits.length})
               </h3>
               {existingUnits.length > 0 ? (
@@ -1421,7 +1419,7 @@ const RolesPage = () => {
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <h4 className="text-sm font-medium text-white">
+                            <h4 className="text-sm font-medium text-[#2C2C2C]">
                               {unit.name}
                             </h4>
                           </div>
@@ -1444,7 +1442,7 @@ const RolesPage = () => {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-8 text-white/60">
+                <div className="text-center py-8 text-[#2C2C2C]/60">
                   No units assigned for the selected filters.
                 </div>
               )}
@@ -1453,7 +1451,7 @@ const RolesPage = () => {
             {/* Units Display */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#00d8cc]">
+                <h3 className="text-lg font-semibold text-orange-500">
                   Available Units ({filteredUnits.length})
                 </h3>
                 {filteredUnits.length > 0 && (
@@ -1466,9 +1464,12 @@ const RolesPage = () => {
                         filteredUnits.length > 0
                       }
                       onChange={(e) => handleSelectAllUnits(e.target.checked)}
-                      className="w-4 h-4 text-[#00d8cc] bg-transparent border-white/30 rounded focus:ring-[#00d8cc] focus:ring-2"
+                      className="w-4 h-4 text-orange-500 bg-transparent border-[#E5E5E5] rounded focus:ring-orange-500 focus:ring-2"
                     />
-                    <Label htmlFor="selectAll" className="text-sm text-white">
+                    <Label
+                      htmlFor="selectAll"
+                      className="text-sm text-[#2C2C2C]"
+                    >
                       Select All ({selectedUnits.size} selected)
                     </Label>
                   </div>
@@ -1482,7 +1483,7 @@ const RolesPage = () => {
                       key={unit.id}
                       className={`border border-white/20 rounded-lg p-4 transition-all duration-200 ${
                         selectedUnits.has(unit.id)
-                          ? "bg-[#00d8cc]/20 border-[#00d8cc]/50"
+                          ? "bg-orange-500/20 border-orange-500/50"
                           : "bg-white/5 hover:bg-white/10"
                       }`}
                     >
@@ -1494,9 +1495,9 @@ const RolesPage = () => {
                           onChange={(e) =>
                             handleUnitSelection(unit.id, e.target.checked)
                           }
-                          className="w-4 h-4 text-[#00d8cc] bg-transparent border-white/30 rounded focus:ring-[#00d8cc] focus:ring-2"
+                          className="w-4 h-4 text-orange-500 bg-transparent border-[#E5E5E5] rounded focus:ring-orange-500 focus:ring-2"
                         />
-                        <h4 className="text-sm font-medium text-white">
+                        <h4 className="text-sm font-medium text-[#2C2C2C]">
                           {unit.name}
                         </h4>
                       </div>
@@ -1504,25 +1505,25 @@ const RolesPage = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-white/60">
+                <div className="text-center py-8 text-[#2C2C2C]/60">
                   No units found matching the selected filters.
                 </div>
               )}
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4 border-t mt-2 border-white/20">
+          <div className="flex justify-end gap-2 pt-4 border-t mt-2 border-[#E5E5E5]">
             <Button
               variant="outline"
               onClick={handleModalClose}
-              className="rounded-full bg-[#00d8cc]/30"
+              className="rounded-full hover:bg-accent/30 hover:text-black"
             >
               Cancel
             </Button>
             <Button
               onClick={handleAssignUnitsSubmit}
               disabled={isLoading || selectedUnits.size === 0}
-              className="rounded-full bg-[#00d8cc] hover:bg-[#00d8cc]/80"
+              className="rounded-full bg-orange-500 hover:bg-orange-600"
             >
               {isLoading
                 ? "Assigning..."
@@ -1557,7 +1558,7 @@ const RolesPage = () => {
 
       {/* Edit Role Modal */}
       {editingRole && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
             <EditRoleForm onClose={() => setEditingRole(null)} />
           </div>
