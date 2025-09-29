@@ -241,7 +241,7 @@ const Dashboard = () => {
             ))}
           </div>
         ) : (
-          <Card className="p-12 text-center bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200">
+          <Card className="p-12 text-center bg-gradient-to-br from-yellow-50 to-orange-100 border border-orange-200">
             <div className="max-w-md mx-auto">
               <div className="w-20 h-20 bg-dawn rounded-full flex items-center justify-center mx-auto mb-6">
                 <BookOpen className="w-10 h-10 text-white" />
