@@ -695,6 +695,72 @@ export class userControllers {
     });
   }
 
+  static async getUsersByProgressThreshold(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    try {
+      const { progressThreshold } = req.query;
+      const limit = req.query.limit
+        ? parseInt(req.query.limit as string)
+        : undefined;
+      const offset = req.query.offset
+        ? parseInt(req.query.offset as string)
+        : undefined;
+
+      // Validate progressThreshold
+      if (!progressThreshold) {
+        throw createError("Progress threshold is required", 400);
+      }
+
+      const threshold = parseInt(progressThreshold as string);
+
+      // Validate that threshold is a number
+      if (isNaN(threshold)) {
+        throw createError("Progress threshold must be a valid number", 400);
+      }
+
+      // Validate that threshold is between 0 and 100
+      if (threshold < 0 || threshold > 100) {
+        throw createError("Progress threshold must be between 0 and 100", 400);
+      }
+
+      // Validate that threshold is in increments of 10
+      if (threshold % 10 !== 0) {
+        throw createError(
+          "Progress threshold must be in increments of 10 (0, 10, 20, ..., 100)",
+          400
+        );
+      }
+
+      const result = await UserService.getUsersByProgressThreshold(
+        threshold,
+        limit,
+        offset
+      );
+
+      res.status(200).json({
+        success: true,
+        message: `Users with progress ≤ ${threshold}% retrieved successfully`,
+        data: {
+          users: result.users,
+          totalCount: result.totalCount,
+          progressThreshold: threshold,
+          pagination: {
+            limit: limit || null,
+            offset: offset || null,
+          },
+        },
+      });
+    } catch (error: any) {
+      console.error("Get users by progress threshold error:", error);
+      if (error.statusCode) {
+        throw error;
+      }
+      throw createError("Failed to retrieve users by progress threshold", 500);
+    }
+  }
+
   /**
    * Update user by ID
    * PUT /users/:id

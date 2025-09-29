@@ -20,4 +20,7 @@ router.post(
   EmailController.sendInitialAssessmentPassed
 );
 
+// ==================== CUSTOM EMAIL ROUTES ====================
+router.post("/sendCustomTextEmail", EmailController.sendCustomTextEmail);
+
 export default router;

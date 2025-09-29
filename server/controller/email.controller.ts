@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { createEvent } from "ics";
 import { TrainingAreaService } from "../services/training.services";
 import { UserService } from "../services/user.services";
-import { sendByType } from "../services/email.services";
+import { sendByType, sendCustomTextEmail } from "../services/email.services";
 import { CertificateHelper } from "../services/progress.services";
 import type { CustomError } from "../middleware/errorHandling";
 
@@ -139,5 +139,50 @@ export class EmailController {
         url: `${process.env.FRONTEND_URL}/certificate/${certificateResult.certificateId}`,
       },
     });
+  }
+
+  static async sendCustomTextEmail(req: Request, res: Response) {
+    try {
+      const { to, subject, text } = req.body;
+
+      // Validation
+      if (!to || !Array.isArray(to) || to.length === 0) {
+        throw createError("Recipients must be a non-empty array", 400);
+      }
+
+      if (!subject || !text) {
+        throw createError("Subject and text content are required", 400);
+      }
+
+      // Validate that all recipients are valid email addresses
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const invalidEmails = to.filter((email) => !emailRegex.test(email));
+      if (invalidEmails.length > 0) {
+        throw createError(
+          `Invalid email addresses: ${invalidEmails.join(", ")}`,
+          400
+        );
+      }
+
+      const result = await sendCustomTextEmail({
+        to,
+        subject,
+        text,
+      });
+
+      res.json({
+        success: true,
+        message: "Custom text email sent successfully",
+        messageId: result.messageId,
+      });
+    } catch (error) {
+      console.error("Error in sendCustomTextEmail:", error);
+      throw createError(
+        error instanceof Error
+          ? error.message
+          : "Failed to send custom text email",
+        500
+      );
+    }
   }
 }

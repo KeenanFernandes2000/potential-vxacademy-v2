@@ -126,6 +126,34 @@ export async function sendEmail(params: {
   }
 }
 
+export async function sendCustomTextEmail(params: {
+  to: string[];
+  subject: string;
+  text: string;
+}) {
+  try {
+    const cmd = new SendEmailCommand({
+      FromEmailAddress: "info@potential.com",
+      Destination: { ToAddresses: params.to },
+      Content: {
+        Simple: {
+          Subject: { Data: params.subject, Charset: "UTF-8" },
+          Body: {
+            Text: { Data: params.text, Charset: "UTF-8" },
+          },
+        },
+      },
+    });
+
+    const result = await ses.send(cmd);
+    console.log("Custom text email sent successfully:", result.MessageId);
+    return { success: true, messageId: result.MessageId };
+  } catch (error) {
+    console.error("Error sending custom text email:", error);
+    throw error;
+  }
+}
+
 /*
 
 async function sendQueued(payload: {
