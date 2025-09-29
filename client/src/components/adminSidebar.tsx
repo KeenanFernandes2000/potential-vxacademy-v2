@@ -318,7 +318,7 @@ const AdminSidebar = () => {
     {
       title: "Communication Emails",
       icon: FileText,
-      // url: "/admin/communication-emails",
+      url: "/admin/communication-email",
       badge: null,
     },
   ];
