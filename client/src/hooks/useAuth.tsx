@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useRef,
   ReactNode,
+  useCallback,
 } from "react";
 import { Navigate } from "react-router-dom";
 
@@ -32,6 +33,7 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  sessionStatus: string;
   login: (
     email: string,
     password: string
@@ -147,6 +149,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logoutTimerRef = useRef<NodeJS.Timeout | null>(null);
   const warningTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const activityTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Activity tracking state
+  const [lastActivity, setLastActivity] = useState<number>(Date.now());
+  const [sessionStatus, setSessionStatus] = useState<string>("");
+  const inactivityTimeout = 60 * 60 * 1000; // 1 hour in milliseconds
 
   // Check if user is authenticated
   const isAuthenticated = !!user && !!token;
@@ -164,6 +172,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (countdownIntervalRef.current) {
       clearInterval(countdownIntervalRef.current);
       countdownIntervalRef.current = null;
+    }
+    if (activityTimerRef.current) {
+      clearTimeout(activityTimerRef.current);
+      activityTimerRef.current = null;
     }
   };
 
@@ -183,43 +195,86 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, 1000);
   };
 
+  // Logout function
+  const logout = () => {
+    // Clear all timers and modal state
+    clearAllTimers();
+    setShowLogoutWarning(false);
+    setTimeRemaining(0);
+    setSessionStatus("");
+
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem("userData");
+    localStorage.removeItem("token");
+  };
+
+  // Function to reset inactivity timer
+  const resetInactivityTimer = useCallback(() => {
+    if (!isAuthenticated) return;
+
+    const now = new Date();
+    const nextLogout = new Date(Date.now() + inactivityTimeout);
+    console.log(`🔄 Inactivity timer RESET at ${now.toLocaleTimeString()}`);
+    console.log(
+      `⏰ Next logout scheduled for ${nextLogout.toLocaleTimeString()}`
+    );
+
+    setLastActivity(Date.now());
+    setSessionStatus(
+      `Session active - Next logout: ${nextLogout.toLocaleTimeString()}`
+    );
+
+    // Clear existing activity timer
+    if (activityTimerRef.current) {
+      clearTimeout(activityTimerRef.current);
+    }
+
+    // Clear existing warning timers
+    if (warningTimerRef.current) {
+      clearTimeout(warningTimerRef.current);
+      warningTimerRef.current = null;
+    }
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+
+    // Hide warning if it's showing
+    setShowLogoutWarning(false);
+    setTimeRemaining(0);
+
+    // Set new inactivity timer
+    activityTimerRef.current = setTimeout(() => {
+      console.log("⏰ Inactivity timeout reached, logging out");
+      logout();
+    }, inactivityTimeout);
+
+    // Set up warning timer (5 minutes before logout)
+    const warningTime = inactivityTimeout - 5 * 60 * 1000; // 5 minutes before
+    if (warningTime > 0) {
+      warningTimerRef.current = setTimeout(() => {
+        console.log("⚠️ Warning: 5 minutes until logout due to inactivity");
+        startCountdown(5 * 60); // Start 5-minute countdown
+      }, warningTime);
+    }
+  }, [isAuthenticated, inactivityTimeout, logout]);
+
   // Function to set up automatic logout timer
   const setupLogoutTimer = (token: string) => {
     // Clear any existing timers
     clearAllTimers();
 
-    const expirationTime = getTokenExpirationTime(token);
-    if (!expirationTime) return;
-
-    const currentTime = Date.now();
-    const timeUntilExpiration = expirationTime - currentTime;
-
-    // Only set timer if token hasn't expired yet
-    if (timeUntilExpiration > 0) {
-      const fiveMinutesInMs = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-      // If more than 5 minutes remaining, set warning timer
-      if (timeUntilExpiration > fiveMinutesInMs) {
-        const warningTime = timeUntilExpiration - fiveMinutesInMs;
-        warningTimerRef.current = setTimeout(() => {
-          startCountdown(5 * 60); // Start 5-minute countdown
-        }, warningTime);
-      } else {
-        // Less than 5 minutes remaining, start countdown immediately
-        const remainingSeconds = Math.floor(timeUntilExpiration / 1000);
-        startCountdown(remainingSeconds);
-      }
-
-      // Set the actual logout timer
-      logoutTimerRef.current = setTimeout(() => {
-        console.log("Token expired, logging out automatically");
-        logout();
-      }, timeUntilExpiration);
-    } else {
-      // Token is already expired, logout immediately
+    // Check if token is expired first (safety check)
+    if (isTokenExpired(token)) {
       console.log("Token already expired, logging out immediately");
       logout();
+      return;
     }
+
+    console.log("🚀 Setting up inactivity-based session timeout (1 hour)");
+    // Set up inactivity-based timer instead of JWT-based
+    resetInactivityTimer();
   };
 
   // Initialize auth state from localStorage on mount
@@ -265,6 +320,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       clearAllTimers();
     };
   }, []);
+
+  // Activity detection for inactivity timer
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const handleActivity = (event: Event) => {
+      console.log(
+        `🖱️ Activity detected: ${
+          event.type
+        } at ${new Date().toLocaleTimeString()}`
+      );
+      resetInactivityTimer();
+    };
+
+    // Events to track for activity (mouse clicks and keyboard input)
+    const events = ["mousedown", "click", "keydown", "keypress"];
+
+    // Add event listeners
+    events.forEach((event) => {
+      document.addEventListener(event, handleActivity, true);
+    });
+
+    // Cleanup on unmount or when not authenticated
+    return () => {
+      events.forEach((event) => {
+        document.removeEventListener(event, handleActivity, true);
+      });
+    };
+  }, [isAuthenticated, resetInactivityTimer]);
 
   // Format time for display (MM:SS)
   const formatTime = (seconds: number): string => {
@@ -360,19 +444,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout();
   };
 
-  // Logout function
-  const logout = () => {
-    // Clear all timers and modal state
-    clearAllTimers();
-    setShowLogoutWarning(false);
-    setTimeRemaining(0);
-
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("userData");
-    localStorage.removeItem("token");
-  };
-
   // Update user data
   const updateUser = (userData: User) => {
     setUser(userData);
@@ -423,6 +494,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     token,
     isAuthenticated,
     isLoading,
+    sessionStatus,
     login,
     logout,
     updateUser,

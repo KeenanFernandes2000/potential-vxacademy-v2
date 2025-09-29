@@ -522,7 +522,7 @@ export class userControllers {
         }
 
         const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
-          expiresIn: "1h",
+          expiresIn: "3h",
         });
 
         await UserService.updateUserLastLogin(user.id);
@@ -604,7 +604,7 @@ export class userControllers {
     const token = jwt.sign(
       { id: newUser.id, email: newUser.email },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "3h" }
     );
 
     res.status(201).json({
@@ -853,7 +853,7 @@ export class userControllers {
     const token = jwt.sign(
       { id: existingUser.id, email: existingUser.email },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "3h" }
     );
 
     res.status(200).json({
