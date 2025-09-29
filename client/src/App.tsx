@@ -27,6 +27,7 @@ import AssessmentsPage from "@/pages/admin/assessmentsPage";
 import RolesPage from "@/pages/admin/rolesPage";
 import RoleCategoriesPage from "@/pages/admin/roleCategoriesPage";
 import LearningPathPage from "@/pages/admin/learningPathPage";
+import CommunicationEmail from "@/pages/admin/communiationEmail";
 
 // Sub-Admin Pages
 import SubAdminLayout from "@/pages/sub-admin/subAdminLayout";
@@ -189,6 +190,7 @@ function App() {
                           element={<LearningPathPage />}
                         />
                         <Route path="media" element={<MediaPage />} />
+                        <Route path="communication-email" element={<CommunicationEmail />} />
 
                         {/* Report Routes */}
                         <Route
