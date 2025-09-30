@@ -189,9 +189,9 @@ const OrganizationPage = () => {
           organizationsResponse.data?.map((organization: any) => ({
             id: organization.id,
             name: organization.name,
-            dateAdded: organization.createdAt
-              ? new Date(organization.createdAt).toLocaleDateString()
-              : "N/A",
+            // dateAdded: organization.createdAt
+            //   ? new Date(organization.createdAt).toLocaleDateString()
+            //   : "N/A",
             actions: (
               <div className="flex gap-1">
                 <Button
@@ -356,9 +356,9 @@ const OrganizationPage = () => {
       updatedResponse.data?.map((organization: any) => ({
         id: organization.id,
         name: organization.name,
-        dateAdded: organization.createdAt
-          ? new Date(organization.createdAt).toLocaleDateString()
-          : "N/A",
+        // dateAdded: organization.createdAt
+        //   ? new Date(organization.createdAt).toLocaleDateString()
+        //   : "N/A",
         actions: (
           <div className="flex gap-1">
             <Button
@@ -470,7 +470,8 @@ const OrganizationPage = () => {
     );
   };
 
-  const columns = ["ID", "Organization", "Date Added", "Actions"];
+  // const columns = ["ID", "Organization", "Date Added", "Actions"];
+  const columns = ["ID", "Organization", "Actions"];
 
   return (
     <AdminPageLayout

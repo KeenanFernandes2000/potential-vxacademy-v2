@@ -145,7 +145,7 @@ export class CertificateHelper {
 
       sendByType({
         type: "certificate_available",
-        to: "jayryan267@gmail.com",
+        to: user[0].email,
         data: {
           name: user[0].firstName,
           trainingAreaName: trainingArea.name,
