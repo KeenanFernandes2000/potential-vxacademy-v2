@@ -9,6 +9,7 @@ import {
   learningBlocks,
   unitRoleAssignments,
 } from "../db/schema/training";
+import { certificates } from "../db/schema/gamification";
 import type {
   TrainingArea,
   NewTrainingArea,
@@ -31,6 +32,7 @@ import type {
   UnitRoleAssignment,
   NewUnitRoleAssignment,
   UpdateUnitRoleAssignment,
+  Certificate,
 } from "../db/types";
 
 // ==================== TRAINING AREAS SERVICE ====================
@@ -956,5 +958,50 @@ export class UnitRoleAssignmentService {
       .limit(1);
 
     return assignment || null;
+  }
+}
+
+// ==================== CERTIFICATE SERVICE ====================
+export class CertificateService {
+  /**
+   * Get certificates by training area ID and user ID
+   */
+  static async getCertificatesByTrainingAreaAndUser(
+    trainingAreaId: number,
+    userId: number
+  ): Promise<Certificate[]> {
+    return await db
+      .select({
+        id: certificates.id,
+        userId: certificates.userId,
+        courseId: certificates.courseId,
+        certificateNumber: certificates.certificateNumber,
+        issueDate: certificates.issueDate,
+        expiryDate: certificates.expiryDate,
+        status: certificates.status,
+      })
+      .from(certificates)
+      .innerJoin(courses, eq(courses.id, certificates.courseId))
+      .innerJoin(modules, eq(modules.id, courses.moduleId))
+      .where(
+        and(
+          eq(modules.trainingAreaId, trainingAreaId),
+          eq(certificates.userId, userId)
+        )
+      )
+      .orderBy(desc(certificates.issueDate));
+  }
+
+  /**
+   * Get certificate by ID
+   */
+  static async getCertificateById(id: number): Promise<Certificate | null> {
+    const [certificate] = await db
+      .select()
+      .from(certificates)
+      .where(eq(certificates.id, id))
+      .limit(1);
+
+    return certificate || null;
   }
 }

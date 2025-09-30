@@ -12,70 +12,11 @@ import { Label } from "../../components/ui/label";
 import CertificateDialog from "../../components/CertificateDialog";
 import { useAuth } from "../../hooks/useAuth";
 import CertificateFormFiller from "@/components/generatePDF";
+import CertificatePopup from "@/components/CertificatePopup";
 // import "@/homepage.css";
 
 // API object for progress operations
 const api = {
-  async completeLearningBlock(
-    userId: number,
-    learningBlockId: number,
-    token: string
-  ) {
-    try {
-      const baseUrl = import.meta.env.VITE_API_URL;
-      const response = await fetch(
-        `${baseUrl}/api/progress/learning-blocks/complete`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            userId,
-            learningBlockId,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Failed to complete learning block:", error);
-      throw error;
-    }
-  },
-
-  async getUserLearningBlockProgress(userId: number, token: string) {
-    try {
-      const baseUrl = import.meta.env.VITE_API_URL;
-      const response = await fetch(
-        `${baseUrl}/api/progress/learning-blocks/${userId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Failed to get learning block progress:", error);
-      throw error;
-    }
-  },
-
   async updateNormalUser(userId: number, updateData: any, token: string) {
     try {
       const baseUrl = import.meta.env.VITE_API_URL;
@@ -196,6 +137,36 @@ const api = {
       throw error;
     }
   },
+
+  async getCertificatesByTrainingAreaAndUser(
+    trainingAreaId: number,
+    userId: number,
+    token: string
+  ) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/training/certificates/training-area/${trainingAreaId}/user/${userId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to get certificates:", error);
+      throw error;
+    }
+  },
 };
 
 const quizData = [
@@ -305,11 +276,8 @@ const quizData = [
 // Minimum score required to view certificate (60%)
 const MINIMUM_CERTIFICATE_SCORE = 60;
 
-// Learning blocks that need to be completed for this quiz
-const LEARNING_BLOCK_IDS = [4, 5];
-
 // Training area ID for this initial assessment (Al Midhyaf)
-const TRAINING_AREA_ID = 1;
+const TRAINING_AREA_ID = 2;
 
 const ExistingUserTestPage = () => {
   const { user, token, updateUser } = useAuth();
@@ -323,6 +291,20 @@ const ExistingUserTestPage = () => {
   const [isCompleting, setIsCompleting] = useState(false);
   const [isCheckingCompletion, setIsCheckingCompletion] = useState(true);
   const [isCheckingAccess, setIsCheckingAccess] = useState(true);
+  const [certificates, setCertificates] = useState<any[]>([]);
+  const [showCertificatePopup, setShowCertificatePopup] = useState(false);
+  const [isLoadingCertificates, setIsLoadingCertificates] = useState(false);
+
+  // Helper function to get user data from localStorage
+  const getUserData = () => {
+    return JSON.parse(localStorage.getItem("userData") || "{}");
+  };
+
+  // Helper function to get user name from localStorage
+  const getUserName = () => {
+    const userData = getUserData();
+    return `${userData.firstName || ""} ${userData.lastName || ""}`.trim();
+  };
 
   const currentQuestion = quizData[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
@@ -365,44 +347,10 @@ const ExistingUserTestPage = () => {
     checkAccess();
   }, [user, token, navigate]);
 
-  // Check if learning blocks are already completed on page load
+  // Set completion check to false immediately since we removed the learning block progress check
   useEffect(() => {
-    const checkCompletionStatus = async () => {
-      if (!user?.id || !token) {
-        setIsCheckingCompletion(false);
-        return;
-      }
-
-      try {
-        const response = await api.getUserLearningBlockProgress(user.id, token);
-
-        if (response.success && response.data) {
-          // Check if all required learning blocks are completed
-          const completedBlocks = response.data.filter(
-            (progress: any) =>
-              LEARNING_BLOCK_IDS.includes(progress.learningBlockId) &&
-              progress.status === "completed"
-          );
-
-          // If all learning blocks are completed, redirect to dashboard
-          if (completedBlocks.length === LEARNING_BLOCK_IDS.length) {
-            console.log(
-              "All learning blocks already completed, redirecting to dashboard"
-            );
-            navigate("/user/dashboard");
-            return;
-          }
-        }
-      } catch (error) {
-        console.error("Failed to check completion status:", error);
-        // Continue with quiz even if check fails
-      } finally {
-        setIsCheckingCompletion(false);
-      }
-    };
-
-    checkCompletionStatus();
-  }, [user?.id, token, navigate]);
+    setIsCheckingCompletion(false);
+  }, []);
 
   const handleAnswerSelect = (answerIndex: number) => {
     const newAnswers = [...selectedAnswers];
@@ -429,9 +377,46 @@ const ExistingUserTestPage = () => {
     }
   };
 
+  // const fetchCertificates = async () => {
+  //   if (!token) return;
+
+  //   // Get user ID from localStorage
+  //   const userData = getUserData();
+  //   if (!userData.id) {
+  //     console.error("User ID not found in localStorage");
+  //     return;
+  //   }
+
+  //   setIsLoadingCertificates(true);
+  //   try {
+  //     const response = await api.getCertificatesByTrainingAreaAndUser(
+  //       TRAINING_AREA_ID,
+  //       userData.id,
+  //       token
+  //     );
+
+  //     if (response.success && response.data) {
+  //       setCertificates(response.data);
+  //       setShowCertificatePopup(true);
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to fetch certificates:", error);
+  //   } finally {
+  //     setIsLoadingCertificates(false);
+  //   }
+  // };
+
   const handleRedirect = async () => {
-    if (!user?.id || !token) {
-      console.error("User ID or token not available");
+    if (!token) {
+      console.error("Token not available");
+      navigate("/user/dashboard");
+      return;
+    }
+
+    // Get user ID from localStorage
+    const userData = getUserData();
+    if (!userData.id) {
+      console.error("User ID not found in localStorage");
       navigate("/user/dashboard");
       return;
     }
@@ -440,7 +425,11 @@ const ExistingUserTestPage = () => {
 
     try {
       // Update user's initialAssessment status to true
-      await api.updateNormalUser(user.id, { initialAssessment: true }, token);
+      await api.updateNormalUser(
+        userData.id,
+        { initialAssessment: true },
+        token
+      );
 
       // Update localStorage flags
       const flags = JSON.parse(localStorage.getItem("flags") || "{}");
@@ -448,27 +437,34 @@ const ExistingUserTestPage = () => {
       localStorage.setItem("flags", JSON.stringify(flags));
 
       // Update user context
-      const updatedUser = {
-        ...user,
-        normalUserDetails: {
-          existing: user.normalUserDetails?.existing || false,
-          initialAssessment: true,
-        },
-      };
-      updateUser(updatedUser);
+      if (user) {
+        const updatedUser = {
+          ...user,
+          normalUserDetails: {
+            existing: user.normalUserDetails?.existing || false,
+            initialAssessment: true,
+          },
+        };
+        updateUser(updatedUser);
+      }
 
       // Only complete learning blocks if user passed the assessment (60% or higher)
       if (percentageScore >= MINIMUM_CERTIFICATE_SCORE) {
-        // Send email notification for passed assessment
+        // Send email notification and complete learning blocks for passed assessment
         try {
           await api.sendInitialAssessmentPassed(
-            user.id,
+            userData.id,
             TRAINING_AREA_ID,
             token
           );
-          console.log("Initial assessment passed email sent successfully");
+          console.log(
+            "Initial assessment passed email sent and learning blocks completed successfully"
+          );
         } catch (error) {
-          console.error("Failed to send passed assessment email:", error);
+          console.error(
+            "Failed to send passed assessment email and complete learning blocks:",
+            error
+          );
         }
 
         // Get certificate for passed assessment
@@ -478,17 +474,11 @@ const ExistingUserTestPage = () => {
         } catch (error) {
           console.error("Failed to get certificate:", error);
         }
-
-        // Complete all required learning blocks
-        // for (const learningBlockId of LEARNING_BLOCK_IDS) {
-        //   await api.completeLearningBlock(user.id, learningBlockId, token);
-        // }
-        // console.log("Learning blocks completed successfully");
       } else {
         // Send email notification for failed assessment
         try {
           await api.sendInitialAssessmentFailed(
-            user.id,
+            userData.id,
             TRAINING_AREA_ID,
             token
           );
@@ -500,12 +490,15 @@ const ExistingUserTestPage = () => {
         //   "User did not pass assessment, skipping learning block completion"
         // );
       }
+
+      // Fetch and show certificates regardless of pass/fail
+      // await fetchCertificates();
     } catch (error) {
       console.error("Failed to complete assessment:", error);
       // Continue to dashboard even if API call fails
     } finally {
       setIsCompleting(false);
-      navigate("/user/dashboard");
+      // Don't navigate immediately, let user see certificates first
     }
   };
 
@@ -595,16 +588,18 @@ const ExistingUserTestPage = () => {
             <div className="flex justify-center gap-2">
               <Button
                 onClick={handleRedirect}
-                disabled={isCompleting}
+                disabled={isCompleting || isLoadingCertificates}
                 className="px-8 py-2 bg-dawn hover:bg-[#B85A1A] text-white rounded-full disabled:opacity-50"
               >
-                {isCompleting ? "Completing..." : "Go to Dashboard"}
+                {isCompleting
+                  ? "Completing..."
+                  : isLoadingCertificates
+                  ? "Loading Certificates..."
+                  : "View Certificates & Continue"}
               </Button>
 
               {percentageScore >= MINIMUM_CERTIFICATE_SCORE && (
-                <CertificateFormFiller
-                  userName={`${user?.firstName} ${user?.lastName}`}
-                />
+                <CertificateFormFiller userName={getUserName()} />
               )}
             </div>
           </CardContent>
@@ -702,6 +697,17 @@ const ExistingUserTestPage = () => {
           </Button>
         </div>
       </div>
+
+      {/* Certificate Popup */}
+      <CertificatePopup
+        isOpen={showCertificatePopup}
+        onClose={() => {
+          setShowCertificatePopup(false);
+          navigate("/user/dashboard");
+        }}
+        certificates={certificates}
+        userName={getUserName()}
+      />
     </div>
   );
 };
