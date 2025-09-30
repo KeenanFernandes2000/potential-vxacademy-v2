@@ -559,25 +559,28 @@ const Courses = () => {
 
                         {/* Courses Grid */}
                         <div className="ml-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                          {moduleCourses.map((course) => (
-                            <CourseCard
-                              key={course.id}
-                              title={course.name}
-                              courseId={course.id}
-                              description={
-                                course.description || "No description available"
-                              }
-                              duration={
-                                course.showDuration
-                                  ? formatDuration(course.duration)
-                                  : ""
-                              }
-                              difficulty={getDifficultyLevel(course)}
-                              progress={getCourseProgress(course.id)}
-                              image={course.imageUrl || undefined}
-                              onStart={() => handleCourseStart(course.id)}
-                            />
-                          ))}
+                          {moduleCourses
+                            .sort((a, b) => a.id - b.id)
+                            .map((course) => (
+                              <CourseCard
+                                key={course.id}
+                                title={course.name}
+                                courseId={course.id}
+                                description={
+                                  course.description ||
+                                  "No description available"
+                                }
+                                duration={
+                                  course.showDuration
+                                    ? formatDuration(course.duration)
+                                    : ""
+                                }
+                                difficulty={getDifficultyLevel(course)}
+                                progress={getCourseProgress(course.id)}
+                                image={course.imageUrl || undefined}
+                                onStart={() => handleCourseStart(course.id)}
+                              />
+                            ))}
                         </div>
                       </div>
                     )
