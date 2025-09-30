@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Editor } from "@/components/blocks/editor-00/editor";
 import {
   Select,
   SelectContent,
@@ -63,7 +62,6 @@ const api = {
 const CommunicationEmail = () => {
   const [userType, setUserType] = useState<string>("sub_admin");
   const [emailContent, setEmailContent] = useState<string>("");
-  const [editorState, setEditorState] = useState<any>(null);
   const [progressFilter, setProgressFilter] = useState<string>("");
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -117,8 +115,10 @@ const CommunicationEmail = () => {
     }
   }, [userType, progressFilter]);
 
-  // Function to send bulk email
-  const sendBulkEmail = async () => {
+  // Function to handle form submission
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     if (!emailSubject.trim()) {
       setError("Please enter an email subject");
       return;
@@ -182,251 +182,249 @@ const CommunicationEmail = () => {
         </p>
       </div>
 
-      {/* Sub Header */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">
-          Select Recipient Type
-        </h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Choose the type of users you want to send emails to
-        </p>
-      </div>
-
-      {/* Radio Buttons */}
-      <div className="mb-6">
-        <div className="flex space-x-6">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="userType"
-              value="sub_admin"
-              checked={userType === "sub_admin"}
-              onChange={(e) => setUserType(e.target.value)}
-              className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-            />
-            <span className="text-sm font-medium text-gray-700">
-              Sub Admins
-            </span>
-          </label>
-
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="userType"
-              value="user"
-              checked={userType === "user"}
-              onChange={(e) => setUserType(e.target.value)}
-              className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-            />
-            <span className="text-sm font-medium text-gray-700">
-              Frontliners
-            </span>
-          </label>
-        </div>
-      </div>
-
-      {/* Progress Filter - Only show when Frontliners is selected */}
-      {userType === "user" && (
+      <form onSubmit={handleFormSubmit} className="space-y-6">
+        {/* Sub Header */}
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Progress Filter
+          <h2 className="text-xl font-semibold text-gray-800">
+            Select Recipient Type
           </h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Filter frontliners by their training progress percentage
+          <p className="text-sm text-gray-500 mt-1">
+            Choose the type of users you want to send emails to
           </p>
-          <div className="w-64">
-            <Select value={progressFilter} onValueChange={setProgressFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select progress filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Frontliners</SelectItem>
-                <SelectItem value="10">Less than 10%</SelectItem>
-                <SelectItem value="20">Less than 20%</SelectItem>
-                <SelectItem value="30">Less than 30%</SelectItem>
-                <SelectItem value="40">Less than 40%</SelectItem>
-                <SelectItem value="50">Less than 50%</SelectItem>
-                <SelectItem value="60">Less than 60%</SelectItem>
-                <SelectItem value="70">Less than 70%</SelectItem>
-                <SelectItem value="80">Less than 80%</SelectItem>
-                <SelectItem value="90">Less than 90%</SelectItem>
-                <SelectItem value="100">Less than 100%</SelectItem>
-              </SelectContent>
-            </Select>
+        </div>
+
+        {/* Radio Buttons */}
+        <div className="mb-6">
+          <div className="flex space-x-6">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="userType"
+                value="sub_admin"
+                checked={userType === "sub_admin"}
+                onChange={(e) => setUserType(e.target.value)}
+                className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                Sub Admins
+              </span>
+            </label>
+
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="userType"
+                value="user"
+                checked={userType === "user"}
+                onChange={(e) => setUserType(e.target.value)}
+                className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                Frontliners
+              </span>
+            </label>
           </div>
         </div>
-      )}
 
-      {/* User Emails Display */}
-      {users.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Recipient Emails ({users.length} users)
-          </h2>
-          <p className="text-sm text-gray-500 mb-4">
-            The following emails will receive this communication:
-          </p>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-60 overflow-y-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-              {users.map((user, index) => (
-                <div
-                  key={user.id || index}
-                  className="bg-white border border-gray-200 rounded px-3 py-2 text-sm"
-                >
-                  <div className="font-medium text-gray-800">
-                    {user.email || "No email"}
-                  </div>
-                </div>
-              ))}
+        {/* Progress Filter - Only show when Frontliners is selected */}
+        {userType === "user" && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Progress Filter
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Filter frontliners by their training progress percentage
+            </p>
+            <div className="w-64">
+              <Select value={progressFilter} onValueChange={setProgressFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select progress filter" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Frontliners</SelectItem>
+                  <SelectItem value="10">Less than 10%</SelectItem>
+                  <SelectItem value="20">Less than 20%</SelectItem>
+                  <SelectItem value="30">Less than 30%</SelectItem>
+                  <SelectItem value="40">Less than 40%</SelectItem>
+                  <SelectItem value="50">Less than 50%</SelectItem>
+                  <SelectItem value="60">Less than 60%</SelectItem>
+                  <SelectItem value="70">Less than 70%</SelectItem>
+                  <SelectItem value="80">Less than 80%</SelectItem>
+                  <SelectItem value="90">Less than 90%</SelectItem>
+                  <SelectItem value="100">Less than 100%</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Email Subject */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          Email Subject
-        </h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Enter the subject line for your email
-        </p>
-        <input
-          type="text"
-          value={emailSubject}
-          onChange={(e) => setEmailSubject(e.target.value)}
-          placeholder="Enter email subject..."
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
+        {/* User Emails Display */}
+        {users.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              Recipient Emails ({users.length} users)
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              The following emails will receive this communication:
+            </p>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-60 overflow-y-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                {users.map((user, index) => (
+                  <div
+                    key={user.id || index}
+                    className="bg-white border border-gray-200 rounded px-3 py-2 text-sm"
+                  >
+                    <div className="font-medium text-gray-800">
+                      {user.email || "No email"}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
-      {/* Email Content Editor */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
-          Email Content
-        </h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Write your email content using the rich text editor below
-        </p>
-        <div className="border border-gray-300 rounded-lg">
-          <Editor
-            editorState={editorState}
-            onChange={(newEditorState) => {
-              setEditorState(newEditorState);
-            }}
-            onSerializedChange={(serializedState) => {
-              setEmailContent(JSON.stringify(serializedState));
-            }}
+        {/* Email Subject */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Email Subject
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Enter the subject line for your email
+          </p>
+          <input
+            type="text"
+            value={emailSubject}
+            onChange={(e) => setEmailSubject(e.target.value)}
+            placeholder="Enter email subject..."
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
-      </div>
 
-      {/* Error and Success Messages */}
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-red-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-800">{error}</p>
+        {/* Email Content Textarea */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Email Content
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Write your email content in the text area below
+          </p>
+          <textarea
+            value={emailContent}
+            onChange={(e) => setEmailContent(e.target.value)}
+            placeholder="Enter your email content here..."
+            rows={10}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+          />
+        </div>
+
+        {/* Error and Success Messages */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-red-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {sendSuccess && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-green-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-green-800">
-                Email sent successfully to {users.length} recipients!
-              </p>
+        {sendSuccess && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-green-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-green-800">
+                  Email sent successfully to {users.length} recipients!
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Send Button */}
-      <div className="mb-6">
-        <button
-          onClick={sendBulkEmail}
-          disabled={
-            sending ||
-            users.length === 0 ||
-            !emailSubject.trim() ||
-            !emailContent.trim()
-          }
-          className={`
-            px-6 py-3 rounded-full font-medium text-white transition-colors duration-200
-            ${
+        {/* Send Button */}
+        <div className="mb-6">
+          <button
+            type="submit"
+            disabled={
               sending ||
               users.length === 0 ||
               !emailSubject.trim() ||
               !emailContent.trim()
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-orange-500 hover:bg-orange-600"
             }
-          `}
-        >
-          {sending ? (
-            <div className="flex items-center">
-              <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Sending...
-            </div>
-          ) : (
-            `Send Email to ${users.length} Recipients`
-          )}
-        </button>
+            className={`
+              px-6 py-3 rounded-full font-medium text-white transition-colors duration-200
+              ${
+                sending ||
+                users.length === 0 ||
+                !emailSubject.trim() ||
+                !emailContent.trim()
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-orange-500 hover:bg-orange-600"
+              }
+            `}
+          >
+            {sending ? (
+              <div className="flex items-center">
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Sending...
+              </div>
+            ) : (
+              `Send Email to ${users.length} Recipients`
+            )}
+          </button>
 
-        {users.length === 0 && (
-          <p className="mt-2 text-sm text-gray-500">
-            Please select a user type and apply filters to see recipients
-          </p>
-        )}
-      </div>
+          {users.length === 0 && (
+            <p className="mt-2 text-sm text-gray-500">
+              Please select a user type and apply filters to see recipients
+            </p>
+          )}
+        </div>
+      </form>
     </div>
   );
 };
