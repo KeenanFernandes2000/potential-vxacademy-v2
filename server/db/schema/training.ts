@@ -52,6 +52,7 @@ export const courses = pgTable("courses", {
   showDuration: boolean("show_duration").notNull().default(true),
   level: text("level").notNull().default("beginner"),
   showLevel: boolean("show_level").notNull().default(true),
+  status: text("status").notNull().default("draft"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

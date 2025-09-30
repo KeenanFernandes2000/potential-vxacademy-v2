@@ -274,7 +274,7 @@ const ModulesPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-blue-400 hover:bg-blue-400/10"
+                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-orange-500 hover:bg-orange-500/10"
                     onClick={() => handleEditModule(module)}
                     title="Edit"
                   >
@@ -527,7 +527,7 @@ const ModulesPage = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-blue-400 hover:bg-blue-400/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-orange-500 hover:bg-orange-500/10"
                 onClick={() => handleEditModule(module)}
                 title="Edit"
               >
@@ -572,127 +572,157 @@ const ModulesPage = () => {
     setFilteredModules(transformedModules);
   };
 
-  const CreateModuleForm = ({ onClose }: { onClose: () => void }) => {
-    const [formData, setFormData] = useState({
-      name: "",
-      description: "",
-      training_area_id: "",
-      image_url: "",
-    });
-    const [showInsertImage, setShowInsertImage] = useState(false);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      await handleCreateModule(formData);
-      setFormData({
+  // Create Module Form Component - moved outside to prevent re-renders
+  const CreateModuleForm = React.memo(
+    ({ onClose }: { onClose: () => void }) => {
+      const [formData, setFormData] = useState({
         name: "",
         description: "",
         training_area_id: "",
         image_url: "",
       });
-    };
+      const [showInsertImage, setShowInsertImage] = useState(false);
 
-    const handleImageInsert = (imageUrl: string) => {
-      setFormData({ ...formData, image_url: imageUrl });
-    };
+      const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await handleCreateModule(formData);
+        setFormData({
+          name: "",
+          description: "",
+          training_area_id: "",
+          image_url: "",
+        });
+      };
 
-    return (
-      <div className="relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-0 right-0 h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
-          onClick={onClose}
-        >
-          <Close sx={{ fontSize: 20 }} />
-        </Button>
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold">Create Module</h3>
+      const handleImageInsert = (imageUrl: string) => {
+        setFormData({ ...formData, image_url: imageUrl });
+      };
+
+      return (
+        <div className="relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute top-0 right-0 h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
+            onClick={onClose}
+          >
+            <Close sx={{ fontSize: 20 }} />
+          </Button>
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-[#2C2C2C]">
+              Create Module
+            </h3>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-[#2C2C2C]">
+                Module Name *
+              </Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                placeholder="Type your Module name"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-[#2C2C2C]">
+                Description
+              </Label>
+              <Input
+                id="description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                placeholder="Add a description"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="training_area_id" className="text-[#2C2C2C]">
+                Training Area *
+              </Label>
+              <Select
+                value={formData.training_area_id}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, training_area_id: value })
+                }
+              >
+                <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                  <SelectValue placeholder="Select a training area" />
+                </SelectTrigger>
+                <SelectContent>
+                  {trainingAreas.map((area) => (
+                    <SelectItem key={area.id} value={area.id.toString()}>
+                      {area.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="image_url" className="text-[#2C2C2C]">
+                Image URL
+              </Label>
+              <Input
+                id="image_url"
+                value={formData.image_url}
+                onChange={(e) =>
+                  setFormData({ ...formData, image_url: e.target.value })
+                }
+                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                placeholder="Paste your image URL"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[#2C2C2C]">Or Upload Image</Label>
+              <InsertImage
+                onImageInsert={handleImageInsert}
+                onClose={() => setShowInsertImage(false)}
+                currentImageUrl={formData.image_url}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="rounded-full"
+              >
+                {isLoading ? "Creating..." : "Create Module"}
+              </Button>
+            </div>
+          </form>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Module Name *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
-              placeholder="Type your Module name"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Input
-              id="description"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
-              placeholder="Add a description"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="training_area_id">Training Area *</Label>
-            <Select
-              value={formData.training_area_id}
-              onValueChange={(value) =>
-                setFormData({ ...formData, training_area_id: value })
-              }
-            >
-              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
-                <SelectValue placeholder="Select a training area" />
-              </SelectTrigger>
-              <SelectContent>
-                {trainingAreas.map((area) => (
-                  <SelectItem key={area.id} value={area.id.toString()}>
-                    {area.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="image_url">Image URL</Label>
-            <Input
-              id="image_url"
-              value={formData.image_url}
-              onChange={(e) =>
-                setFormData({ ...formData, image_url: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
-              placeholder="Paste your image URL"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Or Upload Image</Label>
-            <InsertImage
-              onImageInsert={handleImageInsert}
-              onClose={() => setShowInsertImage(false)}
-              currentImageUrl={formData.image_url}
-            />
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button type="submit" disabled={isLoading} className="rounded-full">
-              {isLoading ? "Creating..." : "Create Module"}
-            </Button>
-          </div>
-        </form>
-      </div>
-    );
-  };
+      );
+    }
+  );
 
-  const EditModuleForm = ({ onClose }: { onClose: () => void }) => {
+  // Edit Module Form Component - moved outside to prevent re-renders
+  const EditModuleForm = React.memo(({ onClose }: { onClose: () => void }) => {
     const [formData, setFormData] = useState({
       name: selectedModule?.name || "",
       description: selectedModule?.description || "",
-      training_area_id: selectedModule?.trainingAreaId || "",
+      training_area_id: selectedModule?.trainingAreaId?.toString() || "",
       image_url: selectedModule?.imageUrl || "",
     });
     const [showInsertImage, setShowInsertImage] = useState(false);
+
+    // Update form data when selectedModule changes
+    useEffect(() => {
+      if (selectedModule) {
+        setFormData({
+          name: selectedModule.name || "",
+          description: selectedModule.description || "",
+          training_area_id: selectedModule.trainingAreaId?.toString() || "",
+          image_url: selectedModule.imageUrl || "",
+        });
+      }
+    }, [selectedModule]);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -714,11 +744,13 @@ const ModulesPage = () => {
           <Close sx={{ fontSize: 20 }} />
         </Button>
         <div className="mb-6">
-          <h3 className="text-lg font-semibold">Edit Module</h3>
+          <h3 className="text-lg font-semibold text-[#2C2C2C]">Edit Module</h3>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="edit_name">Module Name *</Label>
+            <Label htmlFor="edit_name" className="text-[#2C2C2C]">
+              Module Name *
+            </Label>
             <Input
               id="edit_name"
               value={formData.name}
@@ -731,7 +763,9 @@ const ModulesPage = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit_description">Description</Label>
+            <Label htmlFor="edit_description" className="text-[#2C2C2C]">
+              Description
+            </Label>
             <Input
               id="edit_description"
               value={formData.description}
@@ -743,7 +777,9 @@ const ModulesPage = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit_training_area_id">Training Area *</Label>
+            <Label htmlFor="edit_training_area_id" className="text-[#2C2C2C]">
+              Training Area *
+            </Label>
             <Select
               value={formData.training_area_id}
               onValueChange={(value) =>
@@ -763,7 +799,9 @@ const ModulesPage = () => {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit_image_url">Image URL</Label>
+            <Label htmlFor="edit_image_url" className="text-[#2C2C2C]">
+              Image URL
+            </Label>
             <Input
               id="edit_image_url"
               value={formData.image_url}
@@ -775,7 +813,7 @@ const ModulesPage = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label>Or Upload Image</Label>
+            <Label className="text-[#2C2C2C]">Or Upload Image</Label>
             <InsertImage
               onImageInsert={handleImageInsert}
               onClose={() => setShowInsertImage(false)}
@@ -790,7 +828,7 @@ const ModulesPage = () => {
                 setIsEditModalOpen(false);
                 setSelectedModule(null);
               }}
-              className="rounded-full bg-[#00d8cc]/30"
+              className="rounded-full bg-orange-500/30"
             >
               Cancel
             </Button>
@@ -801,7 +839,7 @@ const ModulesPage = () => {
         </form>
       </div>
     );
-  };
+  });
 
   const columns = ["ID", "Module", "Training Area", "Actions"];
 
@@ -838,9 +876,9 @@ const ModulesPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-sandstone border-white/20 text-white">
+        <DialogContent className="max-w-md bg-white border-sandstone text-[#2C2C2C]">
           <DialogHeader>
-            <DialogTitle className="text-white">Edit Module</DialogTitle>
+            <DialogTitle className="text-[#2C2C2C]">Edit Module</DialogTitle>
           </DialogHeader>
           <EditModuleForm
             onClose={() => {

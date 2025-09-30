@@ -77,8 +77,10 @@ const Dashboard = () => {
           }
         }
 
-        // Fetch all courses
-        const coursesResponse = await fetch(`${baseUrl}/api/training/courses`);
+        // Fetch all published courses
+        const coursesResponse = await fetch(
+          `${baseUrl}/api/training/courses/published`
+        );
         if (coursesResponse.ok) {
           const coursesResult = await coursesResponse.json();
           if (coursesResult.success && coursesResult.data) {

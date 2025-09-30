@@ -326,6 +326,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!isAuthenticated) return;
 
     const handleActivity = (event: Event) => {
+      // Skip activity tracking for form inputs to avoid interfering with typing
+      const target = event.target as HTMLElement;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.contentEditable === "true" ||
+          target.closest('[contenteditable="true"]') ||
+          target.closest("input") ||
+          target.closest("textarea") ||
+          target.closest("select"))
+      ) {
+        return;
+      }
+
       console.log(
         `🖱️ Activity detected: ${
           event.type
@@ -337,15 +353,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Events to track for activity (mouse clicks and keyboard input)
     const events = ["mousedown", "click", "keydown", "keypress"];
 
-    // Add event listeners
+    // Add event listeners (using bubble phase instead of capture to avoid interfering with form inputs)
     events.forEach((event) => {
-      document.addEventListener(event, handleActivity, true);
+      document.addEventListener(event, handleActivity, false);
     });
 
     // Cleanup on unmount or when not authenticated
     return () => {
       events.forEach((event) => {
-        document.removeEventListener(event, handleActivity, true);
+        document.removeEventListener(event, handleActivity, false);
       });
     };
   }, [isAuthenticated, resetInactivityTimer]);

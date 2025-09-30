@@ -17,6 +17,7 @@ import {
   userTrainingAreaProgress,
   userCourseProgress,
 } from "../db/schema/progress";
+import { courses } from "../db/schema/training";
 import type {
   User,
   NewUser,
@@ -318,23 +319,23 @@ export class UserService {
     }>;
     totalCount: number;
   }> {
-    // Calculate progress based on completed courses / total courses
+    // Calculate progress based on completed courses / total courses (only published courses)
     const baseQuery = db
       .select({
         user: users,
         normalUserDetails: normalUsers,
         completedCourses: sql<number>`
-            COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END)
+            COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' AND ${courses.status} = 'published' THEN 1 END)
           `,
         totalCourses: sql<number>`
-            COUNT(${userCourseProgress.courseId})
+            COUNT(CASE WHEN ${courses.status} = 'published' THEN ${userCourseProgress.courseId} END)
           `,
         totalProgress: sql<number>`
             CASE
-              WHEN COUNT(${userCourseProgress.courseId}) = 0 THEN 0
+              WHEN COUNT(CASE WHEN ${courses.status} = 'published' THEN ${userCourseProgress.courseId} END) = 0 THEN 0
               ELSE ROUND(
-                (COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0) /
-                COUNT(${userCourseProgress.courseId}),
+                (COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' AND ${courses.status} = 'published' THEN 1 END) * 100.0) /
+                COUNT(CASE WHEN ${courses.status} = 'published' THEN ${userCourseProgress.courseId} END),
                 2
               )
             END
@@ -343,14 +344,15 @@ export class UserService {
       .from(users)
       .leftJoin(normalUsers, eq(users.id, normalUsers.userId))
       .leftJoin(userCourseProgress, eq(users.id, userCourseProgress.userId))
+      .leftJoin(courses, eq(courses.id, userCourseProgress.courseId))
       .groupBy(users.id, normalUsers.userId)
       .having(
         lte(
           sql`CASE
-              WHEN COUNT(${userCourseProgress.courseId}) = 0 THEN 0
+              WHEN COUNT(CASE WHEN ${courses.status} = 'published' THEN ${userCourseProgress.courseId} END) = 0 THEN 0
               ELSE ROUND(
-                (COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0) /
-                COUNT(${userCourseProgress.courseId}),
+                (COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' AND ${courses.status} = 'published' THEN 1 END) * 100.0) /
+                COUNT(CASE WHEN ${courses.status} = 'published' THEN ${userCourseProgress.courseId} END),
                 2
               )
             END`,
@@ -359,17 +361,17 @@ export class UserService {
       )
       .orderBy(users.createdAt);
 
-    // Get total count
+    // Get total count (only published courses)
     const countQuery = db.select({ count: sql<number>`COUNT(*)` }).from(
       db
         .select({
           userId: users.id,
           courseProgress: sql<number>`
               CASE
-                WHEN COUNT(${userCourseProgress.courseId}) = 0 THEN 0
+                WHEN COUNT(CASE WHEN ${courses.status} = 'published' THEN ${userCourseProgress.courseId} END) = 0 THEN 0
                 ELSE ROUND(
-                  (COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0) /
-                  COUNT(${userCourseProgress.courseId}),
+                  (COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' AND ${courses.status} = 'published' THEN 1 END) * 100.0) /
+                  COUNT(CASE WHEN ${courses.status} = 'published' THEN ${userCourseProgress.courseId} END),
                   2
                 )
               END
@@ -377,14 +379,15 @@ export class UserService {
         })
         .from(users)
         .leftJoin(userCourseProgress, eq(users.id, userCourseProgress.userId))
+        .leftJoin(courses, eq(courses.id, userCourseProgress.courseId))
         .groupBy(users.id)
         .having(
           lte(
             sql`CASE
-                WHEN COUNT(${userCourseProgress.courseId}) = 0 THEN 0
+                WHEN COUNT(CASE WHEN ${courses.status} = 'published' THEN ${userCourseProgress.courseId} END) = 0 THEN 0
                 ELSE ROUND(
-                  (COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0) /
-                  COUNT(${userCourseProgress.courseId}),
+                  (COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' AND ${courses.status} = 'published' THEN 1 END) * 100.0) /
+                  COUNT(CASE WHEN ${courses.status} = 'published' THEN ${userCourseProgress.courseId} END),
                   2
                 )
               END`,

@@ -167,6 +167,13 @@ const validateCourseInput = (
     errors.push("Show level must be a boolean if provided");
   }
 
+  if (
+    data.status !== undefined &&
+    !["draft", "published"].includes(data.status)
+  ) {
+    errors.push("Status must be either 'draft' or 'published'");
+  }
+
   return { isValid: errors.length === 0, errors };
 };
 
@@ -711,6 +718,7 @@ export class CourseController {
       showDuration: req.body.showDuration ?? true,
       level: req.body.level || "beginner",
       showLevel: req.body.showLevel ?? true,
+      status: req.body.status || "draft",
     };
 
     const newCourse = await CourseService.createCourse(courseData);
@@ -723,7 +731,7 @@ export class CourseController {
   }
 
   /**
-   * Get all courses
+   * Get all courses (admin endpoint - includes draft courses)
    * GET /courses?limit=10&offset=0
    */
   static async getAllCourses(req: Request, res: Response): Promise<void> {
@@ -750,6 +758,43 @@ export class CourseController {
     res.status(200).json({
       success: true,
       message: "Courses retrieved successfully",
+      data: courses,
+      meta: {
+        limit: limit || null,
+        offset: offset || 0,
+        count: courses.length,
+      },
+    });
+  }
+
+  /**
+   * Get published courses only (user endpoint - excludes draft courses)
+   * GET /courses/published?limit=10&offset=0
+   */
+  static async getPublishedCourses(req: Request, res: Response): Promise<void> {
+    const limit = req.query.limit
+      ? parseInt(req.query.limit as string)
+      : undefined;
+    const offset = req.query.offset
+      ? parseInt(req.query.offset as string)
+      : undefined;
+
+    if (limit !== undefined && (isNaN(limit) || limit <= 0 || limit > 100)) {
+      throw createError(
+        "Limit must be a positive number between 1 and 100",
+        400
+      );
+    }
+
+    if (offset !== undefined && (isNaN(offset) || offset < 0)) {
+      throw createError("Offset must be a non-negative number", 400);
+    }
+
+    const courses = await CourseService.getPublishedCourses(limit, offset);
+
+    res.status(200).json({
+      success: true,
+      message: "Published courses retrieved successfully",
       data: courses,
       meta: {
         limit: limit || null,
@@ -851,6 +896,7 @@ export class CourseController {
     if (req.body.level) updateData.level = req.body.level;
     if (req.body.showLevel !== undefined)
       updateData.showLevel = req.body.showLevel;
+    if (req.body.status) updateData.status = req.body.status;
 
     const updatedCourse = await CourseService.updateCourse(
       courseId,

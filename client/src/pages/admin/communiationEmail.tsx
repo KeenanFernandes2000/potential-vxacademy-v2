@@ -68,6 +68,9 @@ const CommunicationEmail = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [sending, setSending] = useState<boolean>(false);
+  const [sendSuccess, setSendSuccess] = useState<boolean>(false);
+  const [emailSubject, setEmailSubject] = useState<string>("");
 
   // Helper function to determine if API call should be made
   const shouldMakeApiCall = () => {
@@ -113,6 +116,59 @@ const CommunicationEmail = () => {
       fetchUsers();
     }
   }, [userType, progressFilter]);
+
+  // Function to send bulk email
+  const sendBulkEmail = async () => {
+    if (!emailSubject.trim()) {
+      setError("Please enter an email subject");
+      return;
+    }
+
+    if (!emailContent.trim()) {
+      setError("Please enter email content");
+      return;
+    }
+
+    if (users.length === 0) {
+      setError("No recipients selected. Please select user type and filters.");
+      return;
+    }
+
+    setSending(true);
+    setError("");
+    setSendSuccess(false);
+
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/email/sendCustomTextEmail`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          to: users.map((user) => user.email).filter((email) => email),
+          subject: emailSubject,
+          text: emailContent,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const result = await response.json();
+      setSendSuccess(true);
+      console.log("Email sent successfully:", result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send email");
+      console.error("Error sending email:", err);
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <div className="p-6">
@@ -227,6 +283,23 @@ const CommunicationEmail = () => {
         </div>
       )}
 
+      {/* Email Subject */}
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          Email Subject
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Enter the subject line for your email
+        </p>
+        <input
+          type="text"
+          value={emailSubject}
+          onChange={(e) => setEmailSubject(e.target.value)}
+          placeholder="Enter email subject..."
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+      </div>
+
       {/* Email Content Editor */}
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">
@@ -246,6 +319,113 @@ const CommunicationEmail = () => {
             }}
           />
         </div>
+      </div>
+
+      {/* Error and Success Messages */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-red-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {sendSuccess && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-green-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-green-800">
+                Email sent successfully to {users.length} recipients!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Send Button */}
+      <div className="mb-6">
+        <button
+          onClick={sendBulkEmail}
+          disabled={
+            sending ||
+            users.length === 0 ||
+            !emailSubject.trim() ||
+            !emailContent.trim()
+          }
+          className={`
+            px-6 py-3 rounded-full font-medium text-white transition-colors duration-200
+            ${
+              sending ||
+              users.length === 0 ||
+              !emailSubject.trim() ||
+              !emailContent.trim()
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-orange-500 hover:bg-orange-600"
+            }
+          `}
+        >
+          {sending ? (
+            <div className="flex items-center">
+              <svg
+                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Sending...
+            </div>
+          ) : (
+            `Send Email to ${users.length} Recipients`
+          )}
+        </button>
+
+        {users.length === 0 && (
+          <p className="mt-2 text-sm text-gray-500">
+            Please select a user type and apply filters to see recipients
+          </p>
+        )}
       </div>
     </div>
   );

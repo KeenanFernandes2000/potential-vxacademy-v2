@@ -1,8 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CloudUpload, Link, Image as ImageIcon, Plus } from "lucide-react";
+import { CloudUpload, Image as ImageIcon, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface InsertImageProps {
@@ -46,8 +44,6 @@ const InsertImage: React.FC<InsertImageProps> = ({
   currentImageUrl = "",
 }) => {
   const { token } = useAuth();
-  const [activeTab, setActiveTab] = useState("upload");
-  const [imageUrl, setImageUrl] = useState(currentImageUrl);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [dragActive, setDragActive] = useState(false);
@@ -117,22 +113,6 @@ const InsertImage: React.FC<InsertImageProps> = ({
     }
   };
 
-  const handleUrlInsert = () => {
-    if (!imageUrl.trim()) {
-      setError("Please enter an image URL");
-      return;
-    }
-
-    // Basic URL validation
-    try {
-      new URL(imageUrl);
-      onImageInsert(imageUrl);
-      onClose?.();
-    } catch {
-      setError("Please enter a valid URL");
-    }
-  };
-
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -195,109 +175,65 @@ const InsertImage: React.FC<InsertImageProps> = ({
         </div>
       )}
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2  h-9">
-          <TabsTrigger
-            value="upload"
-            className="flex items-center gap-1 text-sm data-[state=active]:bg-[#00d8cc] data-[state=active]:text-gray-900"
-          >
-            <CloudUpload className="w-3 h-3" />
-            Upload
-          </TabsTrigger>
-          <TabsTrigger
-            value="url"
-            className="flex items-center gap-1 text-sm data-[state=active]:bg-[#00d8cc] data-[state=active]:text-gray-900"
-          >
-            <Link className="w-3 h-3" />
-            URL
-          </TabsTrigger>
-        </TabsList>
+      {/* Upload Image Section */}
+      <div
+        className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center transition-colors ${
+          dragActive ? "border-gray-400 bg-gray-50" : "hover:border-gray-400"
+        }`}
+        onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+      >
+        <div className="space-y-2">
+          <div className="mx-auto w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+            <ImageIcon className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <p className="text-xs font-medium text-gray-700">
+              Drop image here or click to upload
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              JPG, PNG, GIF, SVG up to 5MB
+            </p>
+          </div>
 
-        {/* Upload Image Tab */}
-        <TabsContent value="upload" className="mt-3">
-          <div
-            className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center transition-colors ${
-              dragActive
-                ? "border-gray-400 bg-gray-50"
-                : "hover:border-gray-400"
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-            <div className="space-y-2">
-              <div className="mx-auto w-8 h-8 bg-[#00d8cc] rounded-full flex items-center justify-center">
-                <ImageIcon className="w-4 h-4 text-gray-600" />
+          {/* Upload Progress */}
+          {isUploading && (
+            <div className="space-y-1">
+              <div className="text-xs text-gray-600">Uploading...</div>
+              <div className="w-full bg-gray-200 rounded-full h-1">
+                <div
+                  className="bg-orange-500 h-1 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
               </div>
-              <div>
-                <p className="text-xs font-medium text-white">
-                  Drop image here or click to upload
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  JPG, PNG, GIF, SVG up to 5MB
-                </p>
+              <div className="text-xs text-gray-500">
+                {uploadProgress.toFixed(1)}% complete
               </div>
-
-              {/* Upload Progress */}
-              {isUploading && (
-                <div className="space-y-1">
-                  <div className="text-xs text-gray-600">Uploading...</div>
-                  <div className="w-full bg-gray-200 rounded-full h-1">
-                    <div
-                      className="bg-[#00d8cc] h-1 rounded-full transition-all duration-300 ease-out"
-                      style={{ width: `${uploadProgress}%` }}
-                    ></div>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {uploadProgress.toFixed(1)}% complete
-                  </div>
-                </div>
-              )}
-
-              <Button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="bg-[#00d8cc] text-black hover:bg-[#00c4b8] px-3 py-2 rounded-full text-sm font-medium transition-all duration-300"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                {isUploading ? "Uploading..." : "Select Image"}
-              </Button>
             </div>
-          </div>
+          )}
 
-          {/* Hidden file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileInputChange}
-            className="hidden"
-          />
-        </TabsContent>
+          <Button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="bg-orange-500 text-white hover:bg-orange-600 px-3 py-2 rounded-full text-sm font-medium transition-all duration-300"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            {isUploading ? "Uploading..." : "Select Image"}
+          </Button>
+        </div>
+      </div>
 
-        {/* Image URL Tab */}
-        <TabsContent value="url" className="mt-3">
-          <div className="space-y-2">
-            <Input
-              type="url"
-              placeholder="https://example.com/image.jpg"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              className="w-full bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
-            />
-            <Button
-              type="button"
-              onClick={handleUrlInsert}
-              className="w-full bg-[#00d8cc] text-black hover:bg-[#00c4b8] rounded-full py-2 text-sm font-medium transition-all duration-300"
-            >
-              Insert Image
-            </Button>
-          </div>
-        </TabsContent>
-      </Tabs>
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileInputChange}
+        className="hidden"
+      />
     </div>
   );
 };

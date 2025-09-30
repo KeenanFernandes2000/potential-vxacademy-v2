@@ -284,7 +284,7 @@ export class CourseService {
   }
 
   /**
-   * Get all courses with optional pagination
+   * Get all courses with optional pagination (includes draft courses)
    */
   static async getAllCourses(
     limit?: number,
@@ -304,13 +304,39 @@ export class CourseService {
   }
 
   /**
-   * Get courses by module ID
+   * Get published courses only (excludes draft courses)
+   */
+  static async getPublishedCourses(
+    limit?: number,
+    offset?: number
+  ): Promise<Course[]> {
+    const query = db
+      .select()
+      .from(courses)
+      .where(eq(courses.status, "published"))
+      .orderBy(desc(courses.createdAt));
+
+    if (limit !== undefined) {
+      query.limit(limit);
+    }
+
+    if (offset !== undefined) {
+      query.offset(offset);
+    }
+
+    return await query;
+  }
+
+  /**
+   * Get courses by module ID (only published courses for users)
    */
   static async getCoursesByModule(moduleId: number): Promise<Course[]> {
     return await db
       .select()
       .from(courses)
-      .where(eq(courses.moduleId, moduleId))
+      .where(
+        and(eq(courses.moduleId, moduleId), eq(courses.status, "published"))
+      )
       .orderBy(desc(courses.createdAt));
   }
 

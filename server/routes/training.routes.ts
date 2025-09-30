@@ -65,6 +65,9 @@ router.delete(
 );
 
 // ==================== COURSE ROUTES ====================
+// Public endpoint for users - only returns published courses
+router.get("/courses/published", CourseController.getPublishedCourses);
+// Admin endpoint - returns all courses including drafts
 router.get("/courses", CourseController.getAllCourses);
 router.get("/courses/:id", CourseController.getCourseById);
 router.get("/courses/module/:moduleId", CourseController.getCoursesByModule);

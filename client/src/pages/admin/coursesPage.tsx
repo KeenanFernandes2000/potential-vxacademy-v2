@@ -238,7 +238,17 @@ const CoursesPage = () => {
               training_area_name: trainingArea?.name || "N/A",
               duration: course.duration || 0,
               level: course.level || "beginner",
-              status: course.status || "draft",
+              status: (
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    course.status === "published"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {course.status === "published" ? "Published" : "Draft"}
+                </span>
+              ),
               trainingAreaId: trainingArea?.id, // Keep for filtering
               moduleId: course.moduleId, // Keep for filtering
               actions: (
@@ -246,7 +256,7 @@ const CoursesPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-orange-500 hover:bg-orange-500/10"
                     onClick={() => handleEditCourse(course)}
                     title="Edit"
                   >
@@ -311,6 +321,7 @@ const CoursesPage = () => {
         showDuration: formData.show_duration,
         level: formData.level,
         showLevel: formData.show_level,
+        status: formData.status,
       };
 
       const response = await api.createCourse(courseData, token);
@@ -350,6 +361,7 @@ const CoursesPage = () => {
         showDuration: formData.show_duration,
         level: formData.level,
         showLevel: formData.show_level,
+        status: formData.status,
       };
 
       const response = await api.updateCourse(
@@ -446,6 +458,17 @@ const CoursesPage = () => {
           module_name: module?.name || "N/A",
           duration: course.duration || 0,
           level: course.level || "beginner",
+          status: (
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                course.status === "published"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-gray-100 text-gray-800"
+              }`}
+            >
+              {course.status === "published" ? "Published" : "Draft"}
+            </span>
+          ),
           trainingAreaId: trainingArea?.id, // Keep for filtering
           moduleId: course.moduleId, // Keep for filtering
           actions: (
@@ -453,7 +476,7 @@ const CoursesPage = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-orange-500 hover:bg-orange-500/10"
                 onClick={() => handleEditCourse(course)}
                 title="Edit"
               >
@@ -477,7 +500,8 @@ const CoursesPage = () => {
     setFilteredCourses(transformedCourses);
   };
 
-  const CreateCourseForm = () => {
+  // Create Course Form Component - moved outside to prevent re-renders
+  const CreateCourseForm = React.memo(() => {
     const [formData, setFormData] = useState({
       name: "",
       description: "",
@@ -488,6 +512,7 @@ const CoursesPage = () => {
       show_duration: true,
       level: "beginner",
       show_level: true,
+      status: "draft",
     });
     const [showInsertImage, setShowInsertImage] = useState(false);
 
@@ -504,6 +529,7 @@ const CoursesPage = () => {
         show_duration: true,
         level: "beginner",
         show_level: true,
+        status: "draft",
       });
     };
 
@@ -517,7 +543,9 @@ const CoursesPage = () => {
         className="space-y-4 overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
       >
         <div className="space-y-2">
-          <Label htmlFor="name">Course Name *</Label>
+          <Label htmlFor="name" className="text-[#2C2C2C]">
+            Course Name *
+          </Label>
           <Input
             id="name"
             value={formData.name}
@@ -527,7 +555,9 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description" className="text-[#2C2C2C]">
+            Description
+          </Label>
           <Input
             id="description"
             value={formData.description}
@@ -538,7 +568,9 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="module_id">Module *</Label>
+          <Label htmlFor="module_id" className="text-[#2C2C2C]">
+            Module *
+          </Label>
           <Select
             value={formData.module_id}
             onValueChange={(value) =>
@@ -558,7 +590,7 @@ const CoursesPage = () => {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>Image</Label>
+          <Label className="text-[#2C2C2C]">Image</Label>
           <InsertImage
             onImageInsert={handleImageInsert}
             onClose={() => setShowInsertImage(false)}
@@ -566,7 +598,9 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="internal_note">Internal Note</Label>
+          <Label htmlFor="internal_note" className="text-[#2C2C2C]">
+            Internal Note
+          </Label>
           <Input
             id="internal_note"
             value={formData.internal_note}
@@ -577,7 +611,9 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="showDuration">Show Duration</Label>
+          <Label htmlFor="showDuration" className="text-[#2C2C2C]">
+            Show Duration
+          </Label>
           <div className="flex items-center space-x-2">
             <Switch
               id="showDuration"
@@ -586,14 +622,16 @@ const CoursesPage = () => {
                 setFormData({ ...formData, show_duration: checked })
               }
             />
-            <Label htmlFor="showDuration" className="text-sm">
+            <Label htmlFor="showDuration" className="text-sm text-[#2C2C2C]">
               {formData.show_duration ? "Show" : "Hide"}
             </Label>
           </div>
         </div>
         {formData.show_duration && (
           <div className="space-y-2">
-            <Label htmlFor="duration">Duration (minutes) *</Label>
+            <Label htmlFor="duration" className="text-[#2C2C2C]">
+              Duration (minutes) *
+            </Label>
             <Input
               id="duration"
               type="number"
@@ -607,7 +645,9 @@ const CoursesPage = () => {
           </div>
         )}
         <div className="space-y-2">
-          <Label htmlFor="showLevel">Show Level</Label>
+          <Label htmlFor="showLevel" className="text-[#2C2C2C]">
+            Show Level
+          </Label>
           <div className="flex items-center space-x-2">
             <Switch
               id="showLevel"
@@ -616,21 +656,23 @@ const CoursesPage = () => {
                 setFormData({ ...formData, show_level: checked })
               }
             />
-            <Label htmlFor="showLevel" className="text-sm">
+            <Label htmlFor="showLevel" className="text-sm text-[#2C2C2C]">
               {formData.show_level ? "Show" : "Hide"}
             </Label>
           </div>
         </div>
         {formData.show_level && (
           <div className="space-y-2">
-            <Label htmlFor="level">Level *</Label>
+            <Label htmlFor="level" className="text-[#2C2C2C]">
+              Level *
+            </Label>
             <Select
               value={formData.level}
               onValueChange={(value) =>
                 setFormData({ ...formData, level: value })
               }
             >
-              <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black">
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
                 <SelectValue placeholder="Select level" />
               </SelectTrigger>
               <SelectContent>
@@ -641,6 +683,27 @@ const CoursesPage = () => {
             </Select>
           </div>
         )}
+        <div className="space-y-2">
+          <Label htmlFor="status" className="text-[#2C2C2C]">
+            Status *
+          </Label>
+          <Select
+            value={formData.status}
+            onValueChange={(value) =>
+              setFormData({ ...formData, status: value })
+            }
+          >
+            <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">Draft (Hidden from users)</SelectItem>
+              <SelectItem value="published">
+                Published (Visible to users)
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex justify-end gap-2">
           <Button type="submit" disabled={isLoading} className="rounded-full">
             {isLoading ? "Creating..." : "Create Course"}
@@ -648,9 +711,10 @@ const CoursesPage = () => {
         </div>
       </form>
     );
-  };
+  });
 
-  const EditCourseForm = () => {
+  // Edit Course Form Component - moved outside to prevent re-renders
+  const EditCourseForm = React.memo(() => {
     const [formData, setFormData] = useState({
       name: selectedCourse?.name || "",
       description: selectedCourse?.description || "",
@@ -661,8 +725,27 @@ const CoursesPage = () => {
       show_duration: selectedCourse?.showDuration || true,
       level: selectedCourse?.level || "beginner",
       show_level: selectedCourse?.showLevel || true,
+      status: selectedCourse?.status || "draft",
     });
     const [showInsertImage, setShowInsertImage] = useState(false);
+
+    // Update form data when selectedCourse changes
+    useEffect(() => {
+      if (selectedCourse) {
+        setFormData({
+          name: selectedCourse.name || "",
+          description: selectedCourse.description || "",
+          module_id: selectedCourse.moduleId?.toString() || "",
+          image_url: selectedCourse.imageUrl || "",
+          internal_note: selectedCourse.internalNote || "",
+          duration: selectedCourse.duration?.toString() || "",
+          show_duration: selectedCourse.showDuration || true,
+          level: selectedCourse.level || "beginner",
+          show_level: selectedCourse.showLevel || true,
+          status: selectedCourse.status || "draft",
+        });
+      }
+    }, [selectedCourse]);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -679,7 +762,9 @@ const CoursesPage = () => {
         className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
       >
         <div className="space-y-2">
-          <Label htmlFor="edit_name">Course Name *</Label>
+          <Label htmlFor="edit_name" className="text-[#2C2C2C]">
+            Course Name *
+          </Label>
           <Input
             id="edit_name"
             value={formData.name}
@@ -689,7 +774,9 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_description">Description</Label>
+          <Label htmlFor="edit_description" className="text-[#2C2C2C]">
+            Description
+          </Label>
           <Input
             id="edit_description"
             value={formData.description}
@@ -700,7 +787,9 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_module_id">Module *</Label>
+          <Label htmlFor="edit_module_id" className="text-[#2C2C2C]">
+            Module *
+          </Label>
           <Select
             value={formData.module_id}
             onValueChange={(value) =>
@@ -720,7 +809,7 @@ const CoursesPage = () => {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>Image</Label>
+          <Label className="text-[#2C2C2C]">Image</Label>
           <InsertImage
             onImageInsert={handleImageInsert}
             onClose={() => setShowInsertImage(false)}
@@ -728,7 +817,9 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_internal_note">Internal Note</Label>
+          <Label htmlFor="edit_internal_note" className="text-[#2C2C2C]">
+            Internal Note
+          </Label>
           <Input
             id="edit_internal_note"
             value={formData.internal_note}
@@ -739,7 +830,9 @@ const CoursesPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_showDuration">Show Duration</Label>
+          <Label htmlFor="edit_showDuration" className="text-[#2C2C2C]">
+            Show Duration
+          </Label>
           <div className="flex items-center space-x-2">
             <Switch
               id="edit_showDuration"
@@ -748,14 +841,19 @@ const CoursesPage = () => {
                 setFormData({ ...formData, show_duration: checked })
               }
             />
-            <Label htmlFor="edit_showDuration" className="text-sm">
+            <Label
+              htmlFor="edit_showDuration"
+              className="text-sm text-[#2C2C2C]"
+            >
               {formData.show_duration ? "Show" : "Hide"}
             </Label>
           </div>
         </div>
         {formData.show_duration && (
           <div className="space-y-2">
-            <Label htmlFor="edit_duration">Duration (minutes) *</Label>
+            <Label htmlFor="edit_duration" className="text-[#2C2C2C]">
+              Duration (minutes) *
+            </Label>
             <Input
               id="edit_duration"
               type="number"
@@ -769,7 +867,9 @@ const CoursesPage = () => {
           </div>
         )}
         <div className="space-y-2">
-          <Label htmlFor="edit_showLevel">Show Level</Label>
+          <Label htmlFor="edit_showLevel" className="text-[#2C2C2C]">
+            Show Level
+          </Label>
           <div className="flex items-center space-x-2">
             <Switch
               id="edit_showLevel"
@@ -778,21 +878,23 @@ const CoursesPage = () => {
                 setFormData({ ...formData, show_level: checked })
               }
             />
-            <Label htmlFor="edit_showLevel" className="text-sm">
+            <Label htmlFor="edit_showLevel" className="text-sm text-[#2C2C2C]">
               {formData.show_level ? "Show" : "Hide"}
             </Label>
           </div>
         </div>
         {formData.show_level && (
           <div className="space-y-2">
-            <Label htmlFor="edit_level">Level *</Label>
+            <Label htmlFor="edit_level" className="text-[#2C2C2C]">
+              Level *
+            </Label>
             <Select
               value={formData.level}
               onValueChange={(value) =>
                 setFormData({ ...formData, level: value })
               }
             >
-              <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black">
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
                 <SelectValue placeholder="Select level" />
               </SelectTrigger>
               <SelectContent>
@@ -803,6 +905,27 @@ const CoursesPage = () => {
             </Select>
           </div>
         )}
+        <div className="space-y-2">
+          <Label htmlFor="edit_status" className="text-[#2C2C2C]">
+            Status *
+          </Label>
+          <Select
+            value={formData.status}
+            onValueChange={(value) =>
+              setFormData({ ...formData, status: value })
+            }
+          >
+            <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">Draft (Hidden from users)</SelectItem>
+              <SelectItem value="published">
+                Published (Visible to users)
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex justify-end gap-2">
           <Button
             type="button"
@@ -821,7 +944,7 @@ const CoursesPage = () => {
         </div>
       </form>
     );
-  };
+  });
 
   const columns = [
     "ID",
@@ -829,6 +952,7 @@ const CoursesPage = () => {
     "Module",
     "Training Area",
     "Duration (Min)",
+    "Status",
     "Actions",
   ];
 
@@ -861,9 +985,9 @@ const CoursesPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-sandstone border-white/20 text-white max-h-[80%]">
+        <DialogContent className="max-w-md bg-white border-sandstone text-[#2C2C2C] max-h-[80%]">
           <DialogHeader>
-            <DialogTitle className="text-white">Edit Course</DialogTitle>
+            <DialogTitle className="text-[#2C2C2C]">Edit Course</DialogTitle>
           </DialogHeader>
           <EditCourseForm />
         </DialogContent>

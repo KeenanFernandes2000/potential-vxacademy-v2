@@ -1157,7 +1157,7 @@ export class ProgressService {
     userId: number,
     moduleId: number
   ) {
-    // Get all courses in the module with their progress
+    // Get all published courses in the module with their progress (exclude drafts)
     const coursesWithProgress = await tx
       .select({
         courseId: courses.id,
@@ -1171,7 +1171,9 @@ export class ProgressService {
           eq(userCourseProgress.userId, userId)
         )
       )
-      .where(eq(courses.moduleId, moduleId));
+      .where(
+        and(eq(courses.moduleId, moduleId), eq(courses.status, "published"))
+      );
 
     // Calculate average completion percentage
     const totalCourses = coursesWithProgress.length;

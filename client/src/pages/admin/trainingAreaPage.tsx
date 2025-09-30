@@ -218,7 +218,7 @@ const TrainingAreaPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-orange-500 hover:bg-orange-500/10"
                   onClick={() => handleEditTrainingArea(trainingArea)}
                   title="Edit"
                 >
@@ -381,7 +381,7 @@ const TrainingAreaPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              className="h-8 w-8 p-0 text-white hover:text-orange-500 hover:bg-orange-500/10"
               onClick={() => handleEditTrainingArea(trainingArea)}
               title="Edit"
             >
@@ -404,7 +404,8 @@ const TrainingAreaPage = () => {
     setFilteredTrainingAreas(transformedTrainingAreas);
   };
 
-  const CreateTrainingAreaForm = () => {
+  // Create Training Area Form Component - moved outside to prevent re-renders
+  const CreateTrainingAreaForm = React.memo(() => {
     const [formData, setFormData] = useState({
       name: "",
       description: "",
@@ -426,7 +427,9 @@ const TrainingAreaPage = () => {
       <div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Training Area Name *</Label>
+            <Label htmlFor="name" className="text-[#2C2C2C]">
+              Training Area Name *
+            </Label>
             <Input
               id="name"
               value={formData.name}
@@ -438,7 +441,9 @@ const TrainingAreaPage = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description" className="text-[#2C2C2C]">
+              Description
+            </Label>
             <Input
               id="description"
               value={formData.description}
@@ -449,7 +454,7 @@ const TrainingAreaPage = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label>Image</Label>
+            <Label className="text-[#2C2C2C]">Image</Label>
             <InsertImage
               onImageInsert={handleImageInsert}
               onClose={() => setShowInsertImage(false)}
@@ -470,15 +475,27 @@ const TrainingAreaPage = () => {
         )}
       </div>
     );
-  };
+  });
 
-  const EditTrainingAreaForm = () => {
+  // Edit Training Area Form Component - moved outside to prevent re-renders
+  const EditTrainingAreaForm = React.memo(() => {
     const [formData, setFormData] = useState({
       name: selectedTrainingArea?.name || "",
       description: selectedTrainingArea?.description || "",
       image_url: selectedTrainingArea?.image_url || "",
     });
     const [showInsertImage, setShowInsertImage] = useState(false);
+
+    // Update form data when selectedTrainingArea changes
+    useEffect(() => {
+      if (selectedTrainingArea) {
+        setFormData({
+          name: selectedTrainingArea.name || "",
+          description: selectedTrainingArea.description || "",
+          image_url: selectedTrainingArea.image_url || "",
+        });
+      }
+    }, [selectedTrainingArea]);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -493,7 +510,9 @@ const TrainingAreaPage = () => {
       <div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="edit_name">Training Area Name *</Label>
+            <Label htmlFor="edit_name" className="text-[#2C2C2C]">
+              Training Area Name *
+            </Label>
             <Input
               id="edit_name"
               value={formData.name}
@@ -505,7 +524,9 @@ const TrainingAreaPage = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit_description">Description</Label>
+            <Label htmlFor="edit_description" className="text-[#2C2C2C]">
+              Description
+            </Label>
             <Input
               id="edit_description"
               value={formData.description}
@@ -516,7 +537,7 @@ const TrainingAreaPage = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label>Image</Label>
+            <Label className="text-[#2C2C2C]">Image</Label>
             <InsertImage
               onImageInsert={handleImageInsert}
               onClose={() => setShowInsertImage(false)}
@@ -531,7 +552,7 @@ const TrainingAreaPage = () => {
                 setIsEditModalOpen(false);
                 setSelectedTrainingArea(null);
               }}
-              className="rounded-full bg-[#00d8cc]/30"
+              className="rounded-full bg-orange-500/30"
             >
               Cancel
             </Button>
@@ -542,7 +563,7 @@ const TrainingAreaPage = () => {
         </form>
       </div>
     );
-  };
+  });
 
   const columns = ["ID", "Name", "Actions"];
 
@@ -574,9 +595,11 @@ const TrainingAreaPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-2xl bg-sandstone border-white/20 text-white">
+        <DialogContent className="max-w-2xl bg-white border-sandstone text-[#2C2C2C]">
           <DialogHeader>
-            <DialogTitle className="text-white">Edit Training Area</DialogTitle>
+            <DialogTitle className="text-[#2C2C2C]">
+              Edit Training Area
+            </DialogTitle>
           </DialogHeader>
           <EditTrainingAreaForm />
         </DialogContent>
