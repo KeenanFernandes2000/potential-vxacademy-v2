@@ -97,6 +97,7 @@ export function renderTemplate(file: string, data: Record<string, unknown>) {
   return { html, text };
 }
 
+console.log(process.env.AWS_REGION);
 const ses = new SESv2Client({ region: process.env.AWS_REGION });
 
 export async function sendEmail(params: {
