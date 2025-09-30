@@ -995,11 +995,11 @@ const SubAdminPage = () => {
       <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
         <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
           <DialogHeader>
-            <DialogTitle className="text-[#2C2C2C]">Email Sent</DialogTitle>
+            <DialogTitle className="text-[#2C2C2C]">Send Email</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-[#666666]">
-              An invitation email has been sent to {selectedUser?.email}
+              Send an email to {selectedUser?.email}
             </p>
             <div className="space-y-2">
               <Label className="text-[#2C2C2C]">Join URL:</Label>
@@ -1010,7 +1010,45 @@ const SubAdminPage = () => {
                 </code>
               </div>
             </div>
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <Button
+                onClick={async () => {
+                  if (selectedUser) {
+                    try {
+                      const baseUrl = import.meta.env.VITE_API_URL;
+                      const response = await fetch(
+                        `${baseUrl}/api/users/sub-admins/reminder`,
+                        {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                            userId: selectedUser.id,
+                          }),
+                        }
+                      );
+
+                      if (response.ok) {
+                        console.log("Reminder email sent successfully");
+                        // You can add a success toast here
+                      } else {
+                        console.error("Failed to send reminder email");
+                        // You can add an error toast here
+                      }
+                    } catch (error) {
+                      console.error("Error sending reminder email:", error);
+                      // You can add an error toast here
+                    }
+                  }
+
+                  setIsEmailModalOpen(false);
+                  setSelectedUser(null);
+                }}
+                className="rounded-full"
+              >
+                Send Email
+              </Button>
               <Button
                 onClick={() => {
                   setIsEmailModalOpen(false);
