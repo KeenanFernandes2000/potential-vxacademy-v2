@@ -260,6 +260,35 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
+  // Dialog state
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Monitor for dialog state changes
+  useEffect(() => {
+    const checkDialogState = () => {
+      const dialogElements = document.querySelectorAll(".fixed.inset-0.z-50");
+      const hasOpenDialog = Array.from(dialogElements).some((el) => {
+        const htmlEl = el as HTMLElement;
+        return htmlEl.style.display !== "none" && htmlEl.offsetParent !== null;
+      });
+      setIsDialogOpen(hasOpenDialog);
+    };
+
+    // Check immediately
+    checkDialogState();
+
+    // Set up mutation observer to watch for dialog changes
+    const observer = new MutationObserver(checkDialogState);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["style", "class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   // Load training areas on component mount (only if training area dropdown is enabled)
   useEffect(() => {
     if (!dropdownConfig.showTrainingArea) return;
@@ -536,7 +565,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
   // Check if a column header contains 'name' using regex
   const isNameColumn = (columnName: string): boolean => {
     const isName = /name/i.test(columnName);
-    console.log(`Column "${columnName}" is name column:`, isName);
+    // console.log(`Column "${columnName}" is name column:`, isName);
     return isName;
   };
 
@@ -667,10 +696,21 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
           isSortable ? "cursor-pointer hover:bg-muted/50 select-none" : ""
         }`}
         style={{ minWidth: "120px", maxWidth: "200px" }}
-        onClick={() => {
+        onClick={(e) => {
+          if (isDialogOpen) {
+            console.log("Dialog is open, ignoring table header click");
+            e.stopPropagation();
+            e.preventDefault();
+            return;
+          }
+
           console.log(
             `Clicked on column: "${column}", isSortable:`,
-            isSortable
+            isSortable,
+            "Event target:",
+            e.target,
+            "Current target:",
+            e.currentTarget
           );
           if (isSortable) {
             handleSort(column);

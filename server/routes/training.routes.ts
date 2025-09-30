@@ -8,6 +8,7 @@ import {
   CourseUnitController,
   LearningBlockController,
   UnitRoleAssignmentController,
+  CertificateController,
 } from "../controller/training.controllers";
 import { authorizeRoles } from "../middleware/userTypeAuth";
 import passport from "../middleware/passport";
@@ -197,6 +198,18 @@ router.delete(
   authenticateJWT,
   authorizeRoles("admin"),
   UnitRoleAssignmentController.deleteUnitRoleAssignment
+);
+
+// ==================== CERTIFICATE ROUTES ====================
+router.get(
+  "/certificates/training-area/:trainingAreaId/user/:userId",
+  authenticateJWT,
+  CertificateController.getCertificatesByTrainingAreaAndUser
+);
+router.get(
+  "/certificates/:id",
+  authenticateJWT,
+  CertificateController.getCertificateById
 );
 
 export default router;

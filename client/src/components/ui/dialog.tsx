@@ -46,18 +46,28 @@ const DialogContent = React.forwardRef<
   if (!context.open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center"
+      style={{ pointerEvents: "none" }}
+    >
       <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={() => context.setOpen(false)}
+        style={{ pointerEvents: "auto" }}
+        onClick={(e) => {
+          e.stopPropagation();
+          context.setOpen(false);
+        }}
       />
       <div
         ref={ref}
         className={cn(
-          "relative z-10 w-full max-w-lg mx-auto bg-card text-card-foreground rounded-lg shadow-xl p-6 border",
+          "relative z-50 w-full max-w-lg mx-auto bg-card text-card-foreground rounded-lg shadow-xl p-6 border",
           className
         )}
+        style={{ pointerEvents: "auto" }}
         onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onMouseUp={(e) => e.stopPropagation()}
         {...props}
       />
     </div>

@@ -7,6 +7,7 @@ import {
   CourseUnitService,
   LearningBlockService,
   UnitRoleAssignmentService,
+  CertificateService,
 } from "../services/training.services";
 import type {
   NewTrainingArea,
@@ -1923,6 +1924,69 @@ export class UnitRoleAssignmentController {
     res.status(200).json({
       success: true,
       message: "Unit role assignment deleted successfully",
+    });
+  }
+}
+
+// ==================== CERTIFICATE CONTROLLERS ====================
+export class CertificateController {
+  /**
+   * Get certificates by training area ID and user ID
+   * GET /certificates/training-area/:trainingAreaId/user/:userId
+   */
+  static async getCertificatesByTrainingAreaAndUser(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const trainingAreaId = parseInt(req.params.trainingAreaId as string);
+    const userId = parseInt(req.params.userId as string);
+
+    if (isNaN(trainingAreaId) || trainingAreaId <= 0) {
+      throw createError("Invalid training area ID", 400);
+    }
+
+    if (isNaN(userId) || userId <= 0) {
+      throw createError("Invalid user ID", 400);
+    }
+
+    const certificates = await CertificateService.getCertificatesByTrainingAreaAndUser(
+      trainingAreaId,
+      userId
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Certificates retrieved successfully",
+      data: certificates,
+      meta: {
+        trainingAreaId,
+        userId,
+        count: certificates.length,
+      },
+    });
+  }
+
+  /**
+   * Get certificate by ID
+   * GET /certificates/:id
+   */
+  static async getCertificateById(req: Request, res: Response): Promise<void> {
+    const certificateId = parseInt(req.params.id as string);
+
+    if (isNaN(certificateId) || certificateId <= 0) {
+      throw createError("Invalid certificate ID", 400);
+    }
+
+    const certificate = await CertificateService.getCertificateById(certificateId);
+
+    if (!certificate) {
+      throw createError("Certificate not found", 404);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Certificate retrieved successfully",
+      data: certificate,
     });
   }
 }
