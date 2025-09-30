@@ -122,4 +122,7 @@ router.delete(
   userControllers.deleteInvitationByToken
 );
 
+// ==================== CERTIFICATE FUNCTIONS ====================
+router.post("/certificates/generate", userControllers.generateCertificate);
+
 export default router;

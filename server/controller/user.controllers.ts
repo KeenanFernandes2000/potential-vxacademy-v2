@@ -6,6 +6,7 @@ import {
   OrganizationService,
   SubOrganizationService,
 } from "../services/user.services";
+import { CertificateController } from "./training.controllers";
 import type {
   NewUser,
   UpdateUser,
@@ -611,7 +612,7 @@ export class userControllers {
     if (newUser.userType === "sub_admin") {
       sendByType({
         type: "welcome",
-        to: "keenan@potential.com",
+        to: "jayryan267@gmail.com",
         data: {
           name: newUser.firstName,
           url: `${process.env.FRONTEND_URL}/join?id=${newUser.id}`,
@@ -936,7 +937,7 @@ export class userControllers {
 
     sendByType({
       type: "registration_success",
-      to: "keenan@potential.com",
+      to: "jayryan267@gmail.com",
       data: {
         name: existingUser.firstName,
         url: `${process.env.FRONTEND_URL}/sub-admin/dashboard`,
@@ -1116,7 +1117,7 @@ export class userControllers {
 
     sendByType({
       type: "onboarding_reminder",
-      to: "keenan@potential.com",
+      to: "jayryan267@gmail.com",
       data: {
         name: user.firstName,
         url: `${process.env.FRONTEND_URL}/sub-admin/dashboard`,
@@ -1202,7 +1203,7 @@ export class userControllers {
 
     sendByType({
       type: "frontliner_registration_success",
-      to: "keenan@potential.com",
+      to: "jayryan267@gmail.com",
       data: {
         name: existingUser.firstName,
         url: `${process.env.FRONTEND_URL}/user/dashboard`,
@@ -2952,7 +2953,7 @@ export class userControllers {
       if (result?.token) {
         sendByType({
           type: "password_reset",
-          to: "keenan@potential.com",
+          to: "jayryan267@gmail.com",
           data: {
             name: user.firstName,
             url: `${process.env.FRONTEND_URL}/reset-password?token=${result.token}`,
@@ -3043,5 +3044,13 @@ export class userControllers {
       }
       throw createError("Failed to reset password", 500);
     }
+  }
+
+  /**
+   * Generate certificate PDF with user name
+   * POST /certificates/generate
+   */
+  static async generateCertificate(req: Request, res: Response): Promise<void> {
+    await CertificateController.generateCertificate(req, res);
   }
 }

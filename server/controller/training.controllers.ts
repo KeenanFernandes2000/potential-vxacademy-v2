@@ -9,6 +9,7 @@ import {
   UnitRoleAssignmentService,
   CertificateService,
 } from "../services/training.services";
+import { CertificateGenerationService } from "../services/certificate.services";
 import type {
   NewTrainingArea,
   UpdateTrainingArea,
@@ -1988,5 +1989,41 @@ export class CertificateController {
       message: "Certificate retrieved successfully",
       data: certificate,
     });
+  }
+
+  /**
+   * Generate certificate PDF with user name
+   * POST /certificates/generate
+   */
+  static async generateCertificate(req: Request, res: Response): Promise<void> {
+    const { userId, trainingAreaId } = req.body;
+
+    if (!userId || !trainingAreaId) {
+      throw createError("User ID and Training Area ID are required", 400);
+    }
+
+    if (isNaN(parseInt(userId)) || parseInt(userId) <= 0) {
+      throw createError("Invalid user ID", 400);
+    }
+
+    if (isNaN(parseInt(trainingAreaId)) || parseInt(trainingAreaId) <= 0) {
+      throw createError("Invalid training area ID", 400);
+    }
+
+    const result = await CertificateGenerationService.generateAndSaveCertificate(
+      parseInt(userId),
+      parseInt(trainingAreaId)
+    );
+
+    if (!result.success) {
+      throw createError(result.message, 400);
+    }
+
+    // Set headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="certificate-${result.certificateId}.pdf"`);
+    res.setHeader('Content-Length', result.pdfBuffer?.length || 0);
+
+    res.status(200).send(result.pdfBuffer);
   }
 }

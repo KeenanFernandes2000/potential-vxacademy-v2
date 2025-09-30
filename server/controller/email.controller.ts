@@ -85,7 +85,7 @@ export class EmailController {
     }
     sendByType({
       type: "new_training_area_announcement",
-      to: "keenan@potential.com",
+      to: "jayryan267@gmail.com",
       data: {
         name: user.firstName,
         trainingAreaName: trainingArea.name,
@@ -105,7 +105,7 @@ export class EmailController {
     }
     sendByType({
       type: "provisional_certificate",
-      to: "keenan@potential.com",
+      to: "jayryan267@gmail.com",
       data: {
         name: user?.firstName,
         trainingAreaName: trainingArea?.name,
@@ -192,7 +192,7 @@ export class EmailController {
 
     sendByType({
       type: "certificate_available",
-      to: "keenan@potential.com",
+      to: "jayryan267@gmail.com",
       data: {
         name: user.firstName,
         trainingAreaName: trainingArea?.name,

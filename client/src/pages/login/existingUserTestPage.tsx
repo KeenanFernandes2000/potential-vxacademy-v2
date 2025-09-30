@@ -167,6 +167,41 @@ const api = {
       throw error;
     }
   },
+
+  async generateCertificate(
+    trainingAreaId: number,
+    userId: number,
+    token: string
+  ) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/certificates/generate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId,
+            trainingAreaId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Return the PDF blob for download
+      const blob = await response.blob();
+      return blob;
+    } catch (error) {
+      console.error("Failed to generate certificate:", error);
+      throw error;
+    }
+  },
 };
 
 const quizData = [
