@@ -454,7 +454,9 @@ const LearningBlockPage = () => {
         ...formData,
         content:
           formData.type === "text"
-            ? JSON.stringify(editorState)
+            ? editorState !== null
+              ? JSON.stringify(editorState)
+              : formData.content
             : formData.content,
       };
       await handleCreateLearningBlock(submitData);
@@ -638,7 +640,9 @@ const LearningBlockPage = () => {
         ...formData,
         content:
           formData.type === "text"
-            ? JSON.stringify(editorState)
+            ? editorState !== null
+              ? JSON.stringify(editorState)
+              : selectedLearningBlock?.content || formData.content
             : formData.content,
       };
       await handleUpdateLearningBlock(submitData);
