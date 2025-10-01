@@ -614,7 +614,7 @@ export class userControllers {
     if (newUser.userType === "sub_admin") {
       sendByType({
         type: "welcome",
-        to: "jayryan267@gmail.com",
+        to: newUser.email,
         data: {
           name: newUser.firstName,
           url: `${process.env.FRONTEND_URL}/join?id=${newUser.id}`,
@@ -939,7 +939,7 @@ export class userControllers {
 
     sendByType({
       type: "registration_success",
-      to: "jayryan267@gmail.com",
+      to: existingUser.email,
       data: {
         name: existingUser.firstName,
         url: `${process.env.FRONTEND_URL}/sub-admin/dashboard`,
@@ -1119,7 +1119,7 @@ export class userControllers {
 
     sendByType({
       type: "onboarding_reminder",
-      to: "jayryan267@gmail.com",
+      to: user.email,
       data: {
         name: user.firstName,
         url: `${process.env.FRONTEND_URL}/sub-admin/dashboard`,
@@ -1205,7 +1205,7 @@ export class userControllers {
 
     sendByType({
       type: "frontliner_registration_success",
-      to: "jayryan267@gmail.com",
+      to: existingUser.email,
       data: {
         name: existingUser.firstName,
         url: `${process.env.FRONTEND_URL}/user/dashboard`,
@@ -2955,7 +2955,7 @@ export class userControllers {
       if (result?.token) {
         sendByType({
           type: "password_reset",
-          to: "jayryan267@gmail.com",
+          to: user.email,
           data: {
             name: user.firstName,
             url: `${process.env.FRONTEND_URL}/reset-password?token=${result.token}`,

@@ -82,7 +82,6 @@ async function sendDirect(payload: {
   data: Record<string, unknown>;
 }) {
   const { html, text } = renderTemplate(payload.file, payload.data);
-  console.log(text);
   await sendEmail({ to: payload.to, subject: payload.subject, html, text });
 }
 
