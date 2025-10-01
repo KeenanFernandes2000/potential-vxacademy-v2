@@ -795,9 +795,11 @@ const joinPage = (props: Props) => {
         id,
         registrationData
       );
-      localStorage.setItem("userData", JSON.stringify(response.user));
-      localStorage.setItem("token", response.token);
+
       if (response.success) {
+        // Store user data and token from the correct response structure
+        localStorage.setItem("userData", JSON.stringify(response.data.user));
+        localStorage.setItem("token", response.token);
         navigate("/sub-admin/dashboard");
       } else {
         alert(

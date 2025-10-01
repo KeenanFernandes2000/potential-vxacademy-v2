@@ -307,7 +307,11 @@ const SubAdminPage = () => {
           fullName: `${user.firstName} ${user.lastName}`,
           email: user.email,
           organization: user.organization || "N/A",
-          subOrganization: user.subOrganization || "N/A",
+          subOrganization: Array.isArray(user.subOrganization)
+            ? user.subOrganization.join(", ")
+            : user.subOrganization || "N/A",
+          asset: user.asset || "N/A",
+          subAsset: user.subAsset || "N/A",
           dateAdded: user.createdAt
             ? new Date(user.createdAt).toLocaleDateString()
             : "N/A",
@@ -366,7 +370,14 @@ const SubAdminPage = () => {
           subAdmin.fullName.toLowerCase().includes(query.toLowerCase()) ||
           subAdmin.email.toLowerCase().includes(query.toLowerCase()) ||
           subAdmin.organization.toLowerCase().includes(query.toLowerCase()) ||
-          subAdmin.subOrganization.toLowerCase().includes(query.toLowerCase())
+          (typeof subAdmin.subOrganization === "string" &&
+            subAdmin.subOrganization
+              .toLowerCase()
+              .includes(query.toLowerCase())) ||
+          (typeof subAdmin.asset === "string" &&
+            subAdmin.asset.toLowerCase().includes(query.toLowerCase())) ||
+          (typeof subAdmin.subAsset === "string" &&
+            subAdmin.subAsset.toLowerCase().includes(query.toLowerCase()))
       );
       setFilteredSubAdmins(filtered);
     }
@@ -401,8 +412,11 @@ const SubAdminPage = () => {
         firstName: formData.first_name,
         lastName: formData.last_name,
         email: formData.email,
+        password: formData.password,
         organization: formData.organization,
         subOrganization: formData.sub_organization,
+        asset: formData.asset,
+        subAsset: formData.sub_asset,
         userType: "sub_admin", // Hard coded as sub-admin
       };
 
@@ -438,8 +452,11 @@ const SubAdminPage = () => {
         firstName: formData.first_name,
         lastName: formData.last_name,
         email: formData.email,
+        password: formData.password,
         organization: formData.organization,
         subOrganization: formData.sub_organization,
+        asset: formData.asset,
+        subAsset: formData.sub_asset,
         userType: "sub_admin", // Hard coded as sub-admin
       };
 
@@ -516,7 +533,11 @@ const SubAdminPage = () => {
       fullName: `${user.firstName} ${user.lastName}`,
       email: user.email,
       organization: user.organization || "N/A",
-      subOrganization: user.subOrganization || "N/A",
+      subOrganization: Array.isArray(user.subOrganization)
+        ? user.subOrganization.join(", ")
+        : user.subOrganization || "N/A",
+      asset: user.asset || "N/A",
+      subAsset: user.subAsset || "N/A",
       dateAdded: user.createdAt
         ? new Date(user.createdAt).toLocaleDateString()
         : "N/A",
@@ -525,7 +546,7 @@ const SubAdminPage = () => {
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+            className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
             onClick={() => handleEmailSubAdmin(user)}
             title="Send Email"
           >
@@ -534,7 +555,7 @@ const SubAdminPage = () => {
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+            className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
             onClick={() => handleEditSubAdmin(user)}
             title="Edit"
           >
@@ -543,7 +564,7 @@ const SubAdminPage = () => {
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
+            className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
             onClick={() => handleDeleteSubAdmin(user.id)}
             title="Delete"
           >
@@ -562,14 +583,20 @@ const SubAdminPage = () => {
       first_name: "",
       last_name: "",
       email: "",
+      password: "",
       organization: "",
-      sub_organization: "",
+      sub_organization: [] as string[],
+      asset: "",
+      sub_asset: "",
     });
     const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
-    const [selectedSubOrgId, setSelectedSubOrgId] = useState<number | null>(
+    const [selectedSubOrgIds, setSelectedSubOrgIds] = useState<number[]>([]);
+    const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
+    const [selectedSubAssetId, setSelectedSubAssetId] = useState<number | null>(
       null
     );
     const [formSubOrganizations, setFormSubOrganizations] = useState<any[]>([]);
+    const [formSubAssets, setFormSubAssets] = useState<any[]>([]);
 
     const handleOrgChange = async (orgId: number) => {
       setSelectedOrgId(orgId);
@@ -577,9 +604,9 @@ const SubAdminPage = () => {
       setFormData({
         ...formData,
         organization: selectedOrg?.name || "",
-        sub_organization: "",
+        sub_organization: [],
       });
-      setSelectedSubOrgId(null);
+      setSelectedSubOrgIds([]);
       setFormSubOrganizations([]);
 
       // Fetch sub-organizations for the selected organization
@@ -596,14 +623,47 @@ const SubAdminPage = () => {
       }
     };
 
-    const handleSubOrgChange = (subOrgId: number) => {
-      setSelectedSubOrgId(subOrgId);
-      const selectedSubOrg = formSubOrganizations.find(
-        (subOrg) => subOrg.id === subOrgId
+    const handleSubOrgChange = (subOrgIds: number[]) => {
+      setSelectedSubOrgIds(subOrgIds);
+      const selectedSubOrgs = formSubOrganizations.filter((subOrg) =>
+        subOrgIds.includes(subOrg.id)
       );
       setFormData({
         ...formData,
-        sub_organization: selectedSubOrg?.name || "",
+        sub_organization: selectedSubOrgs.map((subOrg) => subOrg.name),
+      });
+    };
+
+    const handleAssetChange = async (assetId: number) => {
+      setSelectedAssetId(assetId);
+      const selectedAsset = assets.find((asset) => asset.id === assetId);
+      setFormData({
+        ...formData,
+        asset: selectedAsset?.name || "",
+        sub_asset: "",
+      });
+      setSelectedSubAssetId(null);
+      setFormSubAssets([]);
+
+      // Fetch sub-assets for the selected asset
+      if (token) {
+        try {
+          const response = await api.getSubAssetsByAssetId(assetId, token);
+          setFormSubAssets(response.data || []);
+        } catch (error) {
+          console.error("Error fetching sub-assets:", error);
+        }
+      }
+    };
+
+    const handleSubAssetChange = (subAssetId: number) => {
+      setSelectedSubAssetId(subAssetId);
+      const selectedSubAsset = formSubAssets.find(
+        (subAsset) => subAsset.id === subAssetId
+      );
+      setFormData({
+        ...formData,
+        sub_asset: selectedSubAsset?.name || "",
       });
     };
 
@@ -614,12 +674,18 @@ const SubAdminPage = () => {
         first_name: "",
         last_name: "",
         email: "",
+        password: "",
         organization: "",
-        sub_organization: "",
+        sub_organization: [],
+        asset: "",
+        sub_asset: "",
       });
       setSelectedOrgId(null);
-      setSelectedSubOrgId(null);
+      setSelectedSubOrgIds([]);
+      setSelectedAssetId(null);
+      setSelectedSubAssetId(null);
       setFormSubOrganizations([]);
+      setFormSubAssets([]);
     };
 
     return (
@@ -672,6 +738,21 @@ const SubAdminPage = () => {
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="password">Password *</Label>
+          <Input
+            id="password"
+            type="password"
+            value={formData.password}
+            onChange={(e) =>
+              setFormData({ ...formData, password: e.target.value })
+            }
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
+            placeholder="Type Sub-Admin's Password"
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="organization">Organization *</Label>
           <Select
             value={selectedOrgId?.toString() || ""}
@@ -693,26 +774,89 @@ const SubAdminPage = () => {
 
         <div className="space-y-2">
           <Label htmlFor="sub_organization">Sub Organization</Label>
+          <div className="max-h-32 overflow-y-auto border border-[#E5E5E5] rounded-lg p-2 bg-white">
+            {!selectedOrgId ? (
+              <p className="text-[#666666] text-sm">
+                Select organization first
+              </p>
+            ) : formSubOrganizations.length === 0 ? (
+              <p className="text-[#666666] text-sm">
+                No sub-organizations available
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {formSubOrganizations.map((subOrg) => (
+                  <div key={subOrg.id} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`sub-org-${subOrg.id}`}
+                      checked={selectedSubOrgIds.includes(subOrg.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          handleSubOrgChange([...selectedSubOrgIds, subOrg.id]);
+                        } else {
+                          handleSubOrgChange(
+                            selectedSubOrgIds.filter((id) => id !== subOrg.id)
+                          );
+                        }
+                      }}
+                      className="rounded border-[#E5E5E5]"
+                    />
+                    <label
+                      htmlFor={`sub-org-${subOrg.id}`}
+                      className="text-sm text-[#2C2C2C]"
+                    >
+                      {subOrg.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="asset">Asset *</Label>
           <Select
-            value={selectedSubOrgId?.toString() || ""}
-            onValueChange={(value) => handleSubOrgChange(parseInt(value))}
-            disabled={!selectedOrgId || formSubOrganizations.length === 0}
+            value={selectedAssetId?.toString() || ""}
+            onValueChange={(value) => handleAssetChange(parseInt(value))}
+            required
+          >
+            <SelectTrigger className="w-full rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+              <SelectValue placeholder="Select asset" />
+            </SelectTrigger>
+            <SelectContent>
+              {assets.map((asset) => (
+                <SelectItem key={asset.id} value={asset.id.toString()}>
+                  {asset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="sub_asset">Sub Asset</Label>
+          <Select
+            value={selectedSubAssetId?.toString() || ""}
+            onValueChange={(value) => handleSubAssetChange(parseInt(value))}
+            disabled={!selectedAssetId || formSubAssets.length === 0}
           >
             <SelectTrigger className="w-full rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
               <SelectValue
                 placeholder={
-                  !selectedOrgId
-                    ? "Select organization first"
-                    : formSubOrganizations.length === 0
-                    ? "No sub-organizations available"
-                    : "Select sub-organization"
+                  !selectedAssetId
+                    ? "Select asset first"
+                    : formSubAssets.length === 0
+                    ? "No sub-assets available"
+                    : "Select sub-asset"
                 }
               />
             </SelectTrigger>
             <SelectContent>
-              {formSubOrganizations.map((subOrg) => (
-                <SelectItem key={subOrg.id} value={subOrg.id.toString()}>
-                  {subOrg.name}
+              {formSubAssets.map((subAsset) => (
+                <SelectItem key={subAsset.id} value={subAsset.id.toString()}>
+                  {subAsset.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -735,18 +879,28 @@ const SubAdminPage = () => {
       first_name: selectedUser?.firstName || "",
       last_name: selectedUser?.lastName || "",
       email: selectedUser?.email || "",
+      password: "",
       organization: selectedUser?.organization || "",
-      sub_organization: selectedUser?.subOrganization || "",
+      sub_organization: Array.isArray(selectedUser?.subOrganization)
+        ? selectedUser.subOrganization
+        : selectedUser?.subOrganization
+        ? [selectedUser.subOrganization]
+        : [],
+      asset: selectedUser?.asset || "",
+      sub_asset: selectedUser?.subAsset || "",
     });
     const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
-    const [selectedSubOrgId, setSelectedSubOrgId] = useState<number | null>(
+    const [selectedSubOrgIds, setSelectedSubOrgIds] = useState<number[]>([]);
+    const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
+    const [selectedSubAssetId, setSelectedSubAssetId] = useState<number | null>(
       null
     );
     const [formSubOrganizations, setFormSubOrganizations] = useState<any[]>([]);
+    const [formSubAssets, setFormSubAssets] = useState<any[]>([]);
 
     // Initialize selected values based on current user data
     useEffect(() => {
-      if (selectedUser && organizations.length > 0) {
+      if (selectedUser && organizations.length > 0 && assets.length > 0) {
         // Find organization by name
         const org = organizations.find(
           (o) => o.name === selectedUser.organization
@@ -762,22 +916,55 @@ const SubAdminPage = () => {
               .then((response) => {
                 setFormSubOrganizations(response.data || []);
 
-                // Find and set sub-organization ID
-                const subOrg = response.data?.find(
-                  (so: any) => so.name === selectedUser.subOrganization
-                );
+                // Find and set sub-organization IDs
+                const subOrgNames = Array.isArray(selectedUser.subOrganization)
+                  ? selectedUser.subOrganization
+                  : selectedUser.subOrganization
+                  ? [selectedUser.subOrganization]
+                  : [];
 
-                if (subOrg) {
-                  setSelectedSubOrgId(subOrg.id);
-                }
+                const subOrgIds =
+                  response.data
+                    ?.filter((so: any) => subOrgNames.includes(so.name))
+                    ?.map((so: any) => so.id) || [];
+
+                setSelectedSubOrgIds(subOrgIds);
               })
               .catch((error) => {
                 console.error("Error fetching sub-organizations:", error);
               });
           }
         }
+
+        // Find asset by name
+        const asset = assets.find((a) => a.name === selectedUser.asset);
+
+        if (asset) {
+          setSelectedAssetId(asset.id);
+
+          // Fetch sub-assets if we have an asset
+          if (token) {
+            api
+              .getSubAssetsByAssetId(asset.id, token)
+              .then((response) => {
+                setFormSubAssets(response.data || []);
+
+                // Find and set sub-asset ID
+                const subAsset = response.data?.find(
+                  (sa: any) => sa.name === selectedUser.subAsset
+                );
+
+                if (subAsset) {
+                  setSelectedSubAssetId(subAsset.id);
+                }
+              })
+              .catch((error) => {
+                console.error("Error fetching sub-assets:", error);
+              });
+          }
+        }
       }
-    }, [selectedUser, organizations, token]);
+    }, [selectedUser, organizations, assets, token]);
 
     const handleOrgChange = async (orgId: number) => {
       setSelectedOrgId(orgId);
@@ -785,9 +972,9 @@ const SubAdminPage = () => {
       setFormData({
         ...formData,
         organization: selectedOrg?.name || "",
-        sub_organization: "",
+        sub_organization: [],
       });
-      setSelectedSubOrgId(null);
+      setSelectedSubOrgIds([]);
       setFormSubOrganizations([]);
 
       // Fetch sub-organizations for the selected organization
@@ -804,14 +991,47 @@ const SubAdminPage = () => {
       }
     };
 
-    const handleSubOrgChange = (subOrgId: number) => {
-      setSelectedSubOrgId(subOrgId);
-      const selectedSubOrg = formSubOrganizations.find(
-        (subOrg) => subOrg.id === subOrgId
+    const handleSubOrgChange = (subOrgIds: number[]) => {
+      setSelectedSubOrgIds(subOrgIds);
+      const selectedSubOrgs = formSubOrganizations.filter((subOrg) =>
+        subOrgIds.includes(subOrg.id)
       );
       setFormData({
         ...formData,
-        sub_organization: selectedSubOrg?.name || "",
+        sub_organization: selectedSubOrgs.map((subOrg) => subOrg.name),
+      });
+    };
+
+    const handleAssetChange = async (assetId: number) => {
+      setSelectedAssetId(assetId);
+      const selectedAsset = assets.find((asset) => asset.id === assetId);
+      setFormData({
+        ...formData,
+        asset: selectedAsset?.name || "",
+        sub_asset: "",
+      });
+      setSelectedSubAssetId(null);
+      setFormSubAssets([]);
+
+      // Fetch sub-assets for the selected asset
+      if (token) {
+        try {
+          const response = await api.getSubAssetsByAssetId(assetId, token);
+          setFormSubAssets(response.data || []);
+        } catch (error) {
+          console.error("Error fetching sub-assets:", error);
+        }
+      }
+    };
+
+    const handleSubAssetChange = (subAssetId: number) => {
+      setSelectedSubAssetId(subAssetId);
+      const selectedSubAsset = formSubAssets.find(
+        (subAsset) => subAsset.id === subAssetId
+      );
+      setFormData({
+        ...formData,
+        sub_asset: selectedSubAsset?.name || "",
       });
     };
 
@@ -867,6 +1087,21 @@ const SubAdminPage = () => {
         </div>
 
         <div className="space-y-2">
+          <Label htmlFor="edit_password">Password *</Label>
+          <Input
+            id="edit_password"
+            type="password"
+            value={formData.password}
+            onChange={(e) =>
+              setFormData({ ...formData, password: e.target.value })
+            }
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
+            placeholder="Type Sub-Admin's Password"
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
           <Label htmlFor="edit_organization">Organization *</Label>
           <Select
             value={selectedOrgId?.toString() || ""}
@@ -888,26 +1123,89 @@ const SubAdminPage = () => {
 
         <div className="space-y-2">
           <Label htmlFor="edit_sub_organization">Sub Organization</Label>
+          <div className="max-h-32 overflow-y-auto border border-[#E5E5E5] rounded-lg p-2 bg-white">
+            {!selectedOrgId ? (
+              <p className="text-[#666666] text-sm">
+                Select organization first
+              </p>
+            ) : formSubOrganizations.length === 0 ? (
+              <p className="text-[#666666] text-sm">
+                No sub-organizations available
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {formSubOrganizations.map((subOrg) => (
+                  <div key={subOrg.id} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`edit-sub-org-${subOrg.id}`}
+                      checked={selectedSubOrgIds.includes(subOrg.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          handleSubOrgChange([...selectedSubOrgIds, subOrg.id]);
+                        } else {
+                          handleSubOrgChange(
+                            selectedSubOrgIds.filter((id) => id !== subOrg.id)
+                          );
+                        }
+                      }}
+                      className="rounded border-[#E5E5E5]"
+                    />
+                    <label
+                      htmlFor={`edit-sub-org-${subOrg.id}`}
+                      className="text-sm text-[#2C2C2C]"
+                    >
+                      {subOrg.name}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit_asset">Asset *</Label>
           <Select
-            value={selectedSubOrgId?.toString() || ""}
-            onValueChange={(value) => handleSubOrgChange(parseInt(value))}
-            disabled={!selectedOrgId || formSubOrganizations.length === 0}
+            value={selectedAssetId?.toString() || ""}
+            onValueChange={(value) => handleAssetChange(parseInt(value))}
+            required
+          >
+            <SelectTrigger className="w-full rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+              <SelectValue placeholder="Select asset" />
+            </SelectTrigger>
+            <SelectContent>
+              {assets.map((asset) => (
+                <SelectItem key={asset.id} value={asset.id.toString()}>
+                  {asset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit_sub_asset">Sub Asset</Label>
+          <Select
+            value={selectedSubAssetId?.toString() || ""}
+            onValueChange={(value) => handleSubAssetChange(parseInt(value))}
+            disabled={!selectedAssetId || formSubAssets.length === 0}
           >
             <SelectTrigger className="w-full rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
               <SelectValue
                 placeholder={
-                  !selectedOrgId
-                    ? "Select organization first"
-                    : formSubOrganizations.length === 0
-                    ? "No sub-organizations available"
-                    : "Select sub-organization"
+                  !selectedAssetId
+                    ? "Select asset first"
+                    : formSubAssets.length === 0
+                    ? "No sub-assets available"
+                    : "Select sub-asset"
                 }
               />
             </SelectTrigger>
             <SelectContent>
-              {formSubOrganizations.map((subOrg) => (
-                <SelectItem key={subOrg.id} value={subOrg.id.toString()}>
-                  {subOrg.name}
+              {formSubAssets.map((subAsset) => (
+                <SelectItem key={subAsset.id} value={subAsset.id.toString()}>
+                  {subAsset.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -940,6 +1238,8 @@ const SubAdminPage = () => {
     "Email Address",
     "Organization",
     "Sub-Organization",
+    "Asset",
+    "Sub-Asset",
     "Date Added",
     "Actions",
   ];

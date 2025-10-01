@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,11 +58,32 @@ interface EnhancedCourse extends Course {
 
 const Dashboard = () => {
   const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [userProgress, setUserProgress] = useState<ProgressApiResponse | null>(
     null
   );
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Check flags and redirect to initial assessment if needed
+  useEffect(() => {
+    const checkFlags = () => {
+      try {
+        const flagsStr = localStorage.getItem("flags");
+        if (flagsStr) {
+          const flags = JSON.parse(flagsStr);
+          if (flags.existing === true && flags.initialAssessment === false) {
+            navigate("/initial-assessment");
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing flags from localStorage:", error);
+      }
+    };
+
+    checkFlags();
+  }, [navigate]);
 
   // Fetch user progress and courses
   useEffect(() => {
