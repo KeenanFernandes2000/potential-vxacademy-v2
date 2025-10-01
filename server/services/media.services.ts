@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "../db/connection";
 import { mediaFiles } from "../db/schema/system";
+import { users } from "../db/schema/users";
 import type { MediaFile, NewMediaFile } from "../db/types";
 import fs from "fs";
 
@@ -12,6 +13,13 @@ export class MediaService {
     file: Express.Multer.File,
     uploadedBy: number
   ): Promise<Omit<MediaFile, 'filePath'>> {
+    // Validate that the user exists before attempting to insert
+    const userExists = await this.validateUserExists(uploadedBy);
+    if (!userExists) {
+      this.cleanupFile(file.path);
+      throw new Error(`User with ID ${uploadedBy} does not exist`);
+    }
+
     // Generate URL for the uploaded file
     const fileUrl = this.generateFileUrl(file.path);
 
@@ -25,17 +33,31 @@ export class MediaService {
       uploadedBy,
     };
 
-    const result = await db.insert(mediaFiles).values(mediaData).returning();
+    try {
+      const result = await db.insert(mediaFiles).values(mediaData).returning();
 
-    if (!result[0]) {
+      if (!result[0]) {
+        // Clean up the uploaded file if database insert fails
+        this.cleanupFile(file.path);
+        throw new Error("Failed to create media file");
+      }
+
+      // Return without filePath for security
+      const { filePath, ...safeResult } = result[0];
+      return safeResult;
+    } catch (error: any) {
       // Clean up the uploaded file if database insert fails
       this.cleanupFile(file.path);
-      throw new Error("Failed to create media file");
+      
+      // Provide more specific error messages
+      if (error.code === '23503') { // Foreign key constraint violation
+        throw new Error(`User with ID ${uploadedBy} does not exist`);
+      } else if (error.code === '23505') { // Unique constraint violation
+        throw new Error("A media file with this filename already exists");
+      } else {
+        throw new Error(`Database error: ${error.message}`);
+      }
     }
-
-    // Return without filePath for security
-    const { filePath, ...safeResult } = result[0];
-    return safeResult;
   }
 
   /**
@@ -45,6 +67,13 @@ export class MediaService {
     files: Express.Multer.File[],
     uploadedBy: number
   ): Promise<Omit<MediaFile, 'filePath'>[]> {
+    // Validate that the user exists before attempting to insert
+    const userExists = await this.validateUserExists(uploadedBy);
+    if (!userExists) {
+      files.forEach((file) => this.cleanupFile(file.path));
+      throw new Error(`User with ID ${uploadedBy} does not exist`);
+    }
+
     const mediaDataArray: NewMediaFile[] = files.map((file) => ({
       filename: file.filename,
       originalName: file.originalname,
@@ -63,10 +92,18 @@ export class MediaService {
       
       // Return without filePath for security
       return results.map(({ filePath, ...safeResult }) => safeResult);
-    } catch (error) {
+    } catch (error: any) {
       // Clean up all uploaded files if database insert fails
       files.forEach((file) => this.cleanupFile(file.path));
-      throw new Error("Failed to create media files");
+      
+      // Provide more specific error messages
+      if (error.code === '23503') { // Foreign key constraint violation
+        throw new Error(`User with ID ${uploadedBy} does not exist`);
+      } else if (error.code === '23505') { // Unique constraint violation
+        throw new Error("One or more media files with these filenames already exist");
+      } else {
+        throw new Error(`Database error: ${error.message}`);
+      }
     }
   }
 
@@ -230,6 +267,24 @@ export class MediaService {
       }
     } catch (error) {
       console.error("Error cleaning up file:", error);
+    }
+  }
+
+  /**
+   * Validate that a user exists in the database
+   */
+  static async validateUserExists(userId: number): Promise<boolean> {
+    try {
+      const [user] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      
+      return !!user;
+    } catch (error) {
+      console.error("Error validating user existence:", error);
+      return false;
     }
   }
 }

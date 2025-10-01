@@ -177,8 +177,9 @@ export default function CertificateFormFiller({
             <Button
               onClick={generatePreview}
               disabled={previewLoading}
+              id="preview-button"
               variant="outline"
-              className="px-6 py-2 border-[#00d8cc] text-[#00d8cc] hover:bg-[#00d8cc] hover:text-black rounded-full disabled:opacity-50"
+              className="px-6 py-2 border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-black rounded-full disabled:opacity-50"
             >
               {previewLoading ? "Loading..." : "Preview"}
             </Button>
@@ -202,7 +203,7 @@ export default function CertificateFormFiller({
         <Button
           onClick={generateCertificate}
           disabled={loading}
-          className="px-8 py-2 bg-[#00d8cc] hover:bg-[#00d8cc]/80 text-black rounded-full disabled:opacity-50"
+          className="px-8 py-2 bg-orange-400 hover:bg-orange-400/80 text-black rounded-full disabled:opacity-50"
         >
           {loading ? "Generating..." : "Download Certificate"}
         </Button>

@@ -325,7 +325,7 @@ const Achievements = () => {
                 )}
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
-                    <h4 className="font-semibold text-sm">
+                    <h4 className="font-semibold text-sm ">
                       {cert.trainingAreaName}
                     </h4>
                     {cert.trainingAreaDescription && (

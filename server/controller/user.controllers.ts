@@ -526,7 +526,7 @@ export class userControllers {
         }
 
         const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
-          expiresIn: "3h",
+          expiresIn: "24h",
         });
 
         await UserService.updateUserLastLogin(user.id);
@@ -608,7 +608,7 @@ export class userControllers {
     const token = jwt.sign(
       { id: newUser.id, email: newUser.email },
       JWT_SECRET,
-      { expiresIn: "3h" }
+      { expiresIn: "24h" }
     );
 
     if (newUser.userType === "sub_admin") {
@@ -934,7 +934,7 @@ export class userControllers {
     const token = jwt.sign(
       { id: existingUser.id, email: existingUser.email },
       JWT_SECRET,
-      { expiresIn: "3h" }
+      { expiresIn: "24h" }
     );
 
     sendByType({

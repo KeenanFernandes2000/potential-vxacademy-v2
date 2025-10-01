@@ -53,7 +53,15 @@ export class MediaController {
     } catch (error: any) {
       // Clean up the uploaded file if database operation fails
       cleanupFile(req.file.path);
-      throw createError(error.message || "Failed to upload media file", 500);
+      
+      // Provide more specific error messages based on the error type
+      if (error.message.includes("does not exist")) {
+        throw createError(error.message, 404);
+      } else if (error.message.includes("already exists")) {
+        throw createError(error.message, 409);
+      } else {
+        throw createError(error.message || "Failed to upload media file", 500);
+      }
     }
   }
 
@@ -96,7 +104,15 @@ export class MediaController {
     } catch (error: any) {
       // Clean up all uploaded files if database operation fails
       req.files.forEach((file) => cleanupFile(file.path));
-      throw createError(error.message || "Failed to upload media files", 500);
+      
+      // Provide more specific error messages based on the error type
+      if (error.message.includes("does not exist")) {
+        throw createError(error.message, 404);
+      } else if (error.message.includes("already exists")) {
+        throw createError(error.message, 409);
+      } else {
+        throw createError(error.message || "Failed to upload media files", 500);
+      }
     }
   }
 

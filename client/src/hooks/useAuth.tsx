@@ -354,15 +354,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const events = ["mousedown", "click", "keydown", "keypress"];
 
     // Add event listeners (using bubble phase instead of capture to avoid interfering with form inputs)
-    events.forEach((event) => {
-      document.addEventListener(event, handleActivity, false);
-    });
+    // events.forEach((event) => {
+    //   document.addEventListener(event, handleActivity, false);
+    // });
 
     // Cleanup on unmount or when not authenticated
     return () => {
-      events.forEach((event) => {
-        document.removeEventListener(event, handleActivity, false);
-      });
+      // events.forEach((event) => {
+      //   document.removeEventListener(event, handleActivity, false);
+      // });
     };
   }, [isAuthenticated, resetInactivityTimer]);
 
