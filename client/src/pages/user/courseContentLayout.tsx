@@ -97,6 +97,7 @@ interface CourseContentLayoutProps {
   units: Unit[];
   onCompleteLearningBlock?: (learningBlockId: number) => Promise<void>;
   courseId?: number;
+  courseProgress?: number;
   onUpdateCourseProgress?: (progress: number) => void;
   onUpdateAssessmentStatus?: (
     assessmentId: number,
@@ -109,6 +110,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
   units,
   onCompleteLearningBlock,
   courseId,
+  courseProgress = 0,
   onUpdateCourseProgress,
   onUpdateAssessmentStatus,
 }) => {
@@ -1631,6 +1633,94 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                 </AccordionContent>
               </AccordionItem>
             ))}
+
+            {/* Course Completed Section - Only show when progress is 100% or greater */}
+            {courseProgress >= 100 && (
+              <AccordionItem
+                value="course-completed"
+                className="border border-green-200 mb-2 bg-green-50"
+              >
+                <AccordionTrigger className="text-left text-green-900 hover:text-green-900 px-4 py-3">
+                  <div className="flex items-center space-x-3">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <span className="font-semibold">Course Completed</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-4 pb-4">
+                  <div className="space-y-4">
+                    <div className="bg-green-100 border border-green-200 rounded-lg p-4">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <CheckCircle className="w-6 h-6 text-green-600" />
+                        <h3 className="text-lg font-semibold text-green-900">
+                          Congratulations!
+                        </h3>
+                      </div>
+                      <p className="text-green-800 mb-4">
+                        You have successfully completed all units and
+                        assessments in this course.
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white rounded-lg p-3 border border-green-200">
+                          <div className="text-2xl font-bold text-green-600">
+                            {units.length}
+                          </div>
+                          <div className="text-sm text-green-700">
+                            Units Completed
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 border border-green-200">
+                          <div className="text-2xl font-bold text-green-600">
+                            {units.reduce(
+                              (total, unit) =>
+                                total + unit.learningBlocks.length,
+                              0
+                            )}
+                          </div>
+                          <div className="text-sm text-green-700">
+                            Learning Blocks
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 border border-green-200">
+                          <div className="text-2xl font-bold text-green-600">
+                            {units.reduce(
+                              (total, unit) => total + unit.assessments.length,
+                              0
+                            )}
+                          </div>
+                          <div className="text-sm text-green-700">
+                            Assessments
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-green-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-green-900 mb-2">
+                        Next Steps
+                      </h4>
+                      <ul className="space-y-2 text-green-800">
+                        <li className="flex items-center space-x-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span>
+                            Certificate of completion will be generated
+                          </span>
+                        </li>
+                        <li className="flex items-center space-x-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span>Your progress has been recorded</span>
+                        </li>
+                        <li className="flex items-center space-x-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span>
+                            You can access this course anytime for review
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
           </Accordion>
         </div>
       </div>
