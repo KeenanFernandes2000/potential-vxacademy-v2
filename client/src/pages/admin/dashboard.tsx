@@ -35,8 +35,31 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // API object for user operations (same as sub-admin but without filtering)
+  // API object for dashboard operations
   const api = {
+    async getDashboardStats(token: string) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${baseUrl}/api/reports/dashboard-stats`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats:", error);
+        throw error;
+      }
+    },
+
     async getAllUsers(token: string) {
       try {
         const baseUrl = import.meta.env.VITE_API_URL;
@@ -59,121 +82,6 @@ const Dashboard = () => {
         throw error;
       }
     },
-
-    async getAllAssets(token: string) {
-      try {
-        const baseUrl = import.meta.env.VITE_API_URL;
-        const response = await fetch(`${baseUrl}/api/users/assets`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.error("Failed to fetch assets:", error);
-        throw error;
-      }
-    },
-
-    async getAllSubAssets(token: string) {
-      try {
-        const baseUrl = import.meta.env.VITE_API_URL;
-        const response = await fetch(`${baseUrl}/api/users/sub-assets`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.error("Failed to fetch sub-assets:", error);
-        throw error;
-      }
-    },
-
-    async getAllOrganizations(token: string) {
-      try {
-        const baseUrl = import.meta.env.VITE_API_URL;
-        const response = await fetch(`${baseUrl}/api/users/organizations`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.error("Failed to fetch organizations:", error);
-        throw error;
-      }
-    },
-
-    async getAllCertificates(token: string) {
-      try {
-        const baseUrl = import.meta.env.VITE_API_URL;
-        const response = await fetch(`${baseUrl}/api/users/certificates`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.error("Failed to fetch certificates:", error);
-        throw error;
-      }
-    },
-
-    async getAllProgress(token: string) {
-      try {
-        const baseUrl = import.meta.env.VITE_API_URL;
-        const response = await fetch(`${baseUrl}/api/progress/all`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.error("Failed to fetch progress:", error);
-        throw error;
-      }
-    },
   };
 
   // Fetch dashboard stats on component mount
@@ -189,66 +97,16 @@ const Dashboard = () => {
         setLoading(true);
         setError(null);
 
-        // Get all users (no filtering for admin)
+        // Get dashboard stats from the new endpoint
+        const dashboardStatsResponse = await api.getDashboardStats(token);
+        const dashboardStats = dashboardStatsResponse.data || {};
+
+        // Get all users for additional calculations
         const usersResponse = await api.getAllUsers(token);
         const allUsers = usersResponse.data || [];
 
-        // Get organizations
-        const organizationsResponse = await api.getAllOrganizations(token);
-        const allOrganizations = organizationsResponse.data || [];
-
-        // Get certificates (if endpoint exists, otherwise estimate from users)
-        let totalCertificates = 0;
-        try {
-          const certificatesResponse = await api.getAllCertificates(token);
-          totalCertificates = certificatesResponse.data?.length || 0;
-        } catch (certError) {
-          // If certificates endpoint doesn't exist, estimate based on users with high XP
-          console.warn(
-            "Certificates endpoint not available, estimating from user data:",
-            certError
-          );
-          // Estimate certificates based on users who have completed significant progress (XP > 500)
-          totalCertificates = allUsers.filter(
-            (user: any) => (user.xp || 0) > 500
-          ).length;
-        }
-
-        // Get progress data (if endpoint exists, otherwise calculate from users)
-        let averageProgress = 0;
-        try {
-          const progressResponse = await api.getAllProgress(token);
-          const progressData = progressResponse.data || [];
-          if (progressData.length > 0) {
-            const totalProgress = progressData.reduce(
-              (sum: number, progress: any) => sum + (progress.percentage || 0),
-              0
-            );
-            averageProgress = Math.round(totalProgress / progressData.length);
-          }
-        } catch (progressError) {
-          // If progress endpoint doesn't exist, calculate from users' XP
-          console.warn(
-            "Progress endpoint not available, calculating from user XP:",
-            progressError
-          );
-          if (allUsers.length > 0) {
-            const totalXP = allUsers.reduce(
-              (sum: number, user: any) => sum + (user.xp || 0),
-              0
-            );
-            // Assuming max XP per user is 1000 for calculation
-            const maxPossibleXP = allUsers.length * 1000;
-            averageProgress =
-              maxPossibleXP > 0
-                ? Math.round((totalXP / maxPossibleXP) * 100)
-                : 0;
-          }
-        }
-
-        // Calculate real stats
+        // Calculate user-related stats
         const totalUsers = allUsers.length;
-        const totalOrganizations = allOrganizations.length;
 
         // Filter frontliners (users with userType 'user')
         const frontliners = allUsers.filter(
@@ -279,21 +137,15 @@ const Dashboard = () => {
           );
         }).length;
 
-        // Calculate total VX points (sum of all users' XP)
-        const totalVXPoints = allUsers.reduce(
-          (sum: number, user: any) => sum + (user.xp || 0),
-          0
-        );
-
         setStats({
           totalUsers,
           newUsersThisMonth,
           totalFrontliners,
           newFrontliners,
-          totalOrganizations,
-          totalCertificates,
-          totalVXPoints,
-          averageProgress,
+          totalOrganizations: dashboardStats.totalOrganizations || 0,
+          totalCertificates: dashboardStats.totalCertificates || 0,
+          totalVXPoints: dashboardStats.totalVxPoints || 0,
+          averageProgress: dashboardStats.averageProgress || 0,
         });
       } catch (err) {
         console.error("Failed to fetch dashboard stats:", err);

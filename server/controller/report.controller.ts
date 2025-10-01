@@ -104,5 +104,19 @@ export const reportController = {
         error: "Failed to fetch frontliners report data" 
       });
     }
+  },
+
+  // Dashboard Statistics - Get key metrics for admin dashboard
+  getDashboardStats: async (req: Request, res: Response) => {
+    try {
+      const data = await reportServices.getDashboardStats();
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to fetch dashboard statistics" 
+      });
+    }
   }
 };

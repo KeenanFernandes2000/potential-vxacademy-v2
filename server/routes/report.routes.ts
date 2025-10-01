@@ -24,4 +24,7 @@ router.get("/sub-admins", reportController.getSubAdminsReport);
 // Frontliners Report - All frontliners with comprehensive statistics
 router.get("/frontliners", reportController.getFrontlinersReport);
 
+// Dashboard Statistics - Get key metrics for admin dashboard
+router.get("/dashboard-stats", reportController.getDashboardStats);
+
 export default router;

@@ -1477,5 +1477,53 @@ export const reportServices = {
       console.error("Error in getFrontlinersReportData:", error);
       throw error;
     }
+  },
+
+  // Dashboard Statistics - Get key metrics for admin dashboard
+  getDashboardStats: async () => {
+    try {
+      const [
+        // Total organizations count
+        totalOrganizations,
+        // Total certificates count (passed assessments)
+        totalCertificates,
+        // Total VX points from normal users only
+        totalVxPoints,
+        // Average progress from course progress table
+        averageProgress
+      ] = await Promise.all([
+        // Total organizations count
+        db.select({ count: count() })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+        .groupBy(users.organization),
+
+        // Total certificates count (passed assessments)
+        db.select({ count: count() })
+        .from(assessmentAttempts)
+        .where(eq(assessmentAttempts.passed, true)),
+
+        // Total VX points from normal users only
+        db.select({ total: sum(users.xp) })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+
+        // Average progress from course progress table
+        db.select({ 
+          avgProgress: sql<number>`AVG(CAST(${userCourseProgress.completionPercentage} AS FLOAT))`
+        })
+        .from(userCourseProgress)
+      ]);
+
+      return {
+        totalOrganizations: totalOrganizations.length,
+        totalCertificates: totalCertificates[0]?.count || 0,
+        totalVxPoints: totalVxPoints[0]?.total || 0,
+        averageProgress: Math.round((averageProgress[0]?.avgProgress || 0) * 100) / 100
+      };
+    } catch (error) {
+      console.error("Error in getDashboardStats:", error);
+      throw error;
+    }
   }
 };
