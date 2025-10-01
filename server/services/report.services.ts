@@ -90,7 +90,10 @@ export const reportServices = {
         db.select({ count: count() })
           .from(userCourseProgress)
           .where(eq(userCourseProgress.status, "completed")),
-        db.select({ count: count() }).from(organizations),
+        db.select({ count: count() })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .groupBy(users.organization),
         db.select({ count: count() })
           .from(assessmentAttempts)
           .where(eq(assessmentAttempts.passed, true)),
@@ -296,7 +299,7 @@ export const reportServices = {
           activeUsers: activeUsers[0]?.count || 0,
           totalCourses: totalCourses[0]?.count || 0,
           completedCourses: completedCourses[0]?.count || 0,
-          totalOrganizations: totalOrganizations[0]?.count || 0,
+          totalOrganizations: totalOrganizations.length,
           certificatesIssued: certificatesIssued[0]?.count || 0,
           averageCompletionRate: averageCompletionRate[0]?.avgRate || 0,
           monthlyGrowth: Math.round(growthRate * 100) / 100
