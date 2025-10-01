@@ -124,5 +124,6 @@ router.delete(
 
 // ==================== CERTIFICATE FUNCTIONS ====================
 router.post("/certificates/generate", userControllers.generateCertificate);
+router.get("/users/:id/certificates", userControllers.getUserCertificates);
 
 export default router;

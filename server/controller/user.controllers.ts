@@ -28,6 +28,8 @@ import {
   subAdmins,
   normalUsers,
 } from "../db/schema/users";
+import { certificates } from "../db/schema/gamification";
+import { courses, modules, trainingAreas } from "../db/schema/training";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -3052,5 +3054,55 @@ export class userControllers {
    */
   static async generateCertificate(req: Request, res: Response): Promise<void> {
     await CertificateController.generateCertificate(req, res);
+  }
+
+  /**
+   * Get all certificates for a user
+   * GET /users/:id/certificates
+   */
+  static async getUserCertificates(req: Request, res: Response): Promise<void> {
+    const userId = parseInt(req.params.id as string);
+
+    if (isNaN(userId) || userId <= 0) {
+      throw createError("Invalid user ID", 400);
+    }
+
+    // Check if user exists
+    const existingUser = await UserService.userExists(userId);
+    if (!existingUser) {
+      throw createError("User not found", 404);
+    }
+
+    try {
+      // Get certificates with training area information
+      const userCertificates = await db
+        .select({
+          id: certificates.id,
+          userId: certificates.userId,
+          certificateNumber: certificates.certificateNumber,
+          issueDate: certificates.issueDate,
+          expiryDate: certificates.expiryDate,
+          status: certificates.status,
+          trainingAreaId: trainingAreas.id,
+          trainingAreaName: trainingAreas.name,
+          trainingAreaDescription: trainingAreas.description,
+          trainingAreaImageUrl: trainingAreas.imageUrl,
+        })
+        .from(certificates)
+        .leftJoin(courses, eq(certificates.courseId, courses.id))
+        .leftJoin(modules, eq(courses.moduleId, modules.id))
+        .leftJoin(trainingAreas, eq(modules.trainingAreaId, trainingAreas.id))
+        .where(eq(certificates.userId, userId))
+        .orderBy(certificates.issueDate);
+
+      res.status(200).json({
+        success: true,
+        message: "User certificates retrieved successfully",
+        data: userCertificates,
+      });
+    } catch (error: any) {
+      console.error("Get user certificates error:", error);
+      throw createError("Failed to retrieve user certificates", 500);
+    }
   }
 }

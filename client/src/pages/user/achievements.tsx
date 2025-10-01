@@ -3,6 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import CertificateFormFiller from "@/components/generatePDF";
+import CertificatePopup from "@/components/CertificatePopup";
 import {
   Trophy,
   Star,
@@ -15,12 +17,17 @@ import {
   Clock,
   AlertCircle,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // Types
 interface Certificate {
   id: number;
+  userId: number;
   courseId: number;
-  courseName: string;
+  trainingAreaId: number;
+  trainingAreaName: string;
+  trainingAreaDescription?: string;
+  trainingAreaImageUrl?: string;
   certificateNumber: string;
   issueDate: string;
   expiryDate: string;
@@ -55,6 +62,9 @@ const Achievements = () => {
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCertificatePopup, setShowCertificatePopup] = useState(false);
+  const [selectedCertificate, setSelectedCertificate] =
+    useState<Certificate | null>(null);
 
   // API service functions
   const api = {
@@ -146,8 +156,13 @@ const Achievements = () => {
         const processedCertificates: Certificate[] = certificatesData.map(
           (cert: any) => ({
             id: cert.id,
-            courseId: cert.courseId,
-            courseName: cert.courseName || "Course Certificate",
+            userId: cert.userId,
+            courseId: cert.trainingAreaId, // Using trainingAreaId as courseId for compatibility
+            trainingAreaId: cert.trainingAreaId,
+            trainingAreaName:
+              cert.trainingAreaName || "Training Area Certificate",
+            trainingAreaDescription: cert.trainingAreaDescription,
+            trainingAreaImageUrl: cert.trainingAreaImageUrl,
             certificateNumber: cert.certificateNumber,
             issueDate: cert.issueDate,
             expiryDate: cert.expiryDate,
@@ -199,6 +214,11 @@ const Achievements = () => {
 
     fetchAchievementsData();
   }, [user, token]);
+
+  // Debug: Log certificates whenever they change
+  useEffect(() => {
+    console.log("Certificates state updated:", certificates);
+  }, [certificates]);
 
   // Loading skeleton component
   const LoadingSkeleton = () => (
@@ -294,10 +314,28 @@ const Achievements = () => {
                 key={cert.id}
                 className="border rounded-lg p-4 hover:shadow-md transition-shadow"
               >
+                {cert.trainingAreaImageUrl && (
+                  <div className="mb-3">
+                    <img
+                      src={cert.trainingAreaImageUrl}
+                      alt={cert.trainingAreaName}
+                      className="w-full h-24 object-cover rounded-md"
+                    />
+                  </div>
+                )}
                 <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-semibold text-sm">{cert.courseName}</h4>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-sm">
+                      {cert.trainingAreaName}
+                    </h4>
+                    {cert.trainingAreaDescription && (
+                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                        {cert.trainingAreaDescription}
+                      </p>
+                    )}
+                  </div>
                   <span
-                    className={`px-2 py-1 rounded-full text-xs ${
+                    className={`px-2 py-1 rounded-full text-xs ml-2 ${
                       cert.status === "active"
                         ? "bg-green-100 text-green-800"
                         : "bg-red-100 text-red-800"
@@ -313,14 +351,29 @@ const Achievements = () => {
                   Issued: {new Date(cert.issueDate).toLocaleDateString()}
                 </p>
                 <div className="flex space-x-2">
-                  <Button size="sm" variant="outline" className="flex-1">
-                    <Eye className="h-3 w-3 mr-1" />
-                    View
-                  </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
-                    <Download className="h-3 w-3 mr-1" />
-                    Download
-                  </Button>
+                  {cert.trainingAreaName.toLowerCase().includes("midhyaf") ? (
+                    <CertificateFormFiller
+                      userName={`${user?.firstName || ""} ${
+                        user?.lastName || ""
+                      }`.trim()}
+                      className="flex-1"
+                    />
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 border-[#B85A1A] text-[#B85A1A] hover:bg-[#B85A1A] hover:text-white"
+                      onClick={() => {
+                        console.log(
+                          "Certificate download not implemented for:",
+                          cert.trainingAreaName
+                        );
+                      }}
+                    >
+                      <Download className="h-3 w-3 mr-1" />
+                      Download
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}

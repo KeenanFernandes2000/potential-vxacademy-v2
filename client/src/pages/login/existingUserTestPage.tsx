@@ -444,7 +444,7 @@ const ExistingUserTestPage = () => {
   const handleRedirect = async () => {
     if (!token) {
       console.error("Token not available");
-      navigate("/user/dashboard");
+      // navigate("/user/dashboard");
       return;
     }
 
@@ -620,7 +620,7 @@ const ExistingUserTestPage = () => {
               ))}
             </div>
 
-            <div className="flex justify-center gap-2">
+            {/* <div className="flex justify-center gap-2">
               <Button
                 onClick={handleRedirect}
                 disabled={isCompleting || isLoadingCertificates}
@@ -636,7 +636,7 @@ const ExistingUserTestPage = () => {
               {percentageScore >= MINIMUM_CERTIFICATE_SCORE && (
                 <CertificateFormFiller userName={getUserName()} />
               )}
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </div>
@@ -734,7 +734,7 @@ const ExistingUserTestPage = () => {
       </div>
 
       {/* Certificate Popup */}
-      <CertificatePopup
+      {/* <CertificatePopup
         isOpen={showCertificatePopup}
         onClose={() => {
           setShowCertificatePopup(false);
@@ -742,7 +742,7 @@ const ExistingUserTestPage = () => {
         }}
         certificates={certificates}
         userName={getUserName()}
-      />
+      /> */}
     </div>
   );
 };

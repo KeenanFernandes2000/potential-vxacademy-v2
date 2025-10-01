@@ -1005,7 +1005,9 @@ const UnitsPage = () => {
         className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
       >
         <div className="space-y-2">
-          <Label htmlFor="edit_name">Learning Unit Name *</Label>
+          <Label htmlFor="edit_name" className="text-[#2C2C2C]">
+            Learning Unit Name *
+          </Label>
           <Input
             id="edit_name"
             value={formData.name}
@@ -1016,7 +1018,9 @@ const UnitsPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_description">Description</Label>
+          <Label htmlFor="edit_description" className="text-[#2C2C2C]">
+            Description
+          </Label>
           <Input
             id="edit_description"
             value={formData.description}
@@ -1028,14 +1032,16 @@ const UnitsPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_training_area_id">Training Area *</Label>
+          <Label htmlFor="edit_training_area_id" className="text-[#2C2C2C]">
+            Training Area *
+          </Label>
           <Select
             value={formData.training_area_id}
             onValueChange={(value) =>
               setFormData({ ...formData, training_area_id: value })
             }
           >
-            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-white">
+            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C]">
               <SelectValue placeholder="Select a training area" />
             </SelectTrigger>
             <SelectContent>
@@ -1048,7 +1054,9 @@ const UnitsPage = () => {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_module_id">Module *</Label>
+          <Label htmlFor="edit_module_id" className="text-[#2C2C2C]">
+            Module *
+          </Label>
           <Select
             value={formData.module_id}
             onValueChange={(value) =>
@@ -1056,7 +1064,7 @@ const UnitsPage = () => {
             }
             disabled={!formData.training_area_id}
           >
-            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-white">
+            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C]">
               <SelectValue placeholder="Select a module" />
             </SelectTrigger>
             <SelectContent>
@@ -1069,7 +1077,9 @@ const UnitsPage = () => {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_course_id">Course *</Label>
+          <Label htmlFor="edit_course_id" className="text-[#2C2C2C]">
+            Course *
+          </Label>
           <Select
             value={formData.course_id}
             onValueChange={(value) =>
@@ -1077,7 +1087,7 @@ const UnitsPage = () => {
             }
             disabled={!formData.module_id}
           >
-            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-white">
+            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C]">
               <SelectValue placeholder="Select a course" />
             </SelectTrigger>
             <SelectContent>
@@ -1090,7 +1100,9 @@ const UnitsPage = () => {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_internal_note">Internal Note</Label>
+          <Label htmlFor="edit_internal_note" className="text-[#2C2C2C]">
+            Internal Note
+          </Label>
           <Input
             id="edit_internal_note"
             value={formData.internal_note}
@@ -1101,7 +1113,9 @@ const UnitsPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_order">Order in Course *</Label>
+          <Label htmlFor="edit_order" className="text-[#2C2C2C]">
+            Order in Course *
+          </Label>
           <Input
             id="edit_order"
             type="number"
@@ -1115,7 +1129,9 @@ const UnitsPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_duration">Duration (minutes) *</Label>
+          <Label htmlFor="edit_duration" className="text-[#2C2C2C]">
+            Duration (minutes) *
+          </Label>
           <Input
             id="edit_duration"
             type="number"
@@ -1129,7 +1145,9 @@ const UnitsPage = () => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_show_duration">Show Duration</Label>
+          <Label htmlFor="edit_show_duration" className="text-[#2C2C2C]">
+            Show Duration
+          </Label>
           <div className="flex items-center space-x-2">
             <Switch
               id="edit_show_duration"
@@ -1138,13 +1156,18 @@ const UnitsPage = () => {
                 setFormData({ ...formData, show_duration: checked })
               }
             />
-            <Label htmlFor="edit_show_duration" className="text-sm">
+            <Label
+              htmlFor="edit_show_duration"
+              className="text-sm text-[#2C2C2C]"
+            >
               {formData.show_duration ? "Show" : "Hide"}
             </Label>
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="edit_xp_points">VX Points *</Label>
+          <Label htmlFor="edit_xp_points" className="text-[#2C2C2C]">
+            VX Points *
+          </Label>
           <Input
             id="edit_xp_points"
             type="number"
@@ -1165,7 +1188,7 @@ const UnitsPage = () => {
               setIsEditModalOpen(false);
               setSelectedUnit(null);
             }}
-            className="rounded-full hover:bg-accent/30 hover:text-black"
+            className="rounded-full hover:bg-accent/30 text-black"
           >
             Cancel
           </Button>

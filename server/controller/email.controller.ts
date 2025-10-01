@@ -10,6 +10,7 @@ import {
   CertificateHelper,
   LearningBlockProgressService,
 } from "../services/progress.services";
+import { db } from "../db/connection";
 import type { CustomError } from "../middleware/errorHandling";
 
 const createError = (
@@ -181,7 +182,7 @@ export class EmailController {
     // Use the CertificateHelper to generate the certificate
     const certificateResult =
       await CertificateHelper.generateTrainingAreaCertificate(
-        null, // No transaction needed for this standalone call
+        db, // Use the database connection directly
         userId,
         trainingAreaId
       );
