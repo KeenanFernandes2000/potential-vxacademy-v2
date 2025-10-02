@@ -573,14 +573,6 @@ const CertificateReports = () => {
                       ) : (
                         <ChevronRight className="h-4 w-4 text-gray-500" />
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-600 hover:text-dawn hover:bg-sandstone"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
 
