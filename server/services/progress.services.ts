@@ -191,11 +191,9 @@ export class AssessmentProgressHelper {
       return { completed: 0, total: 0, percentage: 0 };
     }
 
-    // Get completed assessments (unique assessments attempted)
-    // FIXED: Use DISTINCT to count unique assessments, not total attempts
-    // This prevents progress from exceeding 100% when users retake assessments
+    // Get completed assessments (any attempt made)
     const completedAssessments = await tx
-      .select({ count: sql`DISTINCT ${assessmentAttempts.assessmentId}` })
+      .select({ count: count() })
       .from(assessmentAttempts)
       .innerJoin(
         assessments,
@@ -446,19 +444,14 @@ export class LearningBlockProgressService {
       );
 
     // Calculate combined completion percentage
-    // FIXED: Calculate based on total completion, not averaging
-    // This ensures accurate progress calculation when course has both units and assessments
+    // If course has both course-units and assessments, average them
+    // If course has only one type, use that percentage
     let completionPercentage = 0;
 
     if (totalCourseUnits > 0 && assessmentStatus.total > 0) {
-      // Course has both course-units and assessments - calculate weighted completion
-      // Total components = course units + assessments
-      const totalComponents = totalCourseUnits + assessmentStatus.total;
-      const completedComponents =
-        (courseUnitPercentage / 100) * totalCourseUnits +
-        (assessmentStatus.percentage / 100) * assessmentStatus.total;
-
-      completionPercentage = (completedComponents / totalComponents) * 100;
+      // Course has both course-units and assessments - average them
+      completionPercentage =
+        (courseUnitPercentage + assessmentStatus.percentage) / 2;
     } else if (totalCourseUnits > 0) {
       // Course has only course-units
       completionPercentage = courseUnitPercentage;
@@ -466,9 +459,6 @@ export class LearningBlockProgressService {
       // Course has only assessments
       completionPercentage = assessmentStatus.percentage;
     }
-
-    // SAFEGUARD: Ensure completion percentage never exceeds 100%
-    completionPercentage = Math.min(completionPercentage, 100);
     const status: ProgressStatus =
       completionPercentage === 100
         ? "completed"
