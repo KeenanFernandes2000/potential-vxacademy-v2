@@ -53,9 +53,6 @@ export const reportServices = {
         // Certificate Analytics
         certificateAnalyticsData,
         
-        // Registration Trends
-        registrationTrendsData,
-        
         // Active vs Inactive Users
         activeInactiveUsersData,
         
@@ -294,7 +291,6 @@ export const reportServices = {
         roleDistribution: roleDistributionData,
         seniorityDistribution: seniorityDistributionData,
         certificateAnalytics: certificateAnalyticsData,
-        registrationTrends: registrationTrendsData,
         activeInactiveUsers: activeInactiveUsersData,
         peakUsageTimes: peakUsageTimesData,
         trainingAreaEnrollments: trainingAreaEnrollmentsData,
@@ -323,7 +319,6 @@ export const reportServices = {
         roleDistribution: [],
         seniorityDistribution: [],
         certificateAnalytics: [],
-        registrationTrends: [],
         activeInactiveUsers: [],
         peakUsageTimes: [],
         trainingAreaEnrollments: [],

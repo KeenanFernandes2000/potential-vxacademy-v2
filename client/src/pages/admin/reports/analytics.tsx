@@ -73,7 +73,6 @@ const Analytics = () => {
   const [roleDistribution, setRoleDistribution] = useState([]);
   const [seniorityDistribution, setSeniorityDistribution] = useState([]);
   const [certificateAnalytics, setCertificateAnalytics] = useState([]);
-  const [registrationTrends, setRegistrationTrends] = useState([]);
   const [activeInactiveUsers, setActiveInactiveUsers] = useState([]);
   const [peakUsageTimes, setPeakUsageTimes] = useState([]);
   const [trainingAreaEnrollments, setTrainingAreaEnrollments] = useState([]);
@@ -121,7 +120,6 @@ const Analytics = () => {
           setRoleDistribution(data.roleDistribution || []);
           setSeniorityDistribution(data.seniorityDistribution || []);
           setCertificateAnalytics(data.certificateAnalytics || []);
-          setRegistrationTrends(data.registrationTrends || []);
           setActiveInactiveUsers(data.activeInactiveUsers || []);
           setPeakUsageTimes(data.peakUsageTimes || []);
           setTrainingAreaEnrollments(data.trainingAreaEnrollments || []);
@@ -451,49 +449,8 @@ const Analytics = () => {
           </Card>
         </div>
 
-        {/* Charts Row 3: Line and Area Charts - Trends */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Chart 5: Line Chart - Registration Trends */}
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-                <Activity className="h-5 w-5 text-dawn" />
-                Registration Trends
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={registrationTrends}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
-                  <XAxis dataKey="period" stroke="#666666" />
-                  <YAxis stroke="#666666" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: "8px",
-                      color: "#2C2C2C",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="newRegistrations"
-                    stroke="#d2691e"
-                    name="New Registrations"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="cumulativeRegistrations"
-                    stroke="#B85A1A"
-                    name="Cumulative"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
+        {/* Charts Row 3: Area Chart - Active vs Inactive Users */}
+        <div className="grid gap-4 md:grid-cols-1">
           {/* Chart 6: Area Chart - Active vs Inactive Users */}
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
