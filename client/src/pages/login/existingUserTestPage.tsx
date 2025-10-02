@@ -620,7 +620,7 @@ const ExistingUserTestPage = () => {
               ))}
             </div>
 
-            {/* <div className="flex justify-center gap-2">
+            <div className="flex justify-center gap-2">
               <Button
                 onClick={handleRedirect}
                 disabled={isCompleting || isLoadingCertificates}
@@ -633,10 +633,10 @@ const ExistingUserTestPage = () => {
                   : "View Certificates & Continue"}
               </Button>
 
-              {percentageScore >= MINIMUM_CERTIFICATE_SCORE && (
+              {/* {percentageScore >= MINIMUM_CERTIFICATE_SCORE && (
                 <CertificateFormFiller userName={getUserName()} />
-              )}
-            </div> */}
+              )} */}
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -21,6 +21,7 @@ router.post("/password-reset/reset", userControllers.resetPassword);
 
 // ==================== USER CRUD FUNCTIONS ====================
 router.get("/users", userControllers.getAllUsers);
+router.get("/users/with-details", userControllers.getAllUsersWithDetails);
 router.get(
   "/users/by-progress-threshold",
   userControllers.getUsersByProgressThreshold

@@ -560,6 +560,48 @@ export class UserService {
   }
 
   /**
+   * Get all users with their normal user details for sub-admin management
+   */
+  static async getAllUsersWithDetails(limit?: number, offset?: number): Promise<any[]> {
+    // Get all users with their normal user details
+    const query = db
+      .select({
+        // User fields
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        organization: users.organization,
+        subOrganization: users.subOrganization,
+        asset: users.asset,
+        subAsset: users.subAsset,
+        userType: users.userType,
+        createdAt: users.createdAt,
+        lastLogin: users.lastLogin,
+        // Normal user fields
+        roleCategory: normalUsers.roleCategory,
+        role: normalUsers.role,
+        seniority: normalUsers.seniority,
+        eid: normalUsers.eid,
+        phoneNumber: normalUsers.phoneNumber,
+        existing: normalUsers.existing,
+        initialAssessment: normalUsers.initialAssessment,
+      })
+      .from(users)
+      .leftJoin(normalUsers, eq(users.id, normalUsers.userId));
+
+    if (limit !== undefined) {
+      query.limit(limit);
+    }
+
+    if (offset !== undefined) {
+      query.offset(offset);
+    }
+
+    return await query;
+  }
+
+  /**
    * Update user by ID
    */
   static async updateUser(

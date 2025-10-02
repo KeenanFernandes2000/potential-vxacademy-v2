@@ -18,7 +18,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PasswordInput } from "@/components/ui/password-input";
-import { MultiSelect } from "@/components/ui/multi-select";
 import HomeNavigation from "@/components/homeNavigation";
 import "@/homepage.css";
 
@@ -360,7 +359,7 @@ const joinPage = (props: Props) => {
     eid: "",
     phone_number: "",
     organization: "",
-    subOrganization: [] as string[],
+    subOrganization: "",
     asset: "",
     subAsset: "",
   });
@@ -585,55 +584,23 @@ const joinPage = (props: Props) => {
               setForm2Data((prev) => ({
                 ...prev,
                 organization: response.data.subAdmin.organization || "",
-                subOrganization: response.data.subAdmin.subOrganization || [],
+                subOrganization:
+                  response.data.subAdmin.subOrganization?.[0] || "",
                 asset: response.data.subAdmin.asset || "",
                 subAsset: response.data.subAdmin.subAsset || "",
               }));
 
-              // Extract asset and sub-asset information and fetch sub-organizations
-              const assetName = response.data.subAdmin.asset;
-              const subAssetName = response.data.subAdmin.subAsset;
-
-              if (assetName && subAssetName) {
-                // Wait for assets to be loaded, then find the asset ID
-                const findAssetAndFetchSubOrgs = async () => {
-                  // If assets are not loaded yet, wait a bit and try again
-                  if (assets.length === 0) {
-                    setTimeout(findAssetAndFetchSubOrgs, 100);
-                    return;
-                  }
-
-                  const asset = assets.find((a) => a.name === assetName);
-                  if (asset) {
-                    setAssetId(asset.id);
-                    // Fetch sub-assets for this asset
-                    await fetchSubAssets(asset.id);
-
-                    // Wait for sub-assets to be loaded, then find the sub-asset ID
-                    const findSubAssetAndFetchSubOrgs = async () => {
-                      if (subAssets.length === 0) {
-                        setTimeout(findSubAssetAndFetchSubOrgs, 100);
-                        return;
-                      }
-
-                      const subAsset = subAssets.find(
-                        (sa) => sa.name === subAssetName
-                      );
-                      if (subAsset) {
-                        setSubAssetId(subAsset.id);
-                        // Fetch sub-organizations for this asset and sub-asset combination
-                        await fetchSubOrganizationsByAssetAndSubAsset(
-                          asset.id,
-                          subAsset.id
-                        );
-                      }
-                    };
-
-                    findSubAssetAndFetchSubOrgs();
-                  }
-                };
-
-                findAssetAndFetchSubOrgs();
+              // Use sub-organization data directly from invitation API
+              const subOrgData = response.data.subAdmin.subOrganization || [];
+              if (subOrgData.length > 0) {
+                // Transform the sub-organization array into the format expected by the dropdown
+                const transformedSubOrgs = subOrgData.map(
+                  (org: string, index: number) => ({
+                    id: index.toString(),
+                    name: org,
+                  })
+                );
+                setSubOrganizations(transformedSubOrgs);
               }
             }
           } else {
@@ -739,16 +706,16 @@ const joinPage = (props: Props) => {
       // Clear sub-organization selection when organization changes
       setForm2Data((prev) => ({
         ...prev,
-        subOrganization: [],
+        subOrganization: "",
       }));
     }
   };
 
-  // Handle sub-organization multi-select changes
-  const handleSubOrganizationChange = (selectedIds: string[]) => {
+  // Handle sub-organization select changes
+  const handleSubOrganizationChange = (value: string) => {
     setForm2Data((prev) => ({
       ...prev,
-      subOrganization: selectedIds,
+      subOrganization: value,
     }));
   };
 
@@ -868,7 +835,7 @@ const joinPage = (props: Props) => {
         email: form2Data.email,
         password: form2Data.password,
         organization: form2Data.organization,
-        subOrganization: form2Data.subOrganization,
+        subOrganization: [form2Data.subOrganization],
         asset: form2Data.asset,
         subAsset: form2Data.subAsset,
         invitationToken: token,
@@ -1371,37 +1338,42 @@ const joinPage = (props: Props) => {
                 >
                   Sub-Organizations
                 </label>
-                <MultiSelect
-                  options={subOrganizations}
+                <Select
                   value={form2Data.subOrganization}
-                  onChange={handleSubOrganizationChange}
-                  placeholder="Select sub-organizations"
-                  loading={isLoadingSubOrganizations}
+                  onValueChange={handleSubOrganizationChange}
                   disabled={
                     !form2Data.organization ||
                     form2Data.organization === "" ||
-                    !assetId ||
-                    !subAssetId
+                    subOrganizations.length === 0
                   }
-                />
+                >
+                  <SelectTrigger
+                    className={`w-full bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 border-2 hover:border-dawn rounded-full text-sm ${
+                      form2Data.subOrganization
+                        ? "[&>span]:text-[#2C2C2C]"
+                        : "[&>span]:text-cyan-50/55"
+                    } `}
+                  >
+                    <SelectValue placeholder="Select sub-organization" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-sandstone border-sandstone text-[#2C2C2C]">
+                    {subOrganizations.map((org) => (
+                      <SelectItem key={org.id} value={org.id}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {!form2Data.organization && (
                   <p className="text-[#2C2C2C]/60 text-sm pl-2">
                     Please wait for invitation data to load
                   </p>
                 )}
-                {form2Data.organization && (!assetId || !subAssetId) && (
-                  <p className="text-[#2C2C2C]/60 text-sm pl-2">
-                    Loading available sub-organizations...
-                  </p>
-                )}
                 {form2Data.organization &&
-                  assetId &&
-                  subAssetId &&
                   subOrganizations.length === 0 &&
                   !isLoadingSubOrganizations && (
                     <p className="text-[#2C2C2C]/60 text-sm pl-2">
-                      No sub-organizations available for this asset and
-                      sub-asset combination
+                      No sub-organizations available for this invitation
                     </p>
                   )}
               </div>

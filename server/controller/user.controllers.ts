@@ -675,6 +675,44 @@ export class userControllers {
   }
 
   /**
+   * Get all users with their normal user details for sub-admin management
+   * GET /users/with-details?limit=10&offset=0
+   */
+  static async getAllUsersWithDetails(req: Request, res: Response): Promise<void> {
+    const limit = req.query.limit
+      ? parseInt(req.query.limit as string)
+      : undefined;
+    const offset = req.query.offset
+      ? parseInt(req.query.offset as string)
+      : undefined;
+
+    // Validate pagination parameters
+    if (limit !== undefined && (isNaN(limit) || limit <= 0 || limit > 100)) {
+      throw createError(
+        "Limit must be a positive number between 1 and 100",
+        400
+      );
+    }
+
+    if (offset !== undefined && (isNaN(offset) || offset < 0)) {
+      throw createError("Offset must be a non-negative number", 400);
+    }
+
+    const users = await UserService.getAllUsersWithDetails(limit, offset);
+
+    res.status(200).json({
+      success: true,
+      message: "Users with details retrieved successfully",
+      data: users,
+      meta: {
+        limit: limit || null,
+        offset: offset || 0,
+        count: users.length,
+      },
+    });
+  }
+
+  /**
    * Get user by ID with all related data
    * GET /users/:id
    */

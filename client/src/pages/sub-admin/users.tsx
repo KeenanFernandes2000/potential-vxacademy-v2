@@ -35,7 +35,7 @@ const api = {
   async getAllUsers(token: string) {
     try {
       const baseUrl = import.meta.env.VITE_API_URL;
-      const response = await fetch(`${baseUrl}/api/users/users`, {
+      const response = await fetch(`${baseUrl}/api/users/users/with-details`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -179,7 +179,7 @@ const Users = () => {
         const usersResponse = await api.getAllUsers(token);
         let filteredUsersData = usersResponse.data || [];
 
-        // Filter users based on current user's organization, suborganization, assets, and subassets
+        // Filter users based on current user's organization only
         if (currentUserData) {
           filteredUsersData = filteredUsersData.filter((user: any) => {
             // Filter out Sub_admin users
@@ -187,26 +187,8 @@ const Users = () => {
               return false;
             }
 
-            // Filter by organization
+            // Filter by organization only
             if (user.organization !== currentUserData.organization) {
-              return false;
-            }
-
-            // Filter by suborganization if current user has one
-            if (
-              currentUserData.subOrganization &&
-              user.subOrganization !== currentUserData.subOrganization
-            ) {
-              return false;
-            }
-
-            // Filter by asset
-            if (user.asset !== currentUserData.asset) {
-              return false;
-            }
-
-            // Filter by subasset
-            if (user.subAsset !== currentUserData.subAsset) {
               return false;
             }
 
@@ -382,11 +364,11 @@ const Users = () => {
       );
       const currentUserData = currentUserResponse.data;
 
-      // Get all users
+      // Get all users with details
       const usersResponse = await api.getAllUsers(token);
       let filteredUsersData = usersResponse.data || [];
 
-      // Filter users based on current user's organization, suborganization, assets, and subassets
+      // Filter users based on current user's organization only
       if (currentUserData) {
         filteredUsersData = filteredUsersData.filter((user: any) => {
           // Filter out Sub_admin users
@@ -394,26 +376,8 @@ const Users = () => {
             return false;
           }
 
-          // Filter by organization
+          // Filter by organization only
           if (user.organization !== currentUserData.organization) {
-            return false;
-          }
-
-          // Filter by suborganization if current user has one
-          if (
-            currentUserData.subOrganization &&
-            user.subOrganization !== currentUserData.subOrganization
-          ) {
-            return false;
-          }
-
-          // Filter by asset
-          if (user.asset !== currentUserData.asset) {
-            return false;
-          }
-
-          // Filter by subasset
-          if (user.subAsset !== currentUserData.subAsset) {
             return false;
           }
 
@@ -649,7 +613,7 @@ const Users = () => {
 
       {/* Search Bar */}
       <div className="flex items-center space-x-2">
-        <div className="relative flex-1 w-full">
+        <div className="relative flex-1 w-[70%]">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] h-4 w-4" />
           <Input
             placeholder="Search users..."
@@ -674,62 +638,66 @@ const Users = () => {
       </div>
 
       {/* User Table */}
-      <div className="border bg-white border-[#E5E5E5] w-full rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-[#E5E5E5]">
-              {columns.map((column) => (
-                <TableHead
-                  key={column}
-                  className="text-[#2C2C2C] font-semibold"
-                >
-                  {column}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredUsers.map((user, index) => (
-              <TableRow
-                key={index}
-                className="border-[#E5E5E5] hover:bg-sandstone/50"
-              >
-                <TableCell className="text-[#2C2C2C]">{user.id}</TableCell>
-                <TableCell className="text-[#2C2C2C]">
-                  {user.firstName}
-                </TableCell>
-                <TableCell className="text-[#2C2C2C]">
-                  {user.lastName}
-                </TableCell>
-                <TableCell className="text-[#2C2C2C]">{user.email}</TableCell>
-                <TableCell className="text-[#2C2C2C]">{user.eid}</TableCell>
-                <TableCell className="text-[#2C2C2C]">
-                  {user.phoneNumber}
-                </TableCell>
-                <TableCell className="text-[#2C2C2C]">
-                  {user.roleCategory}
-                </TableCell>
-                <TableCell className="text-[#2C2C2C]">{user.role}</TableCell>
-                <TableCell className="text-[#2C2C2C]">
-                  {user.seniority}
-                </TableCell>
-                <TableCell className="text-[#2C2C2C]">
-                  {user.overallProgress}
-                </TableCell>
-                <TableCell className="text-[#2C2C2C]">
-                  {user.certificates}
-                </TableCell>
-                <TableCell className="text-[#2C2C2C]">
-                  {user.registrationDate}
-                </TableCell>
-                <TableCell className="text-[#2C2C2C]">
-                  {user.lastLoginDate}
-                </TableCell>
-                <TableCell className="text-[#2C2C2C]">{user.actions}</TableCell>
+      <div className="border bg-white border-[#E5E5E5] w-full rounded-lg overflow-x-auto max-w-[90%]">
+        <div className="max-w-[1200px] mx-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-[#E5E5E5]">
+                {columns.map((column) => (
+                  <TableHead
+                    key={column}
+                    className="text-[#2C2C2C] font-semibold"
+                  >
+                    {column}
+                  </TableHead>
+                ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.map((user, index) => (
+                <TableRow
+                  key={index}
+                  className="border-[#E5E5E5] hover:bg-sandstone/50"
+                >
+                  <TableCell className="text-[#2C2C2C]">{user.id}</TableCell>
+                  <TableCell className="text-[#2C2C2C]">
+                    {user.firstName}
+                  </TableCell>
+                  <TableCell className="text-[#2C2C2C]">
+                    {user.lastName}
+                  </TableCell>
+                  <TableCell className="text-[#2C2C2C]">{user.email}</TableCell>
+                  <TableCell className="text-[#2C2C2C]">{user.eid}</TableCell>
+                  <TableCell className="text-[#2C2C2C]">
+                    {user.phoneNumber}
+                  </TableCell>
+                  <TableCell className="text-[#2C2C2C]">
+                    {user.roleCategory}
+                  </TableCell>
+                  <TableCell className="text-[#2C2C2C]">{user.role}</TableCell>
+                  <TableCell className="text-[#2C2C2C]">
+                    {user.seniority}
+                  </TableCell>
+                  <TableCell className="text-[#2C2C2C]">
+                    {user.overallProgress}
+                  </TableCell>
+                  <TableCell className="text-[#2C2C2C]">
+                    {user.certificates}
+                  </TableCell>
+                  <TableCell className="text-[#2C2C2C]">
+                    {user.registrationDate}
+                  </TableCell>
+                  <TableCell className="text-[#2C2C2C]">
+                    {user.lastLoginDate}
+                  </TableCell>
+                  <TableCell className="text-[#2C2C2C]">
+                    {user.actions}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {/* Edit Modal */}
