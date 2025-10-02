@@ -18,7 +18,7 @@ import {
   assessments, 
   assessmentAttempts 
 } from "../db/schema";
-import { sql, desc, asc, count, sum, avg, eq, and, gte, lte, inArray } from "drizzle-orm";
+import { sql, desc, asc, count, sum, avg, eq, and, gte, lte, inArray, isNotNull } from "drizzle-orm";
 
 export const reportServices = {
 
@@ -78,8 +78,6 @@ export const reportServices = {
         // Training Area Seniority Distribution
         trainingAreaSeniorityDistributionData,
         
-        // Organization Role TreeMap
-        organizationRoleTreeMapData
       ] = await Promise.all([
         // Key Metrics
         db.select({ count: count() }).from(users),
@@ -126,27 +124,27 @@ export const reportServices = {
         .groupBy(users.asset, users.subAsset)
         .orderBy(desc(count())),
         
-        // Role Distribution
+        // Role Distribution - Fixed to aggregate by asset only
         db.select({
           asset: users.asset,
-          subAsset: users.subAsset,
-          roleCategory: normalUsers.roleCategory,
           userCount: count()
         })
         .from(users)
         .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.asset, users.subAsset, normalUsers.roleCategory),
+        .groupBy(users.asset)
+        .orderBy(desc(count())),
         
-        // Seniority Distribution
+        // Seniority Distribution - Fixed to only show managers and staff
         db.select({
-          asset: users.asset,
           seniority: normalUsers.seniority,
           userCount: count(),
           percentage: sql<number>`ROUND((COUNT(*) * 100.0 / SUM(COUNT(*)) OVER()), 2)`
         })
         .from(users)
         .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.asset, normalUsers.seniority),
+        .where(inArray(normalUsers.seniority, ['Manager', 'Staff']))
+        .groupBy(normalUsers.seniority)
+        .orderBy(desc(count())),
         
         // Certificate Analytics
         db.select({
@@ -182,16 +180,16 @@ export const reportServices = {
         .groupBy(sql`to_char(${users.lastLogin}, 'YYYY-MM')`)
         .orderBy(asc(sql`to_char(${users.lastLogin}, 'YYYY-MM')`)),
         
-        // Peak Usage Times
+        // Peak Usage Days - Changed from times to days
         db.select({
-          timePeriod: sql<string>`to_char(${users.lastLogin}, 'YYYY-MM-DD')`,
+          dayOfWeek: sql<string>`to_char(${users.lastLogin}, 'Day')`,
           loginCount: count(),
           uniqueUsers: sql<number>`COUNT(DISTINCT ${users.id})`
         })
         .from(users)
-        .groupBy(sql`to_char(${users.lastLogin}, 'YYYY-MM-DD')`)
-        .orderBy(desc(count()))
-        .limit(20),
+        .where(isNotNull(users.lastLogin))
+        .groupBy(sql`to_char(${users.lastLogin}, 'Day')`)
+        .orderBy(desc(count())),
         
         // Training Area Enrollments
         db.select({
@@ -205,10 +203,9 @@ export const reportServices = {
         .groupBy(sql`to_char(${userTrainingAreaProgress.startedAt}, 'YYYY-MM')`, trainingAreas.name)
         .orderBy(asc(sql`to_char(${userTrainingAreaProgress.startedAt}, 'YYYY-MM')`)),
         
-        // Course Completion Rates
+        // Course Completion Rates - Fixed to group by training area only
         db.select({
           trainingArea: trainingAreas.name,
-          organization: users.organization,
           totalEnrollments: count(),
           completedCourses: sql<number>`COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END)`,
           completionRate: sql<number>`ROUND((COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0 / COUNT(*)), 2)`
@@ -217,8 +214,8 @@ export const reportServices = {
         .innerJoin(courses, eq(userCourseProgress.courseId, courses.id))
         .innerJoin(modules, eq(courses.moduleId, modules.id))
         .innerJoin(trainingAreas, eq(modules.trainingAreaId, trainingAreas.id))
-        .innerJoin(users, eq(userCourseProgress.userId, users.id))
-        .groupBy(trainingAreas.name, users.organization),
+        .groupBy(trainingAreas.name)
+        .orderBy(desc(sql`ROUND((COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0 / COUNT(*)), 2)`)),
         
         // Training Completion Heatmap
         db.select({
@@ -250,16 +247,15 @@ export const reportServices = {
         .groupBy(sql`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`, trainingAreas.name)
         .orderBy(asc(sql`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`)),
         
-        // Organization Role Distribution
+        // Organization Role Distribution - Fixed to aggregate by organization only
         db.select({
           organization: users.organization,
-          roleCategory: normalUsers.roleCategory,
-          userCount: count(),
-          percentage: sql<number>`ROUND((COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (PARTITION BY ${users.organization})), 2)`
+          userCount: count()
         })
         .from(users)
         .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.organization, normalUsers.roleCategory),
+        .groupBy(users.organization)
+        .orderBy(desc(count())),
         
         // Training Area Seniority Distribution
         db.select({
@@ -274,18 +270,6 @@ export const reportServices = {
         .innerJoin(trainingAreas, eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id))
         .groupBy(trainingAreas.name, normalUsers.seniority),
         
-        // Organization Role TreeMap
-        db.select({
-          organization: users.organization,
-          roleCategory: normalUsers.roleCategory,
-          role: normalUsers.role,
-          userCount: count(),
-          totalXp: sum(users.xp)
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.organization, normalUsers.roleCategory, normalUsers.role)
-        .orderBy(users.organization, desc(count()))
       ]);
 
       const growthRate = monthlyGrowth[0]?.lastMonth && monthlyGrowth[0].lastMonth > 0 
@@ -319,8 +303,7 @@ export const reportServices = {
         trainingCompletionHeatmap: trainingCompletionHeatmapData,
         certificateTrends: certificateTrendsData,
         organizationRoleDistribution: organizationRoleDistributionData,
-        trainingAreaSeniorityDistribution: trainingAreaSeniorityDistributionData,
-        organizationRoleTreeMap: organizationRoleTreeMapData
+        trainingAreaSeniorityDistribution: trainingAreaSeniorityDistributionData
       };
     } catch (error) {
       console.error("Error in getAllAnalyticsData:", error);

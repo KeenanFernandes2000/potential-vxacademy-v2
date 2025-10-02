@@ -31,7 +31,6 @@ import {
   ComposedChart,
   Scatter,
   ScatterChart,
-  Treemap,
 } from "recharts";
 
 // Color palette for charts
@@ -57,161 +56,6 @@ const Analytics = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Transform organization role data for TreeMap
-  const transformTreeMapData = (data: any[]): any[] => {
-    if (!data || data.length === 0) {
-      console.log("TreeMap: No data available", data);
-      return [];
-    }
-
-    console.log("TreeMap: Original data", data);
-
-    // Group by organization first
-    const orgMap = new Map<string, any>();
-
-    data.forEach((item) => {
-      const org = item.organization || "Unknown Organization";
-      const roleCategory = item.roleCategory || "Unknown Category";
-      const role = item.role || "Unknown Role";
-      const userCount = item.userCount || 0;
-
-      if (!orgMap.has(org)) {
-        orgMap.set(org, {
-          name: org,
-          children: new Map<string, any>(),
-          totalUsers: 0,
-        });
-      }
-
-      const orgData = orgMap.get(org);
-      orgData.totalUsers += userCount;
-
-      if (!orgData.children.has(roleCategory)) {
-        orgData.children.set(roleCategory, {
-          name: roleCategory,
-          children: [] as any[],
-          totalUsers: 0,
-        });
-      }
-
-      const categoryData = orgData.children.get(roleCategory);
-      categoryData.totalUsers += userCount;
-      categoryData.children.push({
-        name: role,
-        userCount: userCount,
-        size: userCount,
-      });
-    });
-
-    // Convert to flat array for TreeMap
-    const flatData: any[] = [];
-
-    orgMap.forEach((org: any) => {
-      // Add organization as a parent node
-      flatData.push({
-        name: org.name,
-        userCount: org.totalUsers,
-        size: org.totalUsers,
-        type: "organization",
-      });
-
-      // Add role categories and roles
-      org.children.forEach((category: any) => {
-        flatData.push({
-          name: `${org.name} - ${category.name}`,
-          userCount: category.totalUsers,
-          size: category.totalUsers,
-          type: "category",
-          parent: org.name,
-        });
-
-        category.children.forEach((role: any) => {
-          flatData.push({
-            name: `${org.name} - ${category.name} - ${role.name}`,
-            userCount: role.userCount,
-            size: role.userCount,
-            type: "role",
-            parent: `${org.name} - ${category.name}`,
-          });
-        });
-      });
-    });
-
-    console.log("TreeMap: Transformed data", flatData);
-    return flatData;
-  };
-
-  // Customized content for TreeMap
-  const CustomizedContent = (props: any) => {
-    const {
-      root,
-      depth,
-      x,
-      y,
-      width,
-      height,
-      index,
-      payload,
-      colors,
-      rank,
-      name,
-    } = props;
-
-    if (!payload) return null;
-
-    const getColor = (type: string, index: number) => {
-      switch (type) {
-        case "organization":
-          return "#d2691e";
-        case "category":
-          return "#B85A1A";
-        case "role":
-          return COLORS[index % COLORS.length];
-        default:
-          return "#8884d8";
-      }
-    };
-
-    return (
-      <g>
-        <rect
-          x={x}
-          y={y}
-          width={width}
-          height={height}
-          style={{
-            fill: getColor(payload.type, index),
-            stroke: "#ffffff",
-            strokeWidth: 1,
-            opacity: 0.8,
-          }}
-        />
-        {width > 80 && height > 30 && (
-          <text
-            x={x + width / 2}
-            y={y + height / 2 - 5}
-            textAnchor="middle"
-            fill="#ffffff"
-            fontSize={Math.min(width / 10, height / 5, 12)}
-            fontWeight="bold"
-          >
-            {payload.name.split(" - ").pop()}
-          </text>
-        )}
-        {width > 100 && height > 40 && (
-          <text
-            x={x + width / 2}
-            y={y + height / 2 + 10}
-            textAnchor="middle"
-            fill="#ffffff"
-            fontSize={Math.min(width / 15, height / 8, 10)}
-          >
-            {payload.userCount} users
-          </text>
-        )}
-      </g>
-    );
-  };
   const [analytics, setAnalytics] = useState({
     totalUsers: 0,
     activeUsers: 0,
@@ -244,7 +88,6 @@ const Analytics = () => {
     trainingAreaSeniorityDistribution,
     setTrainingAreaSeniorityDistribution,
   ] = useState([]);
-  const [organizationRoleTreeMap, setOrganizationRoleTreeMap] = useState([]);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -291,7 +134,6 @@ const Analytics = () => {
           setTrainingAreaSeniorityDistribution(
             data.trainingAreaSeniorityDistribution || []
           );
-          setOrganizationRoleTreeMap(data.organizationRoleTreeMap || []);
         } else {
           throw new Error(result.error || "Failed to load analytics data");
         }
@@ -462,12 +304,12 @@ const Analytics = () => {
             </CardContent>
           </Card>
 
-          {/* Chart 2: Stacked Bar Chart - Role Distribution by Asset */}
+          {/* Chart 2: Bar Chart - User Distribution by Asset */}
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-dawn" />
-                Role Distribution by Asset
+                User Distribution by Asset
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -486,12 +328,7 @@ const Analytics = () => {
                     }}
                   />
                   <Legend />
-                  <Bar
-                    dataKey="userCount"
-                    stackId="a"
-                    fill="#d2691e"
-                    name="Users"
-                  />
+                  <Bar dataKey="userCount" fill="#d2691e" name="Users" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -542,7 +379,7 @@ const Analytics = () => {
             </CardContent>
           </Card>
 
-          {/* Chart 4: Pie Chart - Seniority Distribution */}
+          {/* Chart 4: Pie Chart - Manager vs Staff Distribution */}
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
@@ -558,7 +395,9 @@ const Analytics = () => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percentage }) => `${name} (${percentage}%)`}
+                    label={({ seniority, percentage }) =>
+                      `${seniority} (${percentage}%)`
+                    }
                     outerRadius={80}
                     fill="#d2691e"
                     dataKey="userCount"
@@ -676,19 +515,19 @@ const Analytics = () => {
 
         {/* Charts Row 4: Usage and Training Analytics */}
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Chart 7: Bar Chart - Peak Usage Times */}
+          {/* Chart 7: Bar Chart - Peak Usage Days */}
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-dawn" />
-                Peak Usage Times
+                Peak Usage Days
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={peakUsageTimes.slice(0, 10)}>
+                <BarChart data={peakUsageTimes}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
-                  <XAxis dataKey="timePeriod" stroke="#666666" />
+                  <XAxis dataKey="dayOfWeek" stroke="#666666" />
                   <YAxis stroke="#666666" />
                   <Tooltip
                     contentStyle={{
@@ -753,12 +592,12 @@ const Analytics = () => {
 
         {/* Charts Row 5: Completion Rates and Certificate Trends */}
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Chart 9: Gauge Chart - Course Completion Rates */}
+          {/* Chart 9: Bar Chart - Course Completion Rates by Training Area */}
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
                 <Target className="h-5 w-5 text-dawn" />
-                Course Completion Rates
+                Course Completion Rates by Training Area
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -862,12 +701,12 @@ const Analytics = () => {
 
         {/* Charts Row 6: Organization Analytics */}
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Chart 12: Stacked Bar Chart - Organization Role Distribution */}
+          {/* Chart 12: Bar Chart - Organization User Distribution */}
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-dawn" />
-                Organization Role Distribution
+                Organization User Distribution
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -936,54 +775,6 @@ const Analytics = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Chart 14: TreeMap - Organization Role Breakdown (Full Width) */}
-        <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-          <CardHeader>
-            <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-dawn" />
-              Organization Role Breakdown (TreeMap)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {organizationRoleTreeMap && organizationRoleTreeMap.length > 0 ? (
-              <ResponsiveContainer width="100%" height={400}>
-                <Treemap
-                  data={transformTreeMapData(organizationRoleTreeMap)}
-                  dataKey="size"
-                  aspectRatio={4 / 3}
-                  stroke="#ffffff"
-                  fill="#d2691e"
-                  content={<CustomizedContent />}
-                >
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: "8px",
-                      color: "#2C2C2C",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                    formatter={(value: any, name: any, props: any) => [
-                      `${value} users`,
-                      props.payload?.name || name,
-                    ]}
-                  />
-                </Treemap>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-96 text-[#2C2C2C]/60">
-                <div className="text-center">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-4 text-dawn/50" />
-                  <p>No organization role data available</p>
-                  <p className="text-sm mt-2">
-                    TreeMap will appear when data is loaded
-                  </p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </AdminPageLayout>
   );
