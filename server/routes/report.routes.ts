@@ -18,6 +18,9 @@ router.get("/users", reportController.getUsersReport);
 // Organizations Report - All organizations with frontliner statistics
 router.get("/organizations", reportController.getOrganizationsReport);
 
+// Sub-Organizations Report - All sub-organizations with comprehensive statistics
+router.get("/sub-organizations", reportController.getSubOrganizationsReport);
+
 // Sub-Admins Report - All sub-admins with comprehensive statistics
 router.get("/sub-admins", reportController.getSubAdminsReport);
 
