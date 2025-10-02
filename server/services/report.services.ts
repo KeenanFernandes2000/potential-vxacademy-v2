@@ -6,6 +6,7 @@ import {
   assets, 
   subAssets, 
   organizations, 
+  subOrganizations,
   roleCategories, 
   roles, 
   seniorityLevels,
@@ -16,7 +17,8 @@ import {
   userModuleProgress, 
   userCourseProgress,
   assessments, 
-  assessmentAttempts 
+  assessmentAttempts,
+  certificates
 } from "../db/schema";
 import { sql, desc, asc, count, sum, avg, eq, and, gte, lte, inArray, isNotNull } from "drizzle-orm";
 
@@ -1042,6 +1044,126 @@ export const reportServices = {
       };
     } catch (error) {
       console.error("Error in getOrganizationsReportData:", error);
+      throw error;
+    }
+  },
+
+  // Sub-Organizations Report Data - All sub-organizations with comprehensive statistics
+  getSubOrganizationsReportData: async () => {
+    try {
+      console.log("Starting getSubOrganizationsReportData...");
+      
+      // Get total VX points from normal users XP
+      console.log("Calculating total VX points from normal users...");
+      const totalVxPointsResult = await db.select({ 
+        total: sql<number>`COALESCE(SUM(${users.xp}), 0)`
+      })
+      .from(users)
+      .innerJoin(normalUsers, eq(users.id, normalUsers.userId));
+      
+      const totalVxPointsEarned = totalVxPointsResult[0]?.total || 0;
+      console.log(`Total VX points earned: ${totalVxPointsEarned}`);
+      
+      // Get basic statistics
+      console.log("Getting basic statistics...");
+      const [
+        totalSubOrganizations,
+        totalFrontliners,
+        registeredFrontliners,
+        totalCertificatesIssued,
+        totalCompletedAlMidhyaf
+      ] = await Promise.all([
+        // Total sub-organizations
+        db.select({ count: count() }).from(subOrganizations),
+        
+        // Total frontliners
+        db.select({ count: count() })
+        .from(normalUsers)
+        .innerJoin(users, eq(normalUsers.userId, users.id)),
+        
+        // Registered frontliners
+        db.select({ count: count() })
+        .from(normalUsers)
+        .innerJoin(users, eq(normalUsers.userId, users.id))
+        .where(sql`${users.subOrganization} IS NOT NULL`),
+        
+        // Total certificates issued
+        db.select({ count: count() }).from(certificates),
+        
+        // Total completed Al Midhyaf
+        db.select({ count: count() })
+        .from(userTrainingAreaProgress)
+        .where(and(
+          eq(userTrainingAreaProgress.trainingAreaId, 1), // Assuming Al Midhyaf is training area 1
+          isNotNull(userTrainingAreaProgress.completedAt)
+        ))
+      ]);
+
+      // Get sub-organizations with basic data
+      console.log("Getting sub-organizations data...");
+      const subOrganizationsData = await db.select({
+        id: sql<string>`CAST(${subOrganizations.id} AS TEXT)`,
+        name: subOrganizations.name,
+        organization: organizations.name,
+        asset: assets.name,
+        subAsset: subAssets.name,
+        createdAt: sql<string>`NOW()`
+      })
+      .from(subOrganizations)
+      .leftJoin(organizations, eq(subOrganizations.organizationId, organizations.id))
+      .leftJoin(assets, eq(subOrganizations.assetId, assets.id))
+      .leftJoin(subAssets, eq(subOrganizations.subAssetId, subAssets.id))
+      .orderBy(subOrganizations.name);
+
+      // Create simplified sub-organizations data
+      const subOrganizationsWithCounts = subOrganizationsData.map((subOrg) => ({
+        ...subOrg,
+        totalFrontliners: 0,
+        registeredFrontliners: 0,
+        subAdminName: 'N/A',
+        subAdminEmail: 'N/A',
+        status: 'inactive'
+      }));
+
+      // Get filter options
+      console.log("Getting filter options...");
+      const [assetOptions, subAssetOptions] = await Promise.all([
+        db.select({
+          value: assets.name,
+          label: assets.name
+        })
+        .from(assets)
+        .limit(10),
+        
+        db.select({
+          value: subAssets.name,
+          label: subAssets.name
+        })
+        .from(subAssets)
+        .limit(10)
+      ]);
+
+      console.log("Sub-organizations report data prepared successfully");
+      return {
+        filters: {
+          assets: assetOptions,
+          subAssets: subAssetOptions
+        },
+        subOrganizations: subOrganizationsWithCounts,
+        generalStats: {
+          totalSubOrganizations: totalSubOrganizations[0]?.count || 0,
+          activeSubOrganizations: 0,
+          totalFrontliners: totalFrontliners[0]?.count || 0,
+          registeredFrontliners: registeredFrontliners[0]?.count || 0,
+          totalCertificatesIssued: totalCertificatesIssued[0]?.count || 0,
+          totalCompletedAlMidhyaf: totalCompletedAlMidhyaf[0]?.count || 0,
+          totalVxPointsEarned: totalVxPointsEarned,
+          overallProgress: 50 // Placeholder value
+        }
+      };
+    } catch (error) {
+      console.error("Error in getSubOrganizationsReportData:", error);
+      console.error("Error details:", error);
       throw error;
     }
   },

@@ -399,7 +399,9 @@ const Frontliners = () => {
         frontliner.asset,
         frontliner.subAsset,
         frontliner.organization,
-        frontliner.subOrganization || "N/A",
+        Array.isArray(frontliner.subOrganization)
+          ? frontliner.subOrganization.join("; ")
+          : (frontliner.subOrganization || "N/A").toString().replace(/,/g, ";"),
         frontliner.roleCategory,
         frontliner.role,
         frontliner.seniority,
@@ -750,6 +752,17 @@ const Frontliners = () => {
               </Button>
             </div>
           )}
+        </div>
+
+        {/* Export Button */}
+        <div className="flex justify-end mb-4">
+          <Button
+            onClick={handleExport}
+            className="bg-dawn hover:bg-[#B85A1A] text-white"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
         </div>
 
         {/* Frontliners Accordion Table */}

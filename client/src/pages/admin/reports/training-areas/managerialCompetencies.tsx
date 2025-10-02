@@ -216,6 +216,48 @@ const ManagerialCompetencies = () => {
     setFilteredUsers(filtered);
   };
 
+  // Handle CSV export
+  const handleExportCSV = () => {
+    if (!reportData) return;
+
+    const csvContent = [
+      reportData.dataTableColumns,
+      ...filteredUsers.map((user) => [
+        user.userId,
+        user.firstName,
+        user.lastName,
+        user.email,
+        user.eid || "N/A",
+        user.phoneNumber || "N/A",
+        user.asset,
+        user.subAsset,
+        user.organization,
+        Array.isArray(user.subOrganization)
+          ? user.subOrganization?.join("; ")
+          : (user.subOrganization ?? "N/A").toString().replace(/,/g, ";"),
+        user.roleCategory,
+        user.role,
+        user.seniority,
+        user.frontlinerType,
+        user.alMidhyafOverallProgress + "%",
+        user.module1Progress + "%",
+        user.vxPoints,
+        formatDate(user.registrationDate),
+        formatDate(user.lastLoginDate),
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "managerial-competencies-report.csv";
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   const formatDate = (dateString: string) => {
     if (dateString === "N/A" || !dateString) return "N/A";
     try {
@@ -237,7 +279,7 @@ const ManagerialCompetencies = () => {
     "Sub-Asset": user.subAsset,
     Organization: user.organization,
     "Sub-Organization": Array.isArray(user.subOrganization)
-      ? user.subOrganization?.join(", ")
+      ? user.subOrganization?.join("; ")
       : user.subOrganization ?? "N/A",
     "Role Category": user.roleCategory,
     Role: user.role,
@@ -281,7 +323,8 @@ const ManagerialCompetencies = () => {
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-gray-600 mb-4">
-                The Managerial Competencies training area is currently under development.
+                The Managerial Competencies training area is currently under
+                development.
               </p>
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <p className="text-green-700 font-medium text-sm">
@@ -490,6 +533,17 @@ const ManagerialCompetencies = () => {
               </Select>
             </div>
           </div>
+        </div>
+
+        {/* Export Button */}
+        <div className="flex justify-end mb-4">
+          <Button
+            onClick={handleExportCSV}
+            className="bg-dawn hover:bg-[#B85A1A] text-white"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
         </div>
 
         {/* Data Table */}

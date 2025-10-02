@@ -48,6 +48,7 @@ import {
   Analytics,
   AllUsers,
   Organizations,
+  SubOrganizations,
   SubAdmins,
   Frontliners,
   CertificateReports,
@@ -190,7 +191,10 @@ function App() {
                           element={<LearningPathPage />}
                         />
                         <Route path="media" element={<MediaPage />} />
-                        <Route path="communication-email" element={<CommunicationEmail />} />
+                        <Route
+                          path="communication-email"
+                          element={<CommunicationEmail />}
+                        />
 
                         {/* Report Routes */}
                         <Route
@@ -204,6 +208,10 @@ function App() {
                         <Route
                           path="reports/organizations"
                           element={<Organizations />}
+                        />
+                        <Route
+                          path="reports/sub-organizations"
+                          element={<SubOrganizations />}
                         />
                         <Route
                           path="reports/sub-admins"

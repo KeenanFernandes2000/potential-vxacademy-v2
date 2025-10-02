@@ -11,6 +11,7 @@ import {
   BookOpen,
   Loader2,
   X,
+  Download,
 } from "lucide-react";
 import {
   Select,
@@ -191,6 +192,43 @@ const SubAdmins = () => {
     }
 
     setFilteredSubAdmins(filtered);
+  };
+
+  // Handle CSV export
+  const handleExportCSV = () => {
+    if (!reportData) return;
+
+    const csvContent = [
+      reportData.dataTableColumns,
+      ...filteredSubAdmins.map((subAdmin) => [
+        subAdmin.userId,
+        subAdmin.firstName,
+        subAdmin.lastName,
+        subAdmin.email,
+        subAdmin.eid,
+        subAdmin.phoneNumber,
+        subAdmin.asset,
+        subAdmin.subAsset,
+        subAdmin.organization,
+        Array.isArray(subAdmin.subOrganization)
+          ? subAdmin.subOrganization.join("; ")
+          : (subAdmin.subOrganization || "N/A").toString().replace(/,/g, ";"),
+        subAdmin.totalFrontliners.toString(),
+        subAdmin.registeredFrontliners.toString(),
+        formatDate(subAdmin.registrationDate),
+        formatDate(subAdmin.lastLoginDate),
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sub-admins-report.csv";
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   const formatDate = (dateString: string) => {
@@ -421,6 +459,17 @@ const SubAdmins = () => {
               </Select>
             </div>
           </div>
+        </div>
+
+        {/* Export Button */}
+        <div className="flex justify-end mb-4">
+          <Button
+            onClick={handleExportCSV}
+            className="bg-dawn hover:bg-[#B85A1A] text-white"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
         </div>
 
         {/* Data Table */}

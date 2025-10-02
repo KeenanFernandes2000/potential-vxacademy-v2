@@ -78,6 +78,20 @@ export const reportController = {
     }
   },
 
+  // Sub-Organizations Report - All sub-organizations with comprehensive statistics
+  getSubOrganizationsReport: async (req: Request, res: Response) => {
+    try {
+      const data = await reportServices.getSubOrganizationsReportData();
+      res.json({ success: true, data });
+    } catch (error) {
+      console.error("Error fetching sub-organizations report:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "Failed to fetch sub-organizations report data" 
+      });
+    }
+  },
+
   // Sub-Admins Report - All sub-admins with comprehensive statistics
   getSubAdminsReport: async (req: Request, res: Response) => {
     try {
