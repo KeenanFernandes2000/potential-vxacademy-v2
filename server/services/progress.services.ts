@@ -191,9 +191,9 @@ export class AssessmentProgressHelper {
       return { completed: 0, total: 0, percentage: 0 };
     }
 
-    // Get completed assessments (any attempt made)
+    // Get completed assessments (only 1 attempt per user per assessment)
     const completedAssessments = await tx
-      .select({ count: count() })
+      .select({ count: sql`COUNT(DISTINCT ${assessmentAttempts.assessmentId})` })
       .from(assessmentAttempts)
       .innerJoin(
         assessments,

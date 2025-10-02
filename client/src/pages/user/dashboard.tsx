@@ -237,12 +237,6 @@ const Dashboard = () => {
                     {progressStats.completedCourses} Completed
                   </span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="text-lg font-semibold">
-                    0 Certificates Earned
-                  </span>
-                </div>
               </div>
             </div>
           </div>

@@ -1358,7 +1358,7 @@ const joinPage = (props: Props) => {
                   </SelectTrigger>
                   <SelectContent className="bg-sandstone border-sandstone text-[#2C2C2C]">
                     {subOrganizations.map((org) => (
-                      <SelectItem key={org.id} value={org.id}>
+                      <SelectItem key={org.id} value={org.name}>
                         {org.name}
                       </SelectItem>
                     ))}
