@@ -191,9 +191,11 @@ export class AssessmentProgressHelper {
       return { completed: 0, total: 0, percentage: 0 };
     }
 
-    // Get completed assessments (any attempt made)
+    // Get completed assessments (unique assessments attempted)
+    // FIXED: Use DISTINCT to count unique assessments, not total attempts
+    // This prevents progress from exceeding 100% when users retake assessments
     const completedAssessments = await tx
-      .select({ count: count() })
+      .select({ count: sql`DISTINCT ${assessmentAttempts.assessmentId}` })
       .from(assessmentAttempts)
       .innerJoin(
         assessments,
