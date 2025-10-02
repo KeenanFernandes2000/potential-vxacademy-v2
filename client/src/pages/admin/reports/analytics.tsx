@@ -273,7 +273,7 @@ const Analytics = () => {
 
         {/* Charts Row 1: User Growth and Role Distribution */}
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Chart 1: Bar Chart - User Growth Over Time */}
+          {/* Chart 1: Line Chart - User Growth Over Time */}
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
@@ -283,7 +283,7 @@ const Analytics = () => {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={userGrowth}>
+                <LineChart data={userGrowth}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
                   <XAxis dataKey="period" stroke="#666666" />
                   <YAxis stroke="#666666" />
@@ -295,11 +295,38 @@ const Analytics = () => {
                       color: "#2C2C2C",
                       boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
+                    formatter={(value: any, name: any) => {
+                      if (name === "totalUsers")
+                        return [
+                          value.toLocaleString(),
+                          "Cumulative Total Users",
+                        ];
+                      if (name === "newUsers")
+                        return [
+                          value.toLocaleString(),
+                          "New Users This Period",
+                        ];
+                      return [value, name];
+                    }}
                   />
                   <Legend />
-                  <Bar dataKey="totalUsers" fill="#d2691e" name="Total Users" />
-                  <Bar dataKey="newUsers" fill="#B85A1A" name="New Users" />
-                </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="totalUsers"
+                    stroke="#d2691e"
+                    strokeWidth={3}
+                    name="Cumulative Total Users"
+                    dot={{ fill: "#d2691e", strokeWidth: 2, r: 4 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="newUsers"
+                    stroke="#B85A1A"
+                    strokeWidth={2}
+                    name="New Users This Period"
+                    dot={{ fill: "#B85A1A", strokeWidth: 2, r: 3 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -674,16 +701,13 @@ const Analytics = () => {
               {trainingCompletionHeatmap.map((item: any, index: number) => (
                 <div
                   key={index}
-                  className="p-4 border border-[#E5E5E5] rounded-lg bg-sandstone"
+                  className="p-4 border border-[#E5E5E5] rounded-lg bg-sandstone hover:shadow-md transition-shadow"
                 >
                   <div className="font-medium text-sm mb-2 text-[#2C2C2C]">
                     {item.trainingArea}
                   </div>
-                  <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                    {item.roleCategory} - {item.asset}
-                  </div>
                   <div
-                    className="text-lg font-bold"
+                    className="text-lg font-bold mb-2"
                     style={{
                       color: item.completionRate > 50 ? "#d2691e" : "#B85A1A",
                     }}
@@ -692,6 +716,16 @@ const Analytics = () => {
                   </div>
                   <div className="text-xs text-[#2C2C2C]/50">
                     {item.completedUsers}/{item.totalUsers} users
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div
+                      className="h-2 rounded-full"
+                      style={{
+                        width: `${item.completionRate}%`,
+                        backgroundColor:
+                          item.completionRate > 50 ? "#d2691e" : "#B85A1A",
+                      }}
+                    ></div>
                   </div>
                 </div>
               ))}

@@ -103,11 +103,11 @@ export const reportServices = {
           lastMonth: sql<number>`COUNT(CASE WHEN DATE_TRUNC('month', ${users.createdAt}) = DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') THEN 1 END)`
         }).from(users),
         
-        // User Growth Data
+        // User Growth Data - Cumulative
         db.select({
           period: sql<string>`to_char(${users.createdAt}, 'YYYY-MM')`,
-          totalUsers: count(),
-          newUsers: count()
+          newUsers: count(),
+          totalUsers: sql<number>`SUM(COUNT(*)) OVER (ORDER BY to_char(${users.createdAt}, 'YYYY-MM') ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)`
         })
         .from(users)
         .groupBy(sql`to_char(${users.createdAt}, 'YYYY-MM')`)
@@ -217,21 +217,18 @@ export const reportServices = {
         .groupBy(trainingAreas.name)
         .orderBy(desc(sql`ROUND((COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0 / COUNT(*)), 2)`)),
         
-        // Training Completion Heatmap
+        // Training Completion Heatmap - Group by Training Area
         db.select({
-          roleCategory: normalUsers.roleCategory,
-          asset: users.asset,
-          subAsset: users.subAsset,
           trainingArea: trainingAreas.name,
           totalUsers: sql<number>`COUNT(DISTINCT ${users.id})`,
           completedUsers: sql<number>`COUNT(DISTINCT CASE WHEN ${userTrainingAreaProgress.status} = 'completed' THEN ${users.id} END)`,
           completionRate: sql<number>`ROUND((COUNT(DISTINCT CASE WHEN ${userTrainingAreaProgress.status} = 'completed' THEN ${users.id} END) * 100.0 / COUNT(DISTINCT ${users.id})), 2)`
         })
         .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
         .innerJoin(userTrainingAreaProgress, eq(users.id, userTrainingAreaProgress.userId))
         .innerJoin(trainingAreas, eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id))
-        .groupBy(normalUsers.roleCategory, users.asset, users.subAsset, trainingAreas.name),
+        .groupBy(trainingAreas.name)
+        .orderBy(desc(sql`ROUND((COUNT(DISTINCT CASE WHEN ${userTrainingAreaProgress.status} = 'completed' THEN ${users.id} END) * 100.0 / COUNT(DISTINCT ${users.id})), 2)`)),
         
         // Certificate Trends
         db.select({
