@@ -302,9 +302,9 @@ export class LearningBlockProgressService {
   ): Promise<UserLearningBlockProgress[]> {
     const whereCondition = learningBlockId
       ? and(
-          eq(userLearningBlockProgress.userId, userId),
-          eq(userLearningBlockProgress.learningBlockId, learningBlockId)
-        )
+        eq(userLearningBlockProgress.userId, userId),
+        eq(userLearningBlockProgress.learningBlockId, learningBlockId)
+      )
       : eq(userLearningBlockProgress.userId, userId);
 
     return await db
@@ -364,8 +364,8 @@ export class LearningBlockProgressService {
       completionPercentage === 100
         ? "completed"
         : completionPercentage > 0
-        ? "in_progress"
-        : "not_started";
+          ? "in_progress"
+          : "not_started";
 
     // Update or create course-unit progress
     await tx
@@ -463,8 +463,8 @@ export class LearningBlockProgressService {
       completionPercentage === 100
         ? "completed"
         : completionPercentage > 0
-        ? "in_progress"
-        : "not_started";
+          ? "in_progress"
+          : "not_started";
 
     // Update or create course progress
     await tx
@@ -543,8 +543,8 @@ export class LearningBlockProgressService {
       completionPercentage === 100
         ? "completed"
         : completionPercentage > 0
-        ? "in_progress"
-        : "not_started";
+          ? "in_progress"
+          : "not_started";
 
     // Update or create module progress
     await tx
@@ -627,8 +627,8 @@ export class LearningBlockProgressService {
       completionPercentage === 100
         ? "completed"
         : completionPercentage > 0
-        ? "in_progress"
-        : "not_started";
+          ? "in_progress"
+          : "not_started";
 
     // Update or create training area progress
     await tx
@@ -755,9 +755,9 @@ export class ProgressService {
   ): Promise<UserTrainingAreaProgress[]> {
     const whereCondition = trainingAreaId
       ? and(
-          eq(userTrainingAreaProgress.userId, userId),
-          eq(userTrainingAreaProgress.trainingAreaId, trainingAreaId)
-        )
+        eq(userTrainingAreaProgress.userId, userId),
+        eq(userTrainingAreaProgress.trainingAreaId, trainingAreaId)
+      )
       : eq(userTrainingAreaProgress.userId, userId);
 
     return await db
@@ -775,9 +775,9 @@ export class ProgressService {
   ): Promise<UserModuleProgress[]> {
     const whereCondition = moduleId
       ? and(
-          eq(userModuleProgress.userId, userId),
-          eq(userModuleProgress.moduleId, moduleId)
-        )
+        eq(userModuleProgress.userId, userId),
+        eq(userModuleProgress.moduleId, moduleId)
+      )
       : eq(userModuleProgress.userId, userId);
 
     return await db.select().from(userModuleProgress).where(whereCondition);
@@ -792,9 +792,9 @@ export class ProgressService {
   ): Promise<UserCourseProgress[]> {
     const whereCondition = courseId
       ? and(
-          eq(userCourseProgress.userId, userId),
-          eq(userCourseProgress.courseId, courseId)
-        )
+        eq(userCourseProgress.userId, userId),
+        eq(userCourseProgress.courseId, courseId)
+      )
       : eq(userCourseProgress.userId, userId);
 
     return await db.select().from(userCourseProgress).where(whereCondition);
@@ -809,9 +809,9 @@ export class ProgressService {
   ): Promise<UserCourseUnitProgress[]> {
     const whereCondition = courseUnitId
       ? and(
-          eq(userCourseUnitProgress.userId, userId),
-          eq(userCourseUnitProgress.courseUnitId, courseUnitId)
-        )
+        eq(userCourseUnitProgress.userId, userId),
+        eq(userCourseUnitProgress.courseUnitId, courseUnitId)
+      )
       : eq(userCourseUnitProgress.userId, userId);
 
     return await db.select().from(userCourseUnitProgress).where(whereCondition);
@@ -826,9 +826,9 @@ export class ProgressService {
   ): Promise<UserLearningBlockProgress[]> {
     const whereCondition = learningBlockId
       ? and(
-          eq(userLearningBlockProgress.userId, userId),
-          eq(userLearningBlockProgress.learningBlockId, learningBlockId)
-        )
+        eq(userLearningBlockProgress.userId, userId),
+        eq(userLearningBlockProgress.learningBlockId, learningBlockId)
+      )
       : eq(userLearningBlockProgress.userId, userId);
 
     return await db
@@ -1118,8 +1118,8 @@ export class ProgressService {
       completionPercentage === 100
         ? "completed"
         : completionPercentage > 0
-        ? "in_progress"
-        : "not_started";
+          ? "in_progress"
+          : "not_started";
 
     // Update or create course-unit progress
     await tx
@@ -1191,8 +1191,8 @@ export class ProgressService {
       completionPercentage === 100
         ? "completed"
         : completionPercentage > 0
-        ? "in_progress"
-        : "not_started";
+          ? "in_progress"
+          : "not_started";
 
     // Update or create module progress
     await tx
@@ -1259,8 +1259,8 @@ export class ProgressService {
       completionPercentage === 100
         ? "completed"
         : completionPercentage > 0
-        ? "in_progress"
-        : "not_started";
+          ? "in_progress"
+          : "not_started";
 
     // Update or create training area progress
     await tx
