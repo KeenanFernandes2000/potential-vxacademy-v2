@@ -191,11 +191,9 @@ export class AssessmentProgressHelper {
       return { completed: 0, total: 0, percentage: 0 };
     }
 
-    // Get completed assessments (unique assessments attempted)
-    // FIXED: Use DISTINCT to count unique assessments, not total attempts
-    // This prevents progress from exceeding 100% when users retake assessments
+    // Get completed assessments (any attempt made)
     const completedAssessments = await tx
-      .select({ count: sql`DISTINCT ${assessmentAttempts.assessmentId}` })
+      .select({ count: count() })
       .from(assessmentAttempts)
       .innerJoin(
         assessments,
@@ -210,7 +208,7 @@ export class AssessmentProgressHelper {
 
     const completed = completedAssessments[0]?.count || 0;
     const percentage =
-      totalAssessments > 0 ? Math.min((completed / totalAssessments) * 100, 100) : 0;
+      totalAssessments > 0 ? (completed / totalAssessments) * 100 : 0;
 
     return { completed, total: totalAssessments, percentage };
   }
@@ -461,9 +459,6 @@ export class LearningBlockProgressService {
       // Course has only assessments
       completionPercentage = assessmentStatus.percentage;
     }
-
-    // SAFEGUARD: Ensure completion percentage never exceeds 100%
-    completionPercentage = Math.min(completionPercentage, 100);
     const status: ProgressStatus =
       completionPercentage === 100
         ? "completed"
