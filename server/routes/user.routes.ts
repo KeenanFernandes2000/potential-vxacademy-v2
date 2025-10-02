@@ -127,4 +127,7 @@ router.delete(
 router.post("/certificates/generate", userControllers.generateCertificate);
 router.get("/users/:id/certificates", userControllers.getUserCertificates);
 
+// ==================== COMPREHENSIVE USER DETAILS ====================
+router.get("/:id/comprehensive-details", userControllers.getUserComprehensiveDetails);
+
 export default router;

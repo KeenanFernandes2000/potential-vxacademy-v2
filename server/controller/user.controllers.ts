@@ -17,6 +17,7 @@ import type {
 import type { CustomError } from "../middleware/errorHandling";
 import { db } from "../db/connection";
 import {
+  users,
   assets,
   subAssets,
   organizations,
@@ -3141,6 +3142,269 @@ export class userControllers {
     } catch (error: any) {
       console.error("Get user certificates error:", error);
       throw createError("Failed to retrieve user certificates", 500);
+    }
+  }
+
+  /**
+   * Get comprehensive user details from all related tables
+   */
+  static async getUserComprehensiveDetails(req: Request, res: Response): Promise<void> {
+    const userId = parseInt(req.params.id as string);
+
+    if (isNaN(userId) || userId <= 0) {
+      throw createError("Invalid user ID", 400);
+    }
+
+    // Check if user exists
+    const existingUser = await UserService.userExists(userId);
+    if (!existingUser) {
+      throw createError("User not found", 404);
+    }
+
+    try {
+      // Import all necessary schemas
+      const {
+        userTrainingAreaProgress,
+        userModuleProgress,
+        userCourseProgress,
+        userCourseUnitProgress,
+        userLearningBlockProgress,
+      } = await import("../db/schema/progress");
+      
+      const {
+        assessmentAttempts,
+      } = await import("../db/schema/assessments");
+      
+      const {
+        userBadges,
+        badges,
+      } = await import("../db/schema/gamification");
+      
+      const {
+        notifications,
+        courseEnrollments,
+      } = await import("../db/schema/system");
+
+      // Get basic user information
+      const userDetails = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      if (userDetails.length === 0) {
+        throw createError("User not found", 404);
+      }
+
+      const user = userDetails[0];
+      if (!user) {
+        throw createError("User not found", 404);
+      }
+
+      // Get sub-admin details if exists
+      const subAdminDetails = await db
+        .select()
+        .from(subAdmins)
+        .where(eq(subAdmins.userId, userId))
+        .limit(1);
+
+      // Get normal user details if exists
+      const normalUserDetails = await db
+        .select()
+        .from(normalUsers)
+        .where(eq(normalUsers.userId, userId))
+        .limit(1);
+
+      // Get training area progress
+      const trainingAreaProgress = await db
+        .select({
+          id: userTrainingAreaProgress.id,
+          trainingAreaId: userTrainingAreaProgress.trainingAreaId,
+          status: userTrainingAreaProgress.status,
+          completionPercentage: userTrainingAreaProgress.completionPercentage,
+          startedAt: userTrainingAreaProgress.startedAt,
+          completedAt: userTrainingAreaProgress.completedAt,
+          trainingAreaName: trainingAreas.name,
+          trainingAreaDescription: trainingAreas.description,
+        })
+        .from(userTrainingAreaProgress)
+        .leftJoin(trainingAreas, eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id))
+        .where(eq(userTrainingAreaProgress.userId, userId));
+
+      // Get module progress
+      const moduleProgress = await db
+        .select({
+          id: userModuleProgress.id,
+          moduleId: userModuleProgress.moduleId,
+          status: userModuleProgress.status,
+          completionPercentage: userModuleProgress.completionPercentage,
+          startedAt: userModuleProgress.startedAt,
+          completedAt: userModuleProgress.completedAt,
+          moduleName: modules.name,
+          moduleDescription: modules.description,
+        })
+        .from(userModuleProgress)
+        .leftJoin(modules, eq(userModuleProgress.moduleId, modules.id))
+        .where(eq(userModuleProgress.userId, userId));
+
+      // Get course progress
+      const courseProgress = await db
+        .select({
+          id: userCourseProgress.id,
+          courseId: userCourseProgress.courseId,
+          status: userCourseProgress.status,
+          completionPercentage: userCourseProgress.completionPercentage,
+          startedAt: userCourseProgress.startedAt,
+          completedAt: userCourseProgress.completedAt,
+          courseName: courses.name,
+          courseDescription: courses.description,
+        })
+        .from(userCourseProgress)
+        .leftJoin(courses, eq(userCourseProgress.courseId, courses.id))
+        .where(eq(userCourseProgress.userId, userId));
+
+      // Get course unit progress
+      const courseUnitProgress = await db
+        .select({
+          id: userCourseUnitProgress.id,
+          courseUnitId: userCourseUnitProgress.courseUnitId,
+          status: userCourseUnitProgress.status,
+          completionPercentage: userCourseUnitProgress.completionPercentage,
+          startedAt: userCourseUnitProgress.startedAt,
+          completedAt: userCourseUnitProgress.completedAt,
+        })
+        .from(userCourseUnitProgress)
+        .where(eq(userCourseUnitProgress.userId, userId));
+
+      // Get learning block progress
+      const learningBlockProgress = await db
+        .select({
+          id: userLearningBlockProgress.id,
+          learningBlockId: userLearningBlockProgress.learningBlockId,
+          status: userLearningBlockProgress.status,
+          startedAt: userLearningBlockProgress.startedAt,
+          completedAt: userLearningBlockProgress.completedAt,
+        })
+        .from(userLearningBlockProgress)
+        .where(eq(userLearningBlockProgress.userId, userId));
+
+      // Get assessment attempts
+      const assessmentAttemptsData = await db
+        .select({
+          id: assessmentAttempts.id,
+          assessmentId: assessmentAttempts.assessmentId,
+          score: assessmentAttempts.score,
+          passed: assessmentAttempts.passed,
+          answers: assessmentAttempts.answers,
+          startedAt: assessmentAttempts.startedAt,
+          completedAt: assessmentAttempts.completedAt,
+        })
+        .from(assessmentAttempts)
+        .where(eq(assessmentAttempts.userId, userId));
+
+      // Get user badges
+      const userBadgesData = await db
+        .select({
+          id: userBadges.id,
+          badgeId: userBadges.badgeId,
+          earnedAt: userBadges.earnedAt,
+          badgeName: badges.name,
+          badgeDescription: badges.description,
+          badgeImageUrl: badges.imageUrl,
+          badgeXpPoints: badges.xpPoints,
+        })
+        .from(userBadges)
+        .leftJoin(badges, eq(userBadges.badgeId, badges.id))
+        .where(eq(userBadges.userId, userId));
+
+      // Get certificates
+      const userCertificates = await db
+        .select({
+          id: certificates.id,
+          courseId: certificates.courseId,
+          certificateNumber: certificates.certificateNumber,
+          issueDate: certificates.issueDate,
+          expiryDate: certificates.expiryDate,
+          status: certificates.status,
+        })
+        .from(certificates)
+        .where(eq(certificates.userId, userId));
+
+      // Get notifications
+      const userNotifications = await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.userId, userId))
+        .orderBy(notifications.createdAt);
+
+      // Get course enrollments
+      const courseEnrollmentsData = await db
+        .select({
+          id: courseEnrollments.id,
+          courseId: courseEnrollments.courseId,
+          enrolledAt: courseEnrollments.enrolledAt,
+          enrollmentSource: courseEnrollments.enrollmentSource,
+          courseName: courses.name,
+          courseDescription: courses.description,
+        })
+        .from(courseEnrollments)
+        .leftJoin(courses, eq(courseEnrollments.courseId, courses.id))
+        .where(eq(courseEnrollments.userId, userId));
+
+      // Get password reset attempts
+      const passwordResetsData = await db
+        .select()
+        .from(passwordResets)
+        .where(eq(passwordResets.userId, userId));
+
+      // Compile comprehensive user data
+      const comprehensiveUserData = {
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          organization: user.organization,
+          subOrganization: user.subOrganization,
+          asset: user.asset,
+          subAsset: user.subAsset,
+          userType: user.userType,
+          xp: user.xp,
+          lastLogin: user.lastLogin,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+        subAdminDetails: subAdminDetails.length > 0 ? subAdminDetails[0] : null,
+        normalUserDetails: normalUserDetails.length > 0 ? normalUserDetails[0] : null,
+        progress: {
+          trainingAreaProgress,
+          moduleProgress,
+          courseProgress,
+          courseUnitProgress,
+          learningBlockProgress,
+        },
+        assessments: {
+          attempts: assessmentAttemptsData,
+        },
+        gamification: {
+          badges: userBadgesData,
+          certificates: userCertificates,
+        },
+        system: {
+          notifications: userNotifications,
+          courseEnrollments: courseEnrollmentsData,
+          passwordResets: passwordResetsData,
+        },
+      };
+
+      res.status(200).json({
+        success: true,
+        message: "Comprehensive user details retrieved successfully",
+        data: comprehensiveUserData,
+      });
+    } catch (error: any) {
+      console.error("Get comprehensive user details error:", error);
+      throw createError("Failed to retrieve comprehensive user details", 500);
     }
   }
 }

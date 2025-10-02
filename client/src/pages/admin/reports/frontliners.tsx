@@ -27,6 +27,13 @@ import {
   ChevronRight,
 } from "lucide-react";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -103,6 +110,12 @@ const Frontliners = () => {
     useState<string>("all");
   const [selectedProgress, setSelectedProgress] = useState<string>("all");
 
+  // Comprehensive user details state
+  const [comprehensiveUserData, setComprehensiveUserData] = useState<any>(null);
+  const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
+  const [loadingUserDetails, setLoadingUserDetails] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
   // API object for frontliner operations
   const api = {
     async getFrontlinersReport(token: string) {
@@ -124,6 +137,32 @@ const Frontliners = () => {
         return data;
       } catch (error) {
         console.error("Failed to fetch frontliners report:", error);
+        throw error;
+      }
+    },
+
+    async getUserComprehensiveDetails(userId: string, token: string) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(
+          `${baseUrl}/api/users/${userId}/comprehensive-details`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Failed to fetch comprehensive user details:", error);
         throw error;
       }
     },
@@ -156,6 +195,25 @@ const Frontliners = () => {
 
     fetchFrontlinersReport();
   }, [token]);
+
+  // Handler for viewing comprehensive user details
+  const handleViewUserDetails = async (userId: string) => {
+    if (!token) return;
+
+    setSelectedUserId(userId);
+    setShowUserDetailsModal(true);
+
+    try {
+      setLoadingUserDetails(true);
+      const response = await api.getUserComprehensiveDetails(userId, token);
+      setComprehensiveUserData(response.data);
+    } catch (error) {
+      console.error("Failed to fetch user details:", error);
+      setError("Failed to load user details");
+    } finally {
+      setLoadingUserDetails(false);
+    }
+  };
 
   // Filter frontliners based on all criteria
   useEffect(() => {
@@ -834,9 +892,17 @@ const Frontliners = () => {
                           variant="ghost"
                           size="sm"
                           className="text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-white/10"
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewUserDetails(frontliner.id);
+                          }}
+                          disabled={loadingUserDetails}
                         >
-                          <Eye className="h-4 w-4" />
+                          {loadingUserDetails ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -1052,6 +1118,355 @@ const Frontliners = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Comprehensive User Details Dialog */}
+      <Dialog
+        open={showUserDetailsModal}
+        onOpenChange={setShowUserDetailsModal}
+      >
+        <DialogContent className="max-w-6xl w-full max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-[#2C2C2C]">
+              Comprehensive User Details
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+            {loadingUserDetails ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 text-[#2C2C2C] animate-spin" />
+                <span className="ml-2 text-[#2C2C2C]">
+                  Loading user details...
+                </span>
+              </div>
+            ) : comprehensiveUserData ? (
+              <>
+                {/* Basic User Information */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-medium text-[#2C2C2C] mb-4">
+                    Basic Information
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-[#2C2C2C]/60">Name</label>
+                      <p className="text-[#2C2C2C]">
+                        {comprehensiveUserData.user.firstName}{" "}
+                        {comprehensiveUserData.user.lastName}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm text-[#2C2C2C]/60">Email</label>
+                      <p className="text-[#2C2C2C]">
+                        {comprehensiveUserData.user.email}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm text-[#2C2C2C]/60">
+                        User Type
+                      </label>
+                      <p className="text-[#2C2C2C]">
+                        {comprehensiveUserData.user.userType}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm text-[#2C2C2C]/60">
+                        XP Points
+                      </label>
+                      <p className="text-[#2C2C2C]">
+                        {comprehensiveUserData.user.xp}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm text-[#2C2C2C]/60">
+                        Organization
+                      </label>
+                      <p className="text-[#2C2C2C]">
+                        {comprehensiveUserData.user.organization}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm text-[#2C2C2C]/60">Asset</label>
+                      <p className="text-[#2C2C2C]">
+                        {comprehensiveUserData.user.asset}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sub-Admin or Normal User Details */}
+                {comprehensiveUserData.subAdminDetails && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium text-[#2C2C2C] mb-4">
+                      Sub-Admin Details
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm text-[#2C2C2C]/60">
+                          Job Title
+                        </label>
+                        <p className="text-[#2C2C2C]">
+                          {comprehensiveUserData.subAdminDetails.jobTitle}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm text-[#2C2C2C]/60">EID</label>
+                        <p className="text-[#2C2C2C]">
+                          {comprehensiveUserData.subAdminDetails.eid}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm text-[#2C2C2C]/60">
+                          Phone Number
+                        </label>
+                        <p className="text-[#2C2C2C]">
+                          {comprehensiveUserData.subAdminDetails.phoneNumber}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm text-[#2C2C2C]/60">
+                          Total Frontliners
+                        </label>
+                        <p className="text-[#2C2C2C]">
+                          {comprehensiveUserData.subAdminDetails
+                            .totalFrontliners || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {comprehensiveUserData.normalUserDetails && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium text-[#2C2C2C] mb-4">
+                      Normal User Details
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm text-[#2C2C2C]/60">
+                          Role Category
+                        </label>
+                        <p className="text-[#2C2C2C]">
+                          {comprehensiveUserData.normalUserDetails.roleCategory}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm text-[#2C2C2C]/60">
+                          Role
+                        </label>
+                        <p className="text-[#2C2C2C]">
+                          {comprehensiveUserData.normalUserDetails.role}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm text-[#2C2C2C]/60">
+                          Seniority
+                        </label>
+                        <p className="text-[#2C2C2C]">
+                          {comprehensiveUserData.normalUserDetails.seniority}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm text-[#2C2C2C]/60">EID</label>
+                        <p className="text-[#2C2C2C]">
+                          {comprehensiveUserData.normalUserDetails.eid}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm text-[#2C2C2C]/60">
+                          Phone Number
+                        </label>
+                        <p className="text-[#2C2C2C]">
+                          {comprehensiveUserData.normalUserDetails.phoneNumber}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-sm text-[#2C2C2C]/60">
+                          Existing User
+                        </label>
+                        <p className="text-[#2C2C2C]">
+                          {comprehensiveUserData.normalUserDetails.existing
+                            ? "Yes"
+                            : "No"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Progress Information */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-medium text-[#2C2C2C] mb-4">
+                    Training Progress
+                  </h3>
+
+                  {/* Training Area Progress */}
+                  {comprehensiveUserData.progress.trainingAreaProgress.length >
+                    0 && (
+                    <div className="mb-4">
+                      <h4 className="text-md font-medium text-[#2C2C2C] mb-2">
+                        Training Areas
+                      </h4>
+                      <div className="space-y-2">
+                        {comprehensiveUserData.progress.trainingAreaProgress.map(
+                          (progress: any, index: number) => (
+                            <div key={index} className="bg-gray-50 p-3 rounded">
+                              <div className="flex justify-between items-center">
+                                <span className="text-[#2C2C2C]">
+                                  {progress.trainingAreaName}
+                                </span>
+                                <span className="text-sm text-[#2C2C2C]/60">
+                                  {progress.completionPercentage}%
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                <div
+                                  className="bg-blue-500 h-2 rounded-full"
+                                  style={{
+                                    width: `${progress.completionPercentage}%`,
+                                  }}
+                                ></div>
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Course Progress */}
+                  {comprehensiveUserData.progress.courseProgress.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-md font-medium text-[#2C2C2C] mb-2">
+                        Courses
+                      </h4>
+                      <div className="space-y-2">
+                        {comprehensiveUserData.progress.courseProgress.map(
+                          (progress: any, index: number) => (
+                            <div key={index} className="bg-gray-50 p-3 rounded">
+                              <div className="flex justify-between items-center">
+                                <span className="text-[#2C2C2C]">
+                                  {progress.courseName}
+                                </span>
+                                <span className="text-sm text-[#2C2C2C]/60">
+                                  {progress.completionPercentage}%
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                <div
+                                  className="bg-green-500 h-2 rounded-full"
+                                  style={{
+                                    width: `${progress.completionPercentage}%`,
+                                  }}
+                                ></div>
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Assessment Attempts */}
+                {comprehensiveUserData.assessments.attempts.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium text-[#2C2C2C] mb-4">
+                      Assessment Attempts
+                    </h3>
+                    <div className="space-y-2">
+                      {comprehensiveUserData.assessments.attempts.map(
+                        (attempt: any, index: number) => (
+                          <div key={index} className="bg-gray-50 p-3 rounded">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[#2C2C2C]">
+                                Assessment #{attempt.assessmentId}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-[#2C2C2C]/60">
+                                  Score: {attempt.score}
+                                </span>
+                                <span
+                                  className={`text-sm ${
+                                    attempt.passed
+                                      ? "text-green-600"
+                                      : "text-red-600"
+                                  }`}
+                                >
+                                  {attempt.passed ? "Passed" : "Failed"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Certificates */}
+                {comprehensiveUserData.gamification.certificates.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium text-[#2C2C2C] mb-4">
+                      Certificates
+                    </h3>
+                    <div className="space-y-2">
+                      {comprehensiveUserData.gamification.certificates.map(
+                        (cert: any, index: number) => (
+                          <div key={index} className="bg-gray-50 p-3 rounded">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[#2C2C2C]">
+                                Certificate #{cert.certificateNumber}
+                              </span>
+                              <span className="text-sm text-[#2C2C2C]/60">
+                                {cert.status}
+                              </span>
+                            </div>
+                            <div className="text-xs text-[#2C2C2C]/60 mt-1">
+                              Issued:{" "}
+                              {new Date(cert.issueDate).toLocaleDateString()}
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Badges */}
+                {comprehensiveUserData.gamification.badges.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-medium text-[#2C2C2C] mb-4">
+                      Badges
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {comprehensiveUserData.gamification.badges.map(
+                        (badge: any, index: number) => (
+                          <div key={index} className="bg-gray-50 p-3 rounded">
+                            <div className="text-[#2C2C2C] font-medium">
+                              {badge.badgeName}
+                            </div>
+                            <div className="text-sm text-[#2C2C2C]/60">
+                              {badge.badgeDescription}
+                            </div>
+                            <div className="text-xs text-[#2C2C2C]/60 mt-1">
+                              Earned:{" "}
+                              {new Date(badge.earnedAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-[#2C2C2C]/60">No user data available</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminPageLayout>
   );
 };
