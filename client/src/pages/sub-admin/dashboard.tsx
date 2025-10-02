@@ -644,7 +644,7 @@ const Dashboard = () => {
                       className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95"
                     >
                       <FileText className="h-4 w-4" />
-                      Generate Document
+                      Download Email Template
                     </Button>
                   </div>
                 </div>
@@ -718,7 +718,7 @@ const Dashboard = () => {
                       className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95"
                     >
                       <FileText className="h-4 w-4" />
-                      Generate Document
+                      Download Email Template
                     </Button>
                   </div>
                 </div>
