@@ -977,17 +977,46 @@ const AssessmentsPage = () => {
     // Filter units based on selected course
     useEffect(() => {
       if (formData.course_id) {
-        const filtered = units.filter(
-          (unit) => unit.courseId === parseInt(formData.course_id)
-        );
-        setFilteredUnits(filtered);
+        // Get course-units for the selected course
+        const fetchCourseUnits = async () => {
+          try {
+            const baseUrl = import.meta.env.VITE_API_URL;
+            const response = await fetch(
+              `${baseUrl}/api/training/course-units/course/${formData.course_id}`,
+              {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            if (response.ok) {
+              const courseUnitsData = await response.json();
+              const unitIds =
+                courseUnitsData.data?.map((cu: any) => cu.unitId) || [];
+              const filtered = units.filter((unit) =>
+                unitIds.includes(unit.id)
+              );
+              setFilteredUnits(filtered);
+            } else {
+              setFilteredUnits([]);
+            }
+          } catch (error) {
+            console.error("Error fetching course units:", error);
+            setFilteredUnits([]);
+          }
+        };
+
+        fetchCourseUnits();
         // Reset unit selection
         setFormData((prev) => ({ ...prev, unit_id: "" }));
       } else {
         setFilteredUnits([]);
         setFormData((prev) => ({ ...prev, unit_id: "" }));
       }
-    }, [formData.course_id, units]);
+    }, [formData.course_id, units, token]);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -1726,14 +1755,43 @@ const AssessmentsPage = () => {
     // Filter units based on selected course
     useEffect(() => {
       if (formData.course_id) {
-        const filtered = units.filter(
-          (unit) => unit.courseId === parseInt(formData.course_id)
-        );
-        setFilteredUnits(filtered);
+        // Get course-units for the selected course
+        const fetchCourseUnits = async () => {
+          try {
+            const baseUrl = import.meta.env.VITE_API_URL;
+            const response = await fetch(
+              `${baseUrl}/api/training/course-units/course/${formData.course_id}`,
+              {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            if (response.ok) {
+              const courseUnitsData = await response.json();
+              const unitIds =
+                courseUnitsData.data?.map((cu: any) => cu.unitId) || [];
+              const filtered = units.filter((unit) =>
+                unitIds.includes(unit.id)
+              );
+              setFilteredUnits(filtered);
+            } else {
+              setFilteredUnits([]);
+            }
+          } catch (error) {
+            console.error("Error fetching course units:", error);
+            setFilteredUnits([]);
+          }
+        };
+
+        fetchCourseUnits();
       } else {
         setFilteredUnits([]);
       }
-    }, [formData.course_id, units]);
+    }, [formData.course_id, units, token]);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
