@@ -602,6 +602,8 @@ const SubAdminPage = () => {
         ...formData,
         organization: selectedOrg?.name || "",
         sub_organization: [],
+        asset: "",
+        sub_asset: "",
       });
       setSelectedSubOrgIds([]);
       setFormSubOrganizations([]);
@@ -922,6 +924,8 @@ const SubAdminPage = () => {
         ...formData,
         organization: selectedOrg?.name || "",
         sub_organization: [],
+        asset: "",
+        sub_asset: "",
       });
       setSelectedSubOrgIds([]);
       setFormSubOrganizations([]);
