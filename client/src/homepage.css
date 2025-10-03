@@ -116,44 +116,55 @@
     --radius: 0.625rem;
 
     /* New DCT Color System */
-    --sandstone: #f5f1e8; /* Light beige for section backgrounds */
-    --dawn: #d2691e; /* Orange/red tone for main highlights */
-    --stargaze: #4682b4; /* Steel blue for secondary accents */
-    --flamingo: #ff6b6b; /* Coral for secondary accents */
-    --palm: #228b22; /* Forest green for secondary accents */
+    --sandstone: #E3DCD3; /* Light beige for section backgrounds */
+    --dawn: #F77860; /* Orange/red tone for main highlights */
+    --stargaze: #4832b8; /* Steel blue for secondary accents */
+    --flamingo: #CD3151; /* Coral for secondary accents */
+    --palm: #1C9667; /* Forest green for secondary accents */
+    
+    /* Primary Colors */
+    --primary-dawn: #F77860;
+    --primary-sandstone: #E3DCD3;
+    --primary-black: #000000;
+    --primary-white: #FFFFFF;
+    
+    /* Secondary Colors */
+    --secondary-stargaze: #4832b8;
+    --secondary-flamingo: #CD3151;
+    --secondary-palm: #1C9667;
 
     /* Updated color variables */
-    --background: #ffffff; /* White background */
-    --foreground: #2c2c2c; /* Dark text */
-    --card: #ffffff; /* White cards */
-    --card-foreground: #2c2c2c; /* Dark text on cards */
-    --popover: #ffffff; /* White popover */
-    --popover-foreground: #2c2c2c; /* Dark text */
-    --primary: #d2691e; /* Dawn orange/red */
-    --primary-foreground: #ffffff; /* White text on Dawn */
-    --secondary: #f5f1e8; /* Sandstone for secondary */
-    --secondary-foreground: #2c2c2c; /* Dark text */
-    --muted: #f5f1e8; /* Sandstone for muted */
+    --background: var(--primary-white); /* White background */
+    --foreground: var(--primary-black); /* Black text */
+    --card: var(--primary-white); /* White cards */
+    --card-foreground: var(--primary-black); /* Black text on cards */
+    --popover: var(--primary-white); /* White popover */
+    --popover-foreground: var(--primary-black); /* Black text */
+    --primary: var(--primary-dawn); /* Dawn orange/red */
+    --primary-foreground: var(--primary-white); /* White text on Dawn */
+    --secondary: var(--primary-sandstone); /* Sandstone for secondary */
+    --secondary-foreground: var(--primary-black); /* Black text */
+    --muted: var(--primary-sandstone); /* Sandstone for muted */
     --muted-foreground: #666666; /* Medium gray text */
-    --accent: #d2691e; /* Dawn for accent */
-    --accent-foreground: #ffffff; /* White text */
-    --destructive: oklch(0.577 0.245 27.325);
+    --accent: var(--primary-dawn); /* Dawn for accent */
+    --accent-foreground: var(--primary-white); /* White text */
+    --destructive: var(--secondary-flamingo); /* Flamingo for destructive */
     --border: #e5e5e5; /* Light gray border */
-    --input: #ffffff; /* White input background */
-    --ring: #d2691e; /* Dawn focus ring */
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
-    --sidebar: #f5f1e8; /* Sandstone sidebar */
-    --sidebar-foreground: #2c2c2c; /* Dark text */
-    --sidebar-primary: #d2691e; /* Dawn primary */
-    --sidebar-primary-foreground: #ffffff; /* White text */
-    --sidebar-accent: #f5f1e8; /* Sandstone accent */
-    --sidebar-accent-foreground: #2c2c2c; /* Dark text */
+    --input: var(--primary-white); /* White input background */
+    --ring: var(--primary-dawn); /* Dawn focus ring */
+    --chart-1: var(--primary-dawn); /* Dawn for chart 1 */
+    --chart-2: var(--secondary-stargaze); /* Stargaze for chart 2 */
+    --chart-3: var(--secondary-flamingo); /* Flamingo for chart 3 */
+    --chart-4: var(--secondary-palm); /* Palm for chart 4 */
+    --chart-5: var(--primary-sandstone); /* Sandstone for chart 5 */
+    --sidebar: var(--primary-sandstone); /* Sandstone sidebar */
+    --sidebar-foreground: var(--primary-black); /* Black text */
+    --sidebar-primary: var(--primary-dawn); /* Dawn primary */
+    --sidebar-primary-foreground: var(--primary-white); /* White text */
+    --sidebar-accent: var(--primary-sandstone); /* Sandstone accent */
+    --sidebar-accent-foreground: var(--primary-black); /* Black text */
     --sidebar-border: #e5e5e5; /* Light gray border */
-    --sidebar-ring: #d2691e; /* Dawn focus ring */
+    --sidebar-ring: var(--primary-dawn); /* Dawn focus ring */
 
     /* Grid System */
     --grid-columns: 12;
@@ -277,6 +288,92 @@
 
 .theme-homepage .border-sandstone {
   border-color: var(--sandstone);
+}
+
+/* Primary Color Utilities */
+.theme-homepage .bg-primary-dawn {
+  background-color: var(--primary-dawn);
+}
+
+.theme-homepage .bg-primary-sandstone {
+  background-color: var(--primary-sandstone);
+}
+
+.theme-homepage .bg-primary-black {
+  background-color: var(--primary-black);
+}
+
+.theme-homepage .bg-primary-white {
+  background-color: var(--primary-white);
+}
+
+.theme-homepage .text-primary-dawn {
+  color: var(--primary-dawn);
+}
+
+.theme-homepage .text-primary-sandstone {
+  color: var(--primary-sandstone);
+}
+
+.theme-homepage .text-primary-black {
+  color: var(--primary-black);
+}
+
+.theme-homepage .text-primary-white {
+  color: var(--primary-white);
+}
+
+.theme-homepage .border-primary-dawn {
+  border-color: var(--primary-dawn);
+}
+
+.theme-homepage .border-primary-sandstone {
+  border-color: var(--primary-sandstone);
+}
+
+.theme-homepage .border-primary-black {
+  border-color: var(--primary-black);
+}
+
+.theme-homepage .border-primary-white {
+  border-color: var(--primary-white);
+}
+
+/* Secondary Color Utilities */
+.theme-homepage .bg-secondary-stargaze {
+  background-color: var(--secondary-stargaze);
+}
+
+.theme-homepage .bg-secondary-flamingo {
+  background-color: var(--secondary-flamingo);
+}
+
+.theme-homepage .bg-secondary-palm {
+  background-color: var(--secondary-palm);
+}
+
+.theme-homepage .text-secondary-stargaze {
+  color: var(--secondary-stargaze);
+}
+
+.theme-homepage .text-secondary-flamingo {
+  color: var(--secondary-flamingo);
+}
+
+.theme-homepage .text-secondary-palm {
+  color: var(--secondary-palm);
+}
+
+.theme-homepage .border-secondary-stargaze {
+  border-color: var(--secondary-stargaze);
+}
+
+.theme-homepage .border-secondary-flamingo {
+  border-color: var(--secondary-flamingo);
+}
+
+.theme-homepage .border-secondary-palm {
+  border-color: var(--secondary-palm);
 }
 
 /* Typography Weight Utilities */

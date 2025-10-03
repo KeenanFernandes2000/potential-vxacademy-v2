@@ -73,18 +73,18 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-sandstone relative overflow-hidden">
+    <div className="min-h-screen bg-primary-sandstone relative overflow-hidden">
       {/* Navigation Bar with Glassmorphism */}
       <HomeNavigation />
 
       {/* Main Content */}
       <div className="flex items-center justify-center p-4 min-h-[calc(100vh-80px)] relative">
-        <Card className="w-full max-w-lg bg-white backdrop-blur-sm border border-sandstone shadow-2xl relative z-10 rounded-none">
+        <Card className="w-full max-w-lg bg-primary-white backdrop-blur-sm border border-primary-sandstone shadow-2xl relative z-10 rounded-none">
           <CardHeader className="text-center pb-6">
-            <CardTitle className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#2C2C2C] mb-4">
+            <CardTitle className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-black mb-4">
               Login
             </CardTitle>
-            <div className="w-24 h-1 bg-dawn rounded-full mx-auto mb-4"></div>
+            <div className="w-24 h-1 bg-primary-dawn rounded-full mx-auto mb-4"></div>
             <CardDescription className="text-lg lg:text-xl text-[#666666] leading-relaxed max-w-sm mx-auto">
               Enter your credentials to access your VX Academy dashboard
             </CardDescription>
@@ -101,7 +101,7 @@ const AuthPage: React.FC = () => {
               <div className="space-y-3">
                 <label
                   htmlFor="email"
-                  className="block text-lg font-semibold text-[#2C2C2C] pl-2"
+                  className="block text-lg font-semibold text-primary-black pl-2"
                 >
                   Email Address
                 </label>
@@ -114,14 +114,14 @@ const AuthPage: React.FC = () => {
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
-                  className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                  className="bg-primary-white border-primary-sandstone text-primary-black placeholder:text-[#666666] focus:bg-primary-white focus:border-primary-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-primary-dawn rounded-full"
                 />
               </div>
 
               <div className="space-y-3">
                 <label
                   htmlFor="password"
-                  className="block text-lg font-semibold text-[#2C2C2C] pl-2"
+                  className="block text-lg font-semibold text-primary-black pl-2"
                 >
                   Password
                 </label>
@@ -134,7 +134,7 @@ const AuthPage: React.FC = () => {
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
-                  className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                  className="bg-primary-white border-primary-sandstone text-primary-black placeholder:text-[#666666] focus:bg-primary-white focus:border-primary-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-primary-dawn rounded-full"
                 />
               </div>
 
@@ -142,7 +142,7 @@ const AuthPage: React.FC = () => {
               <div className="flex justify-end">
                 <Link
                   to="/forgot-password"
-                  className="text-dawn hover:text-[#B85A1A] text-sm font-medium transition-all duration-300 hover:underline hover:translate-x-1 transform inline-block"
+                  className="text-primary-dawn hover:text-[#B85A1A] text-sm font-medium transition-all duration-300 hover:underline hover:translate-x-1 transform inline-block"
                 >
                   Forgot Password?
                 </Link>
@@ -151,7 +151,7 @@ const AuthPage: React.FC = () => {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-dawn hover:bg-[#B85A1A] text-white text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-dawn rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-primary-dawn hover:bg-[#B85A1A] text-primary-white text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-primary-dawn rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Signing In..." : "Sign In"}
               </Button>

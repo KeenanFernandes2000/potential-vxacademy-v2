@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import * as AOS from "aos";
-import "aos/dist/aos.css";
+// import * as AOS from "aos";
+// import "aos/dist/aos.css";
 import "../../homepage.css";
 
 import { Button } from "@/components/ui/button";
@@ -131,12 +131,12 @@ export default function HomePage() {
 
   useEffect(() => {
     // Initialize AOS
-    AOS.init({
-      duration: 600,
-      easing: "ease-in-out",
-      once: false,
-      mirror: true,
-    });
+    // AOS.init({
+    //   duration: 600,
+    //   easing: "ease-in-out",
+    //   once: false,
+    //   mirror: true,
+    // });
 
     const potChatHost = (globalThis as any).document?.getElementById(
       "potChatHost"
@@ -154,7 +154,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-primary-white relative overflow-hidden">
       <HomeNavigation showItems={true} />
 
       {/* Hero Section with Full Background Image */}
@@ -180,16 +180,16 @@ export default function HomePage() {
         <div className="grid-container py-16 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             {/* Left-aligned text block - takes up 6-7 columns */}
-            <div className="lg:col-span-7 text-white space-y-8">
+            <div className="lg:col-span-7 text-primary-white space-y-8">
               <h1
-                className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-white text-column"
+                className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight text-primary-white text-column"
                 data-aos="fade-up"
                 data-aos-delay="200"
               >
                 Elevate Abu Dhabi's Visitor Experience
               </h1>
               <p
-                className="text-lg md:text-xl lg:text-2xl text-white leading-relaxed font-light text-column"
+                className="text-lg md:text-xl lg:text-2xl text-primary-white leading-relaxed font-light text-column"
                 data-aos="fade-up"
                 data-aos-delay="400"
               >
@@ -211,12 +211,12 @@ export default function HomePage() {
       {/* About Section */}
       <section
         id="about"
-        className="section-padding relative overflow-hidden bg-sandstone border-b border-[#E5E5E5]"
+        className="section-padding relative overflow-hidden bg-primary-sandstone border-b border-[#E5E5E5]"
       >
         <div className="grid-container">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Content Column - Left side */}
-            <div className="lg:col-span-6 text-[#2C2C2C]">
+            <div className="lg:col-span-6 text-primary-black">
               <h2
                 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
                 data-aos="fade-up"
@@ -250,19 +250,19 @@ export default function HomePage() {
               </div>
               <Link to="/login">
                 <Button
-                  className="bg-dawn hover:bg-[#B85A1A] text-white px-8 py-3 font-regular transition-colors rounded-full shadow-lg border border-dawn hover:scale-105 cursor-pointer"
+                  className="bg-primary-dawn hover:bg-[#B85A1A] text-primary-white px-8 py-3 font-regular transition-colors rounded-full shadow-lg border border-primary-dawn hover:scale-105 cursor-pointer"
                   data-aos="fade-up"
                 >
-                  Login
+                  Enroll Now
                 </Button>
               </Link>
             </div>
 
             {/* Image Column - Right side */}
-            <div className="lg:col-span-6">
+            <div className="lg:col-span-6 lg:pl-8">
               <div className="w-full h-full overflow-hidden" data-aos="fade-up">
                 <img
-                  src="about.avif"
+                  src="about-vx.jpeg"
                   alt="Woman working on laptop"
                   className="w-full h-full object-cover"
                 />
@@ -275,17 +275,17 @@ export default function HomePage() {
       {/* Benefits Section */}
       <section
         id="benefits"
-        className="section-padding relative overflow-hidden bg-white border-b border-[#E5E5E5]"
+        className="section-padding relative overflow-hidden bg-primary-white border-b border-[#E5E5E5]"
         // data-aos="fade-up"
       >
         <div className="grid-container relative z-10">
           <div className="text-center mb-16 lg:mb-20" data-aos="fade-up">
             <div className="space-y-6">
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#2C2C2C]">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-black">
                 Why Join VX Academy?
               </h2>
-              <div className="w-24 h-1 bg-dawn rounded-full mx-auto"></div>
-              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-[#2C2C2C] leading-relaxed font-light">
+              <div className="w-24 h-1 bg-primary-dawn rounded-full mx-auto"></div>
+              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-primary-black leading-relaxed font-light">
                 Joining the VX Academy provides frontliners with numerous
                 benefits that enhance both professional development and personal
                 growth.
@@ -322,7 +322,7 @@ export default function HomePage() {
             ].map((benefit, index) => (
               <div key={index} className="group">
                 <div
-                  className="bg-white border border-gray-200 p-6 lg:p-8 transition-all duration-500 h-full relative overflow-hidden shadow-sm hover:bg-blur-md hover:shadow-lg hover:border-2 hover:border-gray-300"
+                  className="bg-primary-white border border-gray-200 p-6 lg:p-8 transition-all duration-500 h-full relative overflow-hidden shadow-sm hover:bg-blur-md hover:shadow-lg hover:border-2 hover:border-gray-300"
                   data-aos="fade-up"
                   data-aos-delay="200"
                 >
@@ -330,11 +330,11 @@ export default function HomePage() {
                     <div className="w-20 h-20 flex items-center justify-center mb-6 transition-transform duration-300">
                       <Icon
                         Component={benefit.icon}
-                        color="#D2691E"
+                        color="#F77860"
                         size={58}
                       />
                     </div>
-                    <h3 className="text-xl lg:text-2xl font-bold mb-4 text-[#2C2C2C] group-hover:text-dawn transition-colors duration-300">
+                    <h3 className="text-xl lg:text-2xl font-bold mb-4 text-primary-black group-hover:text-primary-dawn transition-colors duration-300">
                       {benefit.title}
                     </h3>
                     <p className="text-[#666666] leading-relaxed font-light">
@@ -351,17 +351,17 @@ export default function HomePage() {
       {/* Training Areas Section */}
       <section
         id="training-areas"
-        className="section-padding relative overflow-hidden bg-sandstone border-b border-[#E5E5E5]"
+        className="section-padding relative overflow-hidden bg-primary-sandstone border-b border-[#E5E5E5]"
         // data-aos="fade-up"
       >
         <div className="grid-container relative z-10">
           <div className="text-center mb-16 lg:mb-20" data-aos="fade-up">
             <div className="space-y-6">
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#2C2C2C]">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-black">
                 Training Areas
               </h2>
-              <div className="w-24 h-1 bg-dawn rounded-full mx-auto"></div>
-              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-[#2C2C2C] leading-relaxed font-light">
+              <div className="w-24 h-1 bg-primary-dawn rounded-full mx-auto"></div>
+              <p className="text-lg lg:text-xl max-w-4xl mx-auto text-primary-black leading-relaxed font-light">
                 Our comprehensive training system follows a structured approach
                 through five interconnected areas, building from foundational
                 knowledge to advanced competencies for exceptional visitor
@@ -377,8 +377,7 @@ export default function HomePage() {
                 description:
                   "Immerse yourself in Abu Dhabi's rich cultural heritage, tourism strategy, and infrastructure knowledge essential for frontline professionals.",
                 icon: InfoIcon,
-                imageSrc:
-                  "info.avif",
+                imageSrc: "info.jpeg",
                 imageAlt: "Abu Dhabi skyline and cultural landmarks",
               },
               {
@@ -394,7 +393,7 @@ export default function HomePage() {
                 description:
                   "Develop technical expertise and operational knowledge for specialized frontline positions across Abu Dhabi's visitor landscape.",
                 icon: BuildIcon,
-                imageSrc: "hard-1.jpg",
+                imageSrc: "hard.jpeg",
                 imageAlt: "Specialized training and skill development",
               },
               {
@@ -402,8 +401,7 @@ export default function HomePage() {
                 description:
                   "Build leadership skills, team management, and strategic thinking capabilities for supervisory and management roles.",
                 icon: TrendingUpIcon,
-                imageSrc:
-                  "managerial.avif",
+                imageSrc: "managerial.jpeg",
                 imageAlt: "Leadership and management training",
               },
               {
@@ -411,7 +409,7 @@ export default function HomePage() {
                 description:
                   "Learn the essential standards, regulations, and ethical guidelines that define excellence in Abu Dhabi's hospitality sector.",
                 icon: VerifiedIcon,
-                imageSrc: "almidhyaf-1.jpg",
+                imageSrc: "coc.jpeg",
                 imageAlt: "Code of conduct and regulations",
               },
             ].map((area, index) => (
@@ -435,14 +433,14 @@ export default function HomePage() {
       {/* Who is it for Section */}
       <section
         id="for"
-        className="section-padding relative overflow-hidden bg-white border-b border-[#E5E5E5]"
+        className="section-padding relative overflow-hidden bg-primary-white border-b border-[#E5E5E5]"
       >
         <div className="grid-container">
           <div className="text-center mb-16" data-aos="fade-up">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#2C2C2C] mb-6">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-black mb-6">
               Who Is VX Academy For?
             </h2>
-            <div className="w-24 h-1 bg-dawn rounded-full mx-auto mb-8"></div>
+            <div className="w-24 h-1 bg-primary-dawn rounded-full mx-auto mb-8"></div>
             <p className="text-xl text-[#666666] max-w-3xl mx-auto leading-relaxed font-light text-column-wide">
               If you play a role in shaping Abu Dhabi's visitor journey, VX
               Academy is for you.
@@ -474,17 +472,15 @@ export default function HomePage() {
                   },
                   {
                     title: "Events & Entertainment Venues",
-                    image: "events-1.jpg",
+                    image: "event.jpg",
                   },
                   {
                     title: "Mobility Operators & Airports",
-                    image:
-                      "mobility.avif",
+                    image: "mobility.avif",
                   },
                   {
                     title: "Cruise Terminals",
-                    image:
-                      "cruise.avif",
+                    image: "cruise.avif",
                   },
                   {
                     title: "Hotels & Hospitality",
@@ -521,7 +517,7 @@ export default function HomePage() {
                       </div>
                       {/* Text positioned under the image */}
                       <div className="mt-4 px-2">
-                        <h3 className="text-xl lg:text-3xl font-bold text-[#2C2C2C] group-hover:text-dawn transition-colors duration-300">
+                        <h3 className="text-xl lg:text-3xl font-bold text-primary-black group-hover:text-primary-dawn transition-colors duration-300">
                           {item.title}
                         </h3>
                       </div>
@@ -529,8 +525,8 @@ export default function HomePage() {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="absolute -left-16 top-1/2 -translate-y-1/2 bg-white hover:bg-sandstone border-sandstone text-[#2C2C2C] hover:text-dawn" />
-              <CarouselNext className="absolute -right-16 top-1/2 -translate-y-1/2 bg-white hover:bg-sandstone border-sandstone text-[#2C2C2C] hover:text-dawn" />
+              <CarouselPrevious className="absolute -left-16 top-1/2 -translate-y-1/2 bg-primary-white hover:bg-primary-sandstone border-primary-sandstone text-primary-black hover:text-primary-dawn" />
+              <CarouselNext className="absolute -right-16 top-1/2 -translate-y-1/2 bg-primary-white hover:bg-primary-sandstone border-primary-sandstone text-primary-black hover:text-primary-dawn" />
             </Carousel>
           </div>
         </div>
@@ -539,7 +535,7 @@ export default function HomePage() {
       {/* Your Impact Section */}
       <section
         id="impact"
-        className="section-padding relative overflow-hidden bg-sandstone"
+        className="section-padding relative overflow-hidden bg-primary-sandstone"
       >
         <div className="grid-container">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
@@ -555,7 +551,7 @@ export default function HomePage() {
             </div>
 
             {/* Content Column - Right side */}
-            <div className="lg:col-span-6 text-[#2C2C2C] order-1 lg:order-2">
+            <div className="lg:col-span-6 text-primary-black order-1 lg:order-2">
               <h2
                 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
                 data-aos="fade-up"
@@ -582,7 +578,7 @@ export default function HomePage() {
 
       <section
         id="join"
-        className="section-padding relative overflow-hidden bg-white min-h-[80vh]"
+        className="section-padding relative overflow-hidden bg-primary-white min-h-[80vh]"
       >
         {/* Background Image */}
         <div className="absolute inset-0">
@@ -606,10 +602,10 @@ export default function HomePage() {
             <div className="pt-8">
               <Link to="/login">
                 <Button
-                  className="bg-dawn hover:bg-[#B85A1A] text-white text-xl py-6 px-16 shadow-lg transition-all duration-300 hover:scale-105 font-regular rounded-full border border-dawn cursor-pointer"
+                  className="bg-primary-dawn hover:bg-[#B85A1A] text-primary-white text-xl py-6 px-16 shadow-lg transition-all duration-300 hover:scale-105 font-regular rounded-full border border-primary-dawn cursor-pointer"
                   data-aos="fade-up"
                 >
-                  Login
+                  Enroll Now
                 </Button>
               </Link>
             </div>
