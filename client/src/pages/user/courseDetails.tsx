@@ -322,6 +322,55 @@ const api = {
       throw error;
     }
   },
+
+  async getRoleCategoryById(roleCategoryId: number, token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/role-categories/${roleCategoryId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch role category:", error);
+      throw error;
+    }
+  },
+
+  async getAssetById(assetId: number, token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/users/assets/${assetId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch asset:", error);
+      throw error;
+    }
+  },
 };
 
 // Interface for course data structure
@@ -387,7 +436,7 @@ const CourseDetails = () => {
 
   const courseId = parseInt(id || "1");
 
-  // Filter units based on user role assignments
+  // Filter units based on user role assignments and autocomplete non-displayed units
   const filterUnitsBasedOnRoleAssignments = async (
     units: Unit[],
     token: string
@@ -395,11 +444,14 @@ const CourseDetails = () => {
     try {
       const userData = localStorage.getItem("userData");
       const normalUserDetails = JSON.parse(userData || "{}")?.normalUserDetails;
-      const assetId = JSON.parse(userData || "{}")?.assetId;
-      const roleCategory = normalUserDetails?.roleCategory;
+      const userAssetName = JSON.parse(userData || "{}")?.asset;
+      const userRoleCategoryName = normalUserDetails?.roleCategory;
       const seniority = normalUserDetails?.seniority;
 
       console.log("=== FILTERING UNITS BASED ON ROLE ASSIGNMENTS ===");
+      console.log("User asset name:", userAssetName);
+      console.log("User role category name:", userRoleCategoryName);
+      console.log("User seniority:", seniority);
 
       // Make API calls to get seniority levels and unit role assignments
       const [seniorityLevelsResponse, unitRoleAssignmentsResponse] =
@@ -427,41 +479,62 @@ const CourseDetails = () => {
         }
       }
 
-      // 2. Filter Unit Role Assignments by assetId, roleCategory (converted to int), and seniorityLevelId
+      // 2. Filter Unit Role Assignments by comparing names
       let filteredUnitRoleAssignments = [];
       if (
         unitRoleAssignmentsResponse?.success &&
         unitRoleAssignmentsResponse?.data
       ) {
-        const roleCategoryInt = parseInt(roleCategory);
+        console.log(
+          "Total unit role assignments:",
+          unitRoleAssignmentsResponse.data.length
+        );
 
-        // Build filter criteria
-        const filterCriteria = [
-          (assignment: any) => assignment.assetId === assetId,
-          (assignment: any) => assignment.roleCategoryId === roleCategoryInt,
-        ];
+        // For each assignment, fetch the role category and asset names
+        const assignmentsWithNames = await Promise.all(
+          unitRoleAssignmentsResponse.data.map(async (assignment: any) => {
+            try {
+              const [roleCategoryResponse, assetResponse] = await Promise.all([
+                api.getRoleCategoryById(assignment.roleCategoryId, token),
+                api.getAssetById(assignment.assetId, token),
+              ]);
 
-        // Add seniorityLevelId filter only if we found a manager ID
-        if (managerId !== null) {
-          filterCriteria.push(
-            (assignment: any) => assignment.seniorityLevelId === managerId
-          );
-        }
+              return {
+                ...assignment,
+                roleCategoryName: roleCategoryResponse?.data?.name || "",
+                assetName: assetResponse?.data?.name || "",
+              };
+            } catch (error) {
+              console.error(
+                "Failed to fetch names for assignment:",
+                assignment.id,
+                error
+              );
+              return {
+                ...assignment,
+                roleCategoryName: "",
+                assetName: "",
+              };
+            }
+          })
+        );
 
-        filteredUnitRoleAssignments = unitRoleAssignmentsResponse.data.filter(
-          (assignment: any) =>
-            filterCriteria.every((criteria) => criteria(assignment))
+        console.log("Assignments with names:", assignmentsWithNames);
+
+        // Filter assignments based on matching names
+        filteredUnitRoleAssignments = assignmentsWithNames.filter(
+          (assignment: any) => {
+            const roleCategoryMatches =
+              assignment.roleCategoryName === userRoleCategoryName;
+            const assetMatches = assignment.assetName === userAssetName;
+            const seniorityMatches =
+              managerId === null || assignment.seniorityLevelId === managerId;
+
+            return roleCategoryMatches && assetMatches && seniorityMatches;
+          }
         );
 
         console.log("=== FILTERED UNIT ROLE ASSIGNMENTS ===");
-        console.log(
-          "Filter criteria - assetId:",
-          assetId,
-          "roleCategory:",
-          roleCategoryInt,
-          "managerId:",
-          managerId
-        );
         console.log("Filtered assignments:", filteredUnitRoleAssignments);
 
         // 3. Extract all unit IDs from filtered assignments
@@ -490,11 +563,91 @@ const CourseDetails = () => {
           accessibleUnits.map((u) => u.id)
         );
 
-        setFilteredUnits(accessibleUnits);
+        // 5. Apply workflow logic
+        if (accessibleUnits.length > 0) {
+          // Display only accessible units
+          setFilteredUnits(accessibleUnits);
+
+          // Complete all learning blocks in units that are NOT displayed
+          const nonDisplayedUnits = units.filter(
+            (unit) => !assignmentUnitIds.has(unit.id)
+          );
+
+          if (nonDisplayedUnits.length > 0) {
+            console.log("=== AUTOCOMPLETING NON-DISPLAYED UNITS ===");
+            console.log(
+              "Non-displayed unit IDs:",
+              nonDisplayedUnits.map((u) => u.id)
+            );
+
+            try {
+              // Collect all learning block IDs from non-displayed units
+              const allLearningBlockIds: number[] = [];
+              nonDisplayedUnits.forEach((unit) => {
+                unit.learningBlocks.forEach((block) => {
+                  allLearningBlockIds.push(block.id);
+                });
+              });
+
+              console.log(
+                "Learning block IDs to autocomplete:",
+                allLearningBlockIds
+              );
+
+              // Complete all learning blocks in parallel
+              if (allLearningBlockIds.length > 0 && user) {
+                const completePromises = allLearningBlockIds.map(
+                  (learningBlockId) =>
+                    api.completeLearningBlock(learningBlockId, user.id, token)
+                );
+
+                const completeResponses = await Promise.all(completePromises);
+
+                console.log("=== LEARNING BLOCK COMPLETION RESULTS ===");
+                completeResponses.forEach((response, index) => {
+                  const learningBlockId = allLearningBlockIds[index];
+                  if (response?.success) {
+                    console.log(
+                      `✅ Learning block ${learningBlockId} completed successfully`
+                    );
+                  } else {
+                    console.log(
+                      `❌ Learning block ${learningBlockId} failed to complete:`,
+                      response?.message || "Unknown error"
+                    );
+                  }
+                });
+
+                // Recalculate user progress after autocompleting
+                try {
+                  await api.recalculateUserProgress(user.id, token);
+                  console.log("User progress recalculated after autocomplete");
+                } catch (recalcError) {
+                  console.warn(
+                    "Failed to recalculate progress after autocomplete:",
+                    recalcError
+                  );
+                }
+              } else {
+                console.log("=== NO LEARNING BLOCKS TO AUTOCOMPLETE ===");
+              }
+            } catch (error) {
+              console.error("Error autocompleting learning blocks:", error);
+            }
+          } else {
+            console.log("=== NO NON-DISPLAYED UNITS TO AUTOCOMPLETE ===");
+          }
+        } else {
+          // No filtered units, display all units without autocompleting
+          console.log(
+            "=== NO FILTERED UNITS - DISPLAYING ALL UNITS WITHOUT AUTOCOMPLETE ==="
+          );
+          setFilteredUnits(units);
+        }
       } else {
-        // If no role assignments found, show no units
-        console.log("=== NO ROLE ASSIGNMENTS FOUND ===");
-        setFilteredUnits([]);
+        // If no role assignments found, show all units
+        console.log("=== NO ROLE ASSIGNMENTS FOUND - DISPLAYING ALL UNITS ===");
+        setFilteredUnits(units);
       }
     } catch (error) {
       console.error("Error filtering units:", error);
@@ -713,11 +866,8 @@ const CourseDetails = () => {
 
         setCourse(transformedCourse);
 
-        // Filter units based on user role assignments
+        // Filter units based on user role assignments and autocomplete non-displayed units
         await filterUnitsBasedOnRoleAssignments(transformedCourse.units, token);
-
-        // Show all units instead of filtering
-        setFilteredUnits(transformedCourse.units);
       } catch (error: any) {
         console.error("Error fetching course data:", error);
         setError(error.message || "Failed to load course data");

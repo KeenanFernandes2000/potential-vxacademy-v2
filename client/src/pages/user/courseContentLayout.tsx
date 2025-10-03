@@ -28,6 +28,7 @@ import {
   Lock,
 } from "@mui/icons-material";
 import { useAuth } from "@/hooks/useAuth";
+import { lexicalToHtml } from "@/utils/lexicalToHtml";
 
 interface LearningBlock {
   id: number;
@@ -1122,222 +1123,6 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
     }
   };
 
-  // Function to parse Lexical editor JSON format and convert to HTML
-  const parseLexicalContent = (content: string): string => {
-    try {
-      // Try to parse as JSON first
-      const parsed = JSON.parse(content);
-
-      if (parsed.root && parsed.root.children) {
-        return parseLexicalNode(parsed.root);
-      }
-    } catch (error) {
-      // If it's not JSON, return the content as is
-      return content;
-    }
-
-    return content;
-  };
-
-  const parseLexicalNode = (node: any): string => {
-    if (!node) return "";
-
-    switch (node.type) {
-      case "text":
-        let text = node.text || "";
-
-        // Apply formatting - handle multiple formats
-        if (node.format) {
-          // Bold (format 1)
-          if (node.format & 1) text = `<strong>${text}</strong>`;
-          // Italic (format 2)
-          if (node.format & 2) text = `<em>${text}</em>`;
-          // Strikethrough (format 4)
-          if (node.format & 4) text = `<s>${text}</s>`;
-          // Underline (format 8)
-          if (node.format & 8) text = `<u>${text}</u>`;
-          // Code (format 16)
-          if (node.format & 16)
-            text = `<code class="bg-gray-100 px-2 py-1 rounded text-sm font-mono">${text}</code>`;
-          // Highlight (format 32)
-          if (node.format & 32)
-            text = `<mark class="bg-yellow-200">${text}</mark>`;
-          // Subscript (format 64)
-          if (node.format & 64) text = `<sub>${text}</sub>`;
-          // Superscript (format 128)
-          if (node.format & 128) text = `<sup>${text}</sup>`;
-        }
-
-        return text;
-
-      case "paragraph":
-        const paragraphContent =
-          node.children
-            ?.map((child: any) => parseLexicalNode(child))
-            .join("") || "";
-
-        // If paragraph is empty (no children), render it as a line break
-        if (!paragraphContent || paragraphContent.trim() === "") {
-          return `<p class="mb-3"><br></p>`;
-        }
-
-        return `<p class="mb-3">${paragraphContent}</p>`;
-
-      case "heading":
-        const headingContent =
-          node.children
-            ?.map((child: any) => parseLexicalNode(child))
-            .join("") || "";
-        const tag = node.tag || "h1";
-        const headingClass =
-          tag === "h1"
-            ? "text-2xl font-bold mt-8 mb-4"
-            : tag === "h2"
-            ? "text-xl font-semibold mt-6 mb-3"
-            : tag === "h3"
-            ? "text-lg font-semibold mt-4 mb-2"
-            : "text-base font-semibold mt-3 mb-2";
-        return `<${tag} class="${headingClass}">${headingContent}</${tag}>`;
-
-      case "list":
-        const listContent =
-          node.children
-            ?.map((child: any) => parseLexicalNode(child))
-            .join("") || "";
-        const listTag = node.listType === "number" ? "ol" : "ul";
-        const listClass = "list-disc list-inside mb-4";
-        return `<${listTag} class="${listClass}">${listContent}</${listTag}>`;
-
-      case "listitem":
-        const listItemContent =
-          node.children
-            ?.map((child: any) => parseLexicalNode(child))
-            .join("") || "";
-        return `<li class="ml-4 mb-1">${listItemContent}</li>`;
-
-      case "quote":
-        const quoteContent =
-          node.children
-            ?.map((child: any) => parseLexicalNode(child))
-            .join("") || "";
-        return `<blockquote class="border-l-4 border-gray-300 pl-4 italic my-4">${quoteContent}</blockquote>`;
-
-      case "code":
-        const codeContent =
-          node.children
-            ?.map((child: any) => parseLexicalNode(child))
-            .join("") || "";
-        return `<pre class="bg-gray-100 p-4 rounded-lg overflow-x-auto my-4"><code class="text-sm font-mono">${codeContent}</code></pre>`;
-
-      case "link":
-        const linkContent =
-          node.children
-            ?.map((child: any) => parseLexicalNode(child))
-            .join("") || "";
-        const url = node.url || "#";
-        return `<a href="${url}" class="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">${linkContent}</a>`;
-
-      case "root":
-        // Process children and handle consecutive empty paragraphs
-        if (!node.children) return "";
-
-        const processedChildren: string[] = [];
-        let i = 0;
-
-        while (i < node.children.length) {
-          const child = node.children[i];
-
-          if (child.type === "paragraph") {
-            const paragraphContent =
-              child.children
-                ?.map((grandChild: any) => parseLexicalNode(grandChild))
-                .join("") || "";
-
-            if (!paragraphContent || paragraphContent.trim() === "") {
-              // Count consecutive empty paragraphs
-              let emptyCount = 0;
-              let j = i;
-
-              while (
-                j < node.children.length &&
-                node.children[j].type === "paragraph" &&
-                (!node.children[j].children ||
-                  node.children[j].children
-                    .map((gc: any) => parseLexicalNode(gc))
-                    .join("")
-                    .trim() === "")
-              ) {
-                emptyCount++;
-                j++;
-              }
-
-              // Render the appropriate number of line breaks
-              if (emptyCount === 1) {
-                processedChildren.push(`<p class="mb-3"><br></p>`);
-              } else {
-                // For multiple consecutive empty paragraphs, create multiple line breaks
-                processedChildren.push(
-                  `<p class="mb-3">${"<br>".repeat(emptyCount)}</p>`
-                );
-              }
-
-              i = j; // Skip the processed empty paragraphs
-            } else {
-              // Regular paragraph with content
-              processedChildren.push(`<p class="mb-3">${paragraphContent}</p>`);
-              i++;
-            }
-          } else {
-            // Non-paragraph child
-            processedChildren.push(parseLexicalNode(child));
-            i++;
-          }
-        }
-
-        return processedChildren.join("");
-
-      case "linebreak":
-        return "<br>";
-
-      case "tab":
-        return "&nbsp;&nbsp;&nbsp;&nbsp;";
-
-      case "table":
-        const tableContent =
-          node.children
-            ?.map((child: any) => parseLexicalNode(child))
-            .join("") || "";
-        return `<table class="border-collapse border border-gray-300 w-full my-4">${tableContent}</table>`;
-
-      case "tablerow":
-        const rowContent =
-          node.children
-            ?.map((child: any) => parseLexicalNode(child))
-            .join("") || "";
-        return `<tr class="border border-gray-300">${rowContent}</tr>`;
-
-      case "tablecell":
-        const cellContent =
-          node.children
-            ?.map((child: any) => parseLexicalNode(child))
-            .join("") || "";
-        const cellTag = node.headerState ? "th" : "td";
-        const cellClass = node.headerState
-          ? "border border-gray-300 px-4 py-2 bg-gray-50 font-semibold"
-          : "border border-gray-300 px-4 py-2";
-        return `<${cellTag} class="${cellClass}">${cellContent}</${cellTag}>`;
-
-      default:
-        // For unknown node types, try to render children
-        if (node.children) {
-          return node.children
-            .map((child: any) => parseLexicalNode(child))
-            .join("");
-        }
-        return "";
-    }
-  };
-
   // Helper function to check if URL is a YouTube video
   const isYouTubeUrl = (url: string): boolean => {
     return url.includes("youtube.com") || url.includes("youtu.be");
@@ -1477,14 +1262,14 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
         return (
           <div className="w-full">
             <div
-              className="text-gray-900 leading-relaxed text-base whitespace-pre-wrap break-words overflow-wrap-anywhere prose prose-gray max-w-none"
+              className="text-gray-900 leading-relaxed text-base prose prose-gray max-w-none prose-ul:ml-4 prose-ol:ml-4 prose-li:my-1 prose-p:mb-4 prose-headings:mt-6 prose-headings:mb-3"
               style={{
                 wordBreak: "break-word",
                 overflowWrap: "anywhere",
                 lineHeight: "1.6",
               }}
               dangerouslySetInnerHTML={{
-                __html: parseLexicalContent(content),
+                __html: lexicalToHtml(content),
               }}
             />
           </div>
