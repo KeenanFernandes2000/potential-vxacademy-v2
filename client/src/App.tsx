@@ -33,7 +33,6 @@ import CommunicationEmail from "@/pages/admin/communiationEmail";
 import SubAdminLayout from "@/pages/sub-admin/subAdminLayout";
 import SubAdminDashboard from "@/pages/sub-admin/dashboard";
 import SubAdminUsers from "@/pages/sub-admin/users";
-import SubAdminLinks from "@/pages/sub-admin/links";
 
 // User Pages
 import UserLayout from "@/pages/user/userLayout";
@@ -264,7 +263,6 @@ function App() {
                           element={<SubAdminDashboard />}
                         />
                         <Route path="frontliners" element={<SubAdminUsers />} />
-                        <Route path="invite" element={<SubAdminLinks />} />
                       </Routes>
                     </SubAdminRoutesWrapper>
                   </ProtectedRoute>

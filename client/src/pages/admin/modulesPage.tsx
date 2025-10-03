@@ -267,8 +267,8 @@ const ModulesPage = () => {
               id: module.id,
               name: module.name,
               training_area_name: trainingArea?.name || "N/A",
-              status: module.status || "draft",
-              trainingAreaId: module.trainingAreaId, // Keep for filtering
+              // status: module.status || "draft",
+              // trainingAreaId: module.trainingAreaId, // Keep for filtering
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -877,9 +877,6 @@ const ModulesPage = () => {
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="max-w-md bg-white border-sandstone text-[#2C2C2C]">
-          <DialogHeader>
-            <DialogTitle className="text-[#2C2C2C]">Edit Module</DialogTitle>
-          </DialogHeader>
           <EditModuleForm
             onClose={() => {
               setIsEditModalOpen(false);

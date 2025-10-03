@@ -479,6 +479,7 @@ const RoleCategoriesPage = () => {
         tableData={filteredRoleCategories}
         columns={columns}
         onSearch={handleSearch}
+        onCloseCreateForm={() => {}}
       />
       {editingCategory && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">

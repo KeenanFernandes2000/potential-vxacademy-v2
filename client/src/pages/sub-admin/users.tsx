@@ -14,7 +14,7 @@ import { Add as Plus, Download } from "@mui/icons-material";
 import * as XLSX from "xlsx";
 
 import { useAuth } from "@/hooks/useAuth";
-import { Edit, Delete, Search, Visibility } from "@mui/icons-material";
+import { Edit, Search, Visibility } from "@mui/icons-material";
 import {
   Dialog,
   DialogContent,
@@ -98,29 +98,6 @@ const api = {
       return data;
     } catch (error) {
       console.error("Failed to update user:", error);
-      throw error;
-    }
-  },
-
-  async deleteUser(userId: number, token: string) {
-    try {
-      const baseUrl = import.meta.env.VITE_API_URL;
-      const response = await fetch(`${baseUrl}/api/users/users/${userId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Failed to delete user:", error);
       throw error;
     }
   },
@@ -237,15 +214,6 @@ const Users = () => {
               >
                 <Edit sx={{ fontSize: 16 }} />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-600 hover:bg-red-100"
-                onClick={() => handleDeleteUser(user.id)}
-                title="Delete"
-              >
-                <Delete sx={{ fontSize: 16 }} />
-              </Button>
             </div>
           ),
         }));
@@ -309,35 +277,6 @@ const Users = () => {
     } catch (error) {
       console.error("Error updating user:", error);
       setError("Failed to update user. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteUser = async (userId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
-
-    if (!confirm("Are you sure you want to delete this user?")) {
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const response = await api.deleteUser(userId, token);
-
-      if (response.success) {
-        // Refresh the user list
-        await refreshUserList();
-        setError("");
-      } else {
-        setError(response.message || "Failed to delete user");
-      }
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      setError("Failed to delete user. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -424,15 +363,6 @@ const Users = () => {
               title="Edit"
             >
               <Edit sx={{ fontSize: 16 }} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-600 hover:bg-red-100"
-              onClick={() => handleDeleteUser(user.id)}
-              title="Delete"
-            >
-              <Delete sx={{ fontSize: 16 }} />
             </Button>
           </div>
         ),
@@ -559,7 +489,7 @@ const Users = () => {
               setIsEditModalOpen(false);
               setSelectedUser(null);
             }}
-            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:bg-sandstone"
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:bg-sandstone hover:text-[#2C2C2C]"
           >
             Cancel
           </Button>
@@ -638,7 +568,7 @@ const Users = () => {
       </div>
 
       {/* User Table */}
-      <div className="border bg-white border-[#E5E5E5] w-full rounded-lg overflow-x-auto max-w-[90%]">
+      <div className="border bg-white border-[#E5E5E5] w-full rounded-lg overflow-x-auto max-w-[100%]">
         <div className="max-w-[1200px] mx-auto">
           <Table>
             <TableHeader>
@@ -819,7 +749,7 @@ const Users = () => {
                 <Button
                   variant="outline"
                   onClick={() => setIsViewModalOpen(false)}
-                  className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:bg-sandstone"
+                  className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:bg-sandstone hover:text-[#2C2C2C]"
                 >
                   Close
                 </Button>

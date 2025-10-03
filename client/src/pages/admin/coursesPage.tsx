@@ -237,7 +237,7 @@ const CoursesPage = () => {
               module_name: module?.name || "N/A",
               training_area_name: trainingArea?.name || "N/A",
               duration: course.duration || 0,
-              level: course.level || "beginner",
+              // level: course.level || "beginner",
               status: (
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-medium ${

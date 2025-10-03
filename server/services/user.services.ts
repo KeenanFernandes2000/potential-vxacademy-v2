@@ -562,7 +562,10 @@ export class UserService {
   /**
    * Get all users with their normal user details for sub-admin management
    */
-  static async getAllUsersWithDetails(limit?: number, offset?: number): Promise<any[]> {
+  static async getAllUsersWithDetails(
+    limit?: number,
+    offset?: number
+  ): Promise<any[]> {
     // Get all users with their normal user details
     const query = db
       .select({
@@ -807,7 +810,7 @@ export class InvitationService {
   static async createInvitation(
     createdBy: number,
     type: InvitationType
-  ): Promise<{ token: string }> {
+  ): Promise<{ tokenHash: string }> {
     // Generate a unique token
     const token = crypto.randomBytes(32).toString("hex");
     const tokenHash = this.hashToken(token);
@@ -839,7 +842,7 @@ export class InvitationService {
     }
 
     return {
-      token, // Return the unhashed token for the link
+      tokenHash, // Return the unhashed token for the link
     };
   }
 

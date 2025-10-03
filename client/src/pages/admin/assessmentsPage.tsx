@@ -2137,9 +2137,9 @@ const AssessmentsPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-4xl bg-sandstone border-white/20 text-[#2C2C2C] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl bg-card border-border text-card-foreground max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-[#2C2C2C]">
+            <DialogTitle className="text-card-foreground">
               Edit Assessment
             </DialogTitle>
             <Button
@@ -2162,9 +2162,9 @@ const AssessmentsPage = () => {
         open={isQuestionsModalOpen}
         onOpenChange={setIsQuestionsModalOpen}
       >
-        <DialogContent className="max-w-6xl bg-sandstone border-white/20 text-[#2C2C2C] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl bg-card border-border text-card-foreground max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-[#2C2C2C]">
+            <DialogTitle className="text-card-foreground">
               Questions for: {selectedAssessment?.title}
             </DialogTitle>
             <Button
@@ -2234,9 +2234,9 @@ const AssessmentsPage = () => {
         open={isEditQuestionModalOpen}
         onOpenChange={setIsEditQuestionModalOpen}
       >
-        <DialogContent className="max-w-2xl bg-sandstone border-white/20 text-[#2C2C2C] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl bg-card border-border text-card-foreground max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-[#2C2C2C]">
+            <DialogTitle className="text-card-foreground">
               {selectedQuestion ? "Edit Question" : "Create Question"}
             </DialogTitle>
             <Button

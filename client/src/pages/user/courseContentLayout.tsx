@@ -1290,11 +1290,11 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
           </div>
 
           <Accordion
-            type="multiple"
+            type="single"
             className="w-full"
             ref={accordionRef}
-            value={expandedUnits}
-            onValueChange={setExpandedUnits}
+            value={expandedUnits[0] || ""}
+            onValueChange={(value) => setExpandedUnits(value ? [value] : [])}
           >
             {units.map((unit, index) => (
               <AccordionItem

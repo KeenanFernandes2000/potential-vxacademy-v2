@@ -807,7 +807,7 @@ const UnitsPage = () => {
               setFormData({ ...formData, training_area_id: value })
             }
           >
-            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-white">
+            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C]">
               <SelectValue placeholder="Select a training area" />
             </SelectTrigger>
             <SelectContent>
@@ -828,7 +828,7 @@ const UnitsPage = () => {
             }
             disabled={!formData.training_area_id}
           >
-            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-white">
+            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C]">
               <SelectValue placeholder="Select a module" />
             </SelectTrigger>
             <SelectContent>
@@ -849,7 +849,7 @@ const UnitsPage = () => {
             }
             disabled={!formData.module_id}
           >
-            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-white">
+            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C]">
               <SelectValue placeholder="Select a course" />
             </SelectTrigger>
             <SelectContent>
@@ -1244,9 +1244,11 @@ const UnitsPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-sandstone border-white/20 text-white max-h-[80%]">
+        <DialogContent className="max-w-md bg-card border-border text-card-foreground max-h-[80%]">
           <DialogHeader>
-            <DialogTitle className="text-white">Edit Learning Unit</DialogTitle>
+            <DialogTitle className="text-card-foreground">
+              Edit Learning Unit
+            </DialogTitle>
             <Button
               variant="ghost"
               size="sm"

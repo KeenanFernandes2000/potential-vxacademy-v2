@@ -547,7 +547,7 @@ const MediaPage: React.FC = () => {
           <Button
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="bg-black text-white hover:bg-gray-800 rounded-full"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full"
           >
             <CloudUpload className="w-4 h-4 mr-2" />
             {isUploading ? "Uploading..." : "Upload Files"}
@@ -601,7 +601,7 @@ const MediaPage: React.FC = () => {
               <Button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
-                className="bg-[#00d8cc] text-white hover:bg-[#00c4b8] px-6 py-3 rounded-full"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-full"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 {isUploading ? "Uploading..." : "Choose Files"}
@@ -896,7 +896,7 @@ const MediaPage: React.FC = () => {
                     <div className="flex gap-3">
                       <Button
                         onClick={() => handleDownload(previewFile)}
-                        className="flex-1 bg-[#00d8cc] hover:bg-[#00c4b8] text-white"
+                        className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                       >
                         <Download className="w-4 h-4 mr-2" />
                         Download

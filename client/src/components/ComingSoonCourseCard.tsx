@@ -109,7 +109,7 @@ const ComingSoonCourseCard: React.FC<ComingSoonCourseCardProps> = ({
   return (
     <Card className="w-full max-w-sm bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden rounded-lg py-0 flex flex-col h-full group hover:border-gray-300 relative">
       {/* Lock overlay */}
-      <div className="absolute inset-0 bg-orange-200/40 z-10 flex items-center justify-center">
+      <div className="absolute inset-0 bg-white/40 z-10 flex items-center justify-center">
         <div className="bg-white rounded-full p-3 shadow-lg border border-gray-200">
           <Lock className="w-6 h-6 text-gray-600" />
         </div>

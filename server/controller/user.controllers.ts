@@ -679,7 +679,10 @@ export class userControllers {
    * Get all users with their normal user details for sub-admin management
    * GET /users/with-details?limit=10&offset=0
    */
-  static async getAllUsersWithDetails(req: Request, res: Response): Promise<void> {
+  static async getAllUsersWithDetails(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     const limit = req.query.limit
       ? parseInt(req.query.limit as string)
       : undefined;
@@ -2857,7 +2860,7 @@ export class userControllers {
       success: true,
       message: "Invitation created successfully",
       data: {
-        invitationLink: `${process.env.FRONTEND_URL}/join?token=${result.token}`,
+        invitationLink: `${process.env.FRONTEND_URL}/join?token=${result.tokenHash}`,
       },
     });
   }
@@ -3148,7 +3151,10 @@ export class userControllers {
   /**
    * Get comprehensive user details from all related tables
    */
-  static async getUserComprehensiveDetails(req: Request, res: Response): Promise<void> {
+  static async getUserComprehensiveDetails(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     const userId = parseInt(req.params.id as string);
 
     if (isNaN(userId) || userId <= 0) {
@@ -3170,20 +3176,14 @@ export class userControllers {
         userCourseUnitProgress,
         userLearningBlockProgress,
       } = await import("../db/schema/progress");
-      
-      const {
-        assessmentAttempts,
-      } = await import("../db/schema/assessments");
-      
-      const {
-        userBadges,
-        badges,
-      } = await import("../db/schema/gamification");
-      
-      const {
-        notifications,
-        courseEnrollments,
-      } = await import("../db/schema/system");
+
+      const { assessmentAttempts } = await import("../db/schema/assessments");
+
+      const { userBadges, badges } = await import("../db/schema/gamification");
+
+      const { notifications, courseEnrollments } = await import(
+        "../db/schema/system"
+      );
 
       // Get basic user information
       const userDetails = await db
@@ -3228,7 +3228,10 @@ export class userControllers {
           trainingAreaDescription: trainingAreas.description,
         })
         .from(userTrainingAreaProgress)
-        .leftJoin(trainingAreas, eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id))
+        .leftJoin(
+          trainingAreas,
+          eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id)
+        )
         .where(eq(userTrainingAreaProgress.userId, userId));
 
       // Get module progress
@@ -3375,7 +3378,8 @@ export class userControllers {
           updatedAt: user.updatedAt,
         },
         subAdminDetails: subAdminDetails.length > 0 ? subAdminDetails[0] : null,
-        normalUserDetails: normalUserDetails.length > 0 ? normalUserDetails[0] : null,
+        normalUserDetails:
+          normalUserDetails.length > 0 ? normalUserDetails[0] : null,
         progress: {
           trainingAreaProgress,
           moduleProgress,

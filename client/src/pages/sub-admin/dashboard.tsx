@@ -315,6 +315,7 @@ const Dashboard = () => {
       return;
     }
 
+    // Set loading state immediately
     setIsLoading((prev) => ({
       ...prev,
       [type === "new_joiner" ? "newJoiner" : "existingJoiner"]: true,
@@ -323,24 +324,29 @@ const Dashboard = () => {
 
     try {
       const data = await api.sendInvitation(token, type, currentUser!.id);
-      setMessage({
-        type: "success",
-        text: data.message || "Invitation sent successfully!",
-      });
 
-      // Generate invitation link using tokenHash
-      if (data.data?.tokenHash) {
-        const baseUrl = window.location.origin;
-        const invitationUrl = `${baseUrl}/join?token=${data.data.tokenHash}&type=${type}`;
-        setInvitationLinks((prev) => ({
-          ...prev,
-          [type]: invitationUrl,
-        }));
+      // Generate invitation link using the API response
+      if (data.data?.invitationLink) {
+        const invitationUrl = data.data.invitationLink;
+
+        // Update invitation links state immediately
+        setInvitationLinks((prev) => {
+          const newLinks = {
+            ...prev,
+            [type]: invitationUrl,
+          };
+          console.log("Updated invitation links:", newLinks);
+          return newLinks;
+        });
+
+        // Extract token from the invitation link for storage
+        const urlParams = new URLSearchParams(invitationUrl.split("?")[1]);
+        const tokenHash = urlParams.get("token");
 
         // Update invitations state to include the new invitation
         const newInvitation = {
           type,
-          tokenHash: data.data.tokenHash,
+          tokenHash: tokenHash,
           createdBy: currentUser.id,
           // Add other fields that might be returned from the API
           ...data.data,
@@ -348,7 +354,23 @@ const Dashboard = () => {
         setInvitations((prev) => {
           // Remove any existing invitation of the same type and add the new one
           const filtered = prev.filter((inv) => inv.type !== type);
-          return [...filtered, newInvitation];
+          const newInvitations = [...filtered, newInvitation];
+          return newInvitations;
+        });
+
+        // Set success message after state updates with a small delay to ensure UI updates
+        setTimeout(() => {
+          setMessage({
+            type: "success",
+            text:
+              data.message ||
+              "Invitation generated successfully! You can now copy the link or download the document.",
+          });
+        }, 200);
+      } else {
+        setMessage({
+          type: "error",
+          text: "Failed to generate invitation link. Please try again.",
         });
       }
     } catch (error) {
@@ -358,6 +380,7 @@ const Dashboard = () => {
         text: "Failed to send invitation. Please try again.",
       });
     } finally {
+      // Reset loading state
       setIsLoading((prev) => ({
         ...prev,
         [type === "new_joiner" ? "newJoiner" : "existingJoiner"]: false,
@@ -580,7 +603,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-sandstone p-6">
+    <div className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="space-y-2">
@@ -659,10 +682,10 @@ const Dashboard = () => {
                   <Button
                     onClick={() => makeInvitationRequest("new_joiner")}
                     disabled={isLoading.newJoiner}
-                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white"
+                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
                   >
                     {isLoading.newJoiner
-                      ? "Generating..."
+                      ? "Generating Invitation..."
                       : "Generate New Invitation"}
                   </Button>
                 </div>
@@ -675,10 +698,10 @@ const Dashboard = () => {
                   <Button
                     onClick={() => makeInvitationRequest("new_joiner")}
                     disabled={isLoading.newJoiner}
-                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white"
+                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
                   >
                     {isLoading.newJoiner
-                      ? "Generating..."
+                      ? "Generating Invitation..."
                       : "Generate New User Invitation"}
                   </Button>
                 </div>
@@ -733,10 +756,10 @@ const Dashboard = () => {
                   <Button
                     onClick={() => makeInvitationRequest("existing_joiner")}
                     disabled={isLoading.existingJoiner}
-                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white"
+                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
                   >
                     {isLoading.existingJoiner
-                      ? "Generating..."
+                      ? "Generating Invitation..."
                       : "Generate New Invitation"}
                   </Button>
                 </div>
@@ -749,10 +772,10 @@ const Dashboard = () => {
                   <Button
                     onClick={() => makeInvitationRequest("existing_joiner")}
                     disabled={isLoading.existingJoiner}
-                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white"
+                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
                   >
                     {isLoading.existingJoiner
-                      ? "Generating..."
+                      ? "Generating Invitation..."
                       : "Generate Existing User Invitation"}
                   </Button>
                 </div>

@@ -197,6 +197,7 @@ interface AdminTableLayoutProps {
   columnFilterConfig?: ColumnFilterConfig; // Configuration for which columns to filter by
   enableColumnFiltering?: boolean; // Whether to enable automatic column filtering
   dropdownConfig?: DropdownConfig; // Configuration for which dropdowns to show
+  onCloseCreateForm?: () => void; // Function to close the create form dialog
 }
 
 const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
@@ -216,6 +217,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
     showUnit: false,
     showAssessment: false,
   },
+  onCloseCreateForm,
 }) => {
   const { token } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
@@ -760,7 +762,15 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
         </div>
 
         {createForm && createButtonText && (
-          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+          <Dialog
+            open={isCreateModalOpen}
+            onOpenChange={(open) => {
+              setIsCreateModalOpen(open);
+              if (!open && onCloseCreateForm) {
+                onCloseCreateForm();
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button
                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg"
@@ -776,7 +786,14 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
                   {createButtonText}
                 </DialogTitle>
               </DialogHeader>
-              {createForm}
+              {React.cloneElement(createForm as React.ReactElement<any>, {
+                onClose: () => {
+                  setIsCreateModalOpen(false);
+                  if (onCloseCreateForm) {
+                    onCloseCreateForm();
+                  }
+                },
+              })}
             </DialogContent>
           </Dialog>
         )}

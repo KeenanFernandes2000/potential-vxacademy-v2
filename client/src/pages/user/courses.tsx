@@ -1,8 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import CourseCard from "@/components/CourseCard";
+import ComingSoonCourseCard, {
+  comingSoonCourses,
+} from "@/components/ComingSoonCourseCard";
 import { useAuth } from "@/hooks/useAuth";
 import { ChevronDownIcon } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 // Types for the API responses
 interface TrainingArea {
@@ -591,6 +602,45 @@ const Courses = () => {
           })()}
         </div>
       )}
+
+      {/* Courses Coming Soon Section */}
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Courses Coming Soon</h2>
+          <p className="text-gray-600">Exciting new courses are on the way!</p>
+        </div>
+
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          plugins={[
+            Autoplay({
+              delay: 3000,
+              stopOnInteraction: false,
+              stopOnMouseEnter: true,
+            }),
+          ]}
+          className="w-[90%] ml-16 lg:mx-20"
+        >
+          <CarouselContent className="w-full">
+            {comingSoonCourses.map((course) => (
+              <CarouselItem
+                key={course.id}
+                className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3 "
+              >
+                <ComingSoonCourseCard
+                  title={course.name}
+                  image={course.imageUrl}
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="absolute -left-16 top-1/2 -translate-y-1/2 bg-white hover:bg-sandstone border-sandstone text-[#2C2C2C] hover:text-dawn" />
+          <CarouselNext className="absolute -right-16 top-1/2 -translate-y-1/2 bg-white hover:bg-sandstone border-sandstone text-[#2C2C2C] hover:text-dawn" />
+        </Carousel>
+      </div>
     </div>
   );
 };

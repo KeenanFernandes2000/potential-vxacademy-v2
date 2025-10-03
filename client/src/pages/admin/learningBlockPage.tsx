@@ -847,9 +847,9 @@ const LearningBlockPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-4xl bg-sandstone border-white/20 text-[#2C2C2C] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl bg-card border-border text-card-foreground max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-[#2C2C2C]">
+            <DialogTitle className="text-card-foreground">
               Edit Learning Block
             </DialogTitle>
             <Button
