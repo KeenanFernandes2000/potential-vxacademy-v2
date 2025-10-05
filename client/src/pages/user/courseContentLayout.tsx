@@ -1581,7 +1581,11 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                           ]?.options.map((option, index) => (
                             <label
                               key={index}
-                              className="flex items-center cursor-pointer hover:bg-gray-50 p-3 transition-colors"
+                              className={`flex items-center p-3 transition-colors ${
+                                isSubmittingAssessment
+                                  ? "cursor-not-allowed opacity-50"
+                                  : "cursor-pointer hover:bg-gray-50"
+                              }`}
                             >
                               <input
                                 type="radio"
@@ -1589,9 +1593,16 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                                 value={option}
                                 checked={selectedAnswer === option}
                                 onChange={() => handleAnswerSelect(option)}
-                                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 mr-4"
+                                disabled={isSubmittingAssessment}
+                                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 mr-4 disabled:cursor-not-allowed"
                               />
-                              <span className="text-gray-900">{option}</span>
+                              <span
+                                className={`text-gray-900 ${
+                                  isSubmittingAssessment ? "opacity-50" : ""
+                                }`}
+                              >
+                                {option}
+                              </span>
                             </label>
                           ))}
                         </div>
