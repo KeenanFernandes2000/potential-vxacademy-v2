@@ -389,7 +389,7 @@ const Courses = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Training Area Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-3">
+            <label className="block text-sm font-medium text-muted-foreground mb-3">
               Training Area
             </label>
             <div className="relative" ref={trainingAreaRef}>
@@ -438,7 +438,7 @@ const Courses = () => {
 
           {/* Module Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-3">
+            <label className="block text-sm font-medium text-muted-foreground mb-3">
               Module
             </label>
             <div className="relative" ref={moduleRef}>
@@ -563,7 +563,7 @@ const Courses = () => {
                       <div key={module.id} className="space-y-4">
                         {/* Module Header */}
                         <div className="ml-4">
-                          <h3 className="text-xl font-medium text-gray-600">
+                          <h3 className="text-xl font-medium text-muted-foreground">
                             {module.name}
                           </h3>
                         </div>
