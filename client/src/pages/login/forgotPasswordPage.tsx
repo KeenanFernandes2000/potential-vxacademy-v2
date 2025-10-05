@@ -127,7 +127,7 @@ export default function ForgotPasswordPage() {
                       setEmail(e.target.value);
                       setError(""); // Clear error when user types
                     }}
-                    className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full w-full px-4 outline-none"
+                    className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-3 text-base border-2 hover:border-dawn rounded-full w-full px-4 outline-none"
                     type="email"
                     disabled={isLoading}
                   />

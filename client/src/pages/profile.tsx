@@ -398,12 +398,6 @@ const ProfilePage = (props: Props) => {
                   {/* Stats */}
                   <div className="flex items-center space-x-6 text-sm">
                     <div className="flex items-center space-x-2">
-                      <span className="text-black">⭐</span>
-                      <span className="text-card-foreground font-medium">
-                        {currentUser.xp} XP
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-2">
                       <span className="text-muted-foreground">🏅</span>
                       <span className="text-muted-foreground">
                         {currentUser.level}
@@ -469,18 +463,14 @@ const ProfilePage = (props: Props) => {
                       <CardContent className="p-6">
                         <div className="flex items-center space-x-4">
                           <div className="w-12 h-12 bg-primary/20 flex items-center justify-center rounded-lg">
-                            <CheckCircle className="text-primary text-xl" />
+                            <span className="text-primary text-xl">⭐</span>
                           </div>
                           <div>
                             <p className="text-muted-foreground text-sm">
-                              Completed
+                              Experience Points
                             </p>
                             <p className="text-card-foreground text-2xl font-bold">
-                              {overviewData.loading ? (
-                                <div className="animate-pulse bg-muted/50 h-8 w-12 rounded"></div>
-                              ) : (
-                                overviewData.completedCourses
-                              )}
+                              {currentUser.xp}
                             </p>
                           </div>
                         </div>
@@ -491,18 +481,16 @@ const ProfilePage = (props: Props) => {
                       <CardContent className="p-6">
                         <div className="flex items-center space-x-4">
                           <div className="w-12 h-12 bg-primary/20 flex items-center justify-center rounded-lg">
-                            <TrackChanges className="text-primary text-xl" />
+                            <span className="text-primary text-xl">📅</span>
                           </div>
                           <div>
                             <p className="text-muted-foreground text-sm">
-                              Progress
+                              Join Year
                             </p>
                             <p className="text-card-foreground text-2xl font-bold">
-                              {overviewData.loading ? (
-                                <div className="animate-pulse bg-muted/50 h-8 w-12 rounded"></div>
-                              ) : (
-                                `${overviewData.overallProgress}%`
-                              )}
+                              {userProfile
+                                ? new Date(userProfile.createdAt).getFullYear()
+                                : "N/A"}
                             </p>
                           </div>
                         </div>
@@ -581,13 +569,7 @@ const ProfilePage = (props: Props) => {
                         />
                       </div>
 
-                      <div className="flex justify-end items-center gap-4">
-                        <Link
-                          to="/forgot-password"
-                          className="text-primary hover:text-primary/80 underline transition-colors duration-200"
-                        >
-                          Reset Password
-                        </Link>
+                      <div className="flex justify-end">
                         <Button
                           type="submit"
                           className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 rounded-lg"

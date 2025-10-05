@@ -370,6 +370,10 @@ const joinPage = (props: Props) => {
   // User form password validation state
   const [userPasswordError, setUserPasswordError] = useState("");
 
+  // Phone number validation states
+  const [phoneError, setPhoneError] = useState("");
+  const [userPhoneError, setUserPhoneError] = useState("");
+
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
 
@@ -416,6 +420,17 @@ const joinPage = (props: Props) => {
     } else if (!confirmPassword) {
       setUserPasswordError("");
     }
+  };
+
+  // Phone number validation function
+  const validatePhoneNumber = (phone: string) => {
+    // Remove all non-digit characters
+    const digits = phone.replace(/\D/g, "");
+    // Check if phone has at least 7 digits (excluding country code)
+    if (digits.length < 7) {
+      return "Phone number must have at least 7 digits";
+    }
+    return "";
   };
 
   // Fetch role categories, roles, and assets on component mount
@@ -584,8 +599,7 @@ const joinPage = (props: Props) => {
               setForm2Data((prev) => ({
                 ...prev,
                 organization: response.data.subAdmin.organization || "",
-                subOrganization:
-                  response.data.subAdmin.subOrganization?.[0] || "",
+                subOrganization: "", // Keep empty by default
                 asset: response.data.subAdmin.asset || "",
                 subAsset: response.data.subAdmin.subAsset || "",
               }));
@@ -601,6 +615,11 @@ const joinPage = (props: Props) => {
                   })
                 );
                 setSubOrganizations(transformedSubOrgs);
+                // Don't auto-select the first option - keep it empty
+                setForm2Data((prev) => ({
+                  ...prev,
+                  subOrganization: "",
+                }));
               }
             }
           } else {
@@ -728,6 +747,12 @@ const joinPage = (props: Props) => {
       return;
     }
 
+    // Validate phone number
+    if (phoneError) {
+      alert("Please fix the phone number validation errors before submitting.");
+      return;
+    }
+
     // Check password strength (optional - basic validation)
     if (form1Data.password.length < 6) {
       alert("Password must be at least 6 characters long.");
@@ -804,6 +829,12 @@ const joinPage = (props: Props) => {
     // Validate password confirmation
     if (userPasswordError) {
       alert("Please fix the password validation errors before submitting.");
+      return;
+    }
+
+    // Validate phone number
+    if (userPhoneError) {
+      alert("Please fix the phone number validation errors before submitting.");
       return;
     }
 
@@ -1013,11 +1044,19 @@ const joinPage = (props: Props) => {
               <PhoneInput
                 defaultCountry="ae"
                 value={form1Data.phone_number}
-                onChange={(phone) =>
-                  setForm1Data((prev) => ({ ...prev, phone_number: phone }))
-                }
+                onChange={(phone) => {
+                  setForm1Data((prev) => ({ ...prev, phone_number: phone }));
+                  const error = validatePhoneNumber(phone);
+                  setPhoneError(error);
+                }}
                 className="react-international-phone"
               />
+              {phoneError && (
+                <p className="text-red-400 text-sm pl-2 flex items-center gap-2 mt-2">
+                  <span className="text-red-500">⚠</span>
+                  {phoneError}
+                </p>
+              )}
             </div>
           </div>
 
@@ -1035,6 +1074,7 @@ const joinPage = (props: Props) => {
               onChange={handleForm1Change}
               placeholder="Enter your password"
               required
+              className="rounded-full"
             />
           </div>
 
@@ -1052,7 +1092,7 @@ const joinPage = (props: Props) => {
               onChange={handleForm1Change}
               placeholder="Confirm your password"
               required
-              className={`${
+              className={`rounded-full ${
                 passwordError
                   ? "border-red-500/60 focus:border-red-500/80 hover:border-red-500/70"
                   : form1Data.confirm_password &&
@@ -1254,6 +1294,7 @@ const joinPage = (props: Props) => {
                   onChange={handleForm2Change}
                   placeholder="Enter your password"
                   required
+                  className="rounded-full"
                 />
               </div>
 
@@ -1271,7 +1312,7 @@ const joinPage = (props: Props) => {
                   onChange={handleForm2Change}
                   placeholder="Confirm your password"
                   required
-                  className={`${
+                  className={`rounded-full ${
                     userPasswordError
                       ? "border-red-500/60 focus:border-red-500/80 hover:border-red-500/70"
                       : form2Data.confirm_password &&
@@ -1341,20 +1382,24 @@ const joinPage = (props: Props) => {
                 <Select
                   value={form2Data.subOrganization}
                   onValueChange={handleSubOrganizationChange}
-                  disabled={
-                    !form2Data.organization ||
-                    form2Data.organization === "" ||
-                    subOrganizations.length === 0
-                  }
+                  disabled={subOrganizations.length === 0}
                 >
                   <SelectTrigger
                     className={`w-full bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 border-2 hover:border-dawn rounded-full text-sm ${
                       form2Data.subOrganization
                         ? "[&>span]:text-[#2C2C2C]"
-                        : "[&>span]:text-cyan-50/55"
+                        : "[&>span]:text-[#666666]"
                     } `}
                   >
-                    <SelectValue placeholder="Select sub-organization" />
+                    <SelectValue
+                      placeholder={
+                        isLoadingSubOrganizations
+                          ? "Loading sub-organizations..."
+                          : subOrganizations.length === 0
+                          ? "No sub-organizations available"
+                          : "Select sub-organization"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent className="bg-sandstone border-sandstone text-[#2C2C2C]">
                     {subOrganizations.map((org) => (
@@ -1395,7 +1440,7 @@ const joinPage = (props: Props) => {
                     className={`w-full bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 border-2 hover:border-dawn rounded-full text-sm ${
                       form2Data.role_category
                         ? "[&>span]:text-[#2C2C2C]"
-                        : "[&>span]:text-cyan-50/55"
+                        : "[&>span]:text-[#666666]"
                     } `}
                   >
                     <SelectValue placeholder="Select role category" />
@@ -1434,7 +1479,7 @@ const joinPage = (props: Props) => {
                     className={`w-full bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-dawn rounded-full ${
                       form2Data.role
                         ? "[&>span]:text-[#2C2C2C]"
-                        : "[&>span]:text-cyan-50/55"
+                        : "[&>span]:text-[#666666]"
                     }`}
                   >
                     <SelectValue placeholder="Select your role" />
@@ -1506,7 +1551,7 @@ const joinPage = (props: Props) => {
                     className={`w-full bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-sm border-2 hover:border-dawn rounded-full ${
                       form2Data.seniority
                         ? "[&>span]:text-[#2C2C2C]"
-                        : "[&>span]:text-cyan-50/55"
+                        : "[&>span]:text-[#666666]"
                     }`}
                   >
                     <SelectValue placeholder="Select seniority level" />
@@ -1552,11 +1597,22 @@ const joinPage = (props: Props) => {
                   <PhoneInput
                     defaultCountry="ae"
                     value={form2Data.phone_number}
-                    onChange={(phone) =>
-                      setForm2Data((prev) => ({ ...prev, phone_number: phone }))
-                    }
+                    onChange={(phone) => {
+                      setForm2Data((prev) => ({
+                        ...prev,
+                        phone_number: phone,
+                      }));
+                      const error = validatePhoneNumber(phone);
+                      setUserPhoneError(error);
+                    }}
                     className="react-international-phone"
                   />
+                  {userPhoneError && (
+                    <p className="text-red-400 text-sm pl-2 flex items-center gap-2 mt-2">
+                      <span className="text-red-500">⚠</span>
+                      {userPhoneError}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
