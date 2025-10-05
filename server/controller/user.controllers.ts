@@ -552,6 +552,7 @@ export class userControllers {
             firstName: user.firstName,
             lastName: user.lastName,
             userType: user.userType,
+            asset: user.asset || null,
             assetId: userWithDetails?.assetId || null,
             normalUserDetails: userWithDetails?.normalUserDetails
               ? {

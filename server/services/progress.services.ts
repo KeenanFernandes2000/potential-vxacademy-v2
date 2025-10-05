@@ -1,4 +1,4 @@
-import { eq, and, desc, count, sql } from "drizzle-orm";
+import { eq, and, desc, count, sql, inArray } from "drizzle-orm";
 import { db } from "../db/connection";
 import {
   userTrainingAreaProgress,
@@ -14,12 +14,19 @@ import {
   units,
   courseUnits,
   learningBlocks,
+  unitRoleAssignments,
 } from "../db/schema/training";
+import {
+  roleCategories,
+  seniorityLevels,
+  assets,
+} from "../db/schema/users";
 import { assessments, assessmentAttempts } from "../db/schema/assessments";
 import { courseEnrollments } from "../db/schema/system";
 import { certificates } from "../db/schema/gamification";
 import { users } from "../db/schema/users";
 import { sendByType } from "./email.services";
+import { CourseUnitService } from "./training.services";
 import type {
   UserTrainingAreaProgress,
   NewUserTrainingAreaProgress,
@@ -1295,6 +1302,277 @@ export class ProgressService {
         tx,
         userId,
         trainingAreaId
+      );
+    }
+  }
+
+  /**
+   * Get learning path completion status based on asset, role category, course, and seniority
+   */
+  static async getLearningPathCompletion(
+    assetName: string,
+    roleCategoryName: string,
+    courseId: number,
+    seniority: string,
+    userId: number
+  ) {
+    try {
+      // Query database to get IDs for the provided names
+      const [roleCategoryResult, seniorityResult, assetResult] = await Promise.all([
+        // Get role category ID by name
+        db
+          .select({ id: roleCategories.id, name: roleCategories.name })
+          .from(roleCategories)
+          .where(eq(roleCategories.name, roleCategoryName))
+          .limit(1),
+        
+        // Get seniority level ID by name
+        db
+          .select({ id: seniorityLevels.id, name: seniorityLevels.name })
+          .from(seniorityLevels)
+          .where(eq(seniorityLevels.name, seniority))
+          .limit(1),
+        
+        // Get asset ID by name
+        db
+          .select({ id: assets.id, name: assets.name })
+          .from(assets)
+          .where(eq(assets.name, assetName))
+          .limit(1),
+      ]);
+
+      // Check if user is a manager or staff (apply seniority filter for both)
+      const isManager = seniority.toLowerCase() === 'manager';
+      const isStaff = seniority.toLowerCase() === 'staff';
+      
+      // Check if all required entities were found
+      if (!roleCategoryResult[0]) {
+        throw new Error(`Role category '${roleCategoryName}' not found`);
+      }
+      if (!assetResult[0]) {
+        throw new Error(`Asset '${assetName}' not found`);
+      }
+      
+      // Validate seniority for managers and staff
+      if ((isManager || isStaff) && !seniorityResult[0]) {
+        throw new Error(`Seniority level '${seniority}' not found`);
+      }
+
+      const roleCategoryId = roleCategoryResult[0].id;
+      const seniorityId = seniorityResult[0]?.id; // Only get seniorityId if seniority exists
+      const assetId = assetResult[0].id;
+
+      // Get course details
+      const courseResult = await db
+        .select()
+        .from(courses)
+        .where(eq(courses.id, courseId))
+        .limit(1);
+
+      if (!courseResult[0]) {
+        throw new Error(`Course with ID ${courseId} not found`);
+      }
+
+      // Use the existing CourseUnitService to get course units
+      const courseUnitsResult = await CourseUnitService.getCourseUnitsByCourse(courseId);
+
+      // Query unit role assignments to find matching learning paths
+      
+      let unitRoleAssignmentsResult: any[] = [];
+      
+      if (isStaff && seniorityId) {
+        // For staff: try with seniority filter first
+        const staffWhereConditions = [
+          eq(unitRoleAssignments.roleCategoryId, roleCategoryId),
+          eq(unitRoleAssignments.assetId, assetId),
+          eq(unitRoleAssignments.seniorityLevelId, seniorityId)
+        ];
+        
+        unitRoleAssignmentsResult = await db
+          .select()
+          .from(unitRoleAssignments)
+          .where(and(...staffWhereConditions));
+        
+        // If no results with seniority filter, fallback to without seniority
+        if (unitRoleAssignmentsResult.length === 0) {
+          const fallbackWhereConditions = [
+            eq(unitRoleAssignments.roleCategoryId, roleCategoryId),
+            eq(unitRoleAssignments.assetId, assetId)
+          ];
+          
+          unitRoleAssignmentsResult = await db
+            .select()
+            .from(unitRoleAssignments)
+            .where(and(...fallbackWhereConditions));
+        }
+      } else {
+        // For non-staff: use existing logic (only managers get seniority filter)
+        const whereConditions = [
+          eq(unitRoleAssignments.roleCategoryId, roleCategoryId),
+          eq(unitRoleAssignments.assetId, assetId)
+        ];
+        
+        // Add seniority filter only for managers
+        if (isManager && seniorityId) {
+          whereConditions.push(eq(unitRoleAssignments.seniorityLevelId, seniorityId));
+        }
+        
+        unitRoleAssignmentsResult = await db
+          .select()
+          .from(unitRoleAssignments)
+          .where(and(...whereConditions));
+      }
+
+      // Get unit IDs from course units
+      const courseUnitIds = courseUnitsResult.map(courseUnit => courseUnit.unitId);
+      
+      // Get assigned units from role assignments that are also in the course
+      const assignedUnitIds = unitRoleAssignmentsResult.flatMap(assignment => assignment.unitIds);
+      
+      const filteredUnitIds = assignedUnitIds.filter(unitId => courseUnitIds.includes(unitId));
+      
+      const assignedUnits = filteredUnitIds.length > 0 
+        ? await db
+            .select()
+            .from(units)
+            .where(inArray(units.id, filteredUnitIds))
+        : [];
+
+      // Calculate completion status based on course units
+      const totalUnits = courseUnitsResult.length;
+      const completedUnits = 0; // This would be calculated based on actual user progress
+      const completionPercentage = totalUnits > 0 ? (completedUnits / totalUnits) * 100 : 0;
+      const status: ProgressStatus = 
+        completionPercentage === 100 ? "completed" :
+        completionPercentage > 0 ? "in_progress" : "not_started";
+
+      const learningPathCompletion = {
+        
+        courseUnitIds: courseUnitsResult.map(courseUnit => courseUnit.unitId),
+        pathUnitIds: unitRoleAssignmentsResult.flatMap(assignment => assignment.unitIds),
+        unitRoleAssignments: unitRoleAssignmentsResult.map(assignment => ({
+          id: assignment.id,
+          name: assignment.name,
+        })),
+        show: courseUnitsResult.map(courseUnit => courseUnit.unitId).filter(unitId => 
+          unitRoleAssignmentsResult.flatMap(assignment => assignment.unitIds).includes(unitId)
+        ),
+        complete: courseUnitsResult.map(courseUnit => courseUnit.unitId).filter(unitId => 
+          !unitRoleAssignmentsResult.flatMap(assignment => assignment.unitIds).includes(unitId)
+        ),
+        
+      };
+      
+      // Fetch additional data for complete units
+      const completeUnitIds = learningPathCompletion.complete;
+      const baseUrl = process.env.VITE_API_URL;
+      
+      const unitData = {
+        assessments: [] as number[],
+        learningBlocks: [] as number[]
+      };
+
+      // Loop through complete unit IDs and fetch data
+      for (const unitId of completeUnitIds) {
+        try {
+          // Fetch assessments for this unit
+          const assessmentsUrl = `${baseUrl}/api/assessments/assessments/units/${unitId}/`;
+          const assessmentsResponse = await fetch(assessmentsUrl);
+          
+          if (assessmentsResponse.ok) {
+            const assessmentsData: any = await assessmentsResponse.json();
+            const assessmentIds = (assessmentsData.data || []).map((assessment: any) => assessment.id);
+            unitData.assessments.push(...assessmentIds);
+          }
+
+          // Fetch learning blocks for this unit
+          const learningBlocksUrl = `${baseUrl}/api/training/learning-blocks/unit/${unitId}/`;
+          const learningBlocksResponse = await fetch(learningBlocksUrl);
+          
+          if (learningBlocksResponse.ok) {
+            const learningBlocksData: any = await learningBlocksResponse.json();
+            const learningBlockIds = (learningBlocksData.data || []).map((block: any) => block.id);
+            unitData.learningBlocks.push(...learningBlockIds);
+          }
+        } catch (error) {
+          console.error(`Error fetching data for unit ${unitId}:`, error);
+        }
+      }
+      
+      // Create assessment attempts for all assessments (mark as passed with score 100)
+      if (unitData.assessments.length > 0) {
+        for (const assessmentId of unitData.assessments) {
+          try {
+            // Check if assessment attempt already exists
+            const existingAttemptsUrl = `${baseUrl}/api/assessments/users/${userId}/assessments/${assessmentId}/attempts`;
+            const existingAttemptsResponse = await fetch(existingAttemptsUrl);
+            
+            if (existingAttemptsResponse.ok) {
+              const existingAttempts: any = await existingAttemptsResponse.json();
+              if (existingAttempts.data && existingAttempts.data.length > 0) {
+                continue;
+              }
+            }
+
+            // Create assessment attempt directly using service
+            try {
+              // Import the assessment attempt service
+              const { AssessmentAttemptService } = await import('./assessment.services');
+              
+              await AssessmentAttemptService.createAssessmentAttempt({
+                userId: userId,
+                assessmentId: assessmentId,
+                score: 100,
+                passed: true,
+                answers: null
+              });
+            } catch (serviceError) {
+              console.error(`Failed to create assessment attempt for assessment ${assessmentId}:`, serviceError);
+            }
+          } catch (error) {
+            console.error(`Error creating assessment attempt for assessment ${assessmentId}:`, error);
+          }
+        }
+      }
+
+      // Complete learning blocks for all learning blocks (mark as completed)
+      if (unitData.learningBlocks.length > 0) {
+        for (const learningBlockId of unitData.learningBlocks) {
+          try {
+            // Check if learning block is already completed
+            const existingProgressUrl = `${baseUrl}/api/progress/learning-blocks/${userId}/${learningBlockId}`;
+            const existingProgressResponse = await fetch(existingProgressUrl);
+            
+            if (existingProgressResponse.ok) {
+              const existingProgress: any = await existingProgressResponse.json();
+              if (existingProgress.data && existingProgress.data.length > 0) {
+                const progress = existingProgress.data[0];
+                if (progress.status === 'completed') {
+                  continue;
+                }
+              }
+            }
+
+            // Complete learning block directly using service
+            try {
+              await LearningBlockProgressService.completeLearningBlock(userId, learningBlockId);
+            } catch (serviceError) {
+              console.error(`Failed to complete learning block ${learningBlockId}:`, serviceError);
+            }
+          } catch (error) {
+            console.error(`Error completing learning block ${learningBlockId}:`, error);
+          }
+        }
+      }
+
+      // Add the fetched data to the response
+      (learningPathCompletion as any).unitData = unitData;
+
+      return learningPathCompletion.show;
+    } catch (error) {
+      console.error("Error getting learning path completion:", error);
+      throw new Error(
+        error instanceof Error ? error.message : "Unknown error occurred"
       );
     }
   }

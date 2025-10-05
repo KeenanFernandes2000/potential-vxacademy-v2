@@ -178,6 +178,20 @@ router.get(
   ProgressController.getUserCourseUnitProgress
 );
 
+// ==================== LEARNING PATH COMPLETION ROUTES ====================
+
+/**
+ * @route   POST /api/progress/learning-path-completion
+ * @desc    Get learning path completion status based on asset, role category, units, and seniority
+ * @access  Private (User [own data], Sub-admin, Admin)
+ */
+router.post(
+  "/learning-path-completion",
+  authenticateJWT,
+  authorizeRoles("user", "sub_admin", "admin"),
+  ProgressController.getLearningPathCompletion
+);
+
 // ==================== ADMIN ROUTES ====================
 
 /**

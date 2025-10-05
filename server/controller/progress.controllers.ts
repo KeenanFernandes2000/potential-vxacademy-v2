@@ -59,6 +59,37 @@ const validateGetProgressInput = (
   };
 };
 
+const validateLearningPathCompletionInput = (
+  data: any
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+
+  if (!data.assetName || typeof data.assetName !== "string" || data.assetName.trim() === "") {
+    errors.push("Valid asset name is required");
+  }
+
+  if (!data.roleCategoryName || typeof data.roleCategoryName !== "string" || data.roleCategoryName.trim() === "") {
+    errors.push("Valid role category name is required");
+  }
+
+  if (!data.courseId || typeof data.courseId !== "number" || data.courseId <= 0) {
+    errors.push("Valid course ID is required");
+  }
+
+  if (!data.seniority || typeof data.seniority !== "string" || data.seniority.trim() === "") {
+    errors.push("Valid seniority is required");
+  }
+
+  if (!data.userId || typeof data.userId !== "number" || data.userId <= 0) {
+    errors.push("Valid user ID is required");
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+};
+
 // ==================== LEARNING BLOCK PROGRESS CONTROLLER ====================
 export class LearningBlockProgressController {
   /**
@@ -442,6 +473,49 @@ export class ProgressController {
       console.error("Error recalculating user progress:", error);
       throw createError(
         "Failed to recalculate user progress",
+        500,
+        error instanceof Error ? [error.message] : ["Unknown error occurred"]
+      );
+    }
+  }
+
+  /**
+   * Get learning path completion status based on asset, role category, units, and seniority
+   * POST /api/progress/learning-path-completion
+   */
+  static async getLearningPathCompletion(req: Request, res: Response) {
+    const { assetName, roleCategoryName, courseId, seniority, userId } = req.body;
+
+    // Validate input
+    const validation = validateLearningPathCompletionInput({
+      assetName,
+      roleCategoryName,
+      courseId,
+      seniority,
+      userId,
+    });
+    if (!validation.isValid) {
+      throw createError("Validation failed", 400, validation.errors);
+    }
+
+    try {
+      const result = await ProgressService.getLearningPathCompletion(
+        assetName,
+        roleCategoryName,
+        courseId,
+        seniority,
+        userId 
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Learning path completion retrieved successfully",
+        data: result,
+      });
+    } catch (error) {
+      console.error("Error getting learning path completion:", error);
+      throw createError(
+        "Failed to retrieve learning path completion",
         500,
         error instanceof Error ? [error.message] : ["Unknown error occurred"]
       );
