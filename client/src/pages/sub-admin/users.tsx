@@ -569,7 +569,7 @@ const Users = () => {
 
       {/* User Table */}
       <div className="border bg-white border-[#E5E5E5] w-full rounded-lg overflow-x-auto max-w-[100%]">
-        <div className="max-w-[1200px] mx-auto">
+        <div className="max-w-[1350px] mx-auto">
           <Table>
             <TableHeader>
               <TableRow className="border-[#E5E5E5]">
