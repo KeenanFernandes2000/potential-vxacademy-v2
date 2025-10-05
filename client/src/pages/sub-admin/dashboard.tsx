@@ -274,7 +274,7 @@ const Dashboard = () => {
         )}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-[#2C2C2C]">
+        <div className="text-5xl font-bold text-[#2C2C2C]">
           {loading ? "..." : value}
         </div>
         {change && !loading && (
