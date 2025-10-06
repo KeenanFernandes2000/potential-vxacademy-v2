@@ -216,15 +216,18 @@ const Dashboard = () => {
               <div className="flex items-center space-x-6">
                 <div className="flex items-center space-x-2">
                   <Star className="w-5 h-5" />
-                  <span className="text-lg font-semibold">
-                    {progressStats.totalCourses} Courses Enrolled
+                  <span className="text-3xl font-semibold">
+                    {progressStats.totalCourses}
                   </span>
+                  <span className="text-lg font-semibold"> Courses Enrolled </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="w-5 h-5" />
-                  <span className="text-lg font-semibold">
-                    {progressStats.completedCourses} Completed
+                  <span className="text-3xl font-semibold">
+                    {progressStats.completedCourses}
                   </span>
+                  <span className="text-lg font-semibold"> Completed </span>
+                  
                 </div>
               </div>
             </div>

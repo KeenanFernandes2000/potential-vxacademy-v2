@@ -173,14 +173,14 @@ export default function ResetPasswordPage() {
   // Show loading state while verifying token
   if (isVerifying) {
     return (
-      <div className="min-h-screen flex flex-col bg-sandstone relative overflow-hidden">
+      <div className="min-h-screen flex flex-col bg-primary-sandstone relative overflow-hidden">
         <HomeNavigation />
         <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center relative z-10 flex-1">
           <div className="w-full max-w-md lg:max-w-lg">
-            <Card className="shadow-2xl bg-white backdrop-blur-sm border border-sandstone overflow-hidden rounded-none">
+            <Card className="shadow-2xl bg-primary-white backdrop-blur-sm border border-primary-sandstone overflow-hidden rounded-none">
               <CardContent className="px-8 lg:px-10 py-20">
                 <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00d8cc] mx-auto mb-4"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-dawn mx-auto mb-4"></div>
                   <p className="text-[#666666] text-lg">
                     Verifying reset token...
                   </p>
@@ -202,9 +202,10 @@ export default function ResetPasswordPage() {
           <div className="w-full max-w-md lg:max-w-lg">
             <Card className="shadow-2xl bg-white backdrop-blur-sm border border-sandstone overflow-hidden rounded-none">
               <CardHeader className="pb-8 px-8 pt-10 lg:px-10">
-                <CardTitle className="text-[#2C2C2C] text-3xl lg:text-4xl font-bold text-center mb-3">
+                <CardTitle className="text-primary-black text-3xl lg:text-4xl font-bold text-center mb-3">
                   Invalid Reset Link
                 </CardTitle>
+                <div className="w-24 h-1 bg-primary-dawn rounded-full mx-auto mb-4"></div>
                 <CardDescription className="text-[#666666] text-center text-lg leading-relaxed">
                   This password reset link is invalid or has expired
                 </CardDescription>
@@ -229,25 +230,23 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div
-      className="min-h-screen flex flex-col bg-sandstone relative overflow-hidden"
-      style={{ backgroundColor: "#003451" }}
-    >
+    <div className="min-h-screen flex flex-col bg-primary-sandstone relative overflow-hidden">
       <HomeNavigation />
 
       {/* Reset Password Form */}
       <div className="w-full p-4 sm:p-6 lg:p-8 flex flex-col justify-center items-center relative z-10 flex-1">
         <div className="w-full max-w-md lg:max-w-lg">
-          <Card className="shadow-2xl bg-white backdrop-blur-sm border border-sandstone overflow-hidden rounded-none">
+          <Card className="shadow-2xl bg-primary-white backdrop-blur-sm border border-primary-sandstone overflow-hidden rounded-none">
             <CardHeader className="pb-8 px-8 pt-10 lg:px-10">
-              <CardTitle className="text-[#2C2C2C] text-3xl lg:text-4xl font-bold text-center mb-3">
+              <CardTitle className="text-primary-black text-3xl lg:text-4xl font-bold text-center mb-3">
                 Reset Password
               </CardTitle>
+              <div className="w-24 h-1 bg-primary-dawn rounded-full mx-auto mb-4"></div>
               <CardDescription className="text-[#666666] text-center text-lg leading-relaxed">
                 {userInfo ? (
                   <>
                     Reset password for{" "}
-                    <span className="text-dawn font-semibold">
+                    <span className="text-primary-dawn font-semibold">
                       {userInfo.email}
                     </span>
                   </>
@@ -259,7 +258,7 @@ export default function ResetPasswordPage() {
             <CardContent className="px-8 lg:px-10 pb-10">
               <div className="space-y-8">
                 <div className="space-y-3">
-                  <label className="text-[#2C2C2C] font-semibold text-base tracking-wide pl-2">
+                  <label className="text-primary-black font-semibold text-base tracking-wide pl-2">
                     New Password
                   </label>
                   <div className="relative">
@@ -270,7 +269,7 @@ export default function ResetPasswordPage() {
                         setPassword(e.target.value);
                         setError(""); // Clear error when user types
                       }}
-                      className="bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-3 text-base border-2 hover:border-dawn rounded-full w-full px-4 pr-12 outline-none"
+                      className="bg-primary-white backdrop-blur-sm border-primary-sandstone text-primary-black placeholder:text-[#666666] focus:bg-primary-white focus:border-primary-dawn transition-all duration-300 py-3 text-base border-2 hover:border-primary-dawn rounded-full w-full px-4 pr-12 outline-none"
                       type={showPassword ? "text" : "password"}
                       disabled={isLoading}
                     />
@@ -290,7 +289,7 @@ export default function ResetPasswordPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[#2C2C2C] font-semibold text-base tracking-wide pl-2">
+                  <label className="text-primary-black font-semibold text-base tracking-wide pl-2">
                     Confirm New Password
                   </label>
                   <div className="relative">
@@ -301,7 +300,7 @@ export default function ResetPasswordPage() {
                         setConfirmPassword(e.target.value);
                         setError(""); // Clear error when user types
                       }}
-                      className="bg-white backdrop-blur-sm border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-3 text-base border-2 hover:border-dawn rounded-full w-full px-4 pr-12 outline-none"
+                      className="bg-primary-white backdrop-blur-sm border-primary-sandstone text-primary-black placeholder:text-[#666666] focus:bg-primary-white focus:border-primary-dawn transition-all duration-300 py-3 text-base border-2 hover:border-primary-dawn rounded-full w-full px-4 pr-12 outline-none"
                       type={showConfirmPassword ? "text" : "password"}
                       disabled={isLoading}
                     />
@@ -335,7 +334,7 @@ export default function ResetPasswordPage() {
                     type="button"
                     onClick={handleUpdatePassword}
                     disabled={isLoading}
-                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white py-5 lg:py-6 font-bold text-lg lg:text-xl shadow-xl backdrop-blur-sm border-2 border-sandstone transition-all duration-300 hover:scale-105 hover:shadow-[#00d8cc]/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl rounded-full"
+                    className="w-full bg-primary-dawn hover:bg-[#B85A1A] text-primary-white text-lg py-6 px-8 shadow-2xl transition-all duration-300 hover:scale-105 font-semibold backdrop-blur-sm border border-primary-dawn rounded-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? "Updating Password..." : "Update Password"}
                   </Button>
@@ -348,9 +347,9 @@ export default function ResetPasswordPage() {
 
       {/* Success Dialog */}
       <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <DialogContent className="bg-sandstone border-sandstone text-[#2C2C2C]">
+        <DialogContent className="bg-primary-white border-primary-sandstone text-primary-black">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center text-dawn">
+            <DialogTitle className="text-2xl font-bold text-center text-primary-dawn">
               Password Updated Successfully!
             </DialogTitle>
             <DialogDescription className="text-[#666666] text-center text-lg mt-4">
@@ -359,12 +358,12 @@ export default function ResetPasswordPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-center mt-6">
-            <CheckCircle className="!h-16 !w-16 text-dawn" />
+            <CheckCircle className="!h-16 !w-16 text-primary-dawn" />
           </div>
           <div className="flex justify-center mt-6">
             <Button
               onClick={handleContinueToLogin}
-              className="bg-dawn hover:bg-[#B85A1A] text-white px-8 py-3 font-bold text-lg shadow-xl transition-all duration-300 hover:scale-105 rounded-full"
+              className="bg-primary-dawn hover:bg-[#B85A1A] text-primary-white text-lg px-8 py-3 font-semibold shadow-xl transition-all duration-300 hover:scale-105 rounded-full"
             >
               Continue to Login
             </Button>
