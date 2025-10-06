@@ -354,6 +354,19 @@ interface QuestionData
   actions: React.ReactNode;
 }
 
+// Type for validation errors
+interface ValidationErrors {
+  title?: string;
+  training_area_id?: string;
+  module_id?: string;
+  course_id?: string;
+  unit_id?: string;
+  question_text?: string;
+  question_type?: string;
+  correct_answer?: string;
+  order?: string;
+}
+
 const AssessmentsPage = () => {
   const { token } = useAuth();
   const [assessments, setAssessments] = useState<AssessmentData[]>([]);
@@ -375,11 +388,84 @@ const AssessmentsPage = () => {
   const [isEditQuestionModalOpen, setIsEditQuestionModalOpen] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
 
+  // Validation states
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {}
+  );
+  const [questionValidationErrors, setQuestionValidationErrors] =
+    useState<ValidationErrors>({});
+
+  // Delete modal states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [assessmentToDelete, setAssessmentToDelete] = useState<any>(null);
+  const [isDeleteQuestionModalOpen, setIsDeleteQuestionModalOpen] =
+    useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState<any>(null);
+
   // Dropdown data states
   const [trainingAreas, setTrainingAreas] = useState<any[]>([]);
   const [modules, setModules] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [units, setUnits] = useState<any[]>([]);
+
+  // Validation functions
+  const validateAssessmentForm = (formData: any): boolean => {
+    const errors: ValidationErrors = {};
+
+    if (!formData.title?.trim()) {
+      errors.title = "Assessment title is required";
+    }
+
+    if (!formData.training_area_id) {
+      errors.training_area_id = "Training area is required";
+    }
+
+    if (!formData.module_id) {
+      errors.module_id = "Module is required";
+    }
+
+    if (!formData.course_id) {
+      errors.course_id = "Course is required";
+    }
+
+    if (!formData.unit_id) {
+      errors.unit_id = "Unit is required";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateQuestionForm = (formData: any): boolean => {
+    const errors: ValidationErrors = {};
+
+    if (!formData.question_text?.trim()) {
+      errors.question_text = "Question text is required";
+    }
+
+    if (!formData.question_type) {
+      errors.question_type = "Question type is required";
+    }
+
+    if (!formData.correct_answer?.trim()) {
+      errors.correct_answer = "Correct answer is required";
+    }
+
+    if (!formData.order || parseInt(formData.order) < 1) {
+      errors.order = "Order must be a positive number";
+    }
+
+    setQuestionValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const clearValidationErrors = () => {
+    setValidationErrors({});
+  };
+
+  const clearQuestionValidationErrors = () => {
+    setQuestionValidationErrors({});
+  };
 
   // Fetch dropdown data on component mount
   useEffect(() => {
@@ -469,7 +555,7 @@ const AssessmentsPage = () => {
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                    onClick={() => handleDeleteAssessment(assessment.id)}
+                    onClick={() => handleDeleteAssessment(assessment)}
                     title="Delete"
                   >
                     <Delete sx={{ fontSize: 16 }} />
@@ -511,6 +597,11 @@ const AssessmentsPage = () => {
   const handleCreateAssessment = async (formData: any) => {
     if (!token) {
       setError("Authentication required");
+      return;
+    }
+
+    // Validate form before submission
+    if (!validateAssessmentForm(formData)) {
       return;
     }
 
@@ -559,6 +650,7 @@ const AssessmentsPage = () => {
         // Refresh the assessment list
         await refreshAssessmentList();
         setError("");
+        clearValidationErrors();
         setSuccessMessage("Assessment created successfully!");
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
@@ -575,6 +667,11 @@ const AssessmentsPage = () => {
   const handleUpdateAssessment = async (formData: any) => {
     if (!token || !selectedAssessment) {
       setError("Authentication required or no assessment selected");
+      return;
+    }
+
+    // Validate form before submission
+    if (!validateAssessmentForm(formData)) {
       return;
     }
 
@@ -627,6 +724,7 @@ const AssessmentsPage = () => {
         setIsEditModalOpen(false);
         setSelectedAssessment(null);
         setError("");
+        clearValidationErrors();
         setSuccessMessage("Assessment updated successfully!");
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
@@ -640,24 +738,27 @@ const AssessmentsPage = () => {
     }
   };
 
-  const handleDeleteAssessment = async (assessmentId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
+  const handleDeleteAssessment = (assessment: any) => {
+    setAssessmentToDelete(assessment);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!confirm("Are you sure you want to delete this assessment?")) {
+  const confirmDeleteAssessment = async () => {
+    if (!token || !assessmentToDelete) {
+      setError("Authentication required or no assessment selected");
       return;
     }
 
     try {
       setIsLoading(true);
-      const response = await api.deleteAssessment(assessmentId, token);
+      const response = await api.deleteAssessment(assessmentToDelete.id, token);
 
       if (response.success) {
         // Refresh the assessment list
         await refreshAssessmentList();
         setError("");
+        setSuccessMessage("Assessment deleted successfully!");
+        setTimeout(() => setSuccessMessage(""), 3000);
       } else {
         setError(response.message || "Failed to delete assessment");
       }
@@ -666,6 +767,8 @@ const AssessmentsPage = () => {
       setError("Failed to delete assessment. Please try again.");
     } finally {
       setIsLoading(false);
+      setIsDeleteModalOpen(false);
+      setAssessmentToDelete(null);
     }
   };
 
@@ -715,7 +818,7 @@ const AssessmentsPage = () => {
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-              onClick={() => handleDeleteQuestion(question.id)}
+              onClick={() => handleDeleteQuestion(question)}
               title="Delete"
             >
               <Delete sx={{ fontSize: 16 }} />
@@ -735,6 +838,11 @@ const AssessmentsPage = () => {
   const handleCreateQuestion = async (formData: any) => {
     if (!token || !selectedAssessment) {
       setError("Authentication required or no assessment selected");
+      return;
+    }
+
+    // Validate form before submission
+    if (!validateQuestionForm(formData)) {
       return;
     }
 
@@ -761,6 +869,7 @@ const AssessmentsPage = () => {
       if (response.success) {
         await fetchQuestionsForAssessment(selectedAssessment.id);
         setError("");
+        clearQuestionValidationErrors();
         setSuccessMessage("Question created successfully!");
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
@@ -777,6 +886,11 @@ const AssessmentsPage = () => {
   const handleUpdateQuestion = async (formData: any) => {
     if (!token || !selectedQuestion) {
       setError("Authentication required or no question selected");
+      return;
+    }
+
+    // Validate form before submission
+    if (!validateQuestionForm(formData)) {
       return;
     }
 
@@ -809,6 +923,7 @@ const AssessmentsPage = () => {
         setIsEditQuestionModalOpen(false);
         setSelectedQuestion(null);
         setError("");
+        clearQuestionValidationErrors();
         setSuccessMessage("Question updated successfully!");
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
@@ -822,19 +937,20 @@ const AssessmentsPage = () => {
     }
   };
 
-  const handleDeleteQuestion = async (questionId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
+  const handleDeleteQuestion = (question: any) => {
+    setQuestionToDelete(question);
+    setIsDeleteQuestionModalOpen(true);
+  };
 
-    if (!confirm("Are you sure you want to delete this question?")) {
+  const confirmDeleteQuestion = async () => {
+    if (!token || !questionToDelete) {
+      setError("Authentication required or no question selected");
       return;
     }
 
     try {
       setIsLoading(true);
-      const response = await api.deleteQuestion(questionId, token);
+      const response = await api.deleteQuestion(questionToDelete.id, token);
 
       if (response.success) {
         await fetchQuestionsForAssessment(selectedAssessment.id);
@@ -849,6 +965,8 @@ const AssessmentsPage = () => {
       setError("Failed to delete question. Please try again.");
     } finally {
       setIsLoading(false);
+      setIsDeleteQuestionModalOpen(false);
+      setQuestionToDelete(null);
     }
   };
 
@@ -896,7 +1014,7 @@ const AssessmentsPage = () => {
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                onClick={() => handleDeleteAssessment(assessment.id)}
+                onClick={() => handleDeleteAssessment(assessment)}
                 title="Delete"
               >
                 <Delete sx={{ fontSize: 16 }} />
@@ -1039,6 +1157,7 @@ const AssessmentsPage = () => {
         certificate_template: "",
         xp_points: "50",
       });
+      clearValidationErrors();
     };
 
     return (
@@ -1049,13 +1168,23 @@ const AssessmentsPage = () => {
             <Input
               id="title"
               value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => {
+                setFormData({ ...formData, title: e.target.value });
+                if (validationErrors.title) {
+                  clearValidationErrors();
+                }
+              }}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                validationErrors.title
+                  ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                  : "border-sandstone focus:border-dawn hover:border-dawn"
+              }`}
               placeholder="Type your Assessment Title"
               required
             />
+            {validationErrors.title && (
+              <p className="text-red-500 text-sm">{validationErrors.title}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -1075,12 +1204,21 @@ const AssessmentsPage = () => {
             <Label htmlFor="training_area_id">Training Area *</Label>
             <Select
               value={formData.training_area_id}
-              onValueChange={(value) =>
-                setFormData({ ...formData, training_area_id: value })
-              }
+              onValueChange={(value) => {
+                setFormData({ ...formData, training_area_id: value });
+                if (validationErrors.training_area_id) {
+                  clearValidationErrors();
+                }
+              }}
               required
             >
-              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectTrigger
+                className={`w-full bg-white text-[#2C2C2C] transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                  validationErrors.training_area_id
+                    ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                    : "border-sandstone focus:border-dawn hover:border-dawn"
+                }`}
+              >
                 <SelectValue placeholder="Select training area" />
               </SelectTrigger>
               <SelectContent>
@@ -1091,19 +1229,33 @@ const AssessmentsPage = () => {
                 ))}
               </SelectContent>
             </Select>
+            {validationErrors.training_area_id && (
+              <p className="text-red-500 text-sm">
+                {validationErrors.training_area_id}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="module_id">Module *</Label>
             <Select
               value={formData.module_id}
-              onValueChange={(value) =>
-                setFormData({ ...formData, module_id: value })
-              }
+              onValueChange={(value) => {
+                setFormData({ ...formData, module_id: value });
+                if (validationErrors.module_id) {
+                  clearValidationErrors();
+                }
+              }}
               disabled={!formData.training_area_id}
               required
             >
-              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectTrigger
+                className={`w-full bg-white text-[#2C2C2C] transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                  validationErrors.module_id
+                    ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                    : "border-sandstone focus:border-dawn hover:border-dawn"
+                }`}
+              >
                 <SelectValue placeholder="Select module" />
               </SelectTrigger>
               <SelectContent>
@@ -1114,19 +1266,33 @@ const AssessmentsPage = () => {
                 ))}
               </SelectContent>
             </Select>
+            {validationErrors.module_id && (
+              <p className="text-red-500 text-sm">
+                {validationErrors.module_id}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="course_id">Course *</Label>
             <Select
               value={formData.course_id}
-              onValueChange={(value) =>
-                setFormData({ ...formData, course_id: value })
-              }
+              onValueChange={(value) => {
+                setFormData({ ...formData, course_id: value });
+                if (validationErrors.course_id) {
+                  clearValidationErrors();
+                }
+              }}
               disabled={!formData.module_id}
               required
             >
-              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectTrigger
+                className={`w-full bg-white text-[#2C2C2C] transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                  validationErrors.course_id
+                    ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                    : "border-sandstone focus:border-dawn hover:border-dawn"
+                }`}
+              >
                 <SelectValue placeholder="Select course" />
               </SelectTrigger>
               <SelectContent>
@@ -1137,19 +1303,33 @@ const AssessmentsPage = () => {
                 ))}
               </SelectContent>
             </Select>
+            {validationErrors.course_id && (
+              <p className="text-red-500 text-sm">
+                {validationErrors.course_id}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="unit_id">Unit *</Label>
             <Select
               value={formData.unit_id}
-              onValueChange={(value) =>
-                setFormData({ ...formData, unit_id: value })
-              }
+              onValueChange={(value) => {
+                setFormData({ ...formData, unit_id: value });
+                if (validationErrors.unit_id) {
+                  clearValidationErrors();
+                }
+              }}
               disabled={!formData.course_id}
               required
             >
-              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectTrigger
+                className={`w-full bg-white text-[#2C2C2C] transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                  validationErrors.unit_id
+                    ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                    : "border-sandstone focus:border-dawn hover:border-dawn"
+                }`}
+              >
                 <SelectValue placeholder="Select unit" />
               </SelectTrigger>
               <SelectContent>
@@ -1160,6 +1340,9 @@ const AssessmentsPage = () => {
                 ))}
               </SelectContent>
             </Select>
+            {validationErrors.unit_id && (
+              <p className="text-red-500 text-sm">{validationErrors.unit_id}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -1366,6 +1549,7 @@ const AssessmentsPage = () => {
         order: "",
       });
       setMcqOptions(["", "", "", ""]);
+      clearQuestionValidationErrors();
     };
 
     return (
@@ -1376,29 +1560,50 @@ const AssessmentsPage = () => {
             <Input
               id="question_text"
               value={formData.question_text}
-              onChange={(e) =>
-                setFormData({ ...formData, question_text: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => {
+                setFormData({ ...formData, question_text: e.target.value });
+                if (questionValidationErrors.question_text) {
+                  clearQuestionValidationErrors();
+                }
+              }}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                questionValidationErrors.question_text
+                  ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                  : "border-sandstone focus:border-dawn hover:border-dawn"
+              }`}
               placeholder="Type your question text"
               required
             />
+            {questionValidationErrors.question_text && (
+              <p className="text-red-500 text-sm">
+                {questionValidationErrors.question_text}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="question_type">Question Type *</Label>
             <Select
               value={formData.question_type}
-              onValueChange={(value) =>
+              onValueChange={(value) => {
                 setFormData({
                   ...formData,
                   question_type: value,
                   correct_answer: "",
-                })
-              }
+                });
+                if (questionValidationErrors.question_type) {
+                  clearQuestionValidationErrors();
+                }
+              }}
               required
             >
-              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectTrigger
+                className={`w-full bg-white text-[#2C2C2C] transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                  questionValidationErrors.question_type
+                    ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                    : "border-sandstone focus:border-dawn hover:border-dawn"
+                }`}
+              >
                 <SelectValue placeholder="Select question type" />
               </SelectTrigger>
               <SelectContent>
@@ -1406,6 +1611,11 @@ const AssessmentsPage = () => {
                 <SelectItem value="true_false">True or False</SelectItem>
               </SelectContent>
             </Select>
+            {questionValidationErrors.question_type && (
+              <p className="text-red-500 text-sm">
+                {questionValidationErrors.question_type}
+              </p>
+            )}
           </div>
 
           {formData.question_type === "mcq" && (
@@ -1450,9 +1660,12 @@ const AssessmentsPage = () => {
             {formData.question_type === "mcq" ? (
               <RadioGroup
                 value={formData.correct_answer}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, correct_answer: value })
-                }
+                onValueChange={(value) => {
+                  setFormData({ ...formData, correct_answer: value });
+                  if (questionValidationErrors.correct_answer) {
+                    clearQuestionValidationErrors();
+                  }
+                }}
               >
                 {mcqOptions
                   .filter((opt) => opt.trim() !== "")
@@ -1466,9 +1679,12 @@ const AssessmentsPage = () => {
             ) : formData.question_type === "true_false" ? (
               <RadioGroup
                 value={formData.correct_answer}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, correct_answer: value })
-                }
+                onValueChange={(value) => {
+                  setFormData({ ...formData, correct_answer: value });
+                  if (questionValidationErrors.correct_answer) {
+                    clearQuestionValidationErrors();
+                  }
+                }}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="True" id="true" />
@@ -1480,6 +1696,11 @@ const AssessmentsPage = () => {
                 </div>
               </RadioGroup>
             ) : null}
+            {questionValidationErrors.correct_answer && (
+              <p className="text-red-500 text-sm">
+                {questionValidationErrors.correct_answer}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -1489,13 +1710,25 @@ const AssessmentsPage = () => {
               type="number"
               min="1"
               value={formData.order}
-              onChange={(e) =>
-                setFormData({ ...formData, order: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => {
+                setFormData({ ...formData, order: e.target.value });
+                if (questionValidationErrors.order) {
+                  clearQuestionValidationErrors();
+                }
+              }}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                questionValidationErrors.order
+                  ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                  : "border-sandstone focus:border-dawn hover:border-dawn"
+              }`}
               placeholder="Add order in assessment"
               required
             />
+            {questionValidationErrors.order && (
+              <p className="text-red-500 text-sm">
+                {questionValidationErrors.order}
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end gap-2">
@@ -2250,6 +2483,91 @@ const AssessmentsPage = () => {
           </DialogHeader>
           <div className="mt-4">
             {selectedQuestion ? <EditQuestionForm /> : <CreateQuestionForm />}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Assessment Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md bg-card border-border text-card-foreground">
+          <DialogHeader>
+            <DialogTitle className="text-card-foreground">
+              Delete Assessment
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </Button>
+          </DialogHeader>
+          <div className="mt-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Are you sure you want to delete the assessment "
+              {assessmentToDelete?.title}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="rounded-full hover:bg-accent/30 hover:text-black"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDeleteAssessment}
+                disabled={isLoading}
+                className="rounded-full bg-red-500 hover:bg-red-600 text-white"
+              >
+                {isLoading ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Question Confirmation Modal */}
+      <Dialog
+        open={isDeleteQuestionModalOpen}
+        onOpenChange={setIsDeleteQuestionModalOpen}
+      >
+        <DialogContent className="max-w-md bg-card border-border text-card-foreground">
+          <DialogHeader>
+            <DialogTitle className="text-card-foreground">
+              Delete Question
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => setIsDeleteQuestionModalOpen(false)}
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </Button>
+          </DialogHeader>
+          <div className="mt-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Are you sure you want to delete this question? This action cannot
+              be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteQuestionModalOpen(false)}
+                className="rounded-full hover:bg-accent/30 hover:text-black"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDeleteQuestion}
+                disabled={isLoading}
+                className="rounded-full bg-red-500 hover:bg-red-600 text-white"
+              >
+                {isLoading ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

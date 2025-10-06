@@ -159,7 +159,9 @@ const OrganizationPage = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState<any>(null);
+  const [organizationToDelete, setOrganizationToDelete] = useState<any>(null);
 
   // Function to show success message
   const showSuccessMessage = (message: string) => {
@@ -207,7 +209,7 @@ const OrganizationPage = () => {
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                  onClick={() => handleDeleteOrganization(organization.id)}
+                  onClick={() => handleDeleteOrganization(organization)}
                   title="Delete"
                 >
                   <Delete sx={{ fontSize: 16 }} />
@@ -311,25 +313,31 @@ const OrganizationPage = () => {
     }
   };
 
-  const handleDeleteOrganization = async (organizationId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
+  const handleDeleteOrganization = (organization: any) => {
+    setOrganizationToDelete(organization);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!confirm("Are you sure you want to delete this organization?")) {
+  const confirmDeleteOrganization = async () => {
+    if (!token || !organizationToDelete) {
+      setError("Authentication required or no organization selected");
       return;
     }
 
     try {
       setIsLoading(true);
-      const response = await api.deleteOrganization(organizationId, token);
+      const response = await api.deleteOrganization(
+        organizationToDelete.id,
+        token
+      );
 
       if (response.success) {
         // Refresh the organization list
         await refreshOrganizationList();
         setError("");
         showSuccessMessage("Organization deleted successfully!");
+        setIsDeleteModalOpen(false);
+        setOrganizationToDelete(null);
       } else {
         setError(response.message || "Failed to delete organization");
       }
@@ -364,7 +372,7 @@ const OrganizationPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
               onClick={() => handleEditOrganization(organization)}
               title="Edit"
             >
@@ -373,8 +381,8 @@ const OrganizationPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-              onClick={() => handleDeleteOrganization(organization.id)}
+              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
+              onClick={() => handleDeleteOrganization(organization)}
               title="Delete"
             >
               <Delete sx={{ fontSize: 16 }} />
@@ -484,7 +492,7 @@ const OrganizationPage = () => {
         </div>
       )}
       {successMessage && (
-        <div className="fixed top-4 right-4 z-50 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg shadow-lg">
+        <div className="fixed top-4 right-4 z-[9999] p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg shadow-lg">
           {successMessage}
         </div>
       )}
@@ -518,6 +526,56 @@ const OrganizationPage = () => {
           </DialogHeader>
           <div className="mt-4">
             <EditOrganizationForm />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
+          <DialogHeader className="relative">
+            <DialogTitle className="text-[#2C2C2C]">
+              Delete Organization
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setOrganizationToDelete(null);
+              }}
+            >
+              <Close sx={{ fontSize: 20 }} />
+            </Button>
+          </DialogHeader>
+          <div className="mt-4">
+            <p className="text-[#2C2C2C] mb-6">
+              Are you sure you want to delete the organization "
+              {organizationToDelete?.name}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setOrganizationToDelete(null);
+                }}
+                className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={confirmDeleteOrganization}
+                disabled={isLoading}
+                className="rounded-full"
+              >
+                {isLoading ? "Deleting..." : "Delete Organization"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

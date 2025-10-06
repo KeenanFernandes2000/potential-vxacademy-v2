@@ -318,7 +318,7 @@ const AllUsers = () => {
     >
       <div className="space-y-6">
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3">
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
@@ -357,20 +357,6 @@ const AllUsers = () => {
             <CardContent>
               <div className="text-2xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalCertificatesIssued}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total VX Points Earned
-              </CardTitle>
-              <Award className="h-4 w-4 text-blue-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalVxPointsEarned.toLocaleString()}
               </div>
             </CardContent>
           </Card>

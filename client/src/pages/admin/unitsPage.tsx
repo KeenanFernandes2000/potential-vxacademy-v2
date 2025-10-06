@@ -305,6 +305,18 @@ interface UnitData
   actions: React.ReactNode;
 }
 
+// Type for validation errors
+interface ValidationErrors {
+  name?: string;
+  description?: string;
+  training_area_id?: string;
+  module_id?: string;
+  course_id?: string;
+  order?: string;
+  duration?: string;
+  xp_points?: string;
+}
+
 const UnitsPage = () => {
   const { token } = useAuth();
   const [units, setUnits] = useState<UnitData[]>([]);
@@ -318,6 +330,72 @@ const UnitsPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<any>(null);
   const [successMessage, setSuccessMessage] = useState("");
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {}
+  );
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [unitToDelete, setUnitToDelete] = useState<any>(null);
+
+  // Validation function
+  const validateForm = (formData: any): boolean => {
+    const errors: ValidationErrors = {};
+
+    // Required field validations
+    if (!formData.name || formData.name.trim() === "") {
+      errors.name = "Learning Unit Name is required";
+    }
+
+    if (!formData.description || formData.description.trim() === "") {
+      errors.description = "Description is required";
+    }
+
+    if (!formData.training_area_id || formData.training_area_id === "") {
+      errors.training_area_id = "Training Area is required";
+    }
+
+    if (!formData.module_id || formData.module_id === "") {
+      errors.module_id = "Module is required";
+    }
+
+    if (!formData.course_id || formData.course_id === "") {
+      errors.course_id = "Course is required";
+    }
+
+    if (
+      !formData.order ||
+      formData.order === "" ||
+      parseInt(formData.order) < 1
+    ) {
+      errors.order = "Order must be a positive number";
+    }
+
+    if (
+      !formData.duration ||
+      formData.duration === "" ||
+      parseInt(formData.duration) < 1
+    ) {
+      errors.duration = "Duration must be a positive number";
+    }
+
+    if (
+      !formData.xp_points ||
+      formData.xp_points === "" ||
+      parseInt(formData.xp_points) < 0
+    ) {
+      errors.xp_points = "VX Points must be a non-negative number";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Success message function
+  const showSuccessMessage = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 5000);
+  };
 
   // Fetch units from database on component mount
   useEffect(() => {
@@ -374,14 +452,14 @@ const UnitsPage = () => {
               id: unit.id,
               order: unit.order || 1,
               name: unit.name,
-              xp_points: unit.xp_points || 100,
+              // xp_points: unit.xp_points || 100,
               course_name: course?.name || "N/A",
               module_name: module?.name || "N/A",
               training_area_name: trainingArea?.name || "N/A",
-              courseUnitId: courseUnit?.id || null, // Keep for editing
-              trainingAreaId: trainingArea?.id, // Keep for filtering
-              moduleId: module?.id, // Keep for filtering
-              courseId: course?.id, // Keep for filtering
+              // courseUnitId: courseUnit?.id || null, // Keep for editing
+              // trainingAreaId: trainingArea?.id, // Keep for filtering
+              // moduleId: module?.id, // Keep for filtering
+              // courseId: course?.id, // Keep for filtering
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -397,7 +475,7 @@ const UnitsPage = () => {
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                    onClick={() => handleDeleteUnit(unit.id)}
+                    onClick={() => handleDeleteUnit(unit)}
                     title="Delete"
                   >
                     <Delete sx={{ fontSize: 16 }} />
@@ -425,10 +503,8 @@ const UnitsPage = () => {
     if (!query) {
       setFilteredUnits(units);
     } else {
-      const filtered = units.filter(
-        (unit) =>
-          unit.name.toLowerCase().includes(query.toLowerCase()) ||
-          unit.id.toString().includes(query)
+      const filtered = units.filter((unit) =>
+        unit.name.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredUnits(filtered);
     }
@@ -437,6 +513,11 @@ const UnitsPage = () => {
   const handleCreateUnit = async (formData: any) => {
     if (!token) {
       setError("Authentication required");
+      return;
+    }
+
+    // Validate form before submission
+    if (!validateForm(formData)) {
       return;
     }
 
@@ -473,13 +554,26 @@ const UnitsPage = () => {
           // Refresh the unit list
           await refreshUnitList();
           setError("");
-          setSuccessMessage("Learning Unit created successfully!");
-          setTimeout(() => setSuccessMessage(""), 3000);
+          showSuccessMessage("Learning Unit created successfully!");
         } else {
-          setError(
-            courseUnitResponse.message ||
-              "Failed to create course-unit relationship"
-          );
+          // Check if the error is about relationship already existing
+          if (
+            courseUnitResponse.message &&
+            courseUnitResponse.message.includes("already exists")
+          ) {
+            // This is not a critical error - the unit was created successfully
+            console.log(
+              "Course-unit relationship already exists, continuing..."
+            );
+            await refreshUnitList();
+            setError("");
+            showSuccessMessage("Learning Unit created successfully!");
+          } else {
+            setError(
+              courseUnitResponse.message ||
+                "Failed to create course-unit relationship"
+            );
+          }
         }
       } else {
         setError(unitResponse.message || "Failed to create unit");
@@ -495,6 +589,11 @@ const UnitsPage = () => {
   const handleUpdateUnit = async (formData: any) => {
     if (!token || !selectedUnit) {
       setError("Authentication required or no unit selected");
+      return;
+    }
+
+    // Validate form before submission
+    if (!validateForm(formData)) {
       return;
     }
 
@@ -519,49 +618,12 @@ const UnitsPage = () => {
       );
 
       if (unitResponse.success) {
-        // Step 2: Update course-unit relationship if it exists, or create new one
-        const courseUnitData = {
-          courseId: parseInt(formData.course_id),
-          unitId: selectedUnit.id,
-          order: parseInt(formData.order),
-        };
-
-        if (selectedUnit.courseUnitId) {
-          // Update existing relationship
-          const courseUnitResponse = await api.updateCourseUnit(
-            selectedUnit.courseUnitId,
-            courseUnitData,
-            token
-          );
-          if (!courseUnitResponse.success) {
-            setError(
-              courseUnitResponse.message ||
-                "Failed to update course-unit relationship"
-            );
-            return;
-          }
-        } else {
-          // Create new relationship
-          const courseUnitResponse = await api.createCourseUnit(
-            courseUnitData,
-            token
-          );
-          if (!courseUnitResponse.success) {
-            setError(
-              courseUnitResponse.message ||
-                "Failed to create course-unit relationship"
-            );
-            return;
-          }
-        }
-
         // Refresh the unit list
         await refreshUnitList();
         setIsEditModalOpen(false);
         setSelectedUnit(null);
         setError("");
-        setSuccessMessage("Learning Unit updated successfully!");
-        setTimeout(() => setSuccessMessage(""), 3000);
+        showSuccessMessage("Learning Unit updated successfully!");
       } else {
         setError(unitResponse.message || "Failed to update unit");
       }
@@ -573,26 +635,24 @@ const UnitsPage = () => {
     }
   };
 
-  const handleDeleteUnit = async (unitId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
+  const handleDeleteUnit = (unit: any) => {
+    setUnitToDelete(unit);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!confirm("Are you sure you want to delete this unit?")) {
+  const confirmDeleteUnit = async () => {
+    if (!token || !unitToDelete) {
+      setError("Authentication required or no unit selected");
       return;
     }
 
     try {
       setIsLoading(true);
 
-      // Find the unit to get its courseUnitId
-      const unit = units.find((u) => u.id === unitId);
-
       // Step 1: Delete course-unit relationship if it exists
-      if (unit?.courseUnitId) {
+      if (unitToDelete.courseUnitId) {
         const courseUnitResponse = await api.deleteCourseUnit(
-          unit.courseUnitId,
+          unitToDelete.courseUnitId,
           token
         );
         if (!courseUnitResponse.success) {
@@ -605,12 +665,13 @@ const UnitsPage = () => {
       }
 
       // Step 2: Delete the unit
-      const response = await api.deleteUnit(unitId, token);
+      const response = await api.deleteUnit(unitToDelete.id, token);
 
       if (response.success) {
         // Refresh the unit list
         await refreshUnitList();
         setError("");
+        showSuccessMessage("Learning Unit deleted successfully!");
       } else {
         setError(response.message || "Failed to delete unit");
       }
@@ -619,6 +680,8 @@ const UnitsPage = () => {
       setError("Failed to delete unit. Please try again.");
     } finally {
       setIsLoading(false);
+      setIsDeleteModalOpen(false);
+      setUnitToDelete(null);
     }
   };
 
@@ -670,14 +733,14 @@ const UnitsPage = () => {
           id: unit.id,
           order: unit.order || 1,
           name: unit.name,
-          xp_points: unit.xp_points || 100,
+          // xp_points: unit.xp_points || 100,
           course_name: course?.name || "N/A",
           module_name: module?.name || "N/A",
           training_area_name: trainingArea?.name || "N/A",
-          courseUnitId: courseUnit?.id || null, // Keep for editing
-          trainingAreaId: trainingArea?.id, // Keep for filtering
-          moduleId: module?.id, // Keep for filtering
-          courseId: course?.id, // Keep for filtering
+          // courseUnitId: courseUnit?.id || null, // Keep for editing
+          // trainingAreaId: trainingArea?.id, // Keep for filtering
+          // moduleId: module?.id, // Keep for filtering
+          // courseId: course?.id, // Keep for filtering
           actions: (
             <div className="flex gap-1">
               <Button
@@ -693,7 +756,7 @@ const UnitsPage = () => {
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                onClick={() => handleDeleteUnit(unit.id)}
+                onClick={() => handleDeleteUnit(unit)}
                 title="Delete"
               >
                 <Delete sx={{ fontSize: 16 }} />
@@ -769,6 +832,15 @@ const UnitsPage = () => {
         show_duration: true,
         xp_points: "100",
       });
+      setValidationErrors({});
+    };
+
+    const handleFieldChange = (field: string, value: string) => {
+      setFormData({ ...formData, [field]: value });
+      // Clear validation error for this field when user starts typing
+      if (validationErrors[field as keyof ValidationErrors]) {
+        setValidationErrors({ ...validationErrors, [field]: undefined });
+      }
     };
 
     return (
@@ -781,33 +853,50 @@ const UnitsPage = () => {
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+            onChange={(e) => handleFieldChange("name", e.target.value)}
+            className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+              validationErrors.name ? "border-red-500" : "border-sandstone"
+            }`}
             placeholder="Type your Learning Unit name"
             required
           />
+          {validationErrors.name && (
+            <p className="text-red-500 text-sm">{validationErrors.name}</p>
+          )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description">Description *</Label>
           <Input
             id="description"
             value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+            onChange={(e) => handleFieldChange("description", e.target.value)}
+            className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+              validationErrors.description
+                ? "border-red-500"
+                : "border-sandstone"
+            }`}
             placeholder="Add a description"
+            required
           />
+          {validationErrors.description && (
+            <p className="text-red-500 text-sm">
+              {validationErrors.description}
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="training_area_id">Training Area *</Label>
           <Select
             value={formData.training_area_id}
             onValueChange={(value) =>
-              setFormData({ ...formData, training_area_id: value })
+              handleFieldChange("training_area_id", value)
             }
           >
-            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C]">
+            <SelectTrigger
+              className={`rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C] ${
+                validationErrors.training_area_id ? "border-red-500" : ""
+              }`}
+            >
               <SelectValue placeholder="Select a training area" />
             </SelectTrigger>
             <SelectContent>
@@ -818,17 +907,24 @@ const UnitsPage = () => {
               ))}
             </SelectContent>
           </Select>
+          {validationErrors.training_area_id && (
+            <p className="text-red-500 text-sm">
+              {validationErrors.training_area_id}
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="module_id">Module *</Label>
           <Select
             value={formData.module_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, module_id: value })
-            }
+            onValueChange={(value) => handleFieldChange("module_id", value)}
             disabled={!formData.training_area_id}
           >
-            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C]">
+            <SelectTrigger
+              className={`rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C] ${
+                validationErrors.module_id ? "border-red-500" : ""
+              }`}
+            >
               <SelectValue placeholder="Select a module" />
             </SelectTrigger>
             <SelectContent>
@@ -839,17 +935,22 @@ const UnitsPage = () => {
               ))}
             </SelectContent>
           </Select>
+          {validationErrors.module_id && (
+            <p className="text-red-500 text-sm">{validationErrors.module_id}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="course_id">Course *</Label>
           <Select
             value={formData.course_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, course_id: value })
-            }
+            onValueChange={(value) => handleFieldChange("course_id", value)}
             disabled={!formData.module_id}
           >
-            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C]">
+            <SelectTrigger
+              className={`rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C] ${
+                validationErrors.course_id ? "border-red-500" : ""
+              }`}
+            >
               <SelectValue placeholder="Select a course" />
             </SelectTrigger>
             <SelectContent>
@@ -860,6 +961,9 @@ const UnitsPage = () => {
               ))}
             </SelectContent>
           </Select>
+          {validationErrors.course_id && (
+            <p className="text-red-500 text-sm">{validationErrors.course_id}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="internal_note">Internal Note</Label>
@@ -878,13 +982,16 @@ const UnitsPage = () => {
             id="order"
             type="number"
             value={formData.order}
-            onChange={(e) =>
-              setFormData({ ...formData, order: e.target.value })
-            }
-            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+            onChange={(e) => handleFieldChange("order", e.target.value)}
+            className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+              validationErrors.order ? "border-red-500" : "border-sandstone"
+            }`}
             min="1"
             required
           />
+          {validationErrors.order && (
+            <p className="text-red-500 text-sm">{validationErrors.order}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="duration">Duration (minutes) *</Label>
@@ -892,13 +999,16 @@ const UnitsPage = () => {
             id="duration"
             type="number"
             value={formData.duration}
-            onChange={(e) =>
-              setFormData({ ...formData, duration: e.target.value })
-            }
-            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+            onChange={(e) => handleFieldChange("duration", e.target.value)}
+            className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+              validationErrors.duration ? "border-red-500" : "border-sandstone"
+            }`}
             min="1"
             required
           />
+          {validationErrors.duration && (
+            <p className="text-red-500 text-sm">{validationErrors.duration}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="show_duration">Show Duration</Label>
@@ -921,16 +1031,33 @@ const UnitsPage = () => {
             id="xp_points"
             type="number"
             value={formData.xp_points}
-            onChange={(e) =>
-              setFormData({ ...formData, xp_points: e.target.value })
-            }
-            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+            onChange={(e) => handleFieldChange("xp_points", e.target.value)}
+            className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+              validationErrors.xp_points ? "border-red-500" : "border-sandstone"
+            }`}
             min="0"
             required
           />
+          {validationErrors.xp_points && (
+            <p className="text-red-500 text-sm">{validationErrors.xp_points}</p>
+          )}
         </div>
         <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoading} className="rounded-full">
+          <Button
+            type="submit"
+            disabled={
+              isLoading ||
+              !formData.name ||
+              !formData.description ||
+              !formData.training_area_id ||
+              !formData.module_id ||
+              !formData.course_id ||
+              !formData.order ||
+              !formData.duration ||
+              !formData.xp_points
+            }
+            className="rounded-full"
+          >
             {isLoading ? "Creating..." : "Create Unit"}
           </Button>
         </div>
@@ -999,6 +1126,14 @@ const UnitsPage = () => {
       await handleUpdateUnit(formData);
     };
 
+    const handleFieldChange = (field: string, value: string) => {
+      setFormData({ ...formData, [field]: value });
+      // Clear validation error for this field when user starts typing
+      if (validationErrors[field as keyof ValidationErrors]) {
+        setValidationErrors({ ...validationErrors, [field]: undefined });
+      }
+    };
+
     return (
       <form
         onSubmit={handleSubmit}
@@ -1011,25 +1146,38 @@ const UnitsPage = () => {
           <Input
             id="edit_name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+            onChange={(e) => handleFieldChange("name", e.target.value)}
+            className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+              validationErrors.name ? "border-red-500" : "border-sandstone"
+            }`}
             placeholder="Type your Learning Unit name"
             required
           />
+          {validationErrors.name && (
+            <p className="text-red-500 text-sm">{validationErrors.name}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="edit_description" className="text-[#2C2C2C]">
-            Description
+            Description *
           </Label>
           <Input
             id="edit_description"
             value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+            onChange={(e) => handleFieldChange("description", e.target.value)}
+            className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+              validationErrors.description
+                ? "border-red-500"
+                : "border-sandstone"
+            }`}
             placeholder="Add a description"
+            required
           />
+          {validationErrors.description && (
+            <p className="text-red-500 text-sm">
+              {validationErrors.description}
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="edit_training_area_id" className="text-[#2C2C2C]">
@@ -1038,10 +1186,14 @@ const UnitsPage = () => {
           <Select
             value={formData.training_area_id}
             onValueChange={(value) =>
-              setFormData({ ...formData, training_area_id: value })
+              handleFieldChange("training_area_id", value)
             }
           >
-            <SelectTrigger className="rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C]">
+            <SelectTrigger
+              className={`rounded-full w-full hover:bg-accent/30 hover:text-black text-[#2C2C2C] ${
+                validationErrors.training_area_id ? "border-red-500" : ""
+              }`}
+            >
               <SelectValue placeholder="Select a training area" />
             </SelectTrigger>
             <SelectContent>
@@ -1052,6 +1204,11 @@ const UnitsPage = () => {
               ))}
             </SelectContent>
           </Select>
+          {validationErrors.training_area_id && (
+            <p className="text-red-500 text-sm">
+              {validationErrors.training_area_id}
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="edit_module_id" className="text-[#2C2C2C]">
@@ -1207,7 +1364,7 @@ const UnitsPage = () => {
     "Course",
     "Module",
     "Training Area",
-    "VX Points",
+    // "VX Points",
     "Actions",
   ];
 
@@ -1221,8 +1378,13 @@ const UnitsPage = () => {
           {error}
         </div>
       )}
+      {successMessage && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-[9999]">
+          {successMessage}
+        </div>
+      )}
       <AdminTableLayout
-        searchPlaceholder="Search by ID or name"
+        searchPlaceholder="Search by name"
         createButtonText="Create Learning Unit"
         createForm={<CreateUnitForm />}
         tableData={filteredUnits}
@@ -1264,12 +1426,48 @@ const UnitsPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Success Message */}
-      {successMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50">
-          {successMessage}
-        </div>
-      )}
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md bg-card border-border text-card-foreground">
+          <DialogHeader>
+            <DialogTitle className="text-card-foreground">
+              Delete Learning Unit
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </Button>
+          </DialogHeader>
+          <div className="mt-4">
+            <p className="text-card-foreground mb-6">
+              Are you sure you want to delete the learning unit "
+              {unitToDelete?.name}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="rounded-full hover:bg-accent/30 hover:text-black"
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteUnit}
+                disabled={isLoading}
+                className="rounded-full"
+              >
+                {isLoading ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminPageLayout>
   );
 };

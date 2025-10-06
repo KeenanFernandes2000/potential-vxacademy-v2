@@ -466,10 +466,8 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       ) {
         filtered = filtered.filter((row) => {
           const value = row[columnFilterConfig.trainingAreaId!];
-          return (
-            value === parseInt(selectedTrainingArea) ||
-            value === selectedTrainingArea
-          );
+          // Check if the value matches the selected training area name
+          return value === selectedTrainingArea;
         });
       }
 
@@ -481,6 +479,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       ) {
         filtered = filtered.filter((row) => {
           const value = row[columnFilterConfig.moduleId!];
+          // Compare module ID with selected module ID
           return value === parseInt(selectedModule) || value === selectedModule;
         });
       }
@@ -816,7 +815,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
             </SelectTrigger>
             <SelectContent>
               {trainingAreas.map((area) => (
-                <SelectItem key={area.id} value={area.id.toString()}>
+                <SelectItem key={area.id} value={area.name}>
                   {area.name}
                 </SelectItem>
               ))}
@@ -966,6 +965,28 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
             )}
           </div>
         )}
+
+      {/* Reset Filters Button */}
+      {(selectedTrainingArea ||
+        selectedModule ||
+        selectedCourse ||
+        selectedUnit ||
+        selectedAssessment) && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setSelectedTrainingArea("");
+            setSelectedModule("");
+            setSelectedCourse("");
+            setSelectedUnit("");
+            setSelectedAssessment("");
+          }}
+          className="ml-auto"
+        >
+          Reset Filters
+        </Button>
+      )}
 
       {/* Table */}
       <div className="border bg-card/50 backdrop-blur-sm border-border w-full max-w-8xl mx-auto rounded-lg overflow-hidden">

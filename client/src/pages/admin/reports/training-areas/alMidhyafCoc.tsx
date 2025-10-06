@@ -249,7 +249,6 @@ const AlMidhyafCoc = () => {
         user.frontlinerType,
         user.alMidhyafOverallProgress + "%",
         user.module1Progress + "%",
-        user.vxPoints,
         formatDate(user.registrationDate),
         formatDate(user.lastLoginDate),
       ]),
@@ -295,7 +294,6 @@ const AlMidhyafCoc = () => {
     "Frontliner Type": user.frontlinerType,
     "Al Midhyaf Progress": user.alMidhyafOverallProgress + "%",
     "Module 1 Progress": user.module1Progress + "%",
-    "VX Points": user.vxPoints,
     "Registration Date": formatDate(user.registrationDate),
     "Last Login Date": formatDate(user.lastLoginDate),
   }));
@@ -365,7 +363,7 @@ const AlMidhyafCoc = () => {
     >
       <div className="space-y-6">
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3">
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
@@ -408,7 +406,7 @@ const AlMidhyafCoc = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+          {/* <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Total VX Points Earned
@@ -420,7 +418,7 @@ const AlMidhyafCoc = () => {
                 {reportData.generalStats.totalVxPointsEarned.toLocaleString()}
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Additional Stats */}
@@ -557,7 +555,9 @@ const AlMidhyafCoc = () => {
         <AdminTableLayout
           searchPlaceholder="Search users..."
           tableData={tableData}
-          columns={reportData.dataTableColumns}
+          columns={reportData.dataTableColumns.filter(
+            (column) => column !== "VX Points"
+          )}
           onSearch={handleSearch}
         />
       </div>
