@@ -189,10 +189,10 @@ interface AdminTableLayoutProps {
   columns: string[];
   onSearch?: (query: string) => void;
   onFilterChange?: (filters: {
-    trainingAreaId?: number;
-    moduleId?: number;
-    courseId?: number;
-    unitId?: number;
+    trainingAreaId?: string;
+    moduleId?: string;
+    courseId?: string;
+    unitId?: string;
   }) => void;
   columnFilterConfig?: ColumnFilterConfig; // Configuration for which columns to filter by
   enableColumnFiltering?: boolean; // Whether to enable automatic column filtering
@@ -334,9 +334,16 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       setSelectedUnit("");
 
       try {
-        const response = await api.getModulesByTrainingArea(
-          parseInt(selectedTrainingArea)
+        // selectedTrainingArea stores the training area NAME (not ID). Map it back to ID.
+        const matchedArea = trainingAreas.find(
+          (area) => area.name === selectedTrainingArea
         );
+        if (!matchedArea) {
+          setModules([]);
+          return;
+        }
+
+        const response = await api.getModulesByTrainingArea(matchedArea.id);
         if (response.success && response.data) {
           setModules(response.data);
         }
@@ -348,7 +355,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
     };
 
     loadModules();
-  }, [selectedTrainingArea, dropdownConfig.showModule]);
+  }, [selectedTrainingArea, dropdownConfig.showModule, trainingAreas]);
 
   // Load courses when module changes (only if course dropdown is enabled)
   useEffect(() => {
@@ -368,7 +375,16 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       setSelectedUnit("");
 
       try {
-        const response = await api.getCoursesByModule(parseInt(selectedModule));
+        // selectedModule stores the module NAME (not ID). Map it back to ID.
+        const matchedModule = modules.find(
+          (module) => module.name === selectedModule
+        );
+        if (!matchedModule) {
+          setCourses([]);
+          return;
+        }
+
+        const response = await api.getCoursesByModule(matchedModule.id);
         if (response.success && response.data) {
           setCourses(response.data);
         }
@@ -380,7 +396,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
     };
 
     loadCourses();
-  }, [selectedModule, dropdownConfig.showCourse]);
+  }, [selectedModule, dropdownConfig.showCourse, modules]);
 
   // Load units when course changes (only if unit dropdown is enabled)
   useEffect(() => {
@@ -396,9 +412,18 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       setSelectedUnit("");
 
       try {
+        // selectedCourse stores the course NAME (not ID). Map it back to ID.
+        const matchedCourse = courses.find(
+          (course) => course.name === selectedCourse
+        );
+        if (!matchedCourse) {
+          setUnits([]);
+          return;
+        }
+
         // First, get course units for the selected course
         const courseUnitsResponse = await api.getCourseUnitsByCourse(
-          parseInt(selectedCourse)
+          matchedCourse.id
         );
 
         if (courseUnitsResponse.success && courseUnitsResponse.data) {
@@ -430,7 +455,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
     };
 
     loadUnits();
-  }, [selectedCourse, dropdownConfig.showUnit]);
+  }, [selectedCourse, dropdownConfig.showUnit, courses]);
 
   // Load assessments on component mount (only if assessment dropdown is enabled)
   useEffect(() => {
@@ -479,8 +504,14 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       ) {
         filtered = filtered.filter((row) => {
           const value = row[columnFilterConfig.moduleId!];
-          // Compare module ID with selected module ID
-          return value === parseInt(selectedModule) || value === selectedModule;
+          // The column might contain module ID or module name
+          // If it's a number (ID), we need to find the corresponding module name
+          if (typeof value === "number") {
+            const module = modules.find((m) => m.id === value);
+            return module?.name === selectedModule;
+          }
+          // If it's a string, compare directly with the selected module name
+          return value === selectedModule;
         });
       }
 
@@ -492,7 +523,14 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       ) {
         filtered = filtered.filter((row) => {
           const value = row[columnFilterConfig.courseId!];
-          return value === parseInt(selectedCourse) || value === selectedCourse;
+          // The column might contain course ID or course name
+          // If it's a number (ID), we need to find the corresponding course name
+          if (typeof value === "number") {
+            const course = courses.find((c) => c.id === value);
+            return course?.name === selectedCourse;
+          }
+          // If it's a string, compare directly with the selected course name
+          return value === selectedCourse;
         });
       }
 
@@ -504,7 +542,14 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       ) {
         filtered = filtered.filter((row) => {
           const value = row[columnFilterConfig.unitId!];
-          return value === parseInt(selectedUnit) || value === selectedUnit;
+          // The column might contain unit ID or unit name
+          // If it's a number (ID), we need to find the corresponding unit name
+          if (typeof value === "number") {
+            const unit = units.find((u) => u.id === value);
+            return unit?.name === selectedUnit;
+          }
+          // If it's a string, compare directly with the selected unit name
+          return value === selectedUnit;
         });
       }
 
@@ -516,10 +561,14 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       ) {
         filtered = filtered.filter((row) => {
           const value = row[columnFilterConfig.assessmentId!];
-          return (
-            value === parseInt(selectedAssessment) ||
-            value === selectedAssessment
-          );
+          // The column might contain assessment ID or assessment name
+          // If it's a number (ID), we need to find the corresponding assessment name
+          if (typeof value === "number") {
+            const assessment = assessments.find((a) => a.id === value);
+            return assessment?.name === selectedAssessment;
+          }
+          // If it's a string, compare directly with the selected assessment name
+          return value === selectedAssessment;
         });
       }
 
@@ -542,12 +591,10 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
   // Notify parent component of filter changes
   useEffect(() => {
     onFilterChange?.({
-      trainingAreaId: selectedTrainingArea
-        ? parseInt(selectedTrainingArea)
-        : undefined,
-      moduleId: selectedModule ? parseInt(selectedModule) : undefined,
-      courseId: selectedCourse ? parseInt(selectedCourse) : undefined,
-      unitId: selectedUnit ? parseInt(selectedUnit) : undefined,
+      trainingAreaId: selectedTrainingArea || undefined,
+      moduleId: selectedModule || undefined,
+      courseId: selectedCourse || undefined,
+      unitId: selectedUnit || undefined,
     });
   }, [
     selectedTrainingArea,
@@ -843,7 +890,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
             </SelectTrigger>
             <SelectContent>
               {modules.map((module) => (
-                <SelectItem key={module.id} value={module.id.toString()}>
+                <SelectItem key={module.id} value={module.name}>
                   {module.name}
                 </SelectItem>
               ))}
@@ -871,7 +918,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
             </SelectTrigger>
             <SelectContent>
               {courses.map((course) => (
-                <SelectItem key={course.id} value={course.id.toString()}>
+                <SelectItem key={course.id} value={course.name}>
                   {course.name}
                 </SelectItem>
               ))}
@@ -899,7 +946,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
             </SelectTrigger>
             <SelectContent>
               {units.map((unit) => (
-                <SelectItem key={unit.id} value={unit.id.toString()}>
+                <SelectItem key={unit.id} value={unit.name}>
                   {unit.name}
                 </SelectItem>
               ))}
@@ -923,10 +970,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
             </SelectTrigger>
             <SelectContent>
               {assessments.map((assessment) => (
-                <SelectItem
-                  key={assessment.id}
-                  value={assessment.id.toString()}
-                >
+                <SelectItem key={assessment.id} value={assessment.name}>
                   {assessment.title}
                 </SelectItem>
               ))}

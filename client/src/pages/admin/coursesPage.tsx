@@ -1154,7 +1154,7 @@ const CoursesPage = () => {
         enableColumnFiltering={true}
         columnFilterConfig={{
           trainingAreaId: "training_area_name",
-          moduleId: "moduleId",
+          moduleId: "module_name",
         }}
         dropdownConfig={{
           showTrainingArea: true,

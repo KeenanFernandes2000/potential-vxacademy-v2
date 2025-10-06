@@ -493,12 +493,26 @@ const AssessmentsPage = () => {
     fetchDropdownData();
   }, [token]);
 
-  // Fetch assessments from database on component mount
+  // Fetch assessments after dropdown data is available so name lookups work
   useEffect(() => {
     const fetchAssessments = async () => {
       if (!token) {
         setError("Authentication required");
         setIsLoading(false);
+        return;
+      }
+
+      // Wait until dropdown data is loaded to correctly map names
+      const dropdownsReady =
+        Array.isArray(trainingAreas) &&
+        Array.isArray(modules) &&
+        Array.isArray(courses) &&
+        Array.isArray(units) &&
+        (trainingAreas.length > 0 ||
+          modules.length > 0 ||
+          courses.length > 0 ||
+          units.length > 0);
+      if (!dropdownsReady) {
         return;
       }
 
@@ -527,10 +541,10 @@ const AssessmentsPage = () => {
               placement: assessment.placement || "N/A",
               passing_score:
                 assessment.passing_score || assessment.passingScore || 0,
-              unitId: assessment.unitId, // Keep for filtering
-              courseId: assessment.courseId, // Keep for filtering
-              moduleId: assessment.moduleId, // Keep for filtering
-              trainingAreaId: assessment.trainingAreaId, // Keep for filtering
+              unit_name: unit?.name || "N/A",
+              course_name: course?.name || "N/A",
+              module_name: module?.name || "N/A",
+              training_area_name: trainingArea?.name || "N/A",
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -577,7 +591,7 @@ const AssessmentsPage = () => {
     };
 
     fetchAssessments();
-  }, [token]);
+  }, [token, trainingAreas, modules, courses, units]);
 
   const handleSearch = (query: string) => {
     if (!query) {
@@ -995,10 +1009,10 @@ const AssessmentsPage = () => {
           placement: assessment.placement || "N/A",
           passing_score:
             assessment.passing_score || assessment.passingScore || 0,
-          unitId: assessment.unitId, // Keep for filtering
-          courseId: assessment.courseId, // Keep for filtering
-          moduleId: assessment.moduleId, // Keep for filtering
-          trainingAreaId: assessment.trainingAreaId, // Keep for filtering
+          unit_name: unit?.name || "N/A",
+          course_name: course?.name || "N/A",
+          module_name: module?.name || "N/A",
+          training_area_name: trainingArea?.name || "N/A",
           actions: (
             <div className="flex gap-1">
               <Button
@@ -2355,10 +2369,10 @@ const AssessmentsPage = () => {
         onSearch={handleSearch}
         enableColumnFiltering={true}
         columnFilterConfig={{
-          trainingAreaId: "trainingAreaId",
-          moduleId: "moduleId",
-          courseId: "courseId",
-          unitId: "unitId",
+          trainingAreaId: "training_area_name",
+          moduleId: "module_name",
+          courseId: "course_name",
+          unitId: "unit_name",
         }}
         dropdownConfig={{
           showTrainingArea: true,

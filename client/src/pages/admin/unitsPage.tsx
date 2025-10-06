@@ -1392,9 +1392,9 @@ const UnitsPage = () => {
         onSearch={handleSearch}
         enableColumnFiltering={true}
         columnFilterConfig={{
-          trainingAreaId: "trainingAreaId",
-          moduleId: "moduleId",
-          courseId: "courseId",
+          trainingAreaId: "training_area_name",
+          moduleId: "module_name",
+          courseId: "course_name",
         }}
         dropdownConfig={{
           showTrainingArea: true,

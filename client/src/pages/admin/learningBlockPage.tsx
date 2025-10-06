@@ -1052,12 +1052,12 @@ const LearningBlockPage = () => {
         onSearch={handleSearch}
         enableColumnFiltering={true}
         columnFilterConfig={{
-          unitId: "unitId",
+          unitId: "unit_name",
         }}
         dropdownConfig={{
-          showTrainingArea: false,
-          showModule: false,
-          showCourse: false,
+          showTrainingArea: true,
+          showModule: true,
+          showCourse: true,
           showUnit: true,
         }}
       />
