@@ -493,7 +493,7 @@ const Frontliners = () => {
         )}
 
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-3">
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
@@ -522,7 +522,7 @@ const Frontliners = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+          {/* <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Total VX Points
@@ -534,7 +534,7 @@ const Frontliners = () => {
                 {reportData.generalStats.totalVxPoints.toLocaleString()}
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -888,8 +888,8 @@ const Frontliners = () => {
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${
                             frontliner.status === "active"
-                              ? "bg-green-500/20 text-green-300"
-                              : "bg-red-500/20 text-red-300"
+                              ? "bg-green-500/20 text-black"
+                              : "bg-red-500/20 text-black"
                           }`}
                         >
                           {frontliner.status}

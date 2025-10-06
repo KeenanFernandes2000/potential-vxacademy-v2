@@ -165,6 +165,19 @@ interface LearningBlockData
   actions: React.ReactNode;
 }
 
+// Type for validation errors
+interface ValidationErrors {
+  unit_id?: string;
+  type?: string;
+  title?: string;
+  content?: string;
+  video_url?: string;
+  image_url?: string;
+  interactive_data?: string;
+  order?: string;
+  xp_points?: string;
+}
+
 const LearningBlockPage = () => {
   const { token } = useAuth();
   const [learningBlocks, setLearningBlocks] = useState<LearningBlockData[]>([]);
@@ -177,6 +190,86 @@ const LearningBlockPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedLearningBlock, setSelectedLearningBlock] = useState<any>(null);
   const [successMessage, setSuccessMessage] = useState("");
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {}
+  );
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [learningBlockToDelete, setLearningBlockToDelete] = useState<any>(null);
+
+  // Validation function
+  const validateForm = (formData: any): boolean => {
+    const errors: ValidationErrors = {};
+
+    // Required field validations
+    if (!formData.unit_id || formData.unit_id === "") {
+      errors.unit_id = "Unit is required";
+    }
+
+    if (!formData.type || formData.type === "") {
+      errors.type = "Type is required";
+    }
+
+    if (!formData.title || formData.title.trim() === "") {
+      errors.title = "Title is required";
+    }
+
+    if (
+      !formData.order ||
+      formData.order === "" ||
+      parseInt(formData.order) < 1
+    ) {
+      errors.order = "Order must be a positive number";
+    }
+
+    if (
+      !formData.xp_points ||
+      formData.xp_points === "" ||
+      parseInt(formData.xp_points) < 0
+    ) {
+      errors.xp_points = "XP Points must be a non-negative number";
+    }
+
+    // Type-specific validations
+    if (
+      formData.type === "text" &&
+      (!formData.content || formData.content.trim() === "")
+    ) {
+      errors.content = "Content is required for text type";
+    }
+
+    if (
+      formData.type === "video" &&
+      (!formData.video_url || formData.video_url.trim() === "")
+    ) {
+      errors.video_url = "Video URL is required for video type";
+    }
+
+    if (
+      formData.type === "image" &&
+      (!formData.image_url || formData.image_url.trim() === "")
+    ) {
+      errors.image_url = "Image URL is required for image type";
+    }
+
+    if (
+      formData.type === "interactive" &&
+      (!formData.interactive_data || formData.interactive_data.trim() === "")
+    ) {
+      errors.interactive_data =
+        "Interactive data is required for interactive type";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Success message function
+  const showSuccessMessage = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 5000);
+  };
 
   // Fetch learning blocks from database on component mount
   useEffect(() => {
@@ -209,7 +302,8 @@ const LearningBlockPage = () => {
               name: learningBlock.title || "N/A",
               type: learningBlock.type || "N/A",
               unit_name: unit?.name || "N/A",
-              unitId: learningBlock.unitId, // Keep for filtering
+              order: learningBlock.order || "N/A",
+              // unitId: learningBlock.unitId, // Keep for filtering
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -225,7 +319,7 @@ const LearningBlockPage = () => {
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                    onClick={() => handleDeleteLearningBlock(learningBlock.id)}
+                    onClick={() => handleDeleteLearningBlock(learningBlock)}
                     title="Delete"
                   >
                     <Delete sx={{ fontSize: 16 }} />
@@ -270,6 +364,11 @@ const LearningBlockPage = () => {
       return;
     }
 
+    // Validate form before submission
+    if (!validateForm(formData)) {
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -292,6 +391,7 @@ const LearningBlockPage = () => {
         // Refresh the learning block list
         await refreshLearningBlockList();
         setError("");
+        showSuccessMessage("Learning block created successfully!");
       } else {
         setError(response.message || "Failed to create learning block");
       }
@@ -306,6 +406,11 @@ const LearningBlockPage = () => {
   const handleUpdateLearningBlock = async (formData: any) => {
     if (!token || !selectedLearningBlock) {
       setError("Authentication required or no learning block selected");
+      return;
+    }
+
+    // Validate form before submission
+    if (!validateForm(formData)) {
       return;
     }
 
@@ -337,6 +442,7 @@ const LearningBlockPage = () => {
         setIsEditModalOpen(false);
         setSelectedLearningBlock(null);
         setError("");
+        showSuccessMessage("Learning block updated successfully!");
       } else {
         setError(response.message || "Failed to update learning block");
       }
@@ -348,24 +454,29 @@ const LearningBlockPage = () => {
     }
   };
 
-  const handleDeleteLearningBlock = async (learningBlockId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
+  const handleDeleteLearningBlock = (learningBlock: any) => {
+    setLearningBlockToDelete(learningBlock);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!confirm("Are you sure you want to delete this learning block?")) {
+  const confirmDeleteLearningBlock = async () => {
+    if (!token || !learningBlockToDelete) {
+      setError("Authentication required or no learning block selected");
       return;
     }
 
     try {
       setIsLoading(true);
-      const response = await api.deleteLearningBlock(learningBlockId, token);
+      const response = await api.deleteLearningBlock(
+        learningBlockToDelete.id,
+        token
+      );
 
       if (response.success) {
         // Refresh the learning block list
         await refreshLearningBlockList();
         setError("");
+        showSuccessMessage("Learning block deleted successfully!");
       } else {
         setError(response.message || "Failed to delete learning block");
       }
@@ -374,6 +485,8 @@ const LearningBlockPage = () => {
       setError("Failed to delete learning block. Please try again.");
     } finally {
       setIsLoading(false);
+      setIsDeleteModalOpen(false);
+      setLearningBlockToDelete(null);
     }
   };
 
@@ -419,7 +532,7 @@ const LearningBlockPage = () => {
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                onClick={() => handleDeleteLearningBlock(learningBlock.id)}
+                onClick={() => handleDeleteLearningBlock(learningBlock)}
                 title="Delete"
               >
                 <Delete sx={{ fontSize: 16 }} />
@@ -472,6 +585,15 @@ const LearningBlockPage = () => {
         xp_points: "10",
       });
       setEditorState(null);
+      setValidationErrors({});
+    };
+
+    const handleFieldChange = (field: string, value: string) => {
+      setFormData({ ...formData, [field]: value });
+      // Clear validation error for this field when user starts typing
+      if (validationErrors[field as keyof ValidationErrors]) {
+        setValidationErrors({ ...validationErrors, [field]: undefined });
+      }
     };
 
     return (
@@ -481,11 +603,15 @@ const LearningBlockPage = () => {
             <Label htmlFor="unit_id">Unit *</Label>
             <Select
               value={formData.unit_id}
-              onValueChange={(value) =>
-                setFormData({ ...formData, unit_id: value })
-              }
+              onValueChange={(value) => handleFieldChange("unit_id", value)}
             >
-              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectTrigger
+                className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
+                  validationErrors.unit_id
+                    ? "border-red-500"
+                    : "border-sandstone"
+                }`}
+              >
                 <SelectValue placeholder="Select a unit" />
               </SelectTrigger>
               <SelectContent>
@@ -496,16 +622,21 @@ const LearningBlockPage = () => {
                 ))}
               </SelectContent>
             </Select>
+            {validationErrors.unit_id && (
+              <p className="text-red-500 text-sm">{validationErrors.unit_id}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="type">Type *</Label>
             <Select
               value={formData.type}
-              onValueChange={(value) =>
-                setFormData({ ...formData, type: value })
-              }
+              onValueChange={(value) => handleFieldChange("type", value)}
             >
-              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectTrigger
+                className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
+                  validationErrors.type ? "border-red-500" : "border-sandstone"
+                }`}
+              >
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
@@ -515,25 +646,42 @@ const LearningBlockPage = () => {
                 <SelectItem value="interactive">Interactive</SelectItem>
               </SelectContent>
             </Select>
+            {validationErrors.type && (
+              <p className="text-red-500 text-sm">{validationErrors.type}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="title">Title *</Label>
             <Input
               id="title"
               value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => handleFieldChange("title", e.target.value)}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                validationErrors.title ? "border-red-500" : "border-sandstone"
+              }`}
               required
             />
+            {validationErrors.title && (
+              <p className="text-red-500 text-sm">{validationErrors.title}</p>
+            )}
           </div>
           {formData.type === "text" && (
             <div className="space-y-2">
               <Label htmlFor="content">Content *</Label>
-              <div className="min-h-[200px]">
+              <div
+                className={`min-h-[200px] border-2 rounded-lg p-2 ${
+                  validationErrors.content
+                    ? "border-red-500"
+                    : "border-sandstone"
+                }`}
+              >
                 <Editor onChange={setEditorState} />
               </div>
+              {validationErrors.content && (
+                <p className="text-red-500 text-sm">
+                  {validationErrors.content}
+                </p>
+              )}
             </div>
           )}
           {formData.type === "video" && (
@@ -542,12 +690,19 @@ const LearningBlockPage = () => {
               <Input
                 id="video_url"
                 value={formData.video_url}
-                onChange={(e) =>
-                  setFormData({ ...formData, video_url: e.target.value })
-                }
-                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                onChange={(e) => handleFieldChange("video_url", e.target.value)}
+                className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                  validationErrors.video_url
+                    ? "border-red-500"
+                    : "border-sandstone"
+                }`}
                 required
               />
+              {validationErrors.video_url && (
+                <p className="text-red-500 text-sm">
+                  {validationErrors.video_url}
+                </p>
+              )}
             </div>
           )}
           {formData.type === "image" && (
@@ -556,12 +711,19 @@ const LearningBlockPage = () => {
               <Input
                 id="image_url"
                 value={formData.image_url}
-                onChange={(e) =>
-                  setFormData({ ...formData, image_url: e.target.value })
-                }
-                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                onChange={(e) => handleFieldChange("image_url", e.target.value)}
+                className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                  validationErrors.image_url
+                    ? "border-red-500"
+                    : "border-sandstone"
+                }`}
                 required
               />
+              {validationErrors.image_url && (
+                <p className="text-red-500 text-sm">
+                  {validationErrors.image_url}
+                </p>
+              )}
             </div>
           )}
           {formData.type === "interactive" && (
@@ -573,12 +735,21 @@ const LearningBlockPage = () => {
                 id="interactive_data"
                 value={formData.interactive_data}
                 onChange={(e) =>
-                  setFormData({ ...formData, interactive_data: e.target.value })
+                  handleFieldChange("interactive_data", e.target.value)
                 }
-                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                  validationErrors.interactive_data
+                    ? "border-red-500"
+                    : "border-sandstone"
+                }`}
                 placeholder='{"type": "quiz", "questions": []}'
                 required
               />
+              {validationErrors.interactive_data && (
+                <p className="text-red-500 text-sm">
+                  {validationErrors.interactive_data}
+                </p>
+              )}
             </div>
           )}
           <div className="space-y-2">
@@ -587,13 +758,16 @@ const LearningBlockPage = () => {
               id="order"
               type="number"
               value={formData.order}
-              onChange={(e) =>
-                setFormData({ ...formData, order: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => handleFieldChange("order", e.target.value)}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                validationErrors.order ? "border-red-500" : "border-sandstone"
+              }`}
               min="1"
               required
             />
+            {validationErrors.order && (
+              <p className="text-red-500 text-sm">{validationErrors.order}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="xp_points">XP Points *</Label>
@@ -601,16 +775,38 @@ const LearningBlockPage = () => {
               id="xp_points"
               type="number"
               value={formData.xp_points}
-              onChange={(e) =>
-                setFormData({ ...formData, xp_points: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => handleFieldChange("xp_points", e.target.value)}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                validationErrors.xp_points
+                  ? "border-red-500"
+                  : "border-sandstone"
+              }`}
               min="0"
               required
             />
+            {validationErrors.xp_points && (
+              <p className="text-red-500 text-sm">
+                {validationErrors.xp_points}
+              </p>
+            )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="submit" disabled={isLoading} className="rounded-full">
+            <Button
+              type="submit"
+              disabled={
+                isLoading ||
+                !formData.unit_id ||
+                !formData.type ||
+                !formData.title ||
+                !formData.order ||
+                !formData.xp_points ||
+                (formData.type === "text" && !editorState) ||
+                (formData.type === "video" && !formData.video_url) ||
+                (formData.type === "image" && !formData.image_url) ||
+                (formData.type === "interactive" && !formData.interactive_data)
+              }
+              className="rounded-full"
+            >
               {isLoading ? "Creating..." : "Create Learning Block"}
             </Button>
           </div>
@@ -648,6 +844,14 @@ const LearningBlockPage = () => {
       await handleUpdateLearningBlock(submitData);
     };
 
+    const handleFieldChange = (field: string, value: string) => {
+      setFormData({ ...formData, [field]: value });
+      // Clear validation error for this field when user starts typing
+      if (validationErrors[field as keyof ValidationErrors]) {
+        setValidationErrors({ ...validationErrors, [field]: undefined });
+      }
+    };
+
     return (
       <div>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -655,11 +859,15 @@ const LearningBlockPage = () => {
             <Label htmlFor="edit_unit_id">Unit *</Label>
             <Select
               value={formData.unit_id}
-              onValueChange={(value) =>
-                setFormData({ ...formData, unit_id: value })
-              }
+              onValueChange={(value) => handleFieldChange("unit_id", value)}
             >
-              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectTrigger
+                className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
+                  validationErrors.unit_id
+                    ? "border-red-500"
+                    : "border-sandstone"
+                }`}
+              >
                 <SelectValue placeholder="Select a unit" />
               </SelectTrigger>
               <SelectContent>
@@ -670,16 +878,21 @@ const LearningBlockPage = () => {
                 ))}
               </SelectContent>
             </Select>
+            {validationErrors.unit_id && (
+              <p className="text-red-500 text-sm">{validationErrors.unit_id}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit_type">Type *</Label>
             <Select
               value={formData.type}
-              onValueChange={(value) =>
-                setFormData({ ...formData, type: value })
-              }
+              onValueChange={(value) => handleFieldChange("type", value)}
             >
-              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectTrigger
+                className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
+                  validationErrors.type ? "border-red-500" : "border-sandstone"
+                }`}
+              >
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
@@ -689,18 +902,24 @@ const LearningBlockPage = () => {
                 <SelectItem value="interactive">Interactive</SelectItem>
               </SelectContent>
             </Select>
+            {validationErrors.type && (
+              <p className="text-red-500 text-sm">{validationErrors.type}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit_title">Title *</Label>
             <Input
               id="edit_title"
               value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => handleFieldChange("title", e.target.value)}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                validationErrors.title ? "border-red-500" : "border-sandstone"
+              }`}
               required
             />
+            {validationErrors.title && (
+              <p className="text-red-500 text-sm">{validationErrors.title}</p>
+            )}
           </div>
           {formData.type === "text" && (
             <div className="space-y-2">
@@ -807,14 +1026,7 @@ const LearningBlockPage = () => {
     );
   };
 
-  const columns = [
-    "ID",
-    "Learning Block",
-    "Type",
-    "Order",
-    "Learning Unit",
-    "Actions",
-  ];
+  const columns = ["ID", "Title", "Type", "Learning Unit", "Order", "Actions"];
 
   return (
     <AdminPageLayout
@@ -822,8 +1034,13 @@ const LearningBlockPage = () => {
       description="Manage your Learning Blocks"
     >
       {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg relative z-[60]">
           {error}
+        </div>
+      )}
+      {successMessage && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-[9999]">
+          {successMessage}
         </div>
       )}
       <AdminTableLayout
@@ -863,6 +1080,49 @@ const LearningBlockPage = () => {
           </DialogHeader>
           <div className="mt-4">
             <EditLearningBlockForm />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md bg-card border-border text-card-foreground">
+          <DialogHeader>
+            <DialogTitle className="text-card-foreground">
+              Delete Learning Block
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => setIsDeleteModalOpen(false)}
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </Button>
+          </DialogHeader>
+          <div className="mt-4">
+            <p className="text-card-foreground mb-6">
+              Are you sure you want to delete the learning block "
+              {learningBlockToDelete?.title}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="rounded-full hover:bg-accent/30 hover:text-black"
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteLearningBlock}
+                disabled={isLoading}
+                className="rounded-full"
+              >
+                {isLoading ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

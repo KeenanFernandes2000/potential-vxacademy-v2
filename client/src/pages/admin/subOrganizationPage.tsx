@@ -12,7 +12,7 @@ import {
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { Edit, Delete } from "@mui/icons-material";
+import { Edit, Delete, Close } from "@mui/icons-material";
 import {
   Dialog,
   DialogContent,
@@ -242,9 +242,21 @@ const SubOrganizationPage = () => {
   const [allSubAssets, setAllSubAssets] = useState<SubAssetData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedSubOrganization, setSelectedSubOrganization] =
     useState<any>(null);
+  const [subOrganizationToDelete, setSubOrganizationToDelete] =
+    useState<any>(null);
+
+  // Function to show success message
+  const showSuccessMessage = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+  };
 
   // Fetch sub-organizations and organizations from database on component mount
   useEffect(() => {
@@ -290,13 +302,13 @@ const SubOrganizationPage = () => {
             return {
               id: subOrg.id,
               name: subOrg.name,
-              organizationId: subOrg.organizationId,
+              // organizationId: subOrg.organizationId,
               organizationName:
                 organizationsResponse.data?.find(
                   (org: any) => org.id === subOrg.organizationId
                 )?.name || "N/A",
-              assetId: subOrg.assetId,
-              subAssetId: subOrg.subAssetId,
+              // assetId: subOrg.assetId,
+              // subAssetId: subOrg.subAssetId,
               assetName: asset?.name || "N/A",
               subAssetName: subAsset?.name || "N/A",
               actions: (
@@ -314,7 +326,7 @@ const SubOrganizationPage = () => {
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                    onClick={() => handleDeleteSubOrganization(subOrg.id)}
+                    onClick={() => handleDeleteSubOrganization(subOrg)}
                     title="Delete"
                   >
                     <Delete sx={{ fontSize: 16 }} />
@@ -379,6 +391,7 @@ const SubOrganizationPage = () => {
         // Refresh the sub-organization list
         await refreshSubOrganizationList();
         setError("");
+        showSuccessMessage("Sub-organization created successfully!");
       } else {
         setError(response.message || "Failed to create sub-organization");
       }
@@ -419,6 +432,7 @@ const SubOrganizationPage = () => {
         setIsEditModalOpen(false);
         setSelectedSubOrganization(null);
         setError("");
+        showSuccessMessage("Sub-organization updated successfully!");
       } else {
         setError(response.message || "Failed to update sub-organization");
       }
@@ -430,20 +444,21 @@ const SubOrganizationPage = () => {
     }
   };
 
-  const handleDeleteSubOrganization = async (subOrganizationId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
+  const handleDeleteSubOrganization = (subOrganization: any) => {
+    setSubOrganizationToDelete(subOrganization);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!confirm("Are you sure you want to delete this sub-organization?")) {
+  const confirmDeleteSubOrganization = async () => {
+    if (!token || !subOrganizationToDelete) {
+      setError("Authentication required or no sub-organization selected");
       return;
     }
 
     try {
       setIsLoading(true);
       const response = await api.deleteSubOrganization(
-        subOrganizationId,
+        subOrganizationToDelete.id,
         token
       );
 
@@ -451,6 +466,9 @@ const SubOrganizationPage = () => {
         // Refresh the sub-organization list
         await refreshSubOrganizationList();
         setError("");
+        showSuccessMessage("Sub-organization deleted successfully!");
+        setIsDeleteModalOpen(false);
+        setSubOrganizationToDelete(null);
       } else {
         setError(response.message || "Failed to delete sub-organization");
       }
@@ -501,13 +519,13 @@ const SubOrganizationPage = () => {
         return {
           id: subOrg.id,
           name: subOrg.name,
-          organizationId: subOrg.organizationId,
+          // organizationId: subOrg.organizationId,
           organizationName:
             organizationsResponse.data?.find(
               (org: any) => org.id === subOrg.organizationId
             )?.name || "N/A",
-          assetId: subOrg.assetId,
-          subAssetId: subOrg.subAssetId,
+          // assetId: subOrg.assetId,
+          // subAssetId: subOrg.subAssetId,
           assetName: asset?.name || "N/A",
           subAssetName: subAsset?.name || "N/A",
           actions: (
@@ -515,7 +533,7 @@ const SubOrganizationPage = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
                 onClick={() => handleEditSubOrganization(subOrg)}
                 title="Edit"
               >
@@ -524,8 +542,8 @@ const SubOrganizationPage = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-                onClick={() => handleDeleteSubOrganization(subOrg.id)}
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
+                onClick={() => handleDeleteSubOrganization(subOrg)}
                 title="Delete"
               >
                 <Delete sx={{ fontSize: 16 }} />
@@ -549,10 +567,49 @@ const SubOrganizationPage = () => {
     const [availableSubAssets, setAvailableSubAssets] = useState<
       SubAssetData[]
     >([]);
+    const [validationErrors, setValidationErrors] = useState<{
+      name?: string;
+      organizationId?: string;
+      assetId?: string;
+      subAssetId?: string;
+    }>({});
+
+    // Validation function
+    const validateForm = () => {
+      const errors: {
+        name?: string;
+        organizationId?: string;
+        assetId?: string;
+        subAssetId?: string;
+      } = {};
+
+      if (!formData.name.trim()) {
+        errors.name = "Sub-organization name is required";
+      }
+
+      if (!formData.organizationId) {
+        errors.organizationId = "Please select an organization";
+      }
+
+      if (!formData.assetId) {
+        errors.assetId = "Please select an asset";
+      }
+
+      if (!formData.subAssetId) {
+        errors.subAssetId = "Please select a sub-asset";
+      }
+
+      setValidationErrors(errors);
+      return Object.keys(errors).length === 0;
+    };
 
     // Filter sub-assets when asset changes using cached data
     const handleAssetChange = (assetId: string) => {
       setFormData({ ...formData, assetId, subAssetId: "" });
+      // Clear validation error for asset when changed
+      if (validationErrors.assetId) {
+        setValidationErrors({ ...validationErrors, assetId: undefined });
+      }
       if (assetId) {
         // Filter sub-assets from cached data by assetId
         const filteredSubAssets = allSubAssets.filter(
@@ -566,6 +623,12 @@ const SubOrganizationPage = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+
+      // Validate form before submission
+      if (!validateForm()) {
+        return;
+      }
+
       await handleCreateSubOrganization(formData);
       setFormData({
         name: "",
@@ -574,6 +637,7 @@ const SubOrganizationPage = () => {
         subAssetId: "",
       });
       setAvailableSubAssets([]);
+      setValidationErrors({});
     };
 
     return (
@@ -586,22 +650,48 @@ const SubOrganizationPage = () => {
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
+            onChange={(e) => {
+              setFormData({ ...formData, name: e.target.value });
+              // Clear validation error when user starts typing
+              if (validationErrors.name) {
+                setValidationErrors({ ...validationErrors, name: undefined });
+              }
+            }}
+            className={`rounded-full bg-white text-[#2C2C2C] placeholder:text-[#666666] ${
+              validationErrors.name
+                ? "border-red-500 focus:border-red-500"
+                : "border-[#E5E5E5]"
+            }`}
             required
           />
+          {validationErrors.name && (
+            <p className="text-sm text-red-500">{validationErrors.name}</p>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="organization">Organization *</Label>
           <Select
             value={formData.organizationId}
-            onValueChange={(value) =>
-              setFormData({ ...formData, organizationId: value })
-            }
+            onValueChange={(value) => {
+              setFormData({ ...formData, organizationId: value });
+              // Clear validation error when user selects an option
+              if (validationErrors.organizationId) {
+                setValidationErrors({
+                  ...validationErrors,
+                  organizationId: undefined,
+                });
+              }
+            }}
             required
           >
-            <SelectTrigger className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] w-full">
+            <SelectTrigger
+              className={`rounded-full bg-white text-[#2C2C2C] w-full ${
+                validationErrors.organizationId
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-[#E5E5E5]"
+              }`}
+            >
               <SelectValue placeholder="Select an organization" />
             </SelectTrigger>
             <SelectContent>
@@ -615,6 +705,11 @@ const SubOrganizationPage = () => {
               ))}
             </SelectContent>
           </Select>
+          {validationErrors.organizationId && (
+            <p className="text-sm text-red-500">
+              {validationErrors.organizationId}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -624,7 +719,13 @@ const SubOrganizationPage = () => {
             onValueChange={handleAssetChange}
             required
           >
-            <SelectTrigger className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] w-full">
+            <SelectTrigger
+              className={`rounded-full bg-white text-[#2C2C2C] w-full ${
+                validationErrors.assetId
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-[#E5E5E5]"
+              }`}
+            >
               <SelectValue placeholder="Select an asset" />
             </SelectTrigger>
             <SelectContent>
@@ -635,19 +736,35 @@ const SubOrganizationPage = () => {
               ))}
             </SelectContent>
           </Select>
+          {validationErrors.assetId && (
+            <p className="text-sm text-red-500">{validationErrors.assetId}</p>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="subAsset">Sub Asset *</Label>
           <Select
             value={formData.subAssetId}
-            onValueChange={(value) =>
-              setFormData({ ...formData, subAssetId: value })
-            }
+            onValueChange={(value) => {
+              setFormData({ ...formData, subAssetId: value });
+              // Clear validation error when user selects an option
+              if (validationErrors.subAssetId) {
+                setValidationErrors({
+                  ...validationErrors,
+                  subAssetId: undefined,
+                });
+              }
+            }}
             required
             disabled={!formData.assetId}
           >
-            <SelectTrigger className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] w-full">
+            <SelectTrigger
+              className={`rounded-full bg-white text-[#2C2C2C] w-full ${
+                validationErrors.subAssetId
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-[#E5E5E5]"
+              }`}
+            >
               <SelectValue placeholder="Select a sub asset" />
             </SelectTrigger>
             <SelectContent>
@@ -658,10 +775,25 @@ const SubOrganizationPage = () => {
               ))}
             </SelectContent>
           </Select>
+          {validationErrors.subAssetId && (
+            <p className="text-sm text-red-500">
+              {validationErrors.subAssetId}
+            </p>
+          )}
         </div>
 
         <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoading} className="rounded-full">
+          <Button
+            type="submit"
+            disabled={
+              isLoading ||
+              !formData.name.trim() ||
+              !formData.organizationId ||
+              !formData.assetId ||
+              !formData.subAssetId
+            }
+            className="rounded-full"
+          >
             {isLoading ? "Creating..." : "Create Sub-Organization"}
           </Button>
         </div>
@@ -830,6 +962,11 @@ const SubOrganizationPage = () => {
           {error}
         </div>
       )}
+      {successMessage && (
+        <div className="fixed top-4 right-4 z-[9999] p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg shadow-lg">
+          {successMessage}
+        </div>
+      )}
       <AdminTableLayout
         searchPlaceholder="Search sub-organizations..."
         createButtonText="Create Sub-Organization"
@@ -848,6 +985,56 @@ const SubOrganizationPage = () => {
             </DialogTitle>
           </DialogHeader>
           <EditSubOrganizationForm />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
+          <DialogHeader className="relative">
+            <DialogTitle className="text-[#2C2C2C]">
+              Delete Sub-Organization
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setSubOrganizationToDelete(null);
+              }}
+            >
+              <Close sx={{ fontSize: 20 }} />
+            </Button>
+          </DialogHeader>
+          <div className="mt-4">
+            <p className="text-[#2C2C2C] mb-6">
+              Are you sure you want to delete the sub-organization "
+              {subOrganizationToDelete?.name}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setSubOrganizationToDelete(null);
+                }}
+                className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={confirmDeleteSubOrganization}
+                disabled={isLoading}
+                className="rounded-full"
+              >
+                {isLoading ? "Deleting..." : "Delete Sub-Organization"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </AdminPageLayout>

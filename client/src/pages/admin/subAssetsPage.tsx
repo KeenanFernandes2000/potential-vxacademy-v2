@@ -152,10 +152,17 @@ interface SubAssetData
   id: number;
   name: string;
   parentAsset: string;
+  assetId: number;
   size: string;
   createdDate: string;
   status: string;
   actions: React.ReactNode;
+}
+
+// Type for validation errors
+interface ValidationErrors {
+  name?: string;
+  parentAsset?: string;
 }
 
 const SubAssetsPage = () => {
@@ -170,6 +177,11 @@ const SubAssetsPage = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedSubAsset, setSelectedSubAsset] = useState<any>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {}
+  );
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [subAssetToDelete, setSubAssetToDelete] = useState<any>(null);
 
   // Function to show success message
   const showSuccessMessage = (message: string) => {
@@ -177,6 +189,22 @@ const SubAssetsPage = () => {
     setTimeout(() => {
       setSuccessMessage("");
     }, 3000);
+  };
+
+  // Validation function
+  const validateForm = (formData: any): boolean => {
+    const errors: ValidationErrors = {};
+
+    if (!formData.name || formData.name.trim() === "") {
+      errors.name = "Sub-asset name is required";
+    }
+
+    if (!formData.parentAsset || formData.parentAsset === "") {
+      errors.parentAsset = "Parent asset is required";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   // Fetch sub-assets and assets from database on component mount
@@ -210,6 +238,7 @@ const SubAssetsPage = () => {
             id: subAsset.id,
             name: subAsset.name,
             parentAsset: assetMap.get(subAsset.assetId) || "N/A",
+            // assetId: subAsset.assetId, // Keep the assetId for editing
             actions: (
               <div className="flex gap-1">
                 <Button
@@ -225,7 +254,7 @@ const SubAssetsPage = () => {
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                  onClick={() => handleDeleteSubAsset(subAsset.id)}
+                  onClick={() => handleDeleteSubAsset(subAsset)}
                   title="Delete"
                 >
                   <Delete sx={{ fontSize: 16 }} />
@@ -267,6 +296,11 @@ const SubAssetsPage = () => {
       return;
     }
 
+    // Validate form before submission
+    if (!validateForm(formData)) {
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -282,6 +316,7 @@ const SubAssetsPage = () => {
         // Refresh the sub-asset list
         await refreshSubAssetList();
         setError("");
+        setValidationErrors({});
         showSuccessMessage("Asset Sub-Category created successfully!");
       } else {
         setError(response.message || "Failed to create sub-asset");
@@ -297,6 +332,11 @@ const SubAssetsPage = () => {
   const handleUpdateSubAsset = async (formData: any) => {
     if (!token || !selectedSubAsset) {
       setError("Authentication required or no sub-asset selected");
+      return;
+    }
+
+    // Validate form before submission
+    if (!validateForm(formData)) {
       return;
     }
 
@@ -321,6 +361,7 @@ const SubAssetsPage = () => {
         setIsEditModalOpen(false);
         setSelectedSubAsset(null);
         setError("");
+        setValidationErrors({});
         showSuccessMessage("Asset Sub-Category updated successfully!");
       } else {
         setError(response.message || "Failed to update sub-asset");
@@ -333,19 +374,20 @@ const SubAssetsPage = () => {
     }
   };
 
-  const handleDeleteSubAsset = async (subAssetId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
+  const handleDeleteSubAsset = (subAsset: any) => {
+    setSubAssetToDelete(subAsset);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!confirm("Are you sure you want to delete this sub-asset?")) {
+  const confirmDeleteSubAsset = async () => {
+    if (!token || !subAssetToDelete) {
+      setError("Authentication required");
       return;
     }
 
     try {
       setIsLoading(true);
-      const response = await api.deleteSubAsset(subAssetId, token);
+      const response = await api.deleteSubAsset(subAssetToDelete.id, token);
 
       if (response.success) {
         // Refresh the sub-asset list
@@ -360,6 +402,8 @@ const SubAssetsPage = () => {
       setError("Failed to delete sub-asset. Please try again.");
     } finally {
       setIsLoading(false);
+      setIsDeleteModalOpen(false);
+      setSubAssetToDelete(null);
     }
   };
 
@@ -388,6 +432,7 @@ const SubAssetsPage = () => {
         id: subAsset.id,
         name: subAsset.name,
         parentAsset: assetMap.get(subAsset.assetId) || "N/A",
+        // assetId: subAsset.assetId, // Keep the assetId for editing
         actions: (
           <div className="flex gap-1">
             <Button
@@ -403,7 +448,7 @@ const SubAssetsPage = () => {
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-              onClick={() => handleDeleteSubAsset(subAsset.id)}
+              onClick={() => handleDeleteSubAsset(subAsset)}
               title="Delete"
             >
               <Delete sx={{ fontSize: 16 }} />
@@ -428,6 +473,14 @@ const SubAssetsPage = () => {
       setFormData({ name: "", parentAsset: "" });
     };
 
+    const handleInputChange = (field: string, value: string) => {
+      setFormData({ ...formData, [field]: value });
+      // Clear validation error when user starts typing
+      if (validationErrors[field as keyof ValidationErrors]) {
+        setValidationErrors({ ...validationErrors, [field]: undefined });
+      }
+    };
+
     return (
       <form
         onSubmit={handleSubmit}
@@ -438,21 +491,32 @@ const SubAssetsPage = () => {
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+            onChange={(e) => handleInputChange("name", e.target.value)}
+            className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+              validationErrors.name
+                ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                : "border-sandstone focus:border-dawn hover:border-dawn"
+            }`}
             placeholder="Type your Asset Sub-Category Name"
             required
           />
+          {validationErrors.name && (
+            <p className="text-red-500 text-sm mt-1">{validationErrors.name}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="parentAsset">Parent Asset *</Label>
           <Select
             value={formData.parentAsset}
-            onValueChange={(value) =>
-              setFormData({ ...formData, parentAsset: value })
-            }
+            onValueChange={(value) => handleInputChange("parentAsset", value)}
           >
-            <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+            <SelectTrigger
+              className={`w-full bg-white text-[#2C2C2C] transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                validationErrors.parentAsset
+                  ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                  : "border-sandstone focus:border-dawn hover:border-dawn"
+              }`}
+            >
               <SelectValue placeholder="Select an asset" />
             </SelectTrigger>
             <SelectContent>
@@ -463,9 +527,20 @@ const SubAssetsPage = () => {
               ))}
             </SelectContent>
           </Select>
+          {validationErrors.parentAsset && (
+            <p className="text-red-500 text-sm mt-1">
+              {validationErrors.parentAsset}
+            </p>
+          )}
         </div>
         <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoading} className="rounded-full">
+          <Button
+            type="submit"
+            disabled={
+              isLoading || !formData.name.trim() || !formData.parentAsset
+            }
+            className="rounded-full"
+          >
             {isLoading ? "Creating..." : "Create Sub-Asset"}
           </Button>
         </div>
@@ -476,12 +551,20 @@ const SubAssetsPage = () => {
   const EditSubAssetForm = () => {
     const [formData, setFormData] = useState({
       name: selectedSubAsset?.name || "",
-      parentAsset: selectedSubAsset?.assetId || "",
+      parentAsset: selectedSubAsset?.assetId?.toString() || "",
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       await handleUpdateSubAsset(formData);
+    };
+
+    const handleInputChange = (field: string, value: string) => {
+      setFormData({ ...formData, [field]: value });
+      // Clear validation error when user starts typing
+      if (validationErrors[field as keyof ValidationErrors]) {
+        setValidationErrors({ ...validationErrors, [field]: undefined });
+      }
     };
 
     return (
@@ -494,21 +577,32 @@ const SubAssetsPage = () => {
           <Input
             id="edit_name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+            onChange={(e) => handleInputChange("name", e.target.value)}
+            className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+              validationErrors.name
+                ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                : "border-sandstone focus:border-dawn hover:border-dawn"
+            }`}
             placeholder="Type your Asset Sub-Category Name"
             required
           />
+          {validationErrors.name && (
+            <p className="text-red-500 text-sm mt-1">{validationErrors.name}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="edit_parentAsset">Parent Asset *</Label>
           <Select
             value={formData.parentAsset}
-            onValueChange={(value) =>
-              setFormData({ ...formData, parentAsset: value })
-            }
+            onValueChange={(value) => handleInputChange("parentAsset", value)}
           >
-            <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+            <SelectTrigger
+              className={`w-full bg-white text-[#2C2C2C] transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                validationErrors.parentAsset
+                  ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                  : "border-sandstone focus:border-dawn hover:border-dawn"
+              }`}
+            >
               <SelectValue placeholder="Select an asset" />
             </SelectTrigger>
             <SelectContent>
@@ -519,6 +613,11 @@ const SubAssetsPage = () => {
               ))}
             </SelectContent>
           </Select>
+          {validationErrors.parentAsset && (
+            <p className="text-red-500 text-sm mt-1">
+              {validationErrors.parentAsset}
+            </p>
+          )}
         </div>
         <div className="flex justify-end gap-2">
           <Button
@@ -532,7 +631,13 @@ const SubAssetsPage = () => {
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isLoading} className="rounded-full">
+          <Button
+            type="submit"
+            disabled={
+              isLoading || !formData.name.trim() || !formData.parentAsset
+            }
+            className="rounded-full"
+          >
             {isLoading ? "Updating..." : "Update Sub-Asset"}
           </Button>
         </div>
@@ -585,6 +690,53 @@ const SubAssetsPage = () => {
           </DialogHeader>
           <div className="mt-4">
             <EditSubAssetForm />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
+          <DialogHeader className="relative">
+            <DialogTitle className="text-[#2C2C2C]">
+              Delete Sub-Asset
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setSubAssetToDelete(null);
+              }}
+            >
+              <Close sx={{ fontSize: 20 }} />
+            </Button>
+          </DialogHeader>
+          <div className="mt-4">
+            <p className="text-[#2C2C2C] mb-6">
+              Are you sure you want to delete the sub-asset "
+              {subAssetToDelete?.name}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setSubAssetToDelete(null);
+                }}
+                className="rounded-full hover:bg-accent/30 hover:text-black"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDeleteSubAsset}
+                disabled={isLoading}
+                className="rounded-full bg-red-500 hover:bg-red-600 text-white"
+              >
+                {isLoading ? "Deleting..." : "Delete Sub-Asset"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

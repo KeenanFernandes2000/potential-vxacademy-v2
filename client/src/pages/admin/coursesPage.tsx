@@ -184,6 +184,17 @@ interface CourseData
   actions: React.ReactNode;
 }
 
+// Type for validation errors
+interface ValidationErrors {
+  name?: string;
+  description?: string;
+  module_id?: string;
+  duration?: string;
+  level?: string;
+  status?: string;
+  image_url?: string;
+}
+
 const CoursesPage = () => {
   const { token } = useAuth();
   const [courses, setCourses] = useState<CourseData[]>([]);
@@ -195,6 +206,52 @@ const CoursesPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [successMessage, setSuccessMessage] = useState("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<any>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {}
+  );
+
+  // Auto-hide success message after 3 seconds
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
+
+  // Validation function
+  const validateForm = (formData: any): boolean => {
+    const errors: ValidationErrors = {};
+
+    if (!formData.name || formData.name.trim() === "") {
+      errors.name = "Course name is required";
+    }
+
+    if (!formData.module_id || formData.module_id === "") {
+      errors.module_id = "Module selection is required";
+    }
+
+    if (
+      formData.show_duration &&
+      (!formData.duration || formData.duration.trim() === "")
+    ) {
+      errors.duration = "Duration is required when show duration is enabled";
+    }
+
+    if (formData.show_level && (!formData.level || formData.level === "")) {
+      errors.level = "Level is required when show level is enabled";
+    }
+
+    if (!formData.status || formData.status === "") {
+      errors.status = "Status selection is required";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   // Fetch courses from database on component mount
   useEffect(() => {
@@ -249,8 +306,8 @@ const CoursesPage = () => {
                   {course.status === "published" ? "Published" : "Draft"}
                 </span>
               ),
-              trainingAreaId: trainingArea?.id, // Keep for filtering
-              moduleId: course.moduleId, // Keep for filtering
+              // trainingAreaId: trainingArea?.id, // Keep for filtering
+              // moduleId: course.moduleId, // Keep for filtering
               actions: (
                 <div className="flex gap-1">
                   <Button
@@ -266,7 +323,7 @@ const CoursesPage = () => {
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                    onClick={() => handleDeleteCourse(course.id)}
+                    onClick={() => handleDeleteCourse(course)}
                     title="Delete"
                   >
                     <Delete sx={{ fontSize: 16 }} />
@@ -307,6 +364,11 @@ const CoursesPage = () => {
       return;
     }
 
+    // Validate form before submission
+    if (!validateForm(formData)) {
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -330,6 +392,8 @@ const CoursesPage = () => {
         // Refresh the course list
         await refreshCourseList();
         setError("");
+        setSuccessMessage("Course created successfully!");
+        setValidationErrors({});
       } else {
         setError(response.message || "Failed to create course");
       }
@@ -344,6 +408,11 @@ const CoursesPage = () => {
   const handleUpdateCourse = async (formData: any) => {
     if (!token || !selectedCourse) {
       setError("Authentication required or no course selected");
+      return;
+    }
+
+    // Validate form before submission
+    if (!validateForm(formData)) {
       return;
     }
 
@@ -376,6 +445,8 @@ const CoursesPage = () => {
         setIsEditModalOpen(false);
         setSelectedCourse(null);
         setError("");
+        setSuccessMessage("Course updated successfully!");
+        setValidationErrors({});
       } else {
         setError(response.message || "Failed to update course");
       }
@@ -387,24 +458,28 @@ const CoursesPage = () => {
     }
   };
 
-  const handleDeleteCourse = async (courseId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
+  const handleDeleteCourse = (course: any) => {
+    setCourseToDelete(course);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!confirm("Are you sure you want to delete this course?")) {
+  const confirmDeleteCourse = async () => {
+    if (!token || !courseToDelete) {
+      setError("Authentication required or no course selected");
       return;
     }
 
     try {
       setIsLoading(true);
-      const response = await api.deleteCourse(courseId, token);
+      const response = await api.deleteCourse(courseToDelete.id, token);
 
       if (response.success) {
         // Refresh the course list
         await refreshCourseList();
         setError("");
+        setSuccessMessage("Course deleted successfully!");
+        setIsDeleteModalOpen(false);
+        setCourseToDelete(null);
       } else {
         setError(response.message || "Failed to delete course");
       }
@@ -443,7 +518,7 @@ const CoursesPage = () => {
       updatedCoursesResponse.data?.map((course: any) => {
         // Find the module for this course
         const module = updatedModulesResponse.data?.find(
-          (m: any) => m.id === course.module_id
+          (m: any) => m.id === course.moduleId
         );
         // Find the training area for this module
         const trainingArea = module
@@ -456,6 +531,7 @@ const CoursesPage = () => {
           id: course.id,
           name: course.name,
           module_name: module?.name || "N/A",
+          training_area_name: trainingArea?.name || "N/A",
           duration: course.duration || 0,
           level: course.level || "beginner",
           status: (
@@ -469,8 +545,8 @@ const CoursesPage = () => {
               {course.status === "published" ? "Published" : "Draft"}
             </span>
           ),
-          trainingAreaId: trainingArea?.id, // Keep for filtering
-          moduleId: course.moduleId, // Keep for filtering
+          // trainingAreaId: trainingArea?.id, // Keep for filtering
+          // moduleId: course.moduleId, // Keep for filtering
           actions: (
             <div className="flex gap-1">
               <Button
@@ -486,7 +562,7 @@ const CoursesPage = () => {
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                onClick={() => handleDeleteCourse(course.id)}
+                onClick={() => handleDeleteCourse(course)}
                 title="Delete"
               >
                 <Delete sx={{ fontSize: 16 }} />
@@ -537,6 +613,14 @@ const CoursesPage = () => {
       setFormData({ ...formData, image_url: imageUrl });
     };
 
+    const handleFieldChange = (field: string, value: string | boolean) => {
+      setFormData({ ...formData, [field]: value });
+      // Clear validation error for this field when user starts typing
+      if (validationErrors[field as keyof ValidationErrors]) {
+        setValidationErrors({ ...validationErrors, [field]: undefined });
+      }
+    };
+
     return (
       <form
         onSubmit={handleSubmit}
@@ -549,10 +633,15 @@ const CoursesPage = () => {
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+            onChange={(e) => handleFieldChange("name", e.target.value)}
+            className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+              validationErrors.name ? "border-red-500" : "border-sandstone"
+            }`}
             required
           />
+          {validationErrors.name && (
+            <p className="text-red-500 text-sm mt-1">{validationErrors.name}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="description" className="text-[#2C2C2C]">
@@ -561,9 +650,7 @@ const CoursesPage = () => {
           <Input
             id="description"
             value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
+            onChange={(e) => handleFieldChange("description", e.target.value)}
             className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
           />
         </div>
@@ -573,11 +660,15 @@ const CoursesPage = () => {
           </Label>
           <Select
             value={formData.module_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, module_id: value })
-            }
+            onValueChange={(value) => handleFieldChange("module_id", value)}
           >
-            <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+            <SelectTrigger
+              className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
+                validationErrors.module_id
+                  ? "border-red-500"
+                  : "border-sandstone"
+              }`}
+            >
               <SelectValue placeholder="Select a module" />
             </SelectTrigger>
             <SelectContent>
@@ -588,6 +679,11 @@ const CoursesPage = () => {
               ))}
             </SelectContent>
           </Select>
+          {validationErrors.module_id && (
+            <p className="text-red-500 text-sm mt-1">
+              {validationErrors.module_id}
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <Label className="text-[#2C2C2C]">Image</Label>
@@ -604,9 +700,7 @@ const CoursesPage = () => {
           <Input
             id="internal_note"
             value={formData.internal_note}
-            onChange={(e) =>
-              setFormData({ ...formData, internal_note: e.target.value })
-            }
+            onChange={(e) => handleFieldChange("internal_note", e.target.value)}
             className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
           />
         </div>
@@ -636,12 +730,19 @@ const CoursesPage = () => {
               id="duration"
               type="number"
               value={formData.duration}
-              onChange={(e) =>
-                setFormData({ ...formData, duration: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => handleFieldChange("duration", e.target.value)}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                validationErrors.duration
+                  ? "border-red-500"
+                  : "border-sandstone"
+              }`}
               required
             />
+            {validationErrors.duration && (
+              <p className="text-red-500 text-sm mt-1">
+                {validationErrors.duration}
+              </p>
+            )}
           </div>
         )}
         <div className="space-y-2">
@@ -668,11 +769,13 @@ const CoursesPage = () => {
             </Label>
             <Select
               value={formData.level}
-              onValueChange={(value) =>
-                setFormData({ ...formData, level: value })
-              }
+              onValueChange={(value) => handleFieldChange("level", value)}
             >
-              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectTrigger
+                className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
+                  validationErrors.level ? "border-red-500" : "border-sandstone"
+                }`}
+              >
                 <SelectValue placeholder="Select level" />
               </SelectTrigger>
               <SelectContent>
@@ -681,6 +784,11 @@ const CoursesPage = () => {
                 <SelectItem value="advanced">Advanced</SelectItem>
               </SelectContent>
             </Select>
+            {validationErrors.level && (
+              <p className="text-red-500 text-sm mt-1">
+                {validationErrors.level}
+              </p>
+            )}
           </div>
         )}
         <div className="space-y-2">
@@ -689,11 +797,13 @@ const CoursesPage = () => {
           </Label>
           <Select
             value={formData.status}
-            onValueChange={(value) =>
-              setFormData({ ...formData, status: value })
-            }
+            onValueChange={(value) => handleFieldChange("status", value)}
           >
-            <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+            <SelectTrigger
+              className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
+                validationErrors.status ? "border-red-500" : "border-sandstone"
+              }`}
+            >
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
@@ -703,9 +813,25 @@ const CoursesPage = () => {
               </SelectItem>
             </SelectContent>
           </Select>
+          {validationErrors.status && (
+            <p className="text-red-500 text-sm mt-1">
+              {validationErrors.status}
+            </p>
+          )}
         </div>
         <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoading} className="rounded-full">
+          <Button
+            type="submit"
+            disabled={
+              isLoading ||
+              !formData.name.trim() ||
+              !formData.module_id ||
+              !formData.status ||
+              (formData.show_duration && !formData.duration.trim()) ||
+              (formData.show_level && !formData.level)
+            }
+            className="rounded-full"
+          >
             {isLoading ? "Creating..." : "Create Course"}
           </Button>
         </div>
@@ -756,6 +882,14 @@ const CoursesPage = () => {
       setFormData({ ...formData, image_url: imageUrl });
     };
 
+    const handleFieldChange = (field: string, value: string | boolean) => {
+      setFormData({ ...formData, [field]: value });
+      // Clear validation error for this field when user starts typing
+      if (validationErrors[field as keyof ValidationErrors]) {
+        setValidationErrors({ ...validationErrors, [field]: undefined });
+      }
+    };
+
     return (
       <form
         onSubmit={handleSubmit}
@@ -768,10 +902,15 @@ const CoursesPage = () => {
           <Input
             id="edit_name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+            onChange={(e) => handleFieldChange("name", e.target.value)}
+            className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+              validationErrors.name ? "border-red-500" : "border-sandstone"
+            }`}
             required
           />
+          {validationErrors.name && (
+            <p className="text-red-500 text-sm mt-1">{validationErrors.name}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="edit_description" className="text-[#2C2C2C]">
@@ -780,9 +919,7 @@ const CoursesPage = () => {
           <Input
             id="edit_description"
             value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
+            onChange={(e) => handleFieldChange("description", e.target.value)}
             className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
           />
         </div>
@@ -792,11 +929,15 @@ const CoursesPage = () => {
           </Label>
           <Select
             value={formData.module_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, module_id: value })
-            }
+            onValueChange={(value) => handleFieldChange("module_id", value)}
           >
-            <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+            <SelectTrigger
+              className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
+                validationErrors.module_id
+                  ? "border-red-500"
+                  : "border-sandstone"
+              }`}
+            >
               <SelectValue placeholder="Select a module" />
             </SelectTrigger>
             <SelectContent>
@@ -807,6 +948,11 @@ const CoursesPage = () => {
               ))}
             </SelectContent>
           </Select>
+          {validationErrors.module_id && (
+            <p className="text-red-500 text-sm mt-1">
+              {validationErrors.module_id}
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <Label className="text-[#2C2C2C]">Image</Label>
@@ -823,9 +969,7 @@ const CoursesPage = () => {
           <Input
             id="edit_internal_note"
             value={formData.internal_note}
-            onChange={(e) =>
-              setFormData({ ...formData, internal_note: e.target.value })
-            }
+            onChange={(e) => handleFieldChange("internal_note", e.target.value)}
             className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
           />
         </div>
@@ -858,12 +1002,19 @@ const CoursesPage = () => {
               id="edit_duration"
               type="number"
               value={formData.duration}
-              onChange={(e) =>
-                setFormData({ ...formData, duration: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => handleFieldChange("duration", e.target.value)}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                validationErrors.duration
+                  ? "border-red-500"
+                  : "border-sandstone"
+              }`}
               required
             />
+            {validationErrors.duration && (
+              <p className="text-red-500 text-sm mt-1">
+                {validationErrors.duration}
+              </p>
+            )}
           </div>
         )}
         <div className="space-y-2">
@@ -890,11 +1041,13 @@ const CoursesPage = () => {
             </Label>
             <Select
               value={formData.level}
-              onValueChange={(value) =>
-                setFormData({ ...formData, level: value })
-              }
+              onValueChange={(value) => handleFieldChange("level", value)}
             >
-              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectTrigger
+                className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
+                  validationErrors.level ? "border-red-500" : "border-sandstone"
+                }`}
+              >
                 <SelectValue placeholder="Select level" />
               </SelectTrigger>
               <SelectContent>
@@ -903,6 +1056,11 @@ const CoursesPage = () => {
                 <SelectItem value="advanced">Advanced</SelectItem>
               </SelectContent>
             </Select>
+            {validationErrors.level && (
+              <p className="text-red-500 text-sm mt-1">
+                {validationErrors.level}
+              </p>
+            )}
           </div>
         )}
         <div className="space-y-2">
@@ -911,11 +1069,13 @@ const CoursesPage = () => {
           </Label>
           <Select
             value={formData.status}
-            onValueChange={(value) =>
-              setFormData({ ...formData, status: value })
-            }
+            onValueChange={(value) => handleFieldChange("status", value)}
           >
-            <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+            <SelectTrigger
+              className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
+                validationErrors.status ? "border-red-500" : "border-sandstone"
+              }`}
+            >
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent>
@@ -925,6 +1085,11 @@ const CoursesPage = () => {
               </SelectItem>
             </SelectContent>
           </Select>
+          {validationErrors.status && (
+            <p className="text-red-500 text-sm mt-1">
+              {validationErrors.status}
+            </p>
+          )}
         </div>
         <div className="flex justify-end gap-2">
           <Button
@@ -938,7 +1103,18 @@ const CoursesPage = () => {
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isLoading} className="rounded-full">
+          <Button
+            type="submit"
+            disabled={
+              isLoading ||
+              !formData.name.trim() ||
+              !formData.module_id ||
+              !formData.status ||
+              (formData.show_duration && !formData.duration.trim()) ||
+              (formData.show_level && !formData.level)
+            }
+            className="rounded-full"
+          >
             {isLoading ? "Updating..." : "Update Course"}
           </Button>
         </div>
@@ -963,6 +1139,11 @@ const CoursesPage = () => {
           {error}
         </div>
       )}
+      {successMessage && (
+        <div className="fixed top-4 right-4 z-[9999] p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg shadow-lg">
+          {successMessage}
+        </div>
+      )}
       <AdminTableLayout
         searchPlaceholder="Search courses..."
         createButtonText="Create Course"
@@ -972,7 +1153,7 @@ const CoursesPage = () => {
         onSearch={handleSearch}
         enableColumnFiltering={true}
         columnFilterConfig={{
-          trainingAreaId: "trainingAreaId",
+          trainingAreaId: "training_area_name",
           moduleId: "moduleId",
         }}
         dropdownConfig={{
@@ -990,6 +1171,41 @@ const CoursesPage = () => {
             <DialogTitle className="text-[#2C2C2C]">Edit Course</DialogTitle>
           </DialogHeader>
           <EditCourseForm />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md bg-white border-sandstone text-[#2C2C2C]">
+          <DialogHeader>
+            <DialogTitle className="text-[#2C2C2C]">Delete Course</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-[#2C2C2C]">
+              Are you sure you want to delete the course "{courseToDelete?.name}
+              "? This action cannot be undone.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setCourseToDelete(null);
+              }}
+              className="rounded-full bg-orange-500/30"
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDeleteCourse}
+              disabled={isLoading}
+              className="rounded-full bg-red-500 hover:bg-red-600 text-white"
+            >
+              {isLoading ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </AdminPageLayout>

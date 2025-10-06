@@ -708,8 +708,6 @@ const LearningPathsPage = () => {
     setCourses([]);
     setUnits([]);
     setCourseUnits([]);
-    setSeniorityLevels([]);
-    setAssets([]);
     setExistingUnits([]);
   };
 
@@ -1339,7 +1337,7 @@ const LearningPathsPage = () => {
           if (!open) handleModalClose();
         }}
       >
-        <DialogContent className="max-w-6xl bg-sandstone border-white/20 text-[#2C2C2C] max-h-[90%]">
+        <DialogContent className="max-w-6xl bg-white border-white/20 text-[#2C2C2C] max-h-[90%]">
           <DialogHeader>
             <DialogTitle className="text-[#2C2C2C]">
               Assign Units - {selectedRole?.name}

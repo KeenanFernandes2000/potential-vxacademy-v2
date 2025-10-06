@@ -267,7 +267,9 @@ const SubAdminPage = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
 
   // Function to show success message
   const showSuccessMessage = (message: string) => {
@@ -300,13 +302,13 @@ const SubAdminPage = () => {
   // Fetch users from database on component mount
   useEffect(() => {
     const fetchUsers = async () => {
-      console.log("token", token);
+      // console.log("token", token);
       if (!token) {
         setError("Authentication required");
         setIsLoading(false);
         return;
       } else {
-        console.log("token", token);
+        // console.log("token", token);
         setError("");
       }
 
@@ -357,7 +359,7 @@ const SubAdminPage = () => {
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                onClick={() => handleDeleteSubAdmin(user.id)}
+                onClick={() => handleDeleteSubAdmin(user)}
                 title="Delete"
               >
                 <Delete sx={{ fontSize: 16 }} />
@@ -483,25 +485,28 @@ const SubAdminPage = () => {
     }
   };
 
-  const handleDeleteSubAdmin = async (userId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
+  const handleDeleteSubAdmin = (user: any) => {
+    setUserToDelete(user);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!confirm("Are you sure you want to delete this sub-admin?")) {
+  const confirmDeleteSubAdmin = async () => {
+    if (!token || !userToDelete) {
+      setError("Authentication required or no user selected");
       return;
     }
 
     try {
       setIsLoading(true);
-      const response = await api.deleteUser(userId, token);
+      const response = await api.deleteUser(userToDelete.id, token);
 
       if (response.success) {
         // Refresh the user list
         await refreshUserList();
         setError("");
         showSuccessMessage("Sub-Admin deleted successfully!");
+        setIsDeleteModalOpen(false);
+        setUserToDelete(null);
       } else {
         setError(response.message || "Failed to delete sub-admin");
       }
@@ -568,7 +573,7 @@ const SubAdminPage = () => {
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-            onClick={() => handleDeleteSubAdmin(user.id)}
+            onClick={() => handleDeleteSubAdmin(user)}
             title="Delete"
           >
             <Delete sx={{ fontSize: 16 }} />
@@ -594,8 +599,51 @@ const SubAdminPage = () => {
     const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
     const [selectedSubOrgIds, setSelectedSubOrgIds] = useState<number[]>([]);
     const [formSubOrganizations, setFormSubOrganizations] = useState<any[]>([]);
+    const [validationErrors, setValidationErrors] = useState<{
+      first_name?: string;
+      last_name?: string;
+      email?: string;
+      organization?: string;
+    }>({});
+
+    // Validation function
+    const validateForm = () => {
+      const errors: {
+        first_name?: string;
+        last_name?: string;
+        email?: string;
+        organization?: string;
+      } = {};
+
+      if (!formData.first_name.trim()) {
+        errors.first_name = "First name is required";
+      }
+
+      if (!formData.last_name.trim()) {
+        errors.last_name = "Last name is required";
+      }
+
+      if (!formData.email.trim()) {
+        errors.email = "Email address is required";
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        errors.email = "Please enter a valid email address";
+      }
+
+      if (!formData.organization) {
+        errors.organization = "Please select an organization";
+      }
+
+      setValidationErrors(errors);
+      return Object.keys(errors).length === 0;
+    };
 
     const handleOrgChange = async (orgId: number) => {
+      // Validate orgId to prevent NaN API calls
+      if (isNaN(orgId) || orgId <= 0) {
+        console.warn("Invalid organization ID:", orgId);
+        return;
+      }
+
       setSelectedOrgId(orgId);
       const selectedOrg = organizations.find((org) => org.id === orgId);
       setFormData({
@@ -699,6 +747,12 @@ const SubAdminPage = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+
+      // Validate form before submission
+      if (!validateForm()) {
+        return;
+      }
+
       await handleCreateSubAdmin(formData);
       setFormData({
         first_name: "",
@@ -712,6 +766,7 @@ const SubAdminPage = () => {
       setSelectedOrgId(null);
       setSelectedSubOrgIds([]);
       setFormSubOrganizations([]);
+      setValidationErrors({});
     };
 
     return (
@@ -725,26 +780,58 @@ const SubAdminPage = () => {
             <Input
               id="first_name"
               value={formData.first_name}
-              onChange={(e) =>
-                setFormData({ ...formData, first_name: e.target.value })
-              }
-              className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
+              onChange={(e) => {
+                setFormData({ ...formData, first_name: e.target.value });
+                // Clear validation error when user starts typing
+                if (validationErrors.first_name) {
+                  setValidationErrors({
+                    ...validationErrors,
+                    first_name: undefined,
+                  });
+                }
+              }}
+              className={`rounded-full bg-white text-[#2C2C2C] placeholder:text-[#666666] ${
+                validationErrors.first_name
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-[#E5E5E5]"
+              }`}
               placeholder="Type Sub-Admin's First Name"
               required
             />
+            {validationErrors.first_name && (
+              <p className="text-sm text-red-500">
+                {validationErrors.first_name}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="last_name">Last Name *</Label>
             <Input
               id="last_name"
               value={formData.last_name}
-              onChange={(e) =>
-                setFormData({ ...formData, last_name: e.target.value })
-              }
-              className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
+              onChange={(e) => {
+                setFormData({ ...formData, last_name: e.target.value });
+                // Clear validation error when user starts typing
+                if (validationErrors.last_name) {
+                  setValidationErrors({
+                    ...validationErrors,
+                    last_name: undefined,
+                  });
+                }
+              }}
+              className={`rounded-full bg-white text-[#2C2C2C] placeholder:text-[#666666] ${
+                validationErrors.last_name
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-[#E5E5E5]"
+              }`}
               placeholder="Type Sub-Admin's Last Name"
               required
             />
+            {validationErrors.last_name && (
+              <p className="text-sm text-red-500">
+                {validationErrors.last_name}
+              </p>
+            )}
           </div>
         </div>
 
@@ -754,23 +841,52 @@ const SubAdminPage = () => {
             id="email"
             type="email"
             value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
+            onChange={(e) => {
+              setFormData({ ...formData, email: e.target.value });
+              // Clear validation error when user starts typing
+              if (validationErrors.email) {
+                setValidationErrors({ ...validationErrors, email: undefined });
+              }
+            }}
+            className={`rounded-full bg-white text-[#2C2C2C] placeholder:text-[#666666] ${
+              validationErrors.email
+                ? "border-red-500 focus:border-red-500"
+                : "border-[#E5E5E5]"
+            }`}
             placeholder="Type Sub-Admin's Email Address"
             required
           />
+          {validationErrors.email && (
+            <p className="text-sm text-red-500">{validationErrors.email}</p>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="organization">Organization *</Label>
           <Select
             value={selectedOrgId?.toString() || ""}
-            onValueChange={(value) => handleOrgChange(parseInt(value))}
+            onValueChange={(value) => {
+              const orgId = parseInt(value);
+              if (!isNaN(orgId)) {
+                handleOrgChange(orgId);
+              }
+              // Clear validation error when user selects an option
+              if (validationErrors.organization) {
+                setValidationErrors({
+                  ...validationErrors,
+                  organization: undefined,
+                });
+              }
+            }}
             required
           >
-            <SelectTrigger className="w-full rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+            <SelectTrigger
+              className={`w-full rounded-full bg-white text-[#2C2C2C] ${
+                validationErrors.organization
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-[#E5E5E5]"
+              }`}
+            >
               <SelectValue placeholder="Select organization" />
             </SelectTrigger>
             <SelectContent>
@@ -781,6 +897,11 @@ const SubAdminPage = () => {
               ))}
             </SelectContent>
           </Select>
+          {validationErrors.organization && (
+            <p className="text-sm text-red-500">
+              {validationErrors.organization}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -849,7 +970,17 @@ const SubAdminPage = () => {
         </div>
 
         <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoading} className="rounded-full">
+          <Button
+            type="submit"
+            disabled={
+              isLoading ||
+              !formData.first_name.trim() ||
+              !formData.last_name.trim() ||
+              !formData.email.trim() ||
+              !formData.organization
+            }
+            className="rounded-full"
+          >
             {isLoading ? "Creating..." : "Create Sub-Admin"}
           </Button>
         </div>
@@ -858,28 +989,65 @@ const SubAdminPage = () => {
   };
 
   const EditSubAdminForm = () => {
-    console.log("EditSubAdminForm rendered with organizations:", organizations);
+    // console.log("EditSubAdminForm rendered with organizations:", organizations);
+    // console.log("selectedUser in EditSubAdminForm:", selectedUser);
 
     const [formData, setFormData] = useState({
-      first_name: selectedUser?.firstName || "",
-      last_name: selectedUser?.lastName || "",
-      email: selectedUser?.email || "",
-      organization: selectedUser?.organization || "",
-      sub_organization: Array.isArray(selectedUser?.subOrganization)
-        ? selectedUser.subOrganization
-        : selectedUser?.subOrganization
-        ? [selectedUser.subOrganization]
-        : [],
-      asset: selectedUser?.asset || "",
-      sub_asset: selectedUser?.subAsset || "",
+      first_name: "",
+      last_name: "",
+      email: "",
+      organization: "",
+      sub_organization: [] as string[],
+      asset: "",
+      sub_asset: "",
     });
+
+    // console.log("Current formData:", formData);
     const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
     const [selectedSubOrgIds, setSelectedSubOrgIds] = useState<number[]>([]);
     const [formSubOrganizations, setFormSubOrganizations] = useState<any[]>([]);
 
     // Initialize selected values based on current user data
     useEffect(() => {
-      if (selectedUser && organizations.length > 0) {
+      if (selectedUser) {
+        // console.log("Initializing form data with selectedUser:", selectedUser);
+        // console.log("selectedUser keys:", Object.keys(selectedUser));
+        // console.log("selectedUser.firstName:", selectedUser.firstName);
+        // console.log("selectedUser.LastName:", selectedUser.LastName);
+        // console.log("selectedUser.lastName:", selectedUser.lastName);
+
+        // Get first and last name directly from selectedUser properties
+        const firstName = selectedUser.firstName || "";
+        const lastName = selectedUser.LastName || selectedUser.lastName || ""; // Try both cases
+
+        //  console.log(
+        //   "Direct names - firstName:",
+        //   firstName,
+        //   "lastName:",
+        //   lastName
+        // );
+
+        // Update form data when selectedUser changes
+        const newFormData = {
+          first_name: firstName,
+          last_name: lastName,
+          email: selectedUser?.email || "",
+          organization: selectedUser?.organization || "",
+          sub_organization: Array.isArray(selectedUser?.subOrganization)
+            ? selectedUser.subOrganization
+            : selectedUser?.subOrganization &&
+              selectedUser.subOrganization !== "N/A"
+            ? selectedUser.subOrganization
+                .split(", ")
+                .filter((name: string) => name.trim() !== "")
+            : [],
+          asset: selectedUser?.asset || "",
+          sub_asset: selectedUser?.subAsset || "",
+        };
+
+        // console.log("Setting form data to:", newFormData);
+        setFormData(newFormData);
+
         // Find organization by name
         const org = organizations.find(
           (o) => o.name === selectedUser.organization
@@ -898,8 +1066,11 @@ const SubAdminPage = () => {
                 // Find and set sub-organization IDs
                 const subOrgNames = Array.isArray(selectedUser.subOrganization)
                   ? selectedUser.subOrganization
-                  : selectedUser.subOrganization
-                  ? [selectedUser.subOrganization]
+                  : selectedUser.subOrganization &&
+                    selectedUser.subOrganization !== "N/A"
+                  ? selectedUser.subOrganization
+                      .split(", ")
+                      .filter((name: string) => name.trim() !== "")
                   : [];
 
                 const subOrgIds =
@@ -918,6 +1089,11 @@ const SubAdminPage = () => {
     }, [selectedUser, organizations, token]);
 
     const handleOrgChange = async (orgId: number) => {
+      // Validate orgId to prevent NaN API calls
+      if (isNaN(orgId) || orgId <= 0) {
+        console.warn("Invalid organization ID:", orgId);
+        return;
+      }
       setSelectedOrgId(orgId);
       const selectedOrg = organizations.find((org) => org.id === orgId);
       setFormData({
@@ -1074,7 +1250,12 @@ const SubAdminPage = () => {
           <Label htmlFor="edit_organization">Organization *</Label>
           <Select
             value={selectedOrgId?.toString() || ""}
-            onValueChange={(value) => handleOrgChange(parseInt(value))}
+            onValueChange={(value) => {
+              const orgId = parseInt(value);
+              if (!isNaN(orgId)) {
+                handleOrgChange(orgId);
+              }
+            }}
             required
           >
             <SelectTrigger className="w-full rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
@@ -1198,7 +1379,7 @@ const SubAdminPage = () => {
         </div>
       )}
       {successMessage && (
-        <div className="fixed top-4 right-4 z-50 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg shadow-lg">
+        <div className="fixed top-4 right-4 z-[9999] p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg shadow-lg">
           {successMessage}
         </div>
       )}
@@ -1273,7 +1454,7 @@ const SubAdminPage = () => {
                       );
 
                       if (response.ok) {
-                        console.log("Reminder email sent successfully");
+                        // console.log("Reminder email sent successfully");
                         // You can add a success toast here
                       } else {
                         console.error("Failed to send reminder email");
@@ -1300,6 +1481,56 @@ const SubAdminPage = () => {
                 className="rounded-full"
               >
                 Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
+          <DialogHeader className="relative">
+            <DialogTitle className="text-[#2C2C2C]">
+              Delete Sub-Admin
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setUserToDelete(null);
+              }}
+            >
+              <Close sx={{ fontSize: 20 }} />
+            </Button>
+          </DialogHeader>
+          <div className="mt-4">
+            <p className="text-[#2C2C2C] mb-6">
+              Are you sure you want to delete the sub-admin "
+              {userToDelete?.fullName}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setUserToDelete(null);
+                }}
+                className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={confirmDeleteSubAdmin}
+                disabled={isLoading}
+                className="rounded-full"
+              >
+                {isLoading ? "Deleting..." : "Delete Sub-Admin"}
               </Button>
             </div>
           </div>

@@ -216,6 +216,14 @@ interface ModuleData extends Record<string, string | number | React.ReactNode> {
   actions: React.ReactNode;
 }
 
+// Type for validation errors
+interface ValidationErrors {
+  name?: string;
+  description?: string;
+  training_area_id?: string;
+  image_url?: string;
+}
+
 const ModulesPage = () => {
   const { token } = useAuth();
   const [modules, setModules] = useState<ModuleData[]>([]);
@@ -226,6 +234,11 @@ const ModulesPage = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState<any>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [moduleToDelete, setModuleToDelete] = useState<any>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {}
+  );
 
   // Auto-hide success message after 3 seconds
   useEffect(() => {
@@ -236,6 +249,22 @@ const ModulesPage = () => {
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
+
+  // Validation function
+  const validateForm = (formData: any): boolean => {
+    const errors: ValidationErrors = {};
+
+    if (!formData.name || formData.name.trim() === "") {
+      errors.name = "Module name is required";
+    }
+
+    if (!formData.training_area_id || formData.training_area_id === "") {
+      errors.training_area_id = "Training area selection is required";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   // Fetch modules from database on component mount
   useEffect(() => {
@@ -305,7 +334,7 @@ const ModulesPage = () => {
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                    onClick={() => handleDeleteModule(module.id)}
+                    onClick={() => handleDeleteModule(module)}
                     title="Delete"
                   >
                     <Delete sx={{ fontSize: 16 }} />
@@ -346,6 +375,11 @@ const ModulesPage = () => {
       return;
     }
 
+    // Validate form before submission
+    if (!validateForm(formData)) {
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -364,6 +398,7 @@ const ModulesPage = () => {
         await refreshModuleList();
         setError("");
         setSuccessMessage("Module created successfully!");
+        setValidationErrors({});
       } else {
         setError(response.message || "Failed to create module");
       }
@@ -378,6 +413,11 @@ const ModulesPage = () => {
   const handleUpdateModule = async (formData: any) => {
     if (!token || !selectedModule) {
       setError("Authentication required or no module selected");
+      return;
+    }
+
+    // Validate form before submission
+    if (!validateForm(formData)) {
       return;
     }
 
@@ -404,6 +444,8 @@ const ModulesPage = () => {
         setIsEditModalOpen(false);
         setSelectedModule(null);
         setError("");
+        setSuccessMessage("Module updated successfully!");
+        setValidationErrors({});
       } else {
         setError(response.message || "Failed to update module");
       }
@@ -415,24 +457,28 @@ const ModulesPage = () => {
     }
   };
 
-  const handleDeleteModule = async (moduleId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
+  const handleDeleteModule = (module: any) => {
+    setModuleToDelete(module);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!confirm("Are you sure you want to delete this module?")) {
+  const confirmDeleteModule = async () => {
+    if (!token || !moduleToDelete) {
+      setError("Authentication required or no module selected");
       return;
     }
 
     try {
       setIsLoading(true);
-      const response = await api.deleteModule(moduleId, token);
+      const response = await api.deleteModule(moduleToDelete.id, token);
 
       if (response.success) {
         // Refresh the module list
         await refreshModuleList();
         setError("");
+        setSuccessMessage("Module deleted successfully!");
+        setIsDeleteModalOpen(false);
+        setModuleToDelete(null);
       } else {
         setError(response.message || "Failed to delete module");
       }
@@ -520,7 +566,7 @@ const ModulesPage = () => {
           id: module.id,
           name: module.name,
           training_area_name: trainingArea?.name || "N/A",
-          status: module.status || "draft",
+          // status: module.status || "draft",
           trainingAreaId: module.trainingAreaId, // Keep for filtering
           actions: (
             <div className="flex gap-1">
@@ -558,7 +604,7 @@ const ModulesPage = () => {
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                onClick={() => handleDeleteModule(module.id)}
+                onClick={() => handleDeleteModule(module)}
                 title="Delete"
               >
                 <Delete sx={{ fontSize: 16 }} />
@@ -598,6 +644,14 @@ const ModulesPage = () => {
         setFormData({ ...formData, image_url: imageUrl });
       };
 
+      const handleFieldChange = (field: string, value: string) => {
+        setFormData({ ...formData, [field]: value });
+        // Clear validation error for this field when user starts typing
+        if (validationErrors[field as keyof ValidationErrors]) {
+          setValidationErrors({ ...validationErrors, [field]: undefined });
+        }
+      };
+
       return (
         <div className="relative">
           <Button
@@ -621,13 +675,18 @@ const ModulesPage = () => {
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                onChange={(e) => handleFieldChange("name", e.target.value)}
+                className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                  validationErrors.name ? "border-red-500" : "border-sandstone"
+                }`}
                 placeholder="Type your Module name"
                 required
               />
+              {validationErrors.name && (
+                <p className="text-red-500 text-sm mt-1">
+                  {validationErrors.name}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="description" className="text-[#2C2C2C]">
@@ -637,7 +696,7 @@ const ModulesPage = () => {
                 id="description"
                 value={formData.description}
                 onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
+                  handleFieldChange("description", e.target.value)
                 }
                 className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
                 placeholder="Add a description"
@@ -650,10 +709,16 @@ const ModulesPage = () => {
               <Select
                 value={formData.training_area_id}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, training_area_id: value })
+                  handleFieldChange("training_area_id", value)
                 }
               >
-                <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectTrigger
+                  className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
+                    validationErrors.training_area_id
+                      ? "border-red-500"
+                      : "border-sandstone"
+                  }`}
+                >
                   <SelectValue placeholder="Select a training area" />
                 </SelectTrigger>
                 <SelectContent>
@@ -664,6 +729,11 @@ const ModulesPage = () => {
                   ))}
                 </SelectContent>
               </Select>
+              {validationErrors.training_area_id && (
+                <p className="text-red-500 text-sm mt-1">
+                  {validationErrors.training_area_id}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="image_url" className="text-[#2C2C2C]">
@@ -672,9 +742,7 @@ const ModulesPage = () => {
               <Input
                 id="image_url"
                 value={formData.image_url}
-                onChange={(e) =>
-                  setFormData({ ...formData, image_url: e.target.value })
-                }
+                onChange={(e) => handleFieldChange("image_url", e.target.value)}
                 className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
                 placeholder="Paste your image URL"
               />
@@ -690,7 +758,11 @@ const ModulesPage = () => {
             <div className="flex justify-end gap-2">
               <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={
+                  isLoading ||
+                  !formData.name.trim() ||
+                  !formData.training_area_id
+                }
                 className="rounded-full"
               >
                 {isLoading ? "Creating..." : "Create Module"}
@@ -733,6 +805,14 @@ const ModulesPage = () => {
       setFormData({ ...formData, image_url: imageUrl });
     };
 
+    const handleFieldChange = (field: string, value: string) => {
+      setFormData({ ...formData, [field]: value });
+      // Clear validation error for this field when user starts typing
+      if (validationErrors[field as keyof ValidationErrors]) {
+        setValidationErrors({ ...validationErrors, [field]: undefined });
+      }
+    };
+
     return (
       <div className="relative">
         <Button
@@ -754,13 +834,18 @@ const ModulesPage = () => {
             <Input
               id="edit_name"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => handleFieldChange("name", e.target.value)}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                validationErrors.name ? "border-red-500" : "border-sandstone"
+              }`}
               placeholder="Type your Module name"
               required
             />
+            {validationErrors.name && (
+              <p className="text-red-500 text-sm mt-1">
+                {validationErrors.name}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit_description" className="text-[#2C2C2C]">
@@ -769,9 +854,7 @@ const ModulesPage = () => {
             <Input
               id="edit_description"
               value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
+              onChange={(e) => handleFieldChange("description", e.target.value)}
               className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               placeholder="Add a description"
             />
@@ -783,10 +866,16 @@ const ModulesPage = () => {
             <Select
               value={formData.training_area_id}
               onValueChange={(value) =>
-                setFormData({ ...formData, training_area_id: value })
+                handleFieldChange("training_area_id", value)
               }
             >
-              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+              <SelectTrigger
+                className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
+                  validationErrors.training_area_id
+                    ? "border-red-500"
+                    : "border-sandstone"
+                }`}
+              >
                 <SelectValue placeholder="Select a training area" />
               </SelectTrigger>
               <SelectContent>
@@ -797,6 +886,11 @@ const ModulesPage = () => {
                 ))}
               </SelectContent>
             </Select>
+            {validationErrors.training_area_id && (
+              <p className="text-red-500 text-sm mt-1">
+                {validationErrors.training_area_id}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit_image_url" className="text-[#2C2C2C]">
@@ -805,9 +899,7 @@ const ModulesPage = () => {
             <Input
               id="edit_image_url"
               value={formData.image_url}
-              onChange={(e) =>
-                setFormData({ ...formData, image_url: e.target.value })
-              }
+              onChange={(e) => handleFieldChange("image_url", e.target.value)}
               className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
               placeholder="Paste your image URL"
             />
@@ -832,7 +924,13 @@ const ModulesPage = () => {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading} className="rounded-full">
+            <Button
+              type="submit"
+              disabled={
+                isLoading || !formData.name.trim() || !formData.training_area_id
+              }
+              className="rounded-full"
+            >
               {isLoading ? "Updating..." : "Update Module"}
             </Button>
           </div>
@@ -851,7 +949,7 @@ const ModulesPage = () => {
         </div>
       )}
       {successMessage && (
-        <div className="fixed top-4 right-4 z-50 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg shadow-lg">
+        <div className="fixed top-4 right-4 z-[9999] p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg shadow-lg">
           {successMessage}
         </div>
       )}
@@ -864,7 +962,7 @@ const ModulesPage = () => {
         onSearch={handleSearch}
         enableColumnFiltering={true}
         columnFilterConfig={{
-          trainingAreaId: "trainingAreaId",
+          trainingAreaId: "training_area_name",
         }}
         dropdownConfig={{
           showTrainingArea: true,
@@ -883,6 +981,41 @@ const ModulesPage = () => {
               setSelectedModule(null);
             }}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md bg-white border-sandstone text-[#2C2C2C]">
+          <DialogHeader>
+            <DialogTitle className="text-[#2C2C2C]">Delete Module</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-[#2C2C2C]">
+              Are you sure you want to delete the module "{moduleToDelete?.name}
+              "? This action cannot be undone.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setModuleToDelete(null);
+              }}
+              className="rounded-full bg-orange-500/30"
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDeleteModule}
+              disabled={isLoading}
+              className="rounded-full bg-red-500 hover:bg-red-600 text-white"
+            >
+              {isLoading ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </AdminPageLayout>

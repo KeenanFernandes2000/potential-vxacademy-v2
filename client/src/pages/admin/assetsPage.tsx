@@ -117,6 +117,11 @@ interface AssetData extends Record<string, string | number | React.ReactNode> {
   actions: React.ReactNode;
 }
 
+// Type for validation errors
+interface ValidationErrors {
+  name?: string;
+}
+
 const AssetsPage = () => {
   const { token } = useAuth();
   const [assets, setAssets] = useState<AssetData[]>([]);
@@ -126,6 +131,11 @@ const AssetsPage = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<any>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {}
+  );
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [assetToDelete, setAssetToDelete] = useState<any>(null);
 
   // Function to show success message
   const showSuccessMessage = (message: string) => {
@@ -133,6 +143,18 @@ const AssetsPage = () => {
     setTimeout(() => {
       setSuccessMessage("");
     }, 3000);
+  };
+
+  // Validation function
+  const validateForm = (formData: any): boolean => {
+    const errors: ValidationErrors = {};
+
+    if (!formData.name || formData.name.trim() === "") {
+      errors.name = "Asset name is required";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   // Fetch assets from database on component mount
@@ -168,7 +190,7 @@ const AssetsPage = () => {
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                  onClick={() => handleDeleteAsset(asset.id)}
+                  onClick={() => handleDeleteAsset(asset)}
                   title="Delete"
                 >
                   <Delete sx={{ fontSize: 16 }} />
@@ -208,6 +230,11 @@ const AssetsPage = () => {
       return;
     }
 
+    // Validate form before submission
+    if (!validateForm(formData)) {
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -222,6 +249,7 @@ const AssetsPage = () => {
         // Refresh the asset list
         await refreshAssetList();
         setError("");
+        setValidationErrors({});
         showSuccessMessage("Asset created successfully!");
       } else {
         setError(response.message || "Failed to create asset");
@@ -237,6 +265,11 @@ const AssetsPage = () => {
   const handleUpdateAsset = async (formData: any) => {
     if (!token || !selectedAsset) {
       setError("Authentication required or no asset selected");
+      return;
+    }
+
+    // Validate form before submission
+    if (!validateForm(formData)) {
       return;
     }
 
@@ -260,6 +293,7 @@ const AssetsPage = () => {
         setIsEditModalOpen(false);
         setSelectedAsset(null);
         setError("");
+        setValidationErrors({});
         showSuccessMessage("Asset updated successfully!");
       } else {
         setError(response.message || "Failed to update asset");
@@ -272,19 +306,20 @@ const AssetsPage = () => {
     }
   };
 
-  const handleDeleteAsset = async (assetId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
+  const handleDeleteAsset = (asset: any) => {
+    setAssetToDelete(asset);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!confirm("Are you sure you want to delete this asset?")) {
+  const confirmDeleteAsset = async () => {
+    if (!token || !assetToDelete) {
+      setError("Authentication required");
       return;
     }
 
     try {
       setIsLoading(true);
-      const response = await api.deleteAsset(assetId, token);
+      const response = await api.deleteAsset(assetToDelete.id, token);
 
       if (response.success) {
         // Refresh the asset list
@@ -299,6 +334,8 @@ const AssetsPage = () => {
       setError("Failed to delete asset. Please try again.");
     } finally {
       setIsLoading(false);
+      setIsDeleteModalOpen(false);
+      setAssetToDelete(null);
     }
   };
 
@@ -330,7 +367,7 @@ const AssetsPage = () => {
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-              onClick={() => handleDeleteAsset(asset.id)}
+              onClick={() => handleDeleteAsset(asset)}
               title="Delete"
             >
               <Delete sx={{ fontSize: 16 }} />
@@ -354,6 +391,14 @@ const AssetsPage = () => {
       setFormData({ name: "" });
     };
 
+    const handleInputChange = (field: string, value: string) => {
+      setFormData({ ...formData, [field]: value });
+      // Clear validation error when user starts typing
+      if (validationErrors[field as keyof ValidationErrors]) {
+        setValidationErrors({ ...validationErrors, [field]: undefined });
+      }
+    };
+
     return (
       <form
         onSubmit={handleSubmit}
@@ -364,14 +409,25 @@ const AssetsPage = () => {
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+            onChange={(e) => handleInputChange("name", e.target.value)}
+            className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+              validationErrors.name
+                ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                : "border-sandstone focus:border-dawn hover:border-dawn"
+            }`}
             placeholder="Type your Asset Name"
             required
           />
+          {validationErrors.name && (
+            <p className="text-red-500 text-sm mt-1">{validationErrors.name}</p>
+          )}
         </div>
         <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={isLoading} className="rounded-full">
+          <Button
+            type="submit"
+            disabled={isLoading || !formData.name.trim()}
+            className="rounded-full"
+          >
             {isLoading ? "Creating..." : "Create Asset"}
           </Button>
         </div>
@@ -389,6 +445,14 @@ const AssetsPage = () => {
       await handleUpdateAsset(formData);
     };
 
+    const handleInputChange = (field: string, value: string) => {
+      setFormData({ ...formData, [field]: value });
+      // Clear validation error when user starts typing
+      if (validationErrors[field as keyof ValidationErrors]) {
+        setValidationErrors({ ...validationErrors, [field]: undefined });
+      }
+    };
+
     return (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
@@ -396,11 +460,18 @@ const AssetsPage = () => {
           <Input
             id="edit_name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+            onChange={(e) => handleInputChange("name", e.target.value)}
+            className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+              validationErrors.name
+                ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                : "border-sandstone focus:border-dawn hover:border-dawn"
+            }`}
             placeholder="Type your Asset Name"
             required
           />
+          {validationErrors.name && (
+            <p className="text-red-500 text-sm mt-1">{validationErrors.name}</p>
+          )}
         </div>
         <div className="flex justify-end gap-2">
           <Button
@@ -414,7 +485,11 @@ const AssetsPage = () => {
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={isLoading} className="rounded-full">
+          <Button
+            type="submit"
+            disabled={isLoading || !formData.name.trim()}
+            className="rounded-full"
+          >
             {isLoading ? "Updating..." : "Update Asset"}
           </Button>
         </div>
@@ -467,6 +542,51 @@ const AssetsPage = () => {
           </DialogHeader>
           <div className="mt-4">
             <EditAssetForm />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
+          <DialogHeader className="relative">
+            <DialogTitle className="text-[#2C2C2C]">Delete Asset</DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setAssetToDelete(null);
+              }}
+            >
+              <Close sx={{ fontSize: 20 }} />
+            </Button>
+          </DialogHeader>
+          <div className="mt-4">
+            <p className="text-[#2C2C2C] mb-6">
+              Are you sure you want to delete the asset "{assetToDelete?.name}"?
+              This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setAssetToDelete(null);
+                }}
+                className="rounded-full hover:bg-accent/30 hover:text-black"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDeleteAsset}
+                disabled={isLoading}
+                className="rounded-full bg-red-500 hover:bg-red-600 text-white"
+              >
+                {isLoading ? "Deleting..." : "Delete Asset"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

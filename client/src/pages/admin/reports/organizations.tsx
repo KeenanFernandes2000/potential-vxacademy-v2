@@ -185,9 +185,45 @@ const Organizations = () => {
       ...filteredOrganizations.map((org) => [
         org.id,
         org.name,
-        Array.isArray(org.subOrganization)
-          ? org.subOrganization.join("; ")
-          : (org.subOrganization || "N/A").toString().replace(/,/g, ";"),
+        (() => {
+          if (!org.subOrganization || org.subOrganization === "N/A")
+            return "N/A";
+          try {
+            const parsed = JSON.parse(org.subOrganization);
+
+            // If it's an array, join with semicolons
+            if (Array.isArray(parsed)) {
+              return parsed.join("; ");
+            }
+
+            // If it's an object, extract values and join with semicolons
+            if (typeof parsed === "object" && parsed !== null) {
+              return Object.values(parsed).join("; ");
+            }
+
+            // If it's a string or other type, return as is
+            return org.subOrganization;
+          } catch (error) {
+            console.log("CSV JSON parse error: ", error);
+            // If parsing fails, try to clean up the string manually
+            let cleaned = org.subOrganization;
+
+            // Handle the specific format: {"value1","value2","value3"}
+            if (cleaned.startsWith("{") && cleaned.endsWith("}")) {
+              // Remove outer curly braces
+              cleaned = cleaned.slice(1, -1);
+              // Split by comma and clean each item
+              const items = cleaned
+                .split(",")
+                .map((item) => item.trim().replace(/"/g, "").replace(/'/g, ""));
+              return items.join("; ");
+            }
+
+            // Fallback: just remove quotes if no curly braces
+            cleaned = cleaned.replace(/"/g, "");
+            return cleaned;
+          }
+        })(),
         org.totalFrontliners.toString(),
         org.registeredFrontliners.toString(),
         org.subAdminName,
@@ -223,7 +259,47 @@ const Organizations = () => {
   const tableData = filteredOrganizations.map((org) => ({
     "Org ID": org.id,
     "Organization Name": org.name,
-    "Sub-Organization": org.subOrganization || "N/A",
+    "Sub-Organization": (() => {
+      if (!org.subOrganization || org.subOrganization === "N/A") return "N/A";
+      console.log("Org Sub-Organization: ", org.subOrganization);
+      try {
+        // Parse JSON string and extract values
+        const parsed = JSON.parse(org.subOrganization);
+        console.log("Parsed: ", parsed);
+
+        // If it's an array, join with commas
+        if (Array.isArray(parsed)) {
+          return parsed.join(", ");
+        }
+
+        // If it's an object, extract values and join with commas
+        if (typeof parsed === "object" && parsed !== null) {
+          return Object.values(parsed).join(", ");
+        }
+
+        // If it's a string or other type, return as is
+        return org.subOrganization;
+      } catch (error) {
+        console.log("JSON parse error: ", error);
+        // If parsing fails, try to clean up the string manually
+        let cleaned = org.subOrganization;
+
+        // Handle the specific format: {"value1","value2","value3"}
+        if (cleaned.startsWith("{") && cleaned.endsWith("}")) {
+          // Remove outer curly braces
+          cleaned = cleaned.slice(1, -1);
+          // Split by comma and clean each item
+          const items = cleaned
+            .split(",")
+            .map((item) => item.trim().replace(/"/g, "").replace(/'/g, ""));
+          return items.join(", ");
+        }
+
+        // Fallback: just remove quotes if no curly braces
+        cleaned = cleaned.replace(/"/g, "");
+        return cleaned;
+      }
+    })(),
     "Total Frontliners": org.totalFrontliners.toString(),
     "Registered Frontliners": org.registeredFrontliners.toString(),
     "Sub-Admin Name": org.subAdminName,

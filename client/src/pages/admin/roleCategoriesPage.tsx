@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
@@ -122,6 +128,11 @@ interface RoleCategoryData
   actions: React.ReactNode;
 }
 
+// Type for validation errors
+interface ValidationErrors {
+  name?: string;
+}
+
 const RoleCategoriesPage = () => {
   const { token } = useAuth();
   const [roleCategories, setRoleCategories] = useState<RoleCategoryData[]>([]);
@@ -133,6 +144,11 @@ const RoleCategoriesPage = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [editingCategory, setEditingCategory] =
     useState<RoleCategoryData | null>(null);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>(
+    {}
+  );
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<any>(null);
 
   // Auto-hide success message after 3 seconds
   useEffect(() => {
@@ -143,6 +159,18 @@ const RoleCategoriesPage = () => {
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
+
+  // Validation function
+  const validateForm = (formData: any): boolean => {
+    const errors: ValidationErrors = {};
+
+    if (!formData.name || formData.name.trim() === "") {
+      errors.name = "Category name is required";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   // Fetch role categories from database on component mount
   useEffect(() => {
@@ -177,7 +205,7 @@ const RoleCategoriesPage = () => {
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                  onClick={() => handleDeleteRoleCategory(category.id)}
+                  onClick={() => handleDeleteRoleCategory(category)}
                   title="Delete"
                 >
                   <Delete sx={{ fontSize: 16 }} />
@@ -217,6 +245,11 @@ const RoleCategoriesPage = () => {
       return;
     }
 
+    // Validate form before submission
+    if (!validateForm(formData)) {
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -231,6 +264,7 @@ const RoleCategoriesPage = () => {
         // Refresh the role category list
         await refreshRoleCategoryList();
         setError("");
+        setValidationErrors({});
         setSuccessMessage("Role category created successfully!");
       } else {
         setError(response.message || "Failed to create role category");
@@ -253,6 +287,11 @@ const RoleCategoriesPage = () => {
       return;
     }
 
+    // Validate form before submission
+    if (!validateForm(formData)) {
+      return;
+    }
+
     try {
       setIsLoading(true);
 
@@ -271,6 +310,7 @@ const RoleCategoriesPage = () => {
         // Refresh the role category list
         await refreshRoleCategoryList();
         setError("");
+        setValidationErrors({});
         setSuccessMessage("Role category updated successfully!");
         setEditingCategory(null);
       } else {
@@ -284,24 +324,26 @@ const RoleCategoriesPage = () => {
     }
   };
 
-  const handleDeleteRoleCategory = async (roleCategoryId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
+  const handleDeleteRoleCategory = (category: any) => {
+    setCategoryToDelete(category);
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!confirm("Are you sure you want to delete this role category?")) {
+  const confirmDeleteRoleCategory = async () => {
+    if (!token || !categoryToDelete) {
+      setError("Authentication required");
       return;
     }
 
     try {
       setIsLoading(true);
-      const response = await api.deleteRoleCategory(roleCategoryId, token);
+      const response = await api.deleteRoleCategory(categoryToDelete.id, token);
 
       if (response.success) {
         // Refresh the role category list
         await refreshRoleCategoryList();
         setError("");
+        setSuccessMessage("Role category deleted successfully!");
       } else {
         setError(response.message || "Failed to delete role category");
       }
@@ -310,6 +352,8 @@ const RoleCategoriesPage = () => {
       setError("Failed to delete role category. Please try again.");
     } finally {
       setIsLoading(false);
+      setIsDeleteModalOpen(false);
+      setCategoryToDelete(null);
     }
   };
 
@@ -336,7 +380,7 @@ const RoleCategoriesPage = () => {
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-white hover:text-red-400 hover:bg-red-400/10"
-              onClick={() => handleDeleteRoleCategory(category.id)}
+              onClick={() => handleDeleteRoleCategory(category)}
               title="Delete"
             >
               <Delete sx={{ fontSize: 16 }} />
@@ -362,6 +406,14 @@ const RoleCategoriesPage = () => {
       });
     };
 
+    const handleInputChange = (field: string, value: string) => {
+      setFormData({ ...formData, [field]: value });
+      // Clear validation error when user starts typing
+      if (validationErrors[field as keyof ValidationErrors]) {
+        setValidationErrors({ ...validationErrors, [field]: undefined });
+      }
+    };
+
     return (
       <div className="relative">
         <Button
@@ -384,16 +436,27 @@ const RoleCategoriesPage = () => {
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                validationErrors.name
+                  ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                  : "border-sandstone focus:border-dawn hover:border-dawn"
+              }`}
               placeholder="Type your Role Category Name"
               required
             />
+            {validationErrors.name && (
+              <p className="text-red-500 text-sm mt-1">
+                {validationErrors.name}
+              </p>
+            )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="submit" disabled={isLoading} className="rounded-full">
+            <Button
+              type="submit"
+              disabled={isLoading || !formData.name.trim()}
+              className="rounded-full"
+            >
               {isLoading ? "Creating..." : "Create Category"}
             </Button>
           </div>
@@ -413,6 +476,14 @@ const RoleCategoriesPage = () => {
       setFormData({
         name: "",
       });
+    };
+
+    const handleInputChange = (field: string, value: string) => {
+      setFormData({ ...formData, [field]: value });
+      // Clear validation error when user starts typing
+      if (validationErrors[field as keyof ValidationErrors]) {
+        setValidationErrors({ ...validationErrors, [field]: undefined });
+      }
     };
 
     return (
@@ -437,16 +508,27 @@ const RoleCategoriesPage = () => {
             <Input
               id="edit-name"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white transition-all duration-300 py-4 lg:py-5 text-base border-2 rounded-full ${
+                validationErrors.name
+                  ? "border-red-500 focus:border-red-500 hover:border-red-500"
+                  : "border-sandstone focus:border-dawn hover:border-dawn"
+              }`}
               placeholder="Type your Role Category Name"
               required
             />
+            {validationErrors.name && (
+              <p className="text-red-500 text-sm mt-1">
+                {validationErrors.name}
+              </p>
+            )}
           </div>
           <div className="flex justify-end gap-2">
-            <Button type="submit" disabled={isLoading} className="rounded-full">
+            <Button
+              type="submit"
+              disabled={isLoading || !formData.name.trim()}
+              className="rounded-full"
+            >
               {isLoading ? "Updating..." : "Update Category"}
             </Button>
           </div>
@@ -488,6 +570,53 @@ const RoleCategoriesPage = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
+          <DialogHeader className="relative">
+            <DialogTitle className="text-[#2C2C2C]">
+              Delete Role Category
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setCategoryToDelete(null);
+              }}
+            >
+              <Close sx={{ fontSize: 20 }} />
+            </Button>
+          </DialogHeader>
+          <div className="mt-4">
+            <p className="text-[#2C2C2C] mb-6">
+              Are you sure you want to delete the role category "
+              {categoryToDelete?.name}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setCategoryToDelete(null);
+                }}
+                className="rounded-full hover:bg-accent/30 hover:text-black"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDeleteRoleCategory}
+                disabled={isLoading}
+                className="rounded-full bg-red-500 hover:bg-red-600 text-white"
+              >
+                {isLoading ? "Deleting..." : "Delete Category"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AdminPageLayout>
   );
 };

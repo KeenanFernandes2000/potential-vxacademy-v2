@@ -1,29 +1,41 @@
 import { db } from "../db/connection";
-import { 
-  users, 
-  normalUsers, 
+import {
+  users,
+  normalUsers,
   subAdmins,
-  assets, 
-  subAssets, 
-  organizations, 
+  assets,
+  subAssets,
+  organizations,
   subOrganizations,
-  roleCategories, 
-  roles, 
+  roleCategories,
+  roles,
   seniorityLevels,
-  trainingAreas, 
-  modules, 
-  courses, 
-  userTrainingAreaProgress, 
-  userModuleProgress, 
+  trainingAreas,
+  modules,
+  courses,
+  userTrainingAreaProgress,
+  userModuleProgress,
   userCourseProgress,
-  assessments, 
+  assessments,
   assessmentAttempts,
-  certificates
+  certificates,
 } from "../db/schema";
-import { sql, desc, asc, count, sum, avg, eq, and, gte, lte, inArray, isNotNull } from "drizzle-orm";
+import {
+  sql,
+  desc,
+  asc,
+  count,
+  sum,
+  avg,
+  eq,
+  and,
+  gte,
+  lte,
+  inArray,
+  isNotNull,
+} from "drizzle-orm";
 
 export const reportServices = {
-
   // Comprehensive Analytics Data - Single endpoint for all analytics
   getAllAnalyticsData: async () => {
     try {
@@ -37,240 +49,321 @@ export const reportServices = {
         certificatesIssued,
         averageCompletionRate,
         monthlyGrowth,
-        
+
         // User Growth Data
         userGrowthData,
-        
+
         // Asset Distribution
         assetDistributionData,
-        
+
         // Role Distribution
         roleDistributionData,
-        
+
         // Seniority Distribution
         seniorityDistributionData,
-        
+
         // Certificate Analytics
         certificateAnalyticsData,
-        
+
         // Active vs Inactive Users
         activeInactiveUsersData,
-        
+
         // Peak Usage Times
         peakUsageTimesData,
-        
+
         // Training Area Enrollments
         trainingAreaEnrollmentsData,
-        
+
         // Course Completion Rates
         courseCompletionRatesData,
-        
+
         // Training Completion Heatmap
         trainingCompletionHeatmapData,
-        
+
         // Certificate Trends
         certificateTrendsData,
-        
+
         // Organization Role Distribution
         organizationRoleDistributionData,
-        
+
         // Training Area Seniority Distribution
         trainingAreaSeniorityDistributionData,
-        
       ] = await Promise.all([
         // Key Metrics
         db.select({ count: count() }).from(users),
-        db.select({ count: count() })
+        db
+          .select({ count: count() })
           .from(users)
-          .where(gte(users.lastLogin, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))),
+          .where(
+            gte(
+              users.lastLogin,
+              new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+            )
+          ),
         db.select({ count: count() }).from(courses),
-        db.select({ count: count() })
+        db
+          .select({ count: count() })
           .from(userCourseProgress)
           .where(eq(userCourseProgress.status, "completed")),
-        db.select({ count: count() })
+        db
+          .select({ count: count() })
           .from(users)
           .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
           .groupBy(users.organization),
-        db.select({ count: count() })
+        db
+          .select({ count: count() })
           .from(assessmentAttempts)
           .where(eq(assessmentAttempts.passed, true)),
-        db.select({ 
-          avgRate: sql<number>`ROUND(AVG(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 100.0 ELSE 0.0 END), 2)`
-        }).from(userCourseProgress),
-        db.select({
-          thisMonth: sql<number>`COUNT(CASE WHEN DATE_TRUNC('month', ${users.createdAt}) = DATE_TRUNC('month', CURRENT_DATE) THEN 1 END)`,
-          lastMonth: sql<number>`COUNT(CASE WHEN DATE_TRUNC('month', ${users.createdAt}) = DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') THEN 1 END)`
-        }).from(users),
-        
+        db
+          .select({
+            avgRate: sql<number>`ROUND(AVG(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 100.0 ELSE 0.0 END), 2)`,
+          })
+          .from(userCourseProgress),
+        db
+          .select({
+            thisMonth: sql<number>`COUNT(CASE WHEN DATE_TRUNC('month', ${users.createdAt}) = DATE_TRUNC('month', CURRENT_DATE) THEN 1 END)`,
+            lastMonth: sql<number>`COUNT(CASE WHEN DATE_TRUNC('month', ${users.createdAt}) = DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') THEN 1 END)`,
+          })
+          .from(users),
+
         // User Growth Data - Cumulative
-        db.select({
-          period: sql<string>`to_char(${users.createdAt}, 'YYYY-MM')`,
-          newUsers: count(),
-          totalUsers: sql<number>`SUM(COUNT(*)) OVER (ORDER BY to_char(${users.createdAt}, 'YYYY-MM') ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)`
-        })
-        .from(users)
-        .groupBy(sql`to_char(${users.createdAt}, 'YYYY-MM')`)
-        .orderBy(asc(sql`to_char(${users.createdAt}, 'YYYY-MM')`)),
-        
+        db
+          .select({
+            period: sql<string>`to_char(${users.createdAt}, 'YYYY-MM')`,
+            newUsers: count(),
+            totalUsers: sql<number>`SUM(COUNT(*)) OVER (ORDER BY to_char(${users.createdAt}, 'YYYY-MM') ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)`,
+          })
+          .from(users)
+          .groupBy(sql`to_char(${users.createdAt}, 'YYYY-MM')`)
+          .orderBy(asc(sql`to_char(${users.createdAt}, 'YYYY-MM')`)),
+
         // Asset Distribution
-        db.select({
-          asset: users.asset,
-          subAsset: users.subAsset,
-          userCount: count(),
-          percentage: sql<number>`ROUND((COUNT(*) * 100.0 / SUM(COUNT(*)) OVER()), 2)`
-        })
-        .from(users)
-        .groupBy(users.asset, users.subAsset)
-        .orderBy(desc(count())),
-        
+        db
+          .select({
+            asset: users.asset,
+            subAsset: users.subAsset,
+            userCount: count(),
+            percentage: sql<number>`ROUND((COUNT(*) * 100.0 / SUM(COUNT(*)) OVER()), 2)`,
+          })
+          .from(users)
+          .groupBy(users.asset, users.subAsset)
+          .orderBy(desc(count())),
+
         // Role Distribution - Fixed to aggregate by asset only
-        db.select({
-          asset: users.asset,
-          userCount: count()
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.asset)
-        .orderBy(desc(count())),
-        
+        db
+          .select({
+            asset: users.asset,
+            userCount: count(),
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .groupBy(users.asset)
+          .orderBy(desc(count())),
+
         // Seniority Distribution - Fixed to only show managers and staff
-        db.select({
-          seniority: normalUsers.seniority,
-          userCount: count(),
-          percentage: sql<number>`ROUND((COUNT(*) * 100.0 / SUM(COUNT(*)) OVER()), 2)`
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .where(inArray(normalUsers.seniority, ['Manager', 'Staff']))
-        .groupBy(normalUsers.seniority)
-        .orderBy(desc(count())),
-        
+        db
+          .select({
+            seniority: normalUsers.seniority,
+            userCount: count(),
+            percentage: sql<number>`ROUND((COUNT(*) * 100.0 / SUM(COUNT(*)) OVER()), 2)`,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .where(inArray(normalUsers.seniority, ["Manager", "Staff"]))
+          .groupBy(normalUsers.seniority)
+          .orderBy(desc(count())),
+
         // Certificate Analytics
-        db.select({
-          period: sql<string>`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`,
-          asset: users.asset,
-          certificatesEarned: count(),
-          averageScore: avg(assessmentAttempts.score)
-        })
-        .from(assessmentAttempts)
-        .innerJoin(users, eq(assessmentAttempts.userId, users.id))
-        .where(eq(assessmentAttempts.passed, true))
-        .groupBy(sql`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`, users.asset)
-        .orderBy(asc(sql`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`)),
-        
+        db
+          .select({
+            period: sql<string>`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`,
+            asset: users.asset,
+            certificatesEarned: count(),
+            averageScore: avg(assessmentAttempts.score),
+          })
+          .from(assessmentAttempts)
+          .innerJoin(users, eq(assessmentAttempts.userId, users.id))
+          .where(eq(assessmentAttempts.passed, true))
+          .groupBy(
+            sql`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`,
+            users.asset
+          )
+          .orderBy(
+            asc(sql`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`)
+          ),
+
         // Registration Trends
-        db.select({
-          period: sql<string>`to_char(${users.createdAt}, 'YYYY-MM')`,
-          newRegistrations: count(),
-          cumulativeRegistrations: sql<number>`SUM(COUNT(*)) OVER (ORDER BY to_char(${users.createdAt}, 'YYYY-MM'))`
-        })
-        .from(users)
-        .groupBy(sql`to_char(${users.createdAt}, 'YYYY-MM')`)
-        .orderBy(asc(sql`to_char(${users.createdAt}, 'YYYY-MM')`)),
-        
+        db
+          .select({
+            period: sql<string>`to_char(${users.createdAt}, 'YYYY-MM')`,
+            newRegistrations: count(),
+            cumulativeRegistrations: sql<number>`SUM(COUNT(*)) OVER (ORDER BY to_char(${users.createdAt}, 'YYYY-MM'))`,
+          })
+          .from(users)
+          .groupBy(sql`to_char(${users.createdAt}, 'YYYY-MM')`)
+          .orderBy(asc(sql`to_char(${users.createdAt}, 'YYYY-MM')`)),
+
         // Active vs Inactive Users
-        db.select({
-          period: sql<string>`to_char(${users.lastLogin}, 'YYYY-MM')`,
-          activeUsers: sql<number>`COUNT(CASE WHEN ${users.lastLogin} >= ${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)} THEN 1 END)`,
-          inactiveUsers: sql<number>`COUNT(CASE WHEN ${users.lastLogin} < ${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)} THEN 1 END)`,
-          totalUsers: count()
-        })
-        .from(users)
-        .groupBy(sql`to_char(${users.lastLogin}, 'YYYY-MM')`)
-        .orderBy(asc(sql`to_char(${users.lastLogin}, 'YYYY-MM')`)),
-        
+        db
+          .select({
+            period: sql<string>`to_char(${users.lastLogin}, 'YYYY-MM')`,
+            activeUsers: sql<number>`COUNT(CASE WHEN ${
+              users.lastLogin
+            } >= ${new Date(
+              Date.now() - 30 * 24 * 60 * 60 * 1000
+            )} THEN 1 END)`,
+            inactiveUsers: sql<number>`COUNT(CASE WHEN ${
+              users.lastLogin
+            } < ${new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)} THEN 1 END)`,
+            totalUsers: count(),
+          })
+          .from(users)
+          .groupBy(sql`to_char(${users.lastLogin}, 'YYYY-MM')`)
+          .orderBy(asc(sql`to_char(${users.lastLogin}, 'YYYY-MM')`)),
+
         // Peak Usage Days - Changed from times to days
-        db.select({
-          dayOfWeek: sql<string>`to_char(${users.lastLogin}, 'Day')`,
-          loginCount: count(),
-          uniqueUsers: sql<number>`COUNT(DISTINCT ${users.id})`
-        })
-        .from(users)
-        .where(isNotNull(users.lastLogin))
-        .groupBy(sql`to_char(${users.lastLogin}, 'Day')`)
-        .orderBy(desc(count())),
-        
+        db
+          .select({
+            dayOfWeek: sql<string>`to_char(${users.lastLogin}, 'Day')`,
+            loginCount: count(),
+            uniqueUsers: sql<number>`COUNT(DISTINCT ${users.id})`,
+          })
+          .from(users)
+          .where(isNotNull(users.lastLogin))
+          .groupBy(sql`to_char(${users.lastLogin}, 'Day')`)
+          .orderBy(desc(count())),
+
         // Training Area Enrollments
-        db.select({
-          period: sql<string>`to_char(${userTrainingAreaProgress.startedAt}, 'YYYY-MM')`,
-          trainingArea: trainingAreas.name,
-          enrollments: count(),
-          completions: sql<number>`COUNT(CASE WHEN ${userTrainingAreaProgress.status} = 'completed' THEN 1 END)`
-        })
-        .from(userTrainingAreaProgress)
-        .innerJoin(trainingAreas, eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id))
-        .groupBy(sql`to_char(${userTrainingAreaProgress.startedAt}, 'YYYY-MM')`, trainingAreas.name)
-        .orderBy(asc(sql`to_char(${userTrainingAreaProgress.startedAt}, 'YYYY-MM')`)),
-        
+        db
+          .select({
+            period: sql<string>`to_char(${userTrainingAreaProgress.startedAt}, 'YYYY-MM')`,
+            trainingArea: trainingAreas.name,
+            enrollments: count(),
+            completions: sql<number>`COUNT(CASE WHEN ${userTrainingAreaProgress.status} = 'completed' THEN 1 END)`,
+          })
+          .from(userTrainingAreaProgress)
+          .innerJoin(
+            trainingAreas,
+            eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id)
+          )
+          .groupBy(
+            sql`to_char(${userTrainingAreaProgress.startedAt}, 'YYYY-MM')`,
+            trainingAreas.name
+          )
+          .orderBy(
+            asc(sql`to_char(${userTrainingAreaProgress.startedAt}, 'YYYY-MM')`)
+          ),
+
         // Course Completion Rates - Fixed to group by training area only
-        db.select({
-          trainingArea: trainingAreas.name,
-          totalEnrollments: count(),
-          completedCourses: sql<number>`COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END)`,
-          completionRate: sql<number>`ROUND((COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0 / COUNT(*)), 2)`
-        })
-        .from(userCourseProgress)
-        .innerJoin(courses, eq(userCourseProgress.courseId, courses.id))
-        .innerJoin(modules, eq(courses.moduleId, modules.id))
-        .innerJoin(trainingAreas, eq(modules.trainingAreaId, trainingAreas.id))
-        .groupBy(trainingAreas.name)
-        .orderBy(desc(sql`ROUND((COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0 / COUNT(*)), 2)`)),
-        
+        db
+          .select({
+            trainingArea: trainingAreas.name,
+            totalEnrollments: count(),
+            completedCourses: sql<number>`COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END)`,
+            completionRate: sql<number>`ROUND((COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0 / COUNT(*)), 2)`,
+          })
+          .from(userCourseProgress)
+          .innerJoin(courses, eq(userCourseProgress.courseId, courses.id))
+          .innerJoin(modules, eq(courses.moduleId, modules.id))
+          .innerJoin(
+            trainingAreas,
+            eq(modules.trainingAreaId, trainingAreas.id)
+          )
+          .groupBy(trainingAreas.name)
+          .orderBy(
+            desc(
+              sql`ROUND((COUNT(CASE WHEN ${userCourseProgress.status} = 'completed' THEN 1 END) * 100.0 / COUNT(*)), 2)`
+            )
+          ),
+
         // Training Completion Heatmap - Group by Training Area
-        db.select({
-          trainingArea: trainingAreas.name,
-          totalUsers: sql<number>`COUNT(DISTINCT ${users.id})`,
-          completedUsers: sql<number>`COUNT(DISTINCT CASE WHEN ${userTrainingAreaProgress.status} = 'completed' THEN ${users.id} END)`,
-          completionRate: sql<number>`ROUND((COUNT(DISTINCT CASE WHEN ${userTrainingAreaProgress.status} = 'completed' THEN ${users.id} END) * 100.0 / COUNT(DISTINCT ${users.id})), 2)`
-        })
-        .from(users)
-        .innerJoin(userTrainingAreaProgress, eq(users.id, userTrainingAreaProgress.userId))
-        .innerJoin(trainingAreas, eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id))
-        .groupBy(trainingAreas.name)
-        .orderBy(desc(sql`ROUND((COUNT(DISTINCT CASE WHEN ${userTrainingAreaProgress.status} = 'completed' THEN ${users.id} END) * 100.0 / COUNT(DISTINCT ${users.id})), 2)`)),
-        
+        db
+          .select({
+            trainingArea: trainingAreas.name,
+            totalUsers: sql<number>`COUNT(DISTINCT ${users.id})`,
+            completedUsers: sql<number>`COUNT(DISTINCT CASE WHEN ${userTrainingAreaProgress.status} = 'completed' THEN ${users.id} END)`,
+            completionRate: sql<number>`ROUND((COUNT(DISTINCT CASE WHEN ${userTrainingAreaProgress.status} = 'completed' THEN ${users.id} END) * 100.0 / COUNT(DISTINCT ${users.id})), 2)`,
+          })
+          .from(users)
+          .innerJoin(
+            userTrainingAreaProgress,
+            eq(users.id, userTrainingAreaProgress.userId)
+          )
+          .innerJoin(
+            trainingAreas,
+            eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id)
+          )
+          .groupBy(trainingAreas.name)
+          .orderBy(
+            desc(
+              sql`ROUND((COUNT(DISTINCT CASE WHEN ${userTrainingAreaProgress.status} = 'completed' THEN ${users.id} END) * 100.0 / COUNT(DISTINCT ${users.id})), 2)`
+            )
+          ),
+
         // Certificate Trends
-        db.select({
-          period: sql<string>`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`,
-          trainingArea: trainingAreas.name,
-          certificatesEarned: count(),
-          averageScore: avg(assessmentAttempts.score)
-        })
-        .from(assessmentAttempts)
-        .innerJoin(assessments, eq(assessmentAttempts.assessmentId, assessments.id))
-        .innerJoin(trainingAreas, eq(assessments.trainingAreaId, trainingAreas.id))
-        .where(eq(assessmentAttempts.passed, true))
-        .groupBy(sql`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`, trainingAreas.name)
-        .orderBy(asc(sql`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`)),
-        
+        db
+          .select({
+            period: sql<string>`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`,
+            trainingArea: trainingAreas.name,
+            certificatesEarned: count(),
+            averageScore: avg(assessmentAttempts.score),
+          })
+          .from(assessmentAttempts)
+          .innerJoin(
+            assessments,
+            eq(assessmentAttempts.assessmentId, assessments.id)
+          )
+          .innerJoin(
+            trainingAreas,
+            eq(assessments.trainingAreaId, trainingAreas.id)
+          )
+          .where(eq(assessmentAttempts.passed, true))
+          .groupBy(
+            sql`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`,
+            trainingAreas.name
+          )
+          .orderBy(
+            asc(sql`to_char(${assessmentAttempts.completedAt}, 'YYYY-MM')`)
+          ),
+
         // Organization Role Distribution - Fixed to aggregate by organization only
-        db.select({
-          organization: users.organization,
-          userCount: count()
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.organization)
-        .orderBy(desc(count())),
-        
+        db
+          .select({
+            organization: users.organization,
+            userCount: count(),
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .groupBy(users.organization)
+          .orderBy(desc(count())),
+
         // Training Area Seniority Distribution
-        db.select({
-          trainingArea: trainingAreas.name,
-          seniority: normalUsers.seniority,
-          userCount: count(),
-          percentage: sql<number>`ROUND((COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (PARTITION BY ${trainingAreas.name})), 2)`
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .innerJoin(userTrainingAreaProgress, eq(users.id, userTrainingAreaProgress.userId))
-        .innerJoin(trainingAreas, eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id))
-        .groupBy(trainingAreas.name, normalUsers.seniority),
-        
+        db
+          .select({
+            trainingArea: trainingAreas.name,
+            seniority: normalUsers.seniority,
+            userCount: count(),
+            percentage: sql<number>`ROUND((COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (PARTITION BY ${trainingAreas.name})), 2)`,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .innerJoin(
+            userTrainingAreaProgress,
+            eq(users.id, userTrainingAreaProgress.userId)
+          )
+          .innerJoin(
+            trainingAreas,
+            eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id)
+          )
+          .groupBy(trainingAreas.name, normalUsers.seniority),
       ]);
 
-      const growthRate = monthlyGrowth[0]?.lastMonth && monthlyGrowth[0].lastMonth > 0 
-        ? ((monthlyGrowth[0].thisMonth - monthlyGrowth[0].lastMonth) / monthlyGrowth[0].lastMonth) * 100
-        : 0;
+      const growthRate =
+        monthlyGrowth[0]?.lastMonth && monthlyGrowth[0].lastMonth > 0
+          ? ((monthlyGrowth[0].thisMonth - monthlyGrowth[0].lastMonth) /
+              monthlyGrowth[0].lastMonth) *
+            100
+          : 0;
 
       return {
         // Key Metrics
@@ -282,9 +375,9 @@ export const reportServices = {
           totalOrganizations: totalOrganizations.length,
           certificatesIssued: certificatesIssued[0]?.count || 0,
           averageCompletionRate: averageCompletionRate[0]?.avgRate || 0,
-          monthlyGrowth: Math.round(growthRate * 100) / 100
+          monthlyGrowth: Math.round(growthRate * 100) / 100,
         },
-        
+
         // Analytics Data
         userGrowth: userGrowthData,
         assetDistribution: assetDistributionData,
@@ -298,7 +391,8 @@ export const reportServices = {
         trainingCompletionHeatmap: trainingCompletionHeatmapData,
         certificateTrends: certificateTrendsData,
         organizationRoleDistribution: organizationRoleDistributionData,
-        trainingAreaSeniorityDistribution: trainingAreaSeniorityDistributionData
+        trainingAreaSeniorityDistribution:
+          trainingAreaSeniorityDistributionData,
       };
     } catch (error) {
       console.error("Error in getAllAnalyticsData:", error);
@@ -312,7 +406,7 @@ export const reportServices = {
           totalOrganizations: 0,
           certificatesIssued: 0,
           averageCompletionRate: 0,
-          monthlyGrowth: 0
+          monthlyGrowth: 0,
         },
         userGrowth: [],
         assetDistribution: [],
@@ -327,7 +421,7 @@ export const reportServices = {
         certificateTrends: [],
         organizationRoleDistribution: [],
         trainingAreaSeniorityDistribution: [],
-        organizationRoleTreeMap: []
+        organizationRoleTreeMap: [],
       };
     }
   },
@@ -354,148 +448,165 @@ export const reportServices = {
         subOrganizationOptions,
         roleCategoryOptions,
         progressOptions,
-        
+
         // Data table data
         userProgressData,
-        
+
         // General numerical stats
         totalFrontliners,
         totalOrganizations,
         totalCertificatesIssued,
         totalCompletedAlMidhyaf,
         totalVxPointsEarned,
-        alMidhyafOverallProgress
+        alMidhyafOverallProgress,
       ] = await Promise.all([
-        // Asset options for filters - get from all users
-        db.select({
-          value: users.asset,
-          label: users.asset
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.asset),
+        // Asset options for filters - get all available assets (distinct)
+        db
+          .selectDistinct({
+            value: assets.name,
+            label: assets.name,
+          })
+          .from(assets),
 
-        // Sub-asset options for filters - get from all users
-        db.select({
-          value: users.subAsset,
-          label: users.subAsset
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.subAsset),
+        // Sub-asset options for filters - get all available sub-assets (distinct)
+        db
+          .selectDistinct({
+            value: subAssets.name,
+            label: subAssets.name,
+          })
+          .from(subAssets),
 
-        // Organization options for filters - get from all users
-        db.select({
-          value: users.organization,
-          label: users.organization
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.organization),
+        // Organization options for filters - get all available organizations (distinct)
+        db
+          .selectDistinct({
+            value: organizations.name,
+            label: organizations.name,
+          })
+          .from(organizations),
 
         // Sub-organization options for filters - get from all users
-        db.select({
-          value: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`,
-          label: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.subOrganization),
+        db
+          .select({
+            value: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`,
+            label: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .groupBy(users.subOrganization),
 
         // Role category options for filters - get from all users
-        db.select({
-          value: normalUsers.roleCategory,
-          label: normalUsers.roleCategory
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(normalUsers.roleCategory),
+        db
+          .select({
+            value: normalUsers.roleCategory,
+            label: normalUsers.roleCategory,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .groupBy(normalUsers.roleCategory),
 
         // Progress options for filters
-        db.select({
-          value: userTrainingAreaProgress.status,
-          label: userTrainingAreaProgress.status
-        })
-        .from(userTrainingAreaProgress)
-        .where(eq(userTrainingAreaProgress.trainingAreaId, trainingArea.id))
-        .groupBy(userTrainingAreaProgress.status),
+        db
+          .select({
+            value: userTrainingAreaProgress.status,
+            label: userTrainingAreaProgress.status,
+          })
+          .from(userTrainingAreaProgress)
+          .where(eq(userTrainingAreaProgress.trainingAreaId, trainingArea.id))
+          .groupBy(userTrainingAreaProgress.status),
 
         // Data table data - get all users who have enrolled in this training area
-        db.select({
-          userId: users.id,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-          eid: normalUsers.eid,
-          phoneNumber: normalUsers.phoneNumber,
-          asset: users.asset,
-          subAsset: users.subAsset,
-          organization: users.organization,
-          subOrganization: users.subOrganization,
-          roleCategory: normalUsers.roleCategory,
-          role: normalUsers.role,
-          seniority: normalUsers.seniority,
-          frontlinerType: sql<string>`CASE WHEN ${normalUsers.existing} THEN 'Existing' ELSE 'New' END`,
-          alMidhyafOverallProgress: sql<string>`COALESCE(CAST(${userTrainingAreaProgress.completionPercentage} AS TEXT), '0')`,
-          module1Progress: sql<number>`COALESCE((
+        db
+          .select({
+            userId: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            eid: normalUsers.eid,
+            phoneNumber: normalUsers.phoneNumber,
+            asset: users.asset,
+            subAsset: users.subAsset,
+            organization: users.organization,
+            subOrganization: users.subOrganization,
+            roleCategory: normalUsers.roleCategory,
+            role: normalUsers.role,
+            seniority: normalUsers.seniority,
+            frontlinerType: sql<string>`CASE WHEN ${normalUsers.existing} THEN 'Existing' ELSE 'New' END`,
+            alMidhyafOverallProgress: sql<string>`COALESCE(CAST(${userTrainingAreaProgress.completionPercentage} AS TEXT), '0')`,
+            module1Progress: sql<number>`COALESCE((
             SELECT AVG(CAST(ump.completion_percentage AS FLOAT))
             FROM user_module_progress ump
             INNER JOIN modules m ON ump.module_id = m.id
-            WHERE ump.user_id = ${users.id} 
+            WHERE ump.user_id = ${users.id}
             AND m.training_area_id = ${trainingArea.id}
             AND m.name ILIKE '%module 1%'
           ), 0)`,
-          vxPoints: users.xp,
-          registrationDate: users.createdAt,
-          lastLoginDate: users.lastLogin
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .leftJoin(userTrainingAreaProgress, and(
-          eq(users.id, userTrainingAreaProgress.userId),
-          eq(userTrainingAreaProgress.trainingAreaId, trainingArea.id)
-        ))
-        .orderBy(users.createdAt),
+            vxPoints: users.xp,
+            registrationDate: users.createdAt,
+            lastLoginDate: users.lastLogin,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .leftJoin(
+            userTrainingAreaProgress,
+            and(
+              eq(users.id, userTrainingAreaProgress.userId),
+              eq(userTrainingAreaProgress.trainingAreaId, trainingArea.id)
+            )
+          )
+          .orderBy(users.createdAt),
 
         // General numerical stats - get all frontliners (users with normalUsers)
-        db.select({ count: count() })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+        db
+          .select({ count: count() })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
 
         // Total organizations
-        db.select({ count: count() })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.organization),
+        db
+          .select({ count: count() })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .groupBy(users.organization),
 
         // Total certificates issued for this training area
-        db.select({ count: count() })
-        .from(assessmentAttempts)
-        .innerJoin(assessments, eq(assessmentAttempts.assessmentId, assessments.id))
-        .where(and(
-          eq(assessments.trainingAreaId, trainingArea.id),
-          eq(assessmentAttempts.passed, true)
-        )),
+        db
+          .select({ count: count() })
+          .from(assessmentAttempts)
+          .innerJoin(
+            assessments,
+            eq(assessmentAttempts.assessmentId, assessments.id)
+          )
+          .where(
+            and(
+              eq(assessments.trainingAreaId, trainingArea.id),
+              eq(assessmentAttempts.passed, true)
+            )
+          ),
 
         // Total completed for this training area
-        db.select({ count: count() })
-        .from(userTrainingAreaProgress)
-        .where(and(
-          eq(userTrainingAreaProgress.trainingAreaId, trainingArea.id),
-          eq(userTrainingAreaProgress.status, "completed")
-        )),
+        db
+          .select({ count: count() })
+          .from(userTrainingAreaProgress)
+          .where(
+            and(
+              eq(userTrainingAreaProgress.trainingAreaId, trainingArea.id),
+              eq(userTrainingAreaProgress.status, "completed")
+            )
+          ),
 
         // Total VX points earned by all users
-        db.select({ total: sum(users.xp) })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+        db
+          .select({ total: sum(users.xp) })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
 
         // Average progress for this training area
-        db.select({ 
-          avgProgress: sql<number>`AVG(CAST(${userTrainingAreaProgress.completionPercentage} AS FLOAT))`
-        })
-        .from(userTrainingAreaProgress)
-        .where(eq(userTrainingAreaProgress.trainingAreaId, trainingArea.id))
+        db
+          .select({
+            avgProgress: sql<number>`AVG(CAST(${userTrainingAreaProgress.completionPercentage} AS FLOAT))`,
+          })
+          .from(userTrainingAreaProgress)
+          .where(eq(userTrainingAreaProgress.trainingAreaId, trainingArea.id)),
       ]);
 
       return {
@@ -506,13 +617,13 @@ export const reportServices = {
           organizations: organizationOptions,
           subOrganizations: subOrganizationOptions,
           roleCategories: roleCategoryOptions,
-          progressStatuses: progressOptions
+          progressStatuses: progressOptions,
         },
-        
+
         // Data table columns (matching the image exactly)
         dataTableColumns: [
           "User ID",
-          "First Name", 
+          "First Name",
           "Last Name",
           "Email Address",
           "EID",
@@ -529,12 +640,12 @@ export const reportServices = {
           "Module 1 Progress",
           "VX Points",
           "Registration Date",
-          "Last Login Date"
+          "Last Login Date",
         ],
-        
+
         // Data table rows
         dataTableRows: userProgressData,
-        
+
         // General numerical stats
         generalStats: {
           totalFrontliners: totalFrontliners[0]?.count || 0,
@@ -542,8 +653,10 @@ export const reportServices = {
           totalCertificatesIssued: totalCertificatesIssued[0]?.count || 0,
           totalCompletedAlMidhyaf: totalCompletedAlMidhyaf[0]?.count || 0,
           totalVxPointsEarned: totalVxPointsEarned[0]?.total || 0,
-          alMidhyafOverallProgress: Math.round((alMidhyafOverallProgress[0]?.avgProgress || 0) * 100) / 100
-        }
+          alMidhyafOverallProgress:
+            Math.round((alMidhyafOverallProgress[0]?.avgProgress || 0) * 100) /
+            100,
+        },
       };
     } catch (error) {
       console.error("Error in getTrainingAreaReportData:", error);
@@ -561,174 +674,180 @@ export const reportServices = {
         organizationOptions,
         subOrganizationOptions,
         roleCategoryOptions,
-        
+
         // Frontliner data with certificate status
         frontlinersData,
-        
+
         // General numerical stats
         totalFrontliners,
         totalOrganizations,
         totalCertificatesIssued,
         totalVxPointsEarned,
         averageOverallProgress,
-        
+
         // Training area names for certificate mapping
-        trainingAreasData
+        trainingAreasData,
       ] = await Promise.all([
-        // Asset options for filters
-        db.select({
-          value: users.asset,
-          label: users.asset
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.asset),
+        // Asset options for filters - get all available assets (distinct)
+        db
+          .selectDistinct({
+            value: assets.name,
+            label: assets.name,
+          })
+          .from(assets),
 
-        // Sub-asset options for filters
-        db.select({
-          value: users.subAsset,
-          label: users.subAsset
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.subAsset),
+        // Sub-asset options for filters - get all available sub-assets (distinct)
+        db
+          .selectDistinct({
+            value: subAssets.name,
+            label: subAssets.name,
+          })
+          .from(subAssets),
 
-        // Organization options for filters
-        db.select({
-          value: users.organization,
-          label: users.organization
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.organization),
+        // Organization options for filters - get all available organizations (distinct)
+        db
+          .selectDistinct({
+            value: organizations.name,
+            label: organizations.name,
+          })
+          .from(organizations),
 
         // Sub-organization options for filters
-        db.select({
-          value: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`,
-          label: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.subOrganization),
+        db
+          .select({
+            value: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`,
+            label: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .groupBy(users.subOrganization),
 
         // Role category options for filters
-        db.select({
-          value: normalUsers.roleCategory,
-          label: normalUsers.roleCategory
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(normalUsers.roleCategory),
+        db
+          .select({
+            value: normalUsers.roleCategory,
+            label: normalUsers.roleCategory,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .groupBy(normalUsers.roleCategory),
 
         // Frontliners data with certificate completion status
-        db.select({
-          userId: users.id,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-          eid: normalUsers.eid,
-          phoneNumber: normalUsers.phoneNumber,
-          asset: users.asset,
-          subAsset: users.subAsset,
-          organization: users.organization,
-          subOrganization: users.subOrganization,
-          roleCategory: normalUsers.roleCategory,
-          role: normalUsers.role,
-          seniority: normalUsers.seniority,
-          frontlinerType: sql<string>`CASE WHEN ${normalUsers.existing} THEN 'Existing' ELSE 'New' END`,
-          vxPoints: users.xp,
-          registrationDate: users.createdAt,
-          lastLoginDate: users.lastLogin,
-          // Certificate completion status - checking for passed assessments in each training area
-          alMidhyafCertificate: sql<boolean>`EXISTS (
-            SELECT 1 FROM assessment_attempts aa 
-            INNER JOIN assessments a ON aa.assessment_id = a.id 
-            INNER JOIN training_areas ta ON a.training_area_id = ta.id 
-            WHERE aa.user_id = ${users.id} 
-            AND aa.passed = true 
+        db
+          .select({
+            userId: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            eid: normalUsers.eid,
+            phoneNumber: normalUsers.phoneNumber,
+            asset: users.asset,
+            subAsset: users.subAsset,
+            organization: users.organization,
+            subOrganization: users.subOrganization,
+            roleCategory: normalUsers.roleCategory,
+            role: normalUsers.role,
+            seniority: normalUsers.seniority,
+            frontlinerType: sql<string>`CASE WHEN ${normalUsers.existing} THEN 'Existing' ELSE 'New' END`,
+            vxPoints: users.xp,
+            registrationDate: users.createdAt,
+            lastLoginDate: users.lastLogin,
+            // Certificate completion status - checking for passed assessments in each training area
+            alMidhyafCertificate: sql<boolean>`EXISTS (
+            SELECT 1 FROM assessment_attempts aa
+            INNER JOIN assessments a ON aa.assessment_id = a.id
+            INNER JOIN training_areas ta ON a.training_area_id = ta.id
+            WHERE aa.user_id = ${users.id}
+            AND aa.passed = true
             AND LOWER(ta.name) LIKE '%midhyaf%'
           )`,
-          adInformationCertificate: sql<boolean>`EXISTS (
-            SELECT 1 FROM assessment_attempts aa 
-            INNER JOIN assessments a ON aa.assessment_id = a.id 
-            INNER JOIN training_areas ta ON a.training_area_id = ta.id 
-            WHERE aa.user_id = ${users.id} 
-            AND aa.passed = true 
+            adInformationCertificate: sql<boolean>`EXISTS (
+            SELECT 1 FROM assessment_attempts aa
+            INNER JOIN assessments a ON aa.assessment_id = a.id
+            INNER JOIN training_areas ta ON a.training_area_id = ta.id
+            WHERE aa.user_id = ${users.id}
+            AND aa.passed = true
             AND LOWER(ta.name) LIKE '%information%'
           )`,
-          generalVXSoftSkillsCertificate: sql<boolean>`EXISTS (
-            SELECT 1 FROM assessment_attempts aa 
-            INNER JOIN assessments a ON aa.assessment_id = a.id 
-            INNER JOIN training_areas ta ON a.training_area_id = ta.id 
-            WHERE aa.user_id = ${users.id} 
-            AND aa.passed = true 
+            generalVXSoftSkillsCertificate: sql<boolean>`EXISTS (
+            SELECT 1 FROM assessment_attempts aa
+            INNER JOIN assessments a ON aa.assessment_id = a.id
+            INNER JOIN training_areas ta ON a.training_area_id = ta.id
+            WHERE aa.user_id = ${users.id}
+            AND aa.passed = true
             AND LOWER(ta.name) LIKE '%soft%'
           )`,
-          generalVXHardSkillsCertificate: sql<boolean>`EXISTS (
-            SELECT 1 FROM assessment_attempts aa 
-            INNER JOIN assessments a ON aa.assessment_id = a.id 
-            INNER JOIN training_areas ta ON a.training_area_id = ta.id 
-            WHERE aa.user_id = ${users.id} 
-            AND aa.passed = true 
+            generalVXHardSkillsCertificate: sql<boolean>`EXISTS (
+            SELECT 1 FROM assessment_attempts aa
+            INNER JOIN assessments a ON aa.assessment_id = a.id
+            INNER JOIN training_areas ta ON a.training_area_id = ta.id
+            WHERE aa.user_id = ${users.id}
+            AND aa.passed = true
             AND LOWER(ta.name) LIKE '%hard%'
           )`,
-          managerialCompetenciesCertificate: sql<boolean>`EXISTS (
-            SELECT 1 FROM assessment_attempts aa 
-            INNER JOIN assessments a ON aa.assessment_id = a.id 
-            INNER JOIN training_areas ta ON a.training_area_id = ta.id 
-            WHERE aa.user_id = ${users.id} 
-            AND aa.passed = true 
+            managerialCompetenciesCertificate: sql<boolean>`EXISTS (
+            SELECT 1 FROM assessment_attempts aa
+            INNER JOIN assessments a ON aa.assessment_id = a.id
+            INNER JOIN training_areas ta ON a.training_area_id = ta.id
+            WHERE aa.user_id = ${users.id}
+            AND aa.passed = true
             AND LOWER(ta.name) LIKE '%managerial%'
           )`,
-          // Overall progress calculation across all training areas
-          overallProgress: sql<number>`COALESCE((
+            // Overall progress calculation across all training areas
+            overallProgress: sql<number>`COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
             FROM user_training_area_progress utap
             WHERE utap.user_id = ${users.id}
-          ), 0)`
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .orderBy(users.createdAt),
+          ), 0)`,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .orderBy(users.createdAt),
 
         // Total frontliners count
-        db.select({ count: count() })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+        db
+          .select({ count: count() })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
 
         // Total organizations count
-        db.select({ count: count() })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.organization),
+        db
+          .select({ count: count() })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .groupBy(users.organization),
 
         // Total certificates issued (passed assessments)
-        db.select({ count: count() })
-        .from(assessmentAttempts)
-        .where(eq(assessmentAttempts.passed, true)),
+        db
+          .select({ count: count() })
+          .from(assessmentAttempts)
+          .where(eq(assessmentAttempts.passed, true)),
 
         // Total VX points earned
-        db.select({ total: sum(users.xp) })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+        db
+          .select({ total: sum(users.xp) })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
 
         // Average overall progress
-        db.select({ 
-          avgProgress: sql<number>`AVG(COALESCE((
+        db
+          .select({
+            avgProgress: sql<number>`AVG(COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
             FROM user_training_area_progress utap
             WHERE utap.user_id = ${users.id}
-          ), 0))`
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+          ), 0))`,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
 
         // Get all training areas for reference
-        db.select({
-          id: trainingAreas.id,
-          name: trainingAreas.name
-        })
-        .from(trainingAreas)
+        db
+          .select({
+            id: trainingAreas.id,
+            name: trainingAreas.name,
+          })
+          .from(trainingAreas),
       ]);
 
       return {
@@ -738,13 +857,13 @@ export const reportServices = {
           subAssets: subAssetOptions,
           organizations: organizationOptions,
           subOrganizations: subOrganizationOptions,
-          roleCategories: roleCategoryOptions
+          roleCategories: roleCategoryOptions,
         },
-        
+
         // Data table columns
         dataTableColumns: [
           "User ID",
-          "First Name", 
+          "First Name",
           "Last Name",
           "Email Address",
           "EID",
@@ -765,23 +884,25 @@ export const reportServices = {
           "AD Information Certificate",
           "General VX Soft Skills Certificate",
           "General VX Hard Skills Certificate",
-          "Managerial Competencies Certificate"
+          "Managerial Competencies Certificate",
         ],
-        
+
         // Data table rows
         dataTableRows: frontlinersData,
-        
+
         // General numerical stats
         generalStats: {
           totalFrontliners: totalFrontliners[0]?.count || 0,
           totalOrganizations: totalOrganizations.length,
           totalCertificatesIssued: totalCertificatesIssued[0]?.count || 0,
           totalVxPointsEarned: totalVxPointsEarned[0]?.total || 0,
-          averageOverallProgress: Math.round((averageOverallProgress[0]?.avgProgress || 0) * 100) / 100
+          averageOverallProgress:
+            Math.round((averageOverallProgress[0]?.avgProgress || 0) * 100) /
+            100,
         },
 
         // Training areas for reference
-        trainingAreas: trainingAreasData
+        trainingAreas: trainingAreasData,
       };
     } catch (error) {
       console.error("Error in getCertificateReportData:", error);
@@ -797,114 +918,126 @@ export const reportServices = {
         userTypeOptions,
         organizationOptions,
         registrationDateOptions,
-        
+
         // All users data with normal user information
         usersData,
-        
+
         // General numerical stats
         totalFrontliners,
         totalOrganizations,
         totalCertificatesIssued,
         totalCompletedAlMidhyaf,
         totalVxPointsEarned,
-        overallProgress
+        overallProgress,
       ] = await Promise.all([
         // User type options for filters
-        db.select({
-          value: users.userType,
-          label: users.userType
-        })
-        .from(users)
-        .groupBy(users.userType),
+        db
+          .select({
+            value: users.userType,
+            label: users.userType,
+          })
+          .from(users)
+          .groupBy(users.userType),
 
         // Organization options for filters
-        db.select({
-          value: users.organization,
-          label: users.organization
-        })
-        .from(users)
-        .groupBy(users.organization),
+        db
+          .select({
+            value: users.organization,
+            label: users.organization,
+          })
+          .from(users)
+          .groupBy(users.organization),
 
         // Registration date options for filters (monthly)
-        db.select({
-          value: sql<string>`to_char(${users.createdAt}, 'YYYY-MM')`,
-          label: sql<string>`to_char(${users.createdAt}, 'YYYY-MM')`
-        })
-        .from(users)
-        .groupBy(sql`to_char(${users.createdAt}, 'YYYY-MM')`)
-        .orderBy(sql`to_char(${users.createdAt}, 'YYYY-MM')`),
+        db
+          .select({
+            value: sql<string>`to_char(${users.createdAt}, 'YYYY-MM')`,
+            label: sql<string>`to_char(${users.createdAt}, 'YYYY-MM')`,
+          })
+          .from(users)
+          .groupBy(sql`to_char(${users.createdAt}, 'YYYY-MM')`)
+          .orderBy(sql`to_char(${users.createdAt}, 'YYYY-MM')`),
 
         // All users data with normal user information
-        db.select({
-          userId: users.id,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-          eid: normalUsers.eid,
-          phoneNumber: normalUsers.phoneNumber,
-          userType: users.userType,
-          organization: users.organization,
-          subOrganization: users.subOrganization,
-          registrationDate: users.createdAt,
-          lastLoginDate: users.lastLogin,
-          // Additional normal user fields
-          asset: users.asset,
-          subAsset: users.subAsset,
-          roleCategory: normalUsers.roleCategory,
-          role: normalUsers.role,
-          seniority: normalUsers.seniority,
-          frontlinerType: sql<string>`CASE WHEN ${normalUsers.existing} THEN 'Existing' ELSE 'New' END`,
-          vxPoints: users.xp,
-          // Overall progress calculation
-          overallProgress: sql<number>`COALESCE((
+        db
+          .select({
+            userId: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            eid: normalUsers.eid,
+            phoneNumber: normalUsers.phoneNumber,
+            userType: users.userType,
+            organization: users.organization,
+            subOrganization: users.subOrganization,
+            registrationDate: users.createdAt,
+            lastLoginDate: users.lastLogin,
+            // Additional normal user fields
+            asset: users.asset,
+            subAsset: users.subAsset,
+            roleCategory: normalUsers.roleCategory,
+            role: normalUsers.role,
+            seniority: normalUsers.seniority,
+            frontlinerType: sql<string>`CASE WHEN ${normalUsers.existing} THEN 'Existing' ELSE 'New' END`,
+            vxPoints: users.xp,
+            // Overall progress calculation
+            overallProgress: sql<number>`COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
             FROM user_training_area_progress utap
             WHERE utap.user_id = ${users.id}
-          ), 0)`
-        })
-        .from(users)
-        .leftJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .orderBy(users.createdAt),
+          ), 0)`,
+          })
+          .from(users)
+          .leftJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .orderBy(users.createdAt),
 
         // Total frontliners (users with normal user data)
-        db.select({ count: count() })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+        db
+          .select({ count: count() })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
 
         // Total organizations
-        db.select({ count: count() })
-        .from(users)
-        .groupBy(users.organization),
+        db.select({ count: count() }).from(users).groupBy(users.organization),
 
         // Total certificates issued
-        db.select({ count: count() })
-        .from(assessmentAttempts)
-        .where(eq(assessmentAttempts.passed, true)),
+        db
+          .select({ count: count() })
+          .from(assessmentAttempts)
+          .where(eq(assessmentAttempts.passed, true)),
 
         // Total completed Al Midhyaf
-        db.select({ count: count() })
-        .from(userTrainingAreaProgress)
-        .innerJoin(trainingAreas, eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id))
-        .where(and(
-          eq(userTrainingAreaProgress.status, "completed"),
-          sql`LOWER(${trainingAreas.name}) LIKE '%midhyaf%'`
-        )),
+        db
+          .select({ count: count() })
+          .from(userTrainingAreaProgress)
+          .innerJoin(
+            trainingAreas,
+            eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id)
+          )
+          .where(
+            and(
+              eq(userTrainingAreaProgress.status, "completed"),
+              sql`LOWER(${trainingAreas.name}) LIKE '%midhyaf%'`
+            )
+          ),
 
         // Total VX points earned
-        db.select({ total: sum(users.xp) })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+        db
+          .select({ total: sum(users.xp) })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
 
         // Overall progress average
-        db.select({ 
-          avgProgress: sql<number>`AVG(COALESCE((
+        db
+          .select({
+            avgProgress: sql<number>`AVG(COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
             FROM user_training_area_progress utap
             WHERE utap.user_id = ${users.id}
-          ), 0))`
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          ), 0))`,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
       ]);
 
       return {
@@ -912,14 +1045,14 @@ export const reportServices = {
         filters: {
           userTypes: userTypeOptions,
           organizations: organizationOptions,
-          registrationDates: registrationDateOptions
+          registrationDates: registrationDateOptions,
         },
-        
+
         // Data table columns (matching the image exactly)
         dataTableColumns: [
           "User ID",
           "First Name",
-          "Last Name", 
+          "Last Name",
           "Email Address",
           "EID",
           "Phone Number",
@@ -927,12 +1060,12 @@ export const reportServices = {
           "Organization",
           "Sub-Organization",
           "Registration Date",
-          "Last Login Date"
+          "Last Login Date",
         ],
-        
+
         // Data table rows
         dataTableRows: usersData,
-        
+
         // General numerical stats (matching the image)
         generalStats: {
           totalFrontliners: totalFrontliners[0]?.count || 0,
@@ -940,8 +1073,9 @@ export const reportServices = {
           totalCertificatesIssued: totalCertificatesIssued[0]?.count || 0,
           totalCompletedAlMidhyaf: totalCompletedAlMidhyaf[0]?.count || 0,
           totalVxPointsEarned: totalVxPointsEarned[0]?.total || 0,
-          overallProgress: Math.round((overallProgress[0]?.avgProgress || 0) * 100) / 100
-        }
+          overallProgress:
+            Math.round((overallProgress[0]?.avgProgress || 0) * 100) / 100,
+        },
       };
     } catch (error) {
       console.error("Error in getUsersReportData:", error);
@@ -953,29 +1087,29 @@ export const reportServices = {
   getOrganizationsReportData: async () => {
     try {
       console.log("Starting getOrganizationsReportData...");
-      
+
       // First, let's test basic queries
       const [subAdminsData, normalUsersCount] = await Promise.all([
         // Get sub-admins with their organizations
-        db.select({
-          id: sql<string>`CAST(${users.id} AS TEXT)`,
-          name: users.organization,
-          asset: users.asset,
-          subAsset: users.subAsset,
-          subOrganization: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`,
-          totalFrontliners: sql<number>`COALESCE(${subAdmins.totalFrontliners}, 0)`,
-          subAdminName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
-          subAdminEmail: users.email,
-          createdAt: users.createdAt,
-          status: sql<string>`CASE WHEN ${users.lastLogin} >= NOW() - INTERVAL '30 days' THEN 'active' ELSE 'inactive' END`
-        })
-        .from(users)
-        .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
-        .orderBy(users.organization),
+        db
+          .select({
+            id: sql<string>`CAST(${users.id} AS TEXT)`,
+            name: users.organization,
+            asset: users.asset,
+            subAsset: users.subAsset,
+            subOrganization: sql<string>`COALESCE(${users.subOrganization}::text, 'N/A')`,
+            totalFrontliners: sql<number>`COALESCE(${subAdmins.totalFrontliners}, 0)`,
+            subAdminName: sql<string>`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+            subAdminEmail: users.email,
+            createdAt: users.createdAt,
+            status: sql<string>`CASE WHEN ${users.lastLogin} >= NOW() - INTERVAL '30 days' THEN 'active' ELSE 'inactive' END`,
+          })
+          .from(users)
+          .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
+          .orderBy(users.organization),
 
         // Count of normal users
-        db.select({ count: count() })
-        .from(normalUsers)
+        db.select({ count: count() }).from(normalUsers),
       ]);
 
       console.log("Sub-admins data:", subAdminsData.length);
@@ -984,58 +1118,62 @@ export const reportServices = {
       // Get registered frontliners count for each organization
       const organizationsWithCounts = await Promise.all(
         subAdminsData.map(async (org) => {
-          const registeredCount = await db.select({ count: count() })
+          const registeredCount = await db
+            .select({ count: count() })
             .from(normalUsers)
             .innerJoin(users, eq(normalUsers.userId, users.id))
             .where(eq(users.organization, org.name));
 
           return {
             ...org,
-            registeredFrontliners: registeredCount[0]?.count || 0
+            registeredFrontliners: registeredCount[0]?.count || 0,
           };
         })
       );
 
-      // Get filter options
+      // Get filter options - get all available assets and sub-assets
       const [assetOptions, subAssetOptions] = await Promise.all([
-        db.select({
-          value: users.asset,
-          label: users.asset
-        })
-        .from(users)
-        .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
-        .groupBy(users.asset),
+        db
+          .select({
+            value: assets.name,
+            label: assets.name,
+          })
+          .from(assets),
 
-        db.select({
-          value: users.subAsset,
-          label: users.subAsset
-        })
-        .from(users)
-        .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
-        .groupBy(users.subAsset)
+        db
+          .select({
+            value: subAssets.name,
+            label: subAssets.name,
+          })
+          .from(subAssets),
       ]);
 
       // Calculate totals
-      const totalFrontliners = subAdminsData.reduce((sum, org) => sum + org.totalFrontliners, 0);
-      const activeOrganizations = subAdminsData.filter(org => org.status === 'active').length;
+      const totalFrontliners = subAdminsData.reduce(
+        (sum, org) => sum + org.totalFrontliners,
+        0
+      );
+      const activeOrganizations = subAdminsData.filter(
+        (org) => org.status === "active"
+      ).length;
 
       return {
         // Filter options
         filters: {
           assets: assetOptions,
-          subAssets: subAssetOptions
+          subAssets: subAssetOptions,
         },
-        
+
         // Organizations data
         organizations: organizationsWithCounts,
-        
+
         // General numerical stats
         generalStats: {
           totalOrganizations: subAdminsData.length,
           activeOrganizations: activeOrganizations,
           totalFrontliners: totalFrontliners,
-          registeredFrontliners: normalUsersCount[0]?.count || 0
-        }
+          registeredFrontliners: normalUsersCount[0]?.count || 0,
+        },
       };
     } catch (error) {
       console.error("Error in getOrganizationsReportData:", error);
@@ -1047,18 +1185,19 @@ export const reportServices = {
   getSubOrganizationsReportData: async () => {
     try {
       console.log("Starting getSubOrganizationsReportData...");
-      
+
       // Get total VX points from normal users XP
       console.log("Calculating total VX points from normal users...");
-      const totalVxPointsResult = await db.select({ 
-        total: sql<number>`COALESCE(SUM(${users.xp}), 0)`
-      })
-      .from(users)
-      .innerJoin(normalUsers, eq(users.id, normalUsers.userId));
-      
+      const totalVxPointsResult = await db
+        .select({
+          total: sql<number>`COALESCE(SUM(${users.xp}), 0)`,
+        })
+        .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId));
+
       const totalVxPointsEarned = totalVxPointsResult[0]?.total || 0;
       console.log(`Total VX points earned: ${totalVxPointsEarned}`);
-      
+
       // Get basic statistics
       console.log("Getting basic statistics...");
       const [
@@ -1066,83 +1205,94 @@ export const reportServices = {
         totalFrontliners,
         registeredFrontliners,
         totalCertificatesIssued,
-        totalCompletedAlMidhyaf
+        totalCompletedAlMidhyaf,
       ] = await Promise.all([
         // Total sub-organizations
         db.select({ count: count() }).from(subOrganizations),
-        
+
         // Total frontliners
-        db.select({ count: count() })
-        .from(normalUsers)
-        .innerJoin(users, eq(normalUsers.userId, users.id)),
-        
+        db
+          .select({ count: count() })
+          .from(normalUsers)
+          .innerJoin(users, eq(normalUsers.userId, users.id)),
+
         // Registered frontliners
-        db.select({ count: count() })
-        .from(normalUsers)
-        .innerJoin(users, eq(normalUsers.userId, users.id))
-        .where(sql`${users.subOrganization} IS NOT NULL`),
-        
+        db
+          .select({ count: count() })
+          .from(normalUsers)
+          .innerJoin(users, eq(normalUsers.userId, users.id))
+          .where(sql`${users.subOrganization} IS NOT NULL`),
+
         // Total certificates issued
         db.select({ count: count() }).from(certificates),
-        
+
         // Total completed Al Midhyaf
-        db.select({ count: count() })
-        .from(userTrainingAreaProgress)
-        .where(and(
-          eq(userTrainingAreaProgress.trainingAreaId, 1), // Assuming Al Midhyaf is training area 1
-          isNotNull(userTrainingAreaProgress.completedAt)
-        ))
+        db
+          .select({ count: count() })
+          .from(userTrainingAreaProgress)
+          .where(
+            and(
+              eq(userTrainingAreaProgress.trainingAreaId, 1), // Assuming Al Midhyaf is training area 1
+              isNotNull(userTrainingAreaProgress.completedAt)
+            )
+          ),
       ]);
 
       // Get sub-organizations with basic data
       console.log("Getting sub-organizations data...");
-      const subOrganizationsData = await db.select({
-        id: sql<string>`CAST(${subOrganizations.id} AS TEXT)`,
-        name: subOrganizations.name,
-        organization: organizations.name,
-        asset: assets.name,
-        subAsset: subAssets.name,
-        createdAt: sql<string>`NOW()`
-      })
-      .from(subOrganizations)
-      .leftJoin(organizations, eq(subOrganizations.organizationId, organizations.id))
-      .leftJoin(assets, eq(subOrganizations.assetId, assets.id))
-      .leftJoin(subAssets, eq(subOrganizations.subAssetId, subAssets.id))
-      .orderBy(subOrganizations.name);
+      const subOrganizationsData = await db
+        .select({
+          id: sql<string>`CAST(${subOrganizations.id} AS TEXT)`,
+          name: subOrganizations.name,
+          organization: organizations.name,
+          asset: assets.name,
+          subAsset: subAssets.name,
+          createdAt: sql<string>`NOW()`,
+        })
+        .from(subOrganizations)
+        .leftJoin(
+          organizations,
+          eq(subOrganizations.organizationId, organizations.id)
+        )
+        .leftJoin(assets, eq(subOrganizations.assetId, assets.id))
+        .leftJoin(subAssets, eq(subOrganizations.subAssetId, subAssets.id))
+        .orderBy(subOrganizations.name);
 
       // Create simplified sub-organizations data
       const subOrganizationsWithCounts = subOrganizationsData.map((subOrg) => ({
         ...subOrg,
         totalFrontliners: 0,
         registeredFrontliners: 0,
-        subAdminName: 'N/A',
-        subAdminEmail: 'N/A',
-        status: 'inactive'
+        subAdminName: "N/A",
+        subAdminEmail: "N/A",
+        status: "inactive",
       }));
 
       // Get filter options
       console.log("Getting filter options...");
       const [assetOptions, subAssetOptions] = await Promise.all([
-        db.select({
-          value: assets.name,
-          label: assets.name
-        })
-        .from(assets)
-        .limit(10),
-        
-        db.select({
-          value: subAssets.name,
-          label: subAssets.name
-        })
-        .from(subAssets)
-        .limit(10)
+        db
+          .select({
+            value: assets.name,
+            label: assets.name,
+          })
+          .from(assets)
+          .limit(10),
+
+        db
+          .select({
+            value: subAssets.name,
+            label: subAssets.name,
+          })
+          .from(subAssets)
+          .limit(10),
       ]);
 
       console.log("Sub-organizations report data prepared successfully");
       return {
         filters: {
           assets: assetOptions,
-          subAssets: subAssetOptions
+          subAssets: subAssetOptions,
         },
         subOrganizations: subOrganizationsWithCounts,
         generalStats: {
@@ -1153,8 +1303,8 @@ export const reportServices = {
           totalCertificatesIssued: totalCertificatesIssued[0]?.count || 0,
           totalCompletedAlMidhyaf: totalCompletedAlMidhyaf[0]?.count || 0,
           totalVxPointsEarned: totalVxPointsEarned,
-          overallProgress: 50 // Placeholder value
-        }
+          overallProgress: 50, // Placeholder value
+        },
       };
     } catch (error) {
       console.error("Error in getSubOrganizationsReportData:", error);
@@ -1167,16 +1317,16 @@ export const reportServices = {
   getSubAdminsReportData: async () => {
     try {
       console.log("Starting getSubAdminsReportData...");
-      
+
       const [
         // Filter options
         assetOptions,
         subAssetOptions,
         organizationOptions,
-        
+
         // Sub-admins data with comprehensive statistics
         subAdminsData,
-        
+
         // General numerical stats
         totalSubAdmins,
         activeSubAdmins,
@@ -1185,68 +1335,66 @@ export const reportServices = {
         totalCertificatesIssued,
         totalCompletedAlMidhyaf,
         totalVxPointsEarned,
-        overallProgress
+        overallProgress,
       ] = await Promise.all([
-        // Asset options for filters
-        db.select({
-          value: users.asset,
-          label: users.asset
-        })
-        .from(users)
-        .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
-        .groupBy(users.asset),
+        // Asset options for filters - get all available assets (distinct)
+        db
+          .selectDistinct({
+            value: assets.name,
+            label: assets.name,
+          })
+          .from(assets),
 
-        // Sub-asset options for filters
-        db.select({
-          value: users.subAsset,
-          label: users.subAsset
-        })
-        .from(users)
-        .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
-        .groupBy(users.subAsset),
+        // Sub-asset options for filters - get all available sub-assets (distinct)
+        db
+          .selectDistinct({
+            value: subAssets.name,
+            label: subAssets.name,
+          })
+          .from(subAssets),
 
-        // Organization options for filters
-        db.select({
-          value: users.organization,
-          label: users.organization
-        })
-        .from(users)
-        .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
-        .groupBy(users.organization),
+        // Organization options for filters - get all available organizations (distinct)
+        db
+          .selectDistinct({
+            value: organizations.name,
+            label: organizations.name,
+          })
+          .from(organizations),
 
         // Sub-admins data with comprehensive statistics
-        db.select({
-          userId: users.id,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-          eid: subAdmins.eid,
-          phoneNumber: subAdmins.phoneNumber,
-          jobTitle: subAdmins.jobTitle,
-          asset: users.asset,
-          subAsset: users.subAsset,
-          organization: users.organization,
-          subOrganization: users.subOrganization,
-          totalFrontliners: sql<number>`COALESCE(${subAdmins.totalFrontliners}, 0)`,
-          registeredFrontliners: sql<number>`(
-            SELECT COUNT(*) 
-            FROM normal_users nu 
+        db
+          .select({
+            userId: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            eid: subAdmins.eid,
+            phoneNumber: subAdmins.phoneNumber,
+            jobTitle: subAdmins.jobTitle,
+            asset: users.asset,
+            subAsset: users.subAsset,
+            organization: users.organization,
+            subOrganization: users.subOrganization,
+            totalFrontliners: sql<number>`COALESCE(${subAdmins.totalFrontliners}, 0)`,
+            registeredFrontliners: sql<number>`(
+            SELECT COUNT(*)
+            FROM normal_users nu
             INNER JOIN users u ON nu.user_id = u.id
             WHERE u.organization = ${users.organization}
           )`,
-          registrationDate: users.createdAt,
-          lastLoginDate: users.lastLogin,
-          status: sql<string>`CASE WHEN ${users.lastLogin} >= NOW() - INTERVAL '30 days' THEN 'active' ELSE 'inactive' END`,
-          // Certificate statistics
-          certificatesIssued: sql<number>`(
-            SELECT COUNT(*) 
-            FROM assessment_attempts aa 
+            registrationDate: users.createdAt,
+            lastLoginDate: users.lastLogin,
+            status: sql<string>`CASE WHEN ${users.lastLogin} >= NOW() - INTERVAL '30 days' THEN 'active' ELSE 'inactive' END`,
+            // Certificate statistics
+            certificatesIssued: sql<number>`(
+            SELECT COUNT(*)
+            FROM assessment_attempts aa
             INNER JOIN users u ON aa.user_id = u.id
             WHERE u.organization = ${users.organization}
             AND aa.passed = true
           )`,
-          alMidhyafCompleted: sql<number>`(
-            SELECT COUNT(*) 
+            alMidhyafCompleted: sql<number>`(
+            SELECT COUNT(*)
             FROM user_training_area_progress utap
             INNER JOIN users u ON utap.user_id = u.id
             INNER JOIN training_areas ta ON utap.training_area_id = ta.id
@@ -1254,72 +1402,88 @@ export const reportServices = {
             AND utap.status = 'completed'
             AND LOWER(ta.name) LIKE '%midhyaf%'
           )`,
-          totalVxPoints: sql<number>`(
+            totalVxPoints: sql<number>`(
             SELECT COALESCE(SUM(u.xp), 0)
             FROM users u
             WHERE u.organization = ${users.organization}
           )`,
-          overallProgress: sql<number>`(
+            overallProgress: sql<number>`(
             SELECT COALESCE(AVG(CAST(utap.completion_percentage AS FLOAT)), 0)
             FROM user_training_area_progress utap
             INNER JOIN users u ON utap.user_id = u.id
             WHERE u.organization = ${users.organization}
-          )`
-        })
-        .from(users)
-        .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
-        .orderBy(users.createdAt),
+          )`,
+          })
+          .from(users)
+          .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
+          .orderBy(users.createdAt),
 
         // Total sub-admins count
-        db.select({ count: count() })
-        .from(users)
-        .innerJoin(subAdmins, eq(users.id, subAdmins.userId)),
+        db
+          .select({ count: count() })
+          .from(users)
+          .innerJoin(subAdmins, eq(users.id, subAdmins.userId)),
 
         // Active sub-admins count (last login within 30 days)
-        db.select({ count: count() })
-        .from(users)
-        .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
-        .where(gte(users.lastLogin, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))),
+        db
+          .select({ count: count() })
+          .from(users)
+          .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
+          .where(
+            gte(
+              users.lastLogin,
+              new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+            )
+          ),
 
         // Total users managed by all sub-admins
-        db.select({ total: sum(subAdmins.totalFrontliners) })
-        .from(subAdmins),
+        db.select({ total: sum(subAdmins.totalFrontliners) }).from(subAdmins),
 
         // Total organizations
-        db.select({ count: count() })
-        .from(users)
-        .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
-        .groupBy(users.organization),
+        db
+          .select({ count: count() })
+          .from(users)
+          .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
+          .groupBy(users.organization),
 
         // Total certificates issued
-        db.select({ count: count() })
-        .from(assessmentAttempts)
-        .where(eq(assessmentAttempts.passed, true)),
+        db
+          .select({ count: count() })
+          .from(assessmentAttempts)
+          .where(eq(assessmentAttempts.passed, true)),
 
         // Total completed Al Midhyaf
-        db.select({ count: count() })
-        .from(userTrainingAreaProgress)
-        .innerJoin(trainingAreas, eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id))
-        .where(and(
-          eq(userTrainingAreaProgress.status, "completed"),
-          sql`LOWER(${trainingAreas.name}) LIKE '%midhyaf%'`
-        )),
+        db
+          .select({ count: count() })
+          .from(userTrainingAreaProgress)
+          .innerJoin(
+            trainingAreas,
+            eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id)
+          )
+          .where(
+            and(
+              eq(userTrainingAreaProgress.status, "completed"),
+              sql`LOWER(${trainingAreas.name}) LIKE '%midhyaf%'`
+            )
+          ),
 
         // Total VX points earned
-        db.select({ total: sum(users.xp) })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+        db
+          .select({ total: sum(users.xp) })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
 
         // Overall progress average
-        db.select({ 
-          avgProgress: sql<number>`AVG(COALESCE((
+        db
+          .select({
+            avgProgress: sql<number>`AVG(COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
             FROM user_training_area_progress utap
             WHERE utap.user_id = ${users.id}
-          ), 0))`
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          ), 0))`,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
       ]);
 
       return {
@@ -1327,9 +1491,9 @@ export const reportServices = {
         filters: {
           assets: assetOptions,
           subAssets: subAssetOptions,
-          organizations: organizationOptions
+          organizations: organizationOptions,
         },
-        
+
         // Data table columns (matching the image)
         dataTableColumns: [
           "User ID",
@@ -1346,12 +1510,12 @@ export const reportServices = {
           "Registered Frontliners",
           "Registration Date",
           "Last Login Date",
-          "Remind Sub-Admin"
+          "Remind Sub-Admin",
         ],
-        
+
         // Sub-admins data
         dataTableRows: subAdminsData,
-        
+
         // General numerical stats (matching the image)
         generalStats: {
           totalFrontliners: totalUsersManaged[0]?.total || 0,
@@ -1359,8 +1523,9 @@ export const reportServices = {
           totalCertificatesIssued: totalCertificatesIssued[0]?.count || 0,
           totalCompletedAlMidhyaf: totalCompletedAlMidhyaf[0]?.count || 0,
           totalVxPointsEarned: totalVxPointsEarned[0]?.total || 0,
-          overallProgress: Math.round((overallProgress[0]?.avgProgress || 0) * 100) / 100
-        }
+          overallProgress:
+            Math.round((overallProgress[0]?.avgProgress || 0) * 100) / 100,
+        },
       };
     } catch (error) {
       console.error("Error in getSubAdminsReportData:", error);
@@ -1372,7 +1537,7 @@ export const reportServices = {
   getFrontlinersReportData: async () => {
     try {
       console.log("Starting getFrontlinersReportData...");
-      
+
       const [
         // Filter options
         assetOptions,
@@ -1380,174 +1545,185 @@ export const reportServices = {
         organizationOptions,
         subOrganizationOptions,
         roleCategoryOptions,
-        
+
         // Frontliners data with comprehensive statistics
         frontlinersData,
-        
+
         // General numerical stats
         totalFrontliners,
         activeFrontliners,
         totalVxPoints,
         averageAlMidhyaf,
         averageProgress,
-        totalOrganizations
+        totalOrganizations,
       ] = await Promise.all([
-        // Asset options for filters
-        db.select({
-          value: users.asset,
-          label: users.asset
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.asset),
+        // Asset options for filters - get all available assets (distinct)
+        db
+          .selectDistinct({
+            value: assets.name,
+            label: assets.name,
+          })
+          .from(assets),
 
-        // Sub-asset options for filters
-        db.select({
-          value: users.subAsset,
-          label: users.subAsset
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.subAsset),
+        // Sub-asset options for filters - get all available sub-assets (distinct)
+        db
+          .selectDistinct({
+            value: subAssets.name,
+            label: subAssets.name,
+          })
+          .from(subAssets),
 
-        // Organization options for filters
-        db.select({
-          value: users.organization,
-          label: users.organization
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.organization),
+        // Organization options for filters - get all available organizations (distinct)
+        db
+          .selectDistinct({
+            value: organizations.name,
+            label: organizations.name,
+          })
+          .from(organizations),
 
         // Sub-organization options for filters
-        db.select({
-          value: users.subOrganization,
-          label: users.subOrganization
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .where(sql`${users.subOrganization} IS NOT NULL`)
-        .groupBy(users.subOrganization),
+        db
+          .select({
+            value: users.subOrganization,
+            label: users.subOrganization,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .where(sql`${users.subOrganization} IS NOT NULL`)
+          .groupBy(users.subOrganization),
 
         // Role category options for filters
-        db.select({
-          value: normalUsers.roleCategory,
-          label: normalUsers.roleCategory
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(normalUsers.roleCategory),
+        db
+          .select({
+            value: normalUsers.roleCategory,
+            label: normalUsers.roleCategory,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .groupBy(normalUsers.roleCategory),
 
         // Frontliners data with comprehensive statistics
-        db.select({
-          id: sql<string>`CAST(${users.id} AS TEXT)`,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-          eid: normalUsers.eid,
-          phoneNumber: normalUsers.phoneNumber,
-          asset: users.asset,
-          subAsset: users.subAsset,
-          organization: users.organization,
-          subOrganization: users.subOrganization,
-          roleCategory: normalUsers.roleCategory,
-          role: normalUsers.role,
-          seniority: normalUsers.seniority,
-          registrationDate: users.createdAt,
-          lastLoginDate: users.lastLogin,
-          status: sql<string>`CASE WHEN ${users.lastLogin} >= NOW() - INTERVAL '30 days' THEN 'active' ELSE 'inactive' END`,
-          vxPoints: users.xp,
-          // Progress calculations
-          overallProgress: sql<number>`COALESCE((
+        db
+          .select({
+            id: sql<string>`CAST(${users.id} AS TEXT)`,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            eid: normalUsers.eid,
+            phoneNumber: normalUsers.phoneNumber,
+            asset: users.asset,
+            subAsset: users.subAsset,
+            organization: users.organization,
+            subOrganization: users.subOrganization,
+            roleCategory: normalUsers.roleCategory,
+            role: normalUsers.role,
+            seniority: normalUsers.seniority,
+            registrationDate: users.createdAt,
+            lastLoginDate: users.lastLogin,
+            status: sql<string>`CASE WHEN ${users.lastLogin} >= NOW() - INTERVAL '30 days' THEN 'active' ELSE 'inactive' END`,
+            vxPoints: users.xp,
+            // Progress calculations
+            overallProgress: sql<number>`COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
             FROM user_training_area_progress utap
             WHERE utap.user_id = ${users.id}
           ), 0)`,
-          alMidhyaf: sql<number>`COALESCE((
+            alMidhyaf: sql<number>`COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
             FROM user_training_area_progress utap
             INNER JOIN training_areas ta ON utap.training_area_id = ta.id
             WHERE utap.user_id = ${users.id}
             AND LOWER(ta.name) LIKE '%midhyaf%'
           ), 0)`,
-          adInformation: sql<number>`COALESCE((
+            adInformation: sql<number>`COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
             FROM user_training_area_progress utap
             INNER JOIN training_areas ta ON utap.training_area_id = ta.id
             WHERE utap.user_id = ${users.id}
             AND LOWER(ta.name) LIKE '%information%'
           ), 0)`,
-          generalVxSoftSkills: sql<number>`COALESCE((
+            generalVxSoftSkills: sql<number>`COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
             FROM user_training_area_progress utap
             INNER JOIN training_areas ta ON utap.training_area_id = ta.id
             WHERE utap.user_id = ${users.id}
             AND LOWER(ta.name) LIKE '%soft%'
           ), 0)`,
-          generalVxHardSkills: sql<number>`COALESCE((
+            generalVxHardSkills: sql<number>`COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
             FROM user_training_area_progress utap
             INNER JOIN training_areas ta ON utap.training_area_id = ta.id
             WHERE utap.user_id = ${users.id}
             AND LOWER(ta.name) LIKE '%hard%'
           ), 0)`,
-          managerialCompetencies: sql<number>`COALESCE((
+            managerialCompetencies: sql<number>`COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
             FROM user_training_area_progress utap
             INNER JOIN training_areas ta ON utap.training_area_id = ta.id
             WHERE utap.user_id = ${users.id}
             AND LOWER(ta.name) LIKE '%managerial%'
-          ), 0)`
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .orderBy(users.createdAt),
+          ), 0)`,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .orderBy(users.createdAt),
 
         // Total frontliners count
-        db.select({ count: count() })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+        db
+          .select({ count: count() })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
 
         // Active frontliners count (last login within 30 days)
-        db.select({ count: count() })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .where(gte(users.lastLogin, new Date(Date.now() - 30 * 24 * 60 * 60 * 1000))),
+        db
+          .select({ count: count() })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .where(
+            gte(
+              users.lastLogin,
+              new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+            )
+          ),
 
         // Total VX points
-        db.select({ total: sum(users.xp) })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+        db
+          .select({ total: sum(users.xp) })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
 
         // Average Al Midhyaf progress
-        db.select({ 
-          avgProgress: sql<number>`AVG(COALESCE((
+        db
+          .select({
+            avgProgress: sql<number>`AVG(COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
             FROM user_training_area_progress utap
             INNER JOIN training_areas ta ON utap.training_area_id = ta.id
             WHERE utap.user_id = ${users.id}
             AND LOWER(ta.name) LIKE '%midhyaf%'
-          ), 0))`
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+          ), 0))`,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
 
         // Average overall progress
-        db.select({ 
-          avgProgress: sql<number>`AVG(COALESCE((
+        db
+          .select({
+            avgProgress: sql<number>`AVG(COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
             FROM user_training_area_progress utap
             WHERE utap.user_id = ${users.id}
-          ), 0))`
-        })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+          ), 0))`,
+          })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
 
         // Total organizations
-        db.select({ count: count() })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.organization)
+        db
+          .select({ count: count() })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .groupBy(users.organization),
       ]);
 
       return {
@@ -1557,21 +1733,23 @@ export const reportServices = {
           subAssets: subAssetOptions,
           organizations: organizationOptions,
           subOrganizations: subOrganizationOptions,
-          roleCategories: roleCategoryOptions
+          roleCategories: roleCategoryOptions,
         },
-        
+
         // Frontliners data
         frontliners: frontlinersData,
-        
+
         // General numerical stats
         generalStats: {
           totalFrontliners: totalFrontliners[0]?.count || 0,
           activeFrontliners: activeFrontliners[0]?.count || 0,
           totalVxPoints: totalVxPoints[0]?.total || 0,
-          averageAlMidhyaf: Math.round((averageAlMidhyaf[0]?.avgProgress || 0) * 100) / 100,
-          averageProgress: Math.round((averageProgress[0]?.avgProgress || 0) * 100) / 100,
-          totalOrganizations: totalOrganizations.length
-        }
+          averageAlMidhyaf:
+            Math.round((averageAlMidhyaf[0]?.avgProgress || 0) * 100) / 100,
+          averageProgress:
+            Math.round((averageProgress[0]?.avgProgress || 0) * 100) / 100,
+          totalOrganizations: totalOrganizations.length,
+        },
       };
     } catch (error) {
       console.error("Error in getFrontlinersReportData:", error);
@@ -1590,40 +1768,45 @@ export const reportServices = {
         // Total VX points from normal users only
         totalVxPoints,
         // Average progress from course progress table
-        averageProgress
+        averageProgress,
       ] = await Promise.all([
         // Total organizations count
-        db.select({ count: count() })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-        .groupBy(users.organization),
+        db
+          .select({ count: count() })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
+          .groupBy(users.organization),
 
         // Total certificates count (passed assessments)
-        db.select({ count: count() })
-        .from(assessmentAttempts)
-        .where(eq(assessmentAttempts.passed, true)),
+        db
+          .select({ count: count() })
+          .from(assessmentAttempts)
+          .where(eq(assessmentAttempts.passed, true)),
 
         // Total VX points from normal users only
-        db.select({ total: sum(users.xp) })
-        .from(users)
-        .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
+        db
+          .select({ total: sum(users.xp) })
+          .from(users)
+          .innerJoin(normalUsers, eq(users.id, normalUsers.userId)),
 
         // Average progress from course progress table
-        db.select({ 
-          avgProgress: sql<number>`AVG(CAST(${userCourseProgress.completionPercentage} AS FLOAT))`
-        })
-        .from(userCourseProgress)
+        db
+          .select({
+            avgProgress: sql<number>`AVG(CAST(${userCourseProgress.completionPercentage} AS FLOAT))`,
+          })
+          .from(userCourseProgress),
       ]);
 
       return {
         totalOrganizations: totalOrganizations.length,
         totalCertificates: totalCertificates[0]?.count || 0,
         totalVxPoints: totalVxPoints[0]?.total || 0,
-        averageProgress: Math.round((averageProgress[0]?.avgProgress || 0) * 100) / 100
+        averageProgress:
+          Math.round((averageProgress[0]?.avgProgress || 0) * 100) / 100,
       };
     } catch (error) {
       console.error("Error in getDashboardStats:", error);
       throw error;
     }
-  }
+  },
 };
