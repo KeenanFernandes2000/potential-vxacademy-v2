@@ -1346,11 +1346,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
               <AccordionItem
                 key={unit.id}
                 value={`unit-${unit.id}`}
-                className={
-                  index === 0
-                    ? "border border-teal-200 mb-2"
-                    : "border border-gray-200 mb-2"
-                }
+                className="border border-gray-200 mb-2"
               >
                 <AccordionTrigger className="text-left text-gray-900 hover:text-gray-900 px-4 py-3">
                   <div className="flex items-center">
