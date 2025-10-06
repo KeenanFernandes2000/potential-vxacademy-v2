@@ -183,6 +183,37 @@ const CommunicationEmail = () => {
       </div>
 
       <form onSubmit={handleFormSubmit} className="space-y-6">
+        {/* Sender Email Section */}
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Email Settings
+          </h2>
+          <div className="flex items-end space-x-4">
+            <div className="w-80">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                From Email Address
+              </label>
+              <input
+                type="email"
+                value="vxacademy@dctabudhabi.ae"
+                readOnly
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+              />
+            </div>
+            <div className="flex-shrink-0">
+              <button
+                type="button"
+                onClick={() =>
+                  window.open("mailto:info@potential.com", "_blank")
+                }
+                className="px-4 py-3 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors duration-200"
+              >
+                Manage
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Sub Header */}
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-gray-800">
@@ -267,9 +298,9 @@ const CommunicationEmail = () => {
             <p className="text-sm text-gray-500 mb-4">
               The following emails will receive this communication:
             </p>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-60 overflow-y-auto">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                {users.map((user, index) => (
+                {users.slice(0, 3).map((user, index) => (
                   <div
                     key={user.id || index}
                     className="bg-white border border-gray-200 rounded px-3 py-2 text-sm"
@@ -279,6 +310,13 @@ const CommunicationEmail = () => {
                     </div>
                   </div>
                 ))}
+                {users.length > 3 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded px-3 py-2 text-sm flex items-center justify-center">
+                    <div className="font-medium text-blue-800">
+                      +{users.length - 3} more
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
