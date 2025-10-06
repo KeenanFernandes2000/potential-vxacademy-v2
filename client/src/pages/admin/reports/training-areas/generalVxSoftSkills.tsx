@@ -86,6 +86,14 @@ const GeneralVxSoftSkills = () => {
   const [selectedRoleCategory, setSelectedRoleCategory] =
     useState<string>("all");
 
+  // Asset and sub-asset state for dynamic filtering
+  const [assets, setAssets] = useState<Array<{ id: number; name: string }>>([]);
+  const [subAssets, setSubAssets] = useState<
+    Array<{ id: number; name: string }>
+  >([]);
+  const [isLoadingAssets, setIsLoadingAssets] = useState(false);
+  const [isLoadingSubAssets, setIsLoadingSubAssets] = useState(false);
+
   // API object for training area operations
   const api = {
     async getTrainingAreaReport(token: string, trainingAreaId: number) {
@@ -113,6 +121,90 @@ const GeneralVxSoftSkills = () => {
         throw error;
       }
     },
+
+    async getAllAssets() {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${baseUrl}/api/users/assets`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Error fetching assets:", error);
+        throw error;
+      }
+    },
+
+    async getSubAssetsByAssetId(assetId: number) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(
+          `${baseUrl}/api/users/sub-assets/by-asset/${assetId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Error fetching sub-assets:", error);
+        throw error;
+      }
+    },
+  };
+
+  // Function to fetch assets
+  const fetchAssets = async () => {
+    setIsLoadingAssets(true);
+    try {
+      const response = await api.getAllAssets();
+      if (response.success && response.data) {
+        setAssets(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch assets:", error);
+      setAssets([]);
+    } finally {
+      setIsLoadingAssets(false);
+    }
+  };
+
+  // Function to fetch sub-assets by asset ID
+  const fetchSubAssets = async (assetId: number) => {
+    if (!assetId) {
+      setSubAssets([]);
+      return;
+    }
+
+    setIsLoadingSubAssets(true);
+    try {
+      const response = await api.getSubAssetsByAssetId(assetId);
+      if (response.success && response.data) {
+        setSubAssets(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch sub-assets:", error);
+      setSubAssets([]);
+    } finally {
+      setIsLoadingSubAssets(false);
+    }
   };
 
   useEffect(() => {
@@ -141,7 +233,54 @@ const GeneralVxSoftSkills = () => {
     };
 
     fetchTrainingAreaReport();
+    fetchAssets();
   }, [token]);
+
+  // Handle asset selection change
+  useEffect(() => {
+    if (selectedAsset !== "all") {
+      // Find the asset ID from the assets array
+      const asset = assets.find((a) => a.name === selectedAsset);
+      if (asset) {
+        fetchSubAssets(asset.id);
+      }
+    } else {
+      setSubAssets([]);
+    }
+    // Reset sub-asset and organization selection when asset changes
+    setSelectedSubAsset("all");
+    setSelectedOrganization("all");
+  }, [selectedAsset, assets]);
+
+  // Handle sub-asset selection change
+  useEffect(() => {
+    // Reset organization selection when sub-asset changes
+    setSelectedOrganization("all");
+  }, [selectedSubAsset]);
+
+  // Function to get filtered organizations based on selected asset and sub-asset
+  const getFilteredOrganizations = () => {
+    if (!reportData) return [];
+
+    let filtered = reportData.dataTableRows;
+
+    // Filter by asset
+    if (selectedAsset !== "all") {
+      filtered = filtered.filter((user) => user.asset === selectedAsset);
+    }
+
+    // Filter by sub-asset
+    if (selectedSubAsset !== "all") {
+      filtered = filtered.filter((user) => user.subAsset === selectedSubAsset);
+    }
+
+    // Get unique organizations from filtered data
+    const uniqueOrganizations = Array.from(
+      new Set(filtered.map((user) => user.organization))
+    ).map((org) => ({ value: org, label: org }));
+
+    return uniqueOrganizations;
+  };
 
   // Filter users based on all criteria
   useEffect(() => {
@@ -458,13 +597,14 @@ const GeneralVxSoftSkills = () => {
               <Select
                 value={selectedOrganization}
                 onValueChange={setSelectedOrganization}
+                disabled={!reportData}
               >
                 <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
                   <SelectValue placeholder="Select organization" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Organizations</SelectItem>
-                  {reportData.filters.organizations.map((org) => (
+                  {getFilteredOrganizations().map((org) => (
                     <SelectItem key={org.value} value={org.value}>
                       {org.label}
                     </SelectItem>
@@ -482,11 +622,17 @@ const GeneralVxSoftSkills = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Assets</SelectItem>
-                  {reportData.filters.assets.map((asset) => (
-                    <SelectItem key={asset.value} value={asset.value}>
-                      {asset.label}
+                  {isLoadingAssets ? (
+                    <SelectItem value="loading" disabled>
+                      Loading assets...
                     </SelectItem>
-                  ))}
+                  ) : (
+                    assets.map((asset) => (
+                      <SelectItem key={asset.id} value={asset.name}>
+                        {asset.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -497,17 +643,24 @@ const GeneralVxSoftSkills = () => {
               <Select
                 value={selectedSubAsset}
                 onValueChange={setSelectedSubAsset}
+                disabled={selectedAsset === "all" || isLoadingSubAssets}
               >
                 <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
                   <SelectValue placeholder="Select sub-asset" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Sub-Assets</SelectItem>
-                  {reportData.filters.subAssets.map((subAsset) => (
-                    <SelectItem key={subAsset.value} value={subAsset.value}>
-                      {subAsset.label}
+                  {isLoadingSubAssets ? (
+                    <SelectItem value="loading" disabled>
+                      Loading sub-assets...
                     </SelectItem>
-                  ))}
+                  ) : (
+                    subAssets.map((subAsset) => (
+                      <SelectItem key={subAsset.id} value={subAsset.name}>
+                        {subAsset.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

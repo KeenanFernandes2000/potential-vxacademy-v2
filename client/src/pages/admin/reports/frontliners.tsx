@@ -110,6 +110,14 @@ const Frontliners = () => {
     useState<string>("all");
   const [selectedProgress, setSelectedProgress] = useState<string>("all");
 
+  // Asset and sub-asset state for dynamic filtering
+  const [assets, setAssets] = useState<Array<{ id: number; name: string }>>([]);
+  const [subAssets, setSubAssets] = useState<
+    Array<{ id: number; name: string }>
+  >([]);
+  const [isLoadingAssets, setIsLoadingAssets] = useState(false);
+  const [isLoadingSubAssets, setIsLoadingSubAssets] = useState(false);
+
   // Comprehensive user details state
   const [comprehensiveUserData, setComprehensiveUserData] = useState<any>(null);
   const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
@@ -166,6 +174,90 @@ const Frontliners = () => {
         throw error;
       }
     },
+
+    async getAllAssets() {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${baseUrl}/api/users/assets`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Error fetching assets:", error);
+        throw error;
+      }
+    },
+
+    async getSubAssetsByAssetId(assetId: number) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(
+          `${baseUrl}/api/users/sub-assets/by-asset/${assetId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Error fetching sub-assets:", error);
+        throw error;
+      }
+    },
+  };
+
+  // Function to fetch assets
+  const fetchAssets = async () => {
+    setIsLoadingAssets(true);
+    try {
+      const response = await api.getAllAssets();
+      if (response.success && response.data) {
+        setAssets(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch assets:", error);
+      setAssets([]);
+    } finally {
+      setIsLoadingAssets(false);
+    }
+  };
+
+  // Function to fetch sub-assets by asset ID
+  const fetchSubAssets = async (assetId: number) => {
+    if (!assetId) {
+      setSubAssets([]);
+      return;
+    }
+
+    setIsLoadingSubAssets(true);
+    try {
+      const response = await api.getSubAssetsByAssetId(assetId);
+      if (response.success && response.data) {
+        setSubAssets(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch sub-assets:", error);
+      setSubAssets([]);
+    } finally {
+      setIsLoadingSubAssets(false);
+    }
   };
 
   useEffect(() => {
@@ -194,6 +286,7 @@ const Frontliners = () => {
     };
 
     fetchFrontlinersReport();
+    fetchAssets();
   }, [token]);
 
   // Handler for viewing comprehensive user details
@@ -213,6 +306,103 @@ const Frontliners = () => {
     } finally {
       setLoadingUserDetails(false);
     }
+  };
+
+  // Handle asset selection change
+  useEffect(() => {
+    if (selectedAsset !== "all") {
+      // Find the asset ID from the assets array
+      const asset = assets.find((a) => a.name === selectedAsset);
+      if (asset) {
+        fetchSubAssets(asset.id);
+      }
+    } else {
+      setSubAssets([]);
+    }
+    // Reset sub-asset, organization, and sub-organization selection when asset changes
+    setSelectedSubAsset("all");
+    setOrganizationFilter("all");
+    setSelectedSubOrganization("all");
+  }, [selectedAsset, assets]);
+
+  // Handle sub-asset selection change
+  useEffect(() => {
+    // Reset organization and sub-organization selection when sub-asset changes
+    setOrganizationFilter("all");
+    setSelectedSubOrganization("all");
+  }, [selectedSubAsset]);
+
+  // Handle organization selection change
+  useEffect(() => {
+    // Reset sub-organization selection when organization changes
+    setSelectedSubOrganization("all");
+  }, [organizationFilter]);
+
+  // Function to get filtered organizations based on selected asset and sub-asset
+  const getFilteredOrganizations = () => {
+    if (!reportData) return [];
+
+    let filtered = reportData.frontliners;
+
+    // Filter by asset
+    if (selectedAsset !== "all") {
+      filtered = filtered.filter(
+        (frontliner) => frontliner.asset === selectedAsset
+      );
+    }
+
+    // Filter by sub-asset
+    if (selectedSubAsset !== "all") {
+      filtered = filtered.filter(
+        (frontliner) => frontliner.subAsset === selectedSubAsset
+      );
+    }
+
+    // Get unique organizations from filtered data
+    const uniqueOrganizations = Array.from(
+      new Set(filtered.map((frontliner) => frontliner.organization))
+    ).map((org) => ({ value: org, label: org }));
+
+    return uniqueOrganizations;
+  };
+
+  // Function to get filtered sub-organizations based on selected asset, sub-asset, and organization
+  const getFilteredSubOrganizations = () => {
+    if (!reportData) return [];
+
+    let filtered = reportData.frontliners;
+
+    // Filter by asset
+    if (selectedAsset !== "all") {
+      filtered = filtered.filter(
+        (frontliner) => frontliner.asset === selectedAsset
+      );
+    }
+
+    // Filter by sub-asset
+    if (selectedSubAsset !== "all") {
+      filtered = filtered.filter(
+        (frontliner) => frontliner.subAsset === selectedSubAsset
+      );
+    }
+
+    // Filter by organization
+    if (organizationFilter !== "all") {
+      filtered = filtered.filter(
+        (frontliner) => frontliner.organization === organizationFilter
+      );
+    }
+
+    // Get unique sub-organizations from filtered data
+    const uniqueSubOrganizations = Array.from(
+      new Set(
+        filtered
+          .map((frontliner) => frontliner.subOrganization)
+          .filter((subOrg) => subOrg && subOrg !== "N/A")
+      )
+    ).map((subOrg) => ({ value: subOrg, label: subOrg }));
+
+    return uniqueSubOrganizations;
   };
 
   // Filter frontliners based on all criteria
@@ -596,11 +786,17 @@ const Frontliners = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Assets</SelectItem>
-                  {reportData.filters.assets.map((asset) => (
-                    <SelectItem key={asset.value} value={asset.value}>
-                      {asset.label}
+                  {isLoadingAssets ? (
+                    <SelectItem value="loading" disabled>
+                      Loading assets...
                     </SelectItem>
-                  ))}
+                  ) : (
+                    assets.map((asset) => (
+                      <SelectItem key={asset.id} value={asset.name}>
+                        {asset.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -611,17 +807,24 @@ const Frontliners = () => {
               <Select
                 value={selectedSubAsset}
                 onValueChange={setSelectedSubAsset}
+                disabled={selectedAsset === "all" || isLoadingSubAssets}
               >
                 <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
                   <SelectValue placeholder="Select sub-category" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Sub-Categories</SelectItem>
-                  {reportData.filters.subAssets.map((subAsset) => (
-                    <SelectItem key={subAsset.value} value={subAsset.value}>
-                      {subAsset.label}
+                  {isLoadingSubAssets ? (
+                    <SelectItem value="loading" disabled>
+                      Loading sub-assets...
                     </SelectItem>
-                  ))}
+                  ) : (
+                    subAssets.map((subAsset) => (
+                      <SelectItem key={subAsset.id} value={subAsset.name}>
+                        {subAsset.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -632,13 +835,14 @@ const Frontliners = () => {
               <Select
                 value={organizationFilter}
                 onValueChange={setOrganizationFilter}
+                disabled={!reportData}
               >
                 <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
                   <SelectValue placeholder="Select organization" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Organizations</SelectItem>
-                  {reportData.filters.organizations.map((org) => (
+                  {getFilteredOrganizations().map((org) => (
                     <SelectItem key={org.value} value={org.value}>
                       {org.label}
                     </SelectItem>
@@ -653,13 +857,14 @@ const Frontliners = () => {
               <Select
                 value={selectedSubOrganization}
                 onValueChange={setSelectedSubOrganization}
+                disabled={!reportData}
               >
                 <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
                   <SelectValue placeholder="Select sub-organization" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Sub-Organizations</SelectItem>
-                  {reportData.filters.subOrganizations.map((subOrg) => (
+                  {getFilteredSubOrganizations().map((subOrg) => (
                     <SelectItem key={subOrg.value} value={subOrg.value}>
                       {subOrg.label}
                     </SelectItem>
