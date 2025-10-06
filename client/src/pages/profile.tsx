@@ -397,7 +397,7 @@ const ProfilePage = (props: Props) => {
 
                   {/* Stats */}
                   <div className="flex items-center space-x-6 text-sm">
-                    <div className="flex items-center space-x-2">
+                    <div className="hidden flex items-center space-x-2">
                       <span className="text-muted-foreground">🏅</span>
                       <span className="text-muted-foreground">
                         {currentUser.level}
@@ -459,7 +459,7 @@ const ProfilePage = (props: Props) => {
                       </CardContent>
                     </Card>
 
-                    <Card className="bg-card/50 border-border rounded-lg">
+                    <Card className="hidden bg-card/50 border-border rounded-lg">
                       <CardContent className="p-6">
                         <div className="flex items-center space-x-4">
                           <div className="w-12 h-12 bg-primary/20 flex items-center justify-center rounded-lg">
@@ -518,8 +518,8 @@ const ProfilePage = (props: Props) => {
                       <p className="text-muted-foreground">{error}</p>
                     </div>
                   ) : (
-                    <form onSubmit={handleProfileUpdate} className="space-y-6">
-                      {/* Basic user information - only first name, last name, and email are editable */}
+                    <div className="space-y-6">
+                      {/* Basic user information - all fields are read-only */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <label
@@ -532,8 +532,8 @@ const ProfilePage = (props: Props) => {
                             id="first_name"
                             name="first_name"
                             value={userData.first_name}
-                            onChange={handleUserChange}
-                            className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg"
+                            readOnly
+                            className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
                           />
                         </div>
                         <div className="space-y-2">
@@ -547,8 +547,8 @@ const ProfilePage = (props: Props) => {
                             id="last_name"
                             name="last_name"
                             value={userData.last_name}
-                            onChange={handleUserChange}
-                            className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg"
+                            readOnly
+                            className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
                           />
                         </div>
                       </div>
@@ -564,20 +564,11 @@ const ProfilePage = (props: Props) => {
                           name="email"
                           type="email"
                           value={userData.email}
-                          onChange={handleUserChange}
-                          className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg"
+                          readOnly
+                          className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
                         />
                       </div>
-
-                      <div className="flex justify-end">
-                        <Button
-                          type="submit"
-                          className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 rounded-lg"
-                        >
-                          Update Profile
-                        </Button>
-                      </div>
-                    </form>
+                    </div>
                   )}
                 </TabsContent>
               </Tabs>

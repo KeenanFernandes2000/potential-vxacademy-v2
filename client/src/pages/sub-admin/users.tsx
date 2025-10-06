@@ -128,6 +128,7 @@ const Users = () => {
   const [filteredUsers, setFilteredUsers] = useState<UserData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -174,33 +175,38 @@ const Users = () => {
         }
 
         // Transform data to match our display format
-        const transformedUsers = filteredUsersData.map((user: any) => ({
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          eid: user.eid || "N/A",
-          phoneNumber: user.phoneNumber || "N/A",
-          roleCategory: user.roleCategory || "N/A",
-          role: user.role || "N/A",
-          seniority: user.seniority || "N/A",
-          overallProgress: user.overallProgress
-            ? `${user.overallProgress}%`
-            : "0%",
-          certificates: user.certificates || "0",
-          registrationDate: user.createdAt
-            ? new Date(user.createdAt).toLocaleDateString()
-            : "N/A",
-          lastLoginDate: user.lastLogin
-            ? new Date(user.lastLogin).toLocaleDateString()
-            : "N/A",
-          actions: (
+        const transformedUsers = filteredUsersData.map((user: any) => {
+          const transformedUser = {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            eid: user.eid || "N/A",
+            phoneNumber: user.phoneNumber || "N/A",
+            roleCategory: user.roleCategory || "N/A",
+            role: user.role || "N/A",
+            seniority: user.seniority || "N/A",
+            overallProgress: user.overallProgress
+              ? `${user.overallProgress}%`
+              : "0%",
+            certificates: user.certificates || "0",
+            registrationDate: user.createdAt
+              ? new Date(user.createdAt).toLocaleDateString()
+              : "N/A",
+            lastLoginDate: user.lastLogin
+              ? new Date(user.lastLogin).toLocaleDateString()
+              : "N/A",
+            userType: user.userType || "user",
+            actions: null as React.ReactNode,
+          };
+          
+          transformedUser.actions = (
             <div className="flex gap-1">
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
-                onClick={() => handleViewMore(user)}
+                onClick={() => handleViewMore(transformedUser)}
                 title="View Full Profile"
               >
                 <Visibility sx={{ fontSize: 16 }} />
@@ -209,14 +215,16 @@ const Users = () => {
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
-                onClick={() => handleEditUser(user)}
+                onClick={() => handleEditUser(transformedUser)}
                 title="Edit"
               >
                 <Edit sx={{ fontSize: 16 }} />
               </Button>
             </div>
-          ),
-        }));
+          );
+          
+          return transformedUser;
+        });
 
         setUsers(transformedUsers);
         setFilteredUsers(transformedUsers);
@@ -266,11 +274,21 @@ const Users = () => {
       const response = await api.updateUser(selectedUser.id, userData, token);
 
       if (response.success) {
-        // Refresh the user list
-        await refreshUserList();
+        // Close modal immediately
         setIsEditModalOpen(false);
-        setSelectedUser(null);
-        setError("");
+        
+        // Show success message
+        setSuccessMessage("User updated successfully!");
+        // Clear success message after 5 seconds
+        setTimeout(() => setSuccessMessage(""), 5000);
+        
+        // Use setTimeout to ensure modal is fully closed before updating state
+        setTimeout(() => {
+          setSelectedUser(null);
+          setError("");
+          // Refresh the user list after modal is closed
+          refreshUserList();
+        }, 0);
       } else {
         setError(response.message || "Failed to update user");
       }
@@ -285,11 +303,17 @@ const Users = () => {
   const handleEditUser = (user: any) => {
     setSelectedUser(user);
     setIsEditModalOpen(true);
+    // Clear any previous messages when opening modal
+    setError("");
+    setSuccessMessage("");
   };
 
   const handleViewMore = (user: any) => {
     setSelectedUser(user);
     setIsViewModalOpen(true);
+    // Clear any previous messages when opening modal
+    setError("");
+    setSuccessMessage("");
   };
 
   const refreshUserList = async () => {
@@ -324,33 +348,38 @@ const Users = () => {
         });
       }
 
-      const transformedUsers = filteredUsersData.map((user: any) => ({
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        eid: user.eid || "N/A",
-        phoneNumber: user.phoneNumber || "N/A",
-        roleCategory: user.roleCategory || "N/A",
-        role: user.role || "N/A",
-        seniority: user.seniority || "N/A",
-        overallProgress: user.overallProgress
-          ? `${user.overallProgress}%`
-          : "0%",
-        certificates: user.certificates || "0",
-        registrationDate: user.createdAt
-          ? new Date(user.createdAt).toLocaleDateString()
-          : "N/A",
-        lastLoginDate: user.lastLogin
-          ? new Date(user.lastLogin).toLocaleDateString()
-          : "N/A",
-        actions: (
+      const transformedUsers = filteredUsersData.map((user: any) => {
+        const transformedUser = {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          eid: user.eid || "N/A",
+          phoneNumber: user.phoneNumber || "N/A",
+          roleCategory: user.roleCategory || "N/A",
+          role: user.role || "N/A",
+          seniority: user.seniority || "N/A",
+          overallProgress: user.overallProgress
+            ? `${user.overallProgress}%`
+            : "0%",
+          certificates: user.certificates || "0",
+          registrationDate: user.createdAt
+            ? new Date(user.createdAt).toLocaleDateString()
+            : "N/A",
+          lastLoginDate: user.lastLogin
+            ? new Date(user.lastLogin).toLocaleDateString()
+            : "N/A",
+          userType: user.userType || "user",
+          actions: null as React.ReactNode,
+        };
+        
+        transformedUser.actions = (
           <div className="flex gap-1">
             <Button
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
-              onClick={() => handleViewMore(user)}
+              onClick={() => handleViewMore(transformedUser)}
               title="View Full Profile"
             >
               <Visibility sx={{ fontSize: 16 }} />
@@ -359,14 +388,16 @@ const Users = () => {
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
-              onClick={() => handleEditUser(user)}
+              onClick={() => handleEditUser(transformedUser)}
               title="Edit"
             >
               <Edit sx={{ fontSize: 16 }} />
             </Button>
           </div>
-        ),
-      }));
+        );
+        
+        return transformedUser;
+      });
 
       setUsers(transformedUsers);
       setFilteredUsers(transformedUsers);
@@ -427,6 +458,11 @@ const Users = () => {
         onSubmit={handleSubmit}
         className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
       >
+        {error && (
+          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="edit_firstName">First Name *</Label>
           <Input
@@ -488,6 +524,7 @@ const Users = () => {
             onClick={() => {
               setIsEditModalOpen(false);
               setSelectedUser(null);
+              setError("");
             }}
             className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:bg-sandstone hover:text-[#2C2C2C]"
           >
@@ -523,7 +560,7 @@ const Users = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full overflow-hidden">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-[#2C2C2C]">
@@ -541,9 +578,15 @@ const Users = () => {
         </div>
       )}
 
+      {successMessage && (
+        <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+          {successMessage}
+        </div>
+      )}
+
       {/* Search Bar */}
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 w-[70%]">
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] h-4 w-4" />
           <Input
             placeholder="Search users..."
@@ -555,10 +598,10 @@ const Users = () => {
             className="pl-10 rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666] w-full"
           />
         </div>
-        <div>
+        <div className="flex-shrink-0">
           <Button
             onClick={downloadExcel}
-            className="rounded-full bg-dawn hover:bg-[#B85A1A] text-white"
+            className="rounded-full bg-dawn hover:bg-[#B85A1A] text-white whitespace-nowrap"
             disabled={filteredUsers.length === 0}
           >
             <Download className="h-4 w-4 mr-2" />
@@ -568,15 +611,14 @@ const Users = () => {
       </div>
 
       {/* User Table */}
-      <div className="border bg-white border-[#E5E5E5] w-full rounded-lg overflow-x-auto max-w-[100%]">
-        <div className="max-w-[1350px] mx-auto">
-          <Table>
+      <div className="w-full overflow-x-auto border bg-white border-[#E5E5E5] rounded-lg">
+        <Table className="min-w-full">
             <TableHeader>
               <TableRow className="border-[#E5E5E5]">
                 {columns.map((column) => (
                   <TableHead
                     key={column}
-                    className="text-[#2C2C2C] font-semibold"
+                    className="text-[#2C2C2C] font-semibold whitespace-nowrap px-4"
                   >
                     {column}
                   </TableHead>
@@ -589,45 +631,44 @@ const Users = () => {
                   key={index}
                   className="border-[#E5E5E5] hover:bg-sandstone/50"
                 >
-                  <TableCell className="text-[#2C2C2C]">{user.id}</TableCell>
-                  <TableCell className="text-[#2C2C2C]">
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">{user.id}</TableCell>
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
                     {user.firstName}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C]">
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
                     {user.lastName}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C]">{user.email}</TableCell>
-                  <TableCell className="text-[#2C2C2C]">{user.eid}</TableCell>
-                  <TableCell className="text-[#2C2C2C]">
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">{user.email}</TableCell>
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">{user.eid}</TableCell>
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
                     {user.phoneNumber}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C]">
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
                     {user.roleCategory}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C]">{user.role}</TableCell>
-                  <TableCell className="text-[#2C2C2C]">
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">{user.role}</TableCell>
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
                     {user.seniority}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C]">
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
                     {user.overallProgress}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C]">
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
                     {user.certificates}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C]">
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
                     {user.registrationDate}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C]">
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
                     {user.lastLoginDate}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C]">
+                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
                     {user.actions}
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </div>
       </div>
 
       {/* Edit Modal */}
@@ -748,7 +789,11 @@ const Users = () => {
               <div className="flex justify-end gap-2 pt-4">
                 <Button
                   variant="outline"
-                  onClick={() => setIsViewModalOpen(false)}
+                  onClick={() => {
+                    setIsViewModalOpen(false);
+                    setError("");
+                    setSuccessMessage("");
+                  }}
                   className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:bg-sandstone hover:text-[#2C2C2C]"
                 >
                   Close
