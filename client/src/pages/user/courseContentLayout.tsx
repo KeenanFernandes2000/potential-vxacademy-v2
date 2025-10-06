@@ -151,6 +151,8 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
   }>({});
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isSubmittingAssessment, setIsSubmittingAssessment] = useState(false);
+  const [isCompletingLearningBlock, setIsCompletingLearningBlock] =
+    useState(false);
   const [hasAttemptedAssessment, setHasAttemptedAssessment] = useState(false);
   const [expandedUnits, setExpandedUnits] = useState<string[]>([]);
   const [completedAssessments, setCompletedAssessments] = useState<Set<number>>(
@@ -325,8 +327,23 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
 
         setSelectedContent(initialContent);
 
-        // Expand the first unit
-        if (units.length > 0) {
+        // Expand the unit that contains the initial content
+        const containingUnit = units.find((unit) => {
+          if (firstAccessibleContent.type === "learningBlock") {
+            return unit.learningBlocks.some(
+              (block) => block.id === firstAccessibleContent.item.id
+            );
+          } else {
+            return unit.assessments.some(
+              (assessment) => assessment.id === firstAccessibleContent.item.id
+            );
+          }
+        });
+
+        if (containingUnit) {
+          setExpandedUnits([`unit-${containingUnit.id}`]);
+        } else if (units.length > 0) {
+          // Fallback to first unit if no containing unit found
           setExpandedUnits([`unit-${units[0].id}`]);
         }
 
@@ -422,6 +439,20 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
     };
 
     setSelectedContent(newSelectedContent);
+
+    // Find and expand the unit that contains this content
+    const containingUnit = units.find((unit) => {
+      if (type === "learningBlock") {
+        return unit.learningBlocks.some((block) => block.id === item.id);
+      } else {
+        return unit.assessments.some((assessment) => assessment.id === item.id);
+      }
+    });
+
+    if (containingUnit) {
+      const unitId = `unit-${containingUnit.id}`;
+      setExpandedUnits([unitId]);
+    }
 
     // Reset assessment state when selecting new content
     if (type === "assessment") {
@@ -722,6 +753,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
   const handleCompleteLearningBlock = async () => {
     if (selectedContent?.type === "learningBlock" && onCompleteLearningBlock) {
       try {
+        setIsCompletingLearningBlock(true);
         await onCompleteLearningBlock(selectedContent.id);
 
         // Find the next content item that should become accessible
@@ -740,6 +772,23 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
           });
           setHasNextContent(true);
 
+          // Expand the unit that contains the next content
+          const containingUnit = units.find((unit) => {
+            if (nextContent.type === "learningBlock") {
+              return unit.learningBlocks.some(
+                (block) => block.id === nextContent.item.id
+              );
+            } else {
+              return unit.assessments.some(
+                (assessment) => assessment.id === nextContent.item.id
+              );
+            }
+          });
+
+          if (containingUnit) {
+            setExpandedUnits([`unit-${containingUnit.id}`]);
+          }
+
           // Auto-scroll to the newly unlocked content after a short delay
           setTimeout(() => {
             scrollToContentItem(nextContent.item.id, nextContent.type);
@@ -753,6 +802,8 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
         }
       } catch (error) {
         console.error("Failed to complete learning block:", error);
+      } finally {
+        setIsCompletingLearningBlock(false);
       }
     }
   };
@@ -812,12 +863,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
           // Expand the target unit if it exists
           if (targetUnit) {
             const unitId = `unit-${targetUnit.id}`;
-            setExpandedUnits((prev) => {
-              if (!prev.includes(unitId)) {
-                return [...prev, unitId];
-              }
-              return prev;
-            });
+            setExpandedUnits([unitId]);
           }
 
           // Auto-scroll to the newly unlocked content after a short delay
@@ -1921,20 +1967,33 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                         selectedContent?.type === "learningBlock" &&
                         isCurrentLearningBlockCompleted()
                           ? "bg-gray-400 hover:bg-gray-400 text-white px-6 py-2 cursor-not-allowed"
+                          : selectedContent?.type === "learningBlock" &&
+                            isCompletingLearningBlock
+                          ? "bg-dawn/70 text-black px-6 py-2 cursor-wait"
+                          : selectedContent?.type === "assessment" &&
+                            isSubmittingAssessment
+                          ? "bg-dawn/70 text-black px-6 py-2 cursor-wait"
                           : "bg-dawn hover:bg-[#B85A1A] text-white px-6 py-2"
                       }
                       onClick={handleCompleteLearningBlock}
                       disabled={
-                        selectedContent?.type === "learningBlock" &&
-                        isCurrentLearningBlockCompleted()
+                        (selectedContent?.type === "learningBlock" &&
+                          (isCurrentLearningBlockCompleted() ||
+                            isCompletingLearningBlock)) ||
+                        (selectedContent?.type === "assessment" &&
+                          isSubmittingAssessment)
                       }
                     >
                       {selectedContent?.type === "learningBlock"
                         ? isCurrentLearningBlockCompleted()
                           ? "Completed"
+                          : isCompletingLearningBlock
+                          ? "Completing..."
                           : hasNextContent
                           ? "Mark Complete & Continue"
                           : "Mark Complete"
+                        : isSubmittingAssessment
+                        ? "Loading..."
                         : "Next"}
                     </Button>
                   </div>
