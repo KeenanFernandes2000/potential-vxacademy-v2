@@ -493,10 +493,13 @@ const LearningPathsPage = () => {
   }, [token]);
 
   const handleSearch = (query: string) => {
-    applyTableFilters(query);
+    applyTableFilters(query, tableFilters);
   };
 
-  const applyTableFilters = (searchQuery: string = "") => {
+  const applyTableFilters = (
+    searchQuery: string = "",
+    filtersToApply = tableFilters
+  ) => {
     let filtered = learningPaths;
 
     // Apply search filter
@@ -519,22 +522,22 @@ const LearningPathsPage = () => {
     }
 
     // Apply asset filter
-    if (tableFilters.assetId) {
+    if (filtersToApply.assetId) {
       filtered = filtered.filter(
         (learningPath) =>
           learningPath.assetName ===
-          assets.find((asset) => asset.id.toString() === tableFilters.assetId)
+          assets.find((asset) => asset.id.toString() === filtersToApply.assetId)
             ?.name
       );
     }
 
     // Apply role category filter
-    if (tableFilters.roleCategoryId) {
+    if (filtersToApply.roleCategoryId) {
       filtered = filtered.filter(
         (learningPath) =>
           learningPath.categoryName ===
           roleCategories.find(
-            (cat) => cat.id.toString() === tableFilters.roleCategoryId
+            (cat) => cat.id.toString() === filtersToApply.roleCategoryId
           )?.name
       );
     }
@@ -545,7 +548,7 @@ const LearningPathsPage = () => {
   const handleTableFilterChange = (filterType: string, value: string) => {
     const newFilters = { ...tableFilters, [filterType]: value };
     setTableFilters(newFilters);
-    applyTableFilters();
+    applyTableFilters("", newFilters);
   };
 
   const handleCreateLearningPath = async (formData: any) => {
