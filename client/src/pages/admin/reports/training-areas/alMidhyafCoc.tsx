@@ -734,6 +734,17 @@ const AlMidhyafCoc = () => {
 
         {/* Data Table */}
         <div className="space-y-4">
+          {/* Legend/Explanation */}
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-200 border border-red-300 rounded"></div>
+              <p className="text-red-700 font-medium text-sm">
+                <strong>Red highlighting:</strong> Inactive users who haven't
+                completed the course
+              </p>
+            </div>
+          </div>
+
           {/* Search Section */}
           <div className="flex items-center gap-4 justify-between w-full">
             <div className="relative flex-1 w-full">
