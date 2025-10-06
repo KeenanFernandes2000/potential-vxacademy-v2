@@ -365,7 +365,7 @@ const Organizations = () => {
               <Building2 className="h-4 w-4 text-dawn" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#2C2C2C]">
+              <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalOrganizations}
               </div>
             </CardContent>
@@ -379,7 +379,7 @@ const Organizations = () => {
               <TrendingUp className="h-4 w-4 text-green-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#2C2C2C]">
+              <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.activeOrganizations}
               </div>
             </CardContent>
@@ -393,7 +393,7 @@ const Organizations = () => {
               <Users className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#2C2C2C]">
+              <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalFrontliners}
               </div>
             </CardContent>
@@ -407,7 +407,7 @@ const Organizations = () => {
               <Award className="h-4 w-4 text-purple-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#2C2C2C]">
+              <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.registeredFrontliners}
               </div>
             </CardContent>

@@ -367,7 +367,7 @@ const GeneralVxSoftSkills = () => {
               <Users className="h-4 w-4 text-dawn" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#2C2C2C]">
+              <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalFrontliners}
               </div>
             </CardContent>
@@ -381,7 +381,7 @@ const GeneralVxSoftSkills = () => {
               <Building2 className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#2C2C2C]">
+              <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalOrganizations}
               </div>
             </CardContent>
@@ -395,7 +395,7 @@ const GeneralVxSoftSkills = () => {
               <Award className="h-4 w-4 text-green-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#2C2C2C]">
+              <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalCertificatesIssued}
               </div>
             </CardContent>
@@ -409,7 +409,7 @@ const GeneralVxSoftSkills = () => {
               <Award className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#2C2C2C]">
+              <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalVxPointsEarned.toLocaleString()}
               </div>
             </CardContent>
@@ -426,7 +426,7 @@ const GeneralVxSoftSkills = () => {
               <BookOpen className="h-4 w-4 text-purple-400" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#2C2C2C]">
+              <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalCompletedAlMidhyaf}
               </div>
             </CardContent>
@@ -440,7 +440,7 @@ const GeneralVxSoftSkills = () => {
               <TrendingUp className="h-4 w-4 text-dawn" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#2C2C2C]">
+              <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.alMidhyafOverallProgress.toFixed(1)}%
               </div>
             </CardContent>
