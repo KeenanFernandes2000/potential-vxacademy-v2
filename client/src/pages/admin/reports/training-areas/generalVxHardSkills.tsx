@@ -689,6 +689,18 @@ const GeneralVxHardSkills = () => {
               </Select>
             </div>
           </div>
+          {hasActiveFilters && (
+            <div className="mt-4 flex justify-end">
+              <Button
+                variant="outline"
+                onClick={clearAllFilters}
+                className="bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30"
+              >
+                <X className="h-3 w-3 mr-1" />
+                Clear Filters
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Export Button */}
