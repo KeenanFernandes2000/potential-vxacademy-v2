@@ -882,8 +882,7 @@ const joinPage = (props: Props) => {
         return;
       }
 
-      // Store user data and token
-      localStorage.setItem("userData", JSON.stringify(userResponse.user));
+      // Store token only (user data will be stored after normal user registration)
       localStorage.setItem("token", userResponse.token);
 
       // Step 2: Complete user registration with professional info
@@ -938,6 +937,25 @@ const joinPage = (props: Props) => {
       );
 
       if (response.success) {
+        // Update user data with normalUserDetails and store in localStorage
+        const updatedUser = {
+          ...userResponse.user,
+          organization: form2Data.organization,
+          subOrganization: form2Data.subOrganization,
+          asset: form2Data.asset,
+          subAsset: form2Data.subAsset,
+          normalUserDetails: {
+            existing: type === "existing_joiner",
+            initialAssessment: response.data.initialAssessment,
+            roleCategory: form2Data.role_category,
+            seniority: form2Data.seniority,
+          },
+        };
+
+        // Store updated user data with normalUserDetails
+        localStorage.setItem("userData", JSON.stringify(updatedUser));
+
+        // Also store flags for backward compatibility
         let flags = {
           existing: type === "existing_joiner",
           initialAssessment: response.data.initialAssessment,

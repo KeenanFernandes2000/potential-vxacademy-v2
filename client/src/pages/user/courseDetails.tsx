@@ -414,11 +414,11 @@ const CourseDetails = () => {
         let learningPathUnitIds: number[] = [];
         try {
           // Get values from user data
-          const assetName = user.asset || "Default Asset";
+          const assetName = user.asset || "";
           const roleCategoryName =
-            user.normalUserDetails?.roleCategory || "Default Role";
+            user.normalUserDetails?.roleCategory || "";
           const seniority =
-            user.normalUserDetails?.seniority || "Default Seniority";
+            user.normalUserDetails?.seniority || "";
 
           const learningPathResponse = await api.getLearningPathCompletion(
             assetName,
