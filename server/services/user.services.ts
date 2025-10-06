@@ -18,6 +18,7 @@ import {
   userCourseProgress,
 } from "../db/schema/progress";
 import { courses } from "../db/schema/training";
+import { certificates } from "../db/schema/gamification";
 import type {
   User,
   NewUser,
@@ -566,7 +567,7 @@ export class UserService {
     limit?: number,
     offset?: number
   ): Promise<any[]> {
-    // Get all users with their normal user details
+    // Get all users with their normal user details plus progress and certificates
     const query = db
       .select({
         // User fields
@@ -589,9 +590,39 @@ export class UserService {
         phoneNumber: normalUsers.phoneNumber,
         existing: normalUsers.existing,
         initialAssessment: normalUsers.initialAssessment,
+        // Overall progress (average of all training area completion percentages)
+        overallProgress: sql<number>`
+          COALESCE(ROUND(CAST(AVG(CAST(${userTrainingAreaProgress.completionPercentage} AS FLOAT)) AS NUMERIC), 1), 0)
+        `,
+        // Certificates count
+        certificates: sql<number>`
+          COUNT(DISTINCT ${certificates.id})
+        `,
       })
       .from(users)
-      .leftJoin(normalUsers, eq(users.id, normalUsers.userId));
+      .leftJoin(normalUsers, eq(users.id, normalUsers.userId))
+      .leftJoin(userTrainingAreaProgress, eq(users.id, userTrainingAreaProgress.userId))
+      .leftJoin(certificates, eq(certificates.userId, users.id))
+      .groupBy(
+        users.id,
+        users.firstName,
+        users.lastName,
+        users.email,
+        users.organization,
+        users.subOrganization,
+        users.asset,
+        users.subAsset,
+        users.userType,
+        users.createdAt,
+        users.lastLogin,
+        normalUsers.roleCategory,
+        normalUsers.role,
+        normalUsers.seniority,
+        normalUsers.eid,
+        normalUsers.phoneNumber,
+        normalUsers.existing,
+        normalUsers.initialAssessment
+      );
 
     if (limit !== undefined) {
       query.limit(limit);

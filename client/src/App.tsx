@@ -93,14 +93,14 @@ const AdminRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
 const SubAdminRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full bg-sandstone">
+      <div className="flex h-screen w-full bg-sandstone overflow-hidden">
         {/* Persistent Sub-Admin Sidebar */}
         <SubAdminSidebar />
 
         {/* Main Content Area */}
-        <SidebarInset className="max-w-[100%]">
-          <div className="flex flex-col h-full">
-            <main className="flex-1 p-6">
+        <SidebarInset className="flex-1 overflow-hidden">
+          <div className="flex flex-col h-full overflow-hidden">
+            <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden">
               <div className="space-y-6">{children}</div>
             </main>
           </div>
