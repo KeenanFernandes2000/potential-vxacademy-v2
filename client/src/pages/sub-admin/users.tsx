@@ -157,7 +157,7 @@ const Users = () => {
         const usersResponse = await api.getAllUsers(token);
         let filteredUsersData = usersResponse.data || [];
 
-        // Filter users based on current user's organization only
+        // Filter users based on current user's organization and suborganizations
         if (currentUserData) {
           filteredUsersData = filteredUsersData.filter((user: any) => {
             // Filter out Sub_admin users
@@ -165,9 +165,35 @@ const Users = () => {
               return false;
             }
 
-            // Filter by organization only
+            // Filter by organization
             if (user.organization !== currentUserData.organization) {
               return false;
+            }
+
+            // Filter by suborganization if current user has suborganizations
+            if (
+              currentUserData.subOrganization &&
+              Array.isArray(currentUserData.subOrganization) &&
+              currentUserData.subOrganization.length > 0
+            ) {
+              // If user has suborganizations, check if they have any matching suborganization
+              if (
+                !user.subOrganization ||
+                !Array.isArray(user.subOrganization) ||
+                user.subOrganization.length === 0
+              ) {
+                return false;
+              }
+
+              // Check if user has any suborganization that matches current user's suborganizations
+              const hasMatchingSubOrg = user.subOrganization.some(
+                (userSubOrg: string) =>
+                  currentUserData.subOrganization.includes(userSubOrg)
+              );
+
+              if (!hasMatchingSubOrg) {
+                return false;
+              }
             }
 
             return true;
@@ -331,7 +357,7 @@ const Users = () => {
       const usersResponse = await api.getAllUsers(token);
       let filteredUsersData = usersResponse.data || [];
 
-      // Filter users based on current user's organization only
+      // Filter users based on current user's organization and suborganizations
       if (currentUserData) {
         filteredUsersData = filteredUsersData.filter((user: any) => {
           // Filter out Sub_admin users
@@ -339,9 +365,35 @@ const Users = () => {
             return false;
           }
 
-          // Filter by organization only
+          // Filter by organization
           if (user.organization !== currentUserData.organization) {
             return false;
+          }
+
+          // Filter by suborganization if current user has suborganizations
+          if (
+            currentUserData.subOrganization &&
+            Array.isArray(currentUserData.subOrganization) &&
+            currentUserData.subOrganization.length > 0
+          ) {
+            // If user has suborganizations, check if they have any matching suborganization
+            if (
+              !user.subOrganization ||
+              !Array.isArray(user.subOrganization) ||
+              user.subOrganization.length === 0
+            ) {
+              return false;
+            }
+
+            // Check if user has any suborganization that matches current user's suborganizations
+            const hasMatchingSubOrg = user.subOrganization.some(
+              (userSubOrg: string) =>
+                currentUserData.subOrganization.includes(userSubOrg)
+            );
+
+            if (!hasMatchingSubOrg) {
+              return false;
+            }
           }
 
           return true;

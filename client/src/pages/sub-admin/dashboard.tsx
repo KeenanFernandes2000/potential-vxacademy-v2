@@ -148,11 +148,11 @@ const Dashboard = () => {
         const usersResponse = await api.getAllUsers(token);
         let filteredUsersData = usersResponse.data || [];
 
-        // Filter users based on current user's organization, suborganization, assets, and subassets (same logic as users.tsx)
+        // Filter users based on current user's organization and suborganizations, include only frontliners (same logic as users.tsx)
         if (currentUserData) {
           filteredUsersData = filteredUsersData.filter((user: any) => {
-            // Filter out Sub_admin users
-            if (user.userType === "sub_admin") {
+            // Include only regular users (exclude admins/sub-admins/etc.)
+            if (user.userType !== "user") {
               return false;
             }
 
@@ -161,22 +161,30 @@ const Dashboard = () => {
               return false;
             }
 
-            // Filter by suborganization if current user has one
+            // Filter by suborganization if current user has suborganizations
             if (
               currentUserData.subOrganization &&
-              user.subOrganization !== currentUserData.subOrganization
+              Array.isArray(currentUserData.subOrganization) &&
+              currentUserData.subOrganization.length > 0
             ) {
-              return false;
-            }
+              // If user has suborganizations, check if they have any matching suborganization
+              if (
+                !user.subOrganization ||
+                !Array.isArray(user.subOrganization) ||
+                user.subOrganization.length === 0
+              ) {
+                return false;
+              }
 
-            // Filter by asset
-            if (user.asset !== currentUserData.asset) {
-              return false;
-            }
+              // Check if user has any suborganization that matches current user's suborganizations
+              const hasMatchingSubOrg = user.subOrganization.some(
+                (userSubOrg: string) =>
+                  currentUserData.subOrganization.includes(userSubOrg)
+              );
 
-            // Filter by subasset
-            if (user.subAsset !== currentUserData.subAsset) {
-              return false;
+              if (!hasMatchingSubOrg) {
+                return false;
+              }
             }
 
             return true;
