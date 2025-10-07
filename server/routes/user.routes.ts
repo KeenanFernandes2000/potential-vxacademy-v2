@@ -126,6 +126,7 @@ router.delete(
 // ==================== CERTIFICATE FUNCTIONS ====================
 router.post("/certificates/generate", userControllers.generateCertificate);
 router.get("/users/:id/certificates", userControllers.getUserCertificates);
+router.get("/certificates/:id", userControllers.getCertificateById);
 
 // ==================== COMPREHENSIVE USER DETAILS ====================
 router.get("/:id/comprehensive-details", userControllers.getUserComprehensiveDetails);

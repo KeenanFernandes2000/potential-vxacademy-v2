@@ -3150,6 +3150,62 @@ export class userControllers {
   }
 
   /**
+   * Get certificate by ID
+   * GET /certificates/:id
+   */
+  static async getCertificateById(req: Request, res: Response): Promise<void> {
+    const certificateId = parseInt(req.params.id as string);
+
+    if (isNaN(certificateId) || certificateId <= 0) {
+      throw createError("Invalid certificate ID", 400);
+    }
+
+    try {
+      // Get certificate with user and training area information
+      const certificate = await db
+        .select({
+          id: certificates.id,
+          userId: certificates.userId,
+          courseId: certificates.courseId,
+          certificateNumber: certificates.certificateNumber,
+          issueDate: certificates.issueDate,
+          expiryDate: certificates.expiryDate,
+          status: certificates.status,
+          userFirstName: users.firstName,
+          userLastName: users.lastName,
+          userEmail: users.email,
+          trainingAreaId: trainingAreas.id,
+          trainingAreaName: trainingAreas.name,
+          trainingAreaDescription: trainingAreas.description,
+          trainingAreaImageUrl: trainingAreas.imageUrl,
+        })
+        .from(certificates)
+        .leftJoin(users, eq(certificates.userId, users.id))
+        .leftJoin(courses, eq(certificates.courseId, courses.id))
+        .leftJoin(modules, eq(courses.moduleId, modules.id))
+        .leftJoin(trainingAreas, eq(modules.trainingAreaId, trainingAreas.id))
+        .where(eq(certificates.id, certificateId))
+        .limit(1);
+
+      if (!certificate[0]) {
+        throw createError("Certificate not found", 404);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Certificate retrieved successfully",
+        data: certificate[0],
+      });
+    } catch (error: any) {
+      console.error("Get certificate by ID error:", error);
+      if (error.statusCode) {
+        throw error;
+      }
+      throw createError("Failed to retrieve certificate", 500);
+    }
+  }
+
+  /**
    * Get comprehensive user details from all related tables
    */
   static async getUserComprehensiveDetails(

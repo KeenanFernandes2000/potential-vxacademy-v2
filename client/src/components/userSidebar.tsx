@@ -8,6 +8,7 @@ import {
   Home,
   School,
   ArrowLeft,
+  SmartToy as TutorIcon,
 } from "@mui/icons-material";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -46,6 +47,7 @@ const UserSidebar = () => {
       url: "/user/achievements",
       badge: null,
     },
+    { title: "AI Tutor", icon: TutorIcon, url: "/user/tutor", badge: null },
   ];
 
   return (

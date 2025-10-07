@@ -40,6 +40,7 @@ import UserDashboard from "@/pages/user/dashboard";
 import UserCourses from "@/pages/user/courses";
 import UserAchievements from "@/pages/user/achievements";
 import CourseDetails from "@/pages/user/courseDetails";
+import Tutor from "@/pages/user/tutor";
 import MediaPage from "./pages/admin/mediaPage";
 
 // Report Pages
@@ -67,6 +68,7 @@ import SubAdminSidebar from "@/components/subAdminSidebar";
 import UserSidebar from "@/components/userSidebar";
 
 import { ThemeProvider } from "./context/themeContext";
+import CertificatePage from "./pages/certificate";
 
 // Create a wrapper component for admin routes with persistent sidebar
 const AdminRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -282,6 +284,7 @@ function App() {
                           path="achievements"
                           element={<UserAchievements />}
                         />
+                        <Route path="tutor" element={<Tutor />} />
                         <Route path="courses/:id" element={<CourseDetails />} />
                       </Routes>
                     </UserRoutesWrapper>
@@ -301,6 +304,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/certificate/:id"
+                element={
+                  <ProtectedRoute requiredUserType="user">
+                    <CertificatePage />
                   </ProtectedRoute>
                 }
               />
