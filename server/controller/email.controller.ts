@@ -110,7 +110,7 @@ export class EmailController {
       data: {
         name: user?.firstName,
         trainingAreaName: trainingArea?.name,
-        url: `${process.env.FRONTEND_URL}/retake-ics`,
+        url: `${process.env.VITE_API_URL}/api/email/retake-ics`,
       },
     });
   }
