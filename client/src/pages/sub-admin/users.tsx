@@ -199,7 +199,7 @@ const Users = () => {
             userType: user.userType || "user",
             actions: null as React.ReactNode,
           };
-          
+
           transformedUser.actions = (
             <div className="flex gap-1">
               <Button
@@ -222,7 +222,7 @@ const Users = () => {
               </Button>
             </div>
           );
-          
+
           return transformedUser;
         });
 
@@ -276,12 +276,12 @@ const Users = () => {
       if (response.success) {
         // Close modal immediately
         setIsEditModalOpen(false);
-        
+
         // Show success message
         setSuccessMessage("User updated successfully!");
         // Clear success message after 5 seconds
         setTimeout(() => setSuccessMessage(""), 5000);
-        
+
         // Use setTimeout to ensure modal is fully closed before updating state
         setTimeout(() => {
           setSelectedUser(null);
@@ -372,7 +372,7 @@ const Users = () => {
           userType: user.userType || "user",
           actions: null as React.ReactNode,
         };
-        
+
         transformedUser.actions = (
           <div className="flex gap-1">
             <Button
@@ -395,7 +395,7 @@ const Users = () => {
             </Button>
           </div>
         );
-        
+
         return transformedUser;
       });
 
@@ -405,6 +405,16 @@ const Users = () => {
       console.error("Error refreshing user list:", error);
       setError("Failed to refresh user list. Please try again.");
     }
+  };
+
+  // Helper function to check if user should be highlighted
+  const shouldHighlightUser = (user: any) => {
+    const progress = parseFloat(user.overallProgress.replace("%", ""));
+    const lastLoginDate = new Date(user.lastLoginDate);
+    const fifteenDaysAgo = new Date();
+    fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+
+    return progress < 100 && lastLoginDate < fifteenDaysAgo;
   };
 
   const downloadExcel = () => {
@@ -610,65 +620,145 @@ const Users = () => {
         </div>
       </div>
 
+      {/* Legend/Explanation */}
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-red-200 border border-red-300 rounded"></div>
+          <p className="text-red-700 font-medium text-sm">
+            <strong>Red highlighting:</strong> Inactive users who haven't
+            completed the course
+          </p>
+        </div>
+      </div>
+
       {/* User Table */}
       <div className="w-full overflow-x-auto border bg-white border-[#E5E5E5] rounded-lg">
         <Table className="min-w-full">
-            <TableHeader>
-              <TableRow className="border-[#E5E5E5]">
-                {columns.map((column) => (
-                  <TableHead
-                    key={column}
-                    className="text-[#2C2C2C] font-semibold whitespace-nowrap px-4"
-                  >
-                    {column}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredUsers.map((user, index) => (
+          <TableHeader>
+            <TableRow className="border-[#E5E5E5]">
+              {columns.map((column) => (
+                <TableHead
+                  key={column}
+                  className="text-[#2C2C2C] font-semibold whitespace-nowrap px-4"
+                >
+                  {column}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredUsers.map((user, index) => {
+              const shouldHighlight = shouldHighlightUser(user);
+              return (
                 <TableRow
                   key={index}
-                  className="border-[#E5E5E5] hover:bg-sandstone/50"
+                  className={`border-[#E5E5E5] hover:bg-sandstone/50 ${
+                    shouldHighlight ? "bg-red-50 border-red-200" : ""
+                  }`}
                 >
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">{user.id}</TableCell>
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
+                    {user.id}
+                  </TableCell>
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
                     {user.firstName}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
                     {user.lastName}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">{user.email}</TableCell>
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">{user.eid}</TableCell>
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
+                    {user.email}
+                  </TableCell>
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
+                    {user.eid}
+                  </TableCell>
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
                     {user.phoneNumber}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
                     {user.roleCategory}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">{user.role}</TableCell>
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
+                    {user.role}
+                  </TableCell>
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
                     {user.seniority}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
                     {user.overallProgress}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
                     {user.certificates}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
                     {user.registrationDate}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
                     {user.lastLoginDate}
                   </TableCell>
-                  <TableCell className="text-[#2C2C2C] whitespace-nowrap px-4">
+                  <TableCell
+                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                      shouldHighlight ? "text-red-700 font-medium" : ""
+                    }`}
+                  >
                     {user.actions}
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              );
+            })}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Edit Modal */}

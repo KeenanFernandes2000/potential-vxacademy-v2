@@ -31,6 +31,7 @@ import {
   Award,
   BookOpen,
   TrendingUp,
+  Search,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import AdminTableLayout from "@/components/adminTableLayout";
@@ -62,7 +63,7 @@ interface TrainingAreaReportData {
     seniority: string;
     frontlinerType: string;
     alMidhyafOverallProgress: string;
-    module1Progress: number;
+    // module1Progress: number;
     vxPoints: number;
     registrationDate: string;
     lastLoginDate: string;
@@ -386,8 +387,8 @@ const AlMidhyafCoc = () => {
         user.role,
         user.seniority,
         user.frontlinerType,
-        user.alMidhyafOverallProgress + "%",
-        user.module1Progress + "%",
+        parseFloat(user.alMidhyafOverallProgress).toFixed(0) + "%",
+        // user.module1Progress + "%",
         formatDate(user.registrationDate),
         formatDate(user.lastLoginDate),
       ]),
@@ -413,29 +414,44 @@ const AlMidhyafCoc = () => {
     }
   };
 
+  // Helper function to check if user should be highlighted
+  const shouldHighlightUser = (user: any) => {
+    const progress = parseFloat(user.alMidhyafOverallProgress);
+    const lastLoginDate = new Date(user.lastLoginDate);
+    const fifteenDaysAgo = new Date();
+    fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+
+    return progress < 100 && lastLoginDate < fifteenDaysAgo;
+  };
+
   // Prepare table data for AdminTableLayout
-  const tableData = filteredUsers.map((user) => ({
-    "User ID": user.userId,
-    "First Name": user.firstName,
-    "Last Name": user.lastName,
-    "Email Address": user.email,
-    EID: user.eid || "N/A",
-    "Phone Number": user.phoneNumber || "N/A",
-    Asset: user.asset,
-    "Sub-Asset": user.subAsset,
-    Organization: user.organization,
-    "Sub-Organization": Array.isArray(user.subOrganization)
-      ? user.subOrganization?.join("; ")
-      : user.subOrganization ?? "N/A",
-    "Role Category": user.roleCategory,
-    Role: user.role,
-    Seniority: user.seniority,
-    "Frontliner Type": user.frontlinerType,
-    "Al Midhyaf Progress": user.alMidhyafOverallProgress + "%",
-    "Module 1 Progress": user.module1Progress + "%",
-    "Registration Date": formatDate(user.registrationDate),
-    "Last Login Date": formatDate(user.lastLoginDate),
-  }));
+  const tableData = filteredUsers.map((user) => {
+    const shouldHighlight = shouldHighlightUser(user);
+    return {
+      "User ID": user.userId,
+      "First Name": user.firstName,
+      "Last Name": user.lastName,
+      "Email Address": user.email,
+      EID: user.eid || "N/A",
+      "Phone Number": user.phoneNumber || "N/A",
+      Asset: user.asset,
+      "Sub-Asset": user.subAsset,
+      Organization: user.organization,
+      "Sub-Organization": Array.isArray(user.subOrganization)
+        ? user.subOrganization?.join("; ")
+        : user.subOrganization ?? "N/A",
+      "Role Category": user.roleCategory,
+      Role: user.role,
+      Seniority: user.seniority,
+      "Frontliner Type": user.frontlinerType,
+      "Al Midhyaf Progress":
+        parseFloat(user.alMidhyafOverallProgress).toFixed(0) + "%",
+      // "Module 1 Progress": user.module1Progress + "%",
+      "Registration Date": formatDate(user.registrationDate),
+      "Last Login Date": formatDate(user.lastLoginDate),
+      _shouldHighlight: shouldHighlight, // Special property for highlighting
+    };
+  });
 
   if (loading) {
     return (
@@ -696,7 +712,7 @@ const AlMidhyafCoc = () => {
               <Button
                 variant="outline"
                 onClick={clearAllFilters}
-                className="bg-red-500/20 border-red-500/30 text-red-300 hover:bg-red-500/30"
+                className="bg-red-500/20 border-red-500/30 text-white hover:bg-red-500/30"
               >
                 <X className="h-3 w-3 mr-1" />
                 Clear Filters
@@ -717,14 +733,98 @@ const AlMidhyafCoc = () => {
         </div>
 
         {/* Data Table */}
-        <AdminTableLayout
-          searchPlaceholder="Search users..."
-          tableData={tableData}
-          columns={reportData.dataTableColumns.filter(
-            (column) => column !== "VX Points"
-          )}
-          onSearch={handleSearch}
-        />
+        <div className="space-y-4">
+          {/* Legend/Explanation */}
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-200 border border-red-300 rounded"></div>
+              <p className="text-red-700 font-medium text-sm">
+                <strong>Red highlighting:</strong> Inactive users who haven't
+                completed the course
+              </p>
+            </div>
+          </div>
+
+          {/* Search Section */}
+          <div className="flex items-center gap-4 justify-between w-full">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search users..."
+                onChange={(e) => handleSearch(e.target.value)}
+                className="pl-8 bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary rounded-lg"
+              />
+            </div>
+          </div>
+
+          {/* Custom Table with Row Highlighting */}
+          <div className="border bg-card/50 backdrop-blur-sm border-border w-full max-w-8xl mx-auto rounded-lg overflow-hidden">
+            <div className="overflow-x-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sandstone/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sandstone/50 [&::-webkit-scrollbar-corner]:bg-transparent">
+              <div className="min-w-[800px]">
+                <Table className="table-fixed w-full">
+                  <TableHeader className="sticky top-0 bg-card/50 backdrop-blur-sm z-10">
+                    <TableRow className="border-border">
+                      {reportData.dataTableColumns
+                        .filter(
+                          (column) =>
+                            column !== "VX Points" &&
+                            !column.toLowerCase().includes("module 1 progress")
+                        )
+                        .map((column) => (
+                          <TableHead
+                            key={column}
+                            className="text-foreground font-semibold"
+                            style={{ minWidth: "120px", maxWidth: "200px" }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="truncate max-w-[150px]"
+                                title={column}
+                              >
+                                {column}
+                              </span>
+                            </div>
+                          </TableHead>
+                        ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tableData.map((row, index) => {
+                      const shouldHighlight = row._shouldHighlight as boolean;
+                      return (
+                        <TableRow
+                          key={index}
+                          className={`border-border hover:bg-muted/50 ${
+                            shouldHighlight ? "bg-red-50 border-red-200" : ""
+                          }`}
+                        >
+                          {Object.entries(row)
+                            .filter(([key]) => key !== "_shouldHighlight")
+                            .map(([key, value], cellIndex) => (
+                              <TableCell
+                                key={cellIndex}
+                                className={`text-foreground/90 whitespace-nowrap max-w-[200px] truncate ${
+                                  shouldHighlight
+                                    ? "text-red-700 font-medium"
+                                    : ""
+                                }`}
+                              >
+                                {typeof value === "string" ||
+                                typeof value === "number"
+                                  ? String(value)
+                                  : value}
+                              </TableCell>
+                            ))}
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </AdminPageLayout>
   );
