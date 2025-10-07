@@ -268,14 +268,14 @@ const Dashboard = () => {
             changeType="neutral"
             loading={loading}
           />
-          <StatCard
+          {/* <StatCard
             title="Total VX Points"
             value={stats.totalVXPoints.toLocaleString()}
             icon={Star}
             change="Points earned by all users"
             changeType="neutral"
             loading={loading}
-          />
+          /> */}
           <StatCard
             title="Average Progress"
             value={`${stats.averageProgress}%`}

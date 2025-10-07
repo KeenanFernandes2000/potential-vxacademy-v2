@@ -52,7 +52,7 @@ interface CertificateReportData {
     role: string;
     seniority: string;
     frontlinerType: string;
-    vxPoints: number;
+    // vxPoints: number;
     overallProgress: number;
     registrationDate: string;
     lastLoginDate: string;
@@ -236,7 +236,7 @@ const CertificateReports = () => {
         item.role,
         item.seniority,
         item.frontlinerType,
-        item.vxPoints,
+        // item.vxPoints,
         item.overallProgress,
         new Date(item.registrationDate).toLocaleDateString(),
         new Date(item.lastLoginDate).toLocaleDateString(),
@@ -651,14 +651,14 @@ const CertificateReports = () => {
                             {item.seniority}
                           </div>
                         </div>
-                        <div className="col-span-2">
+                        {/* <div className="col-span-2">
                           <div className="text-xs text-gray-600 mb-1">
                             VX Points
                           </div>
                           <div className="text-[#2C2C2C] truncate">
                             {item.vxPoints}
                           </div>
-                        </div>
+                        </div> */}
                         <div className="col-span-2">
                           <div className="text-xs text-gray-600 mb-1">
                             Registration Date

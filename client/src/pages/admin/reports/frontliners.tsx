@@ -574,7 +574,7 @@ const Frontliners = () => {
         "General VX Soft Skills",
         "General VX Hard Skills",
         "Managerial Competencies",
-        "VX Points",
+        // "VX Points",
         "Registration Date",
         "Last Login Date",
         "Status",
@@ -601,7 +601,7 @@ const Frontliners = () => {
         `${frontliner.generalVxSoftSkills}%`,
         `${frontliner.generalVxHardSkills}%`,
         `${frontliner.managerialCompetencies}%`,
-        frontliner.vxPoints.toString(),
+        // frontliner.vxPoints.toString(),
         new Date(frontliner.registrationDate).toLocaleDateString(),
         new Date(frontliner.lastLoginDate).toLocaleDateString(),
         frontliner.status,
@@ -1184,7 +1184,7 @@ const Frontliners = () => {
                               {frontliner.seniority}
                             </div>
                           </div>
-                          <div className="col-span-2">
+                          {/* <div className="col-span-2">
                             <div className="text-xs text-[#2C2C2C]/60 mb-1">
                               VX Points
                             </div>
@@ -1194,7 +1194,7 @@ const Frontliners = () => {
                             >
                               {frontliner.vxPoints.toLocaleString()}
                             </div>
-                          </div>
+                          </div> */}
                         </div>
 
                         <div className="mt-4 grid grid-cols-12 gap-4">

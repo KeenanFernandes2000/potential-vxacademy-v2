@@ -1718,14 +1718,14 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                                   {selectedContent.assessment.passingScore}%
                                 </span>
                               </div>
-                              <div className="flex justify-between">
+                              {/* <div className="flex justify-between">
                                 <span className="text-gray-700">
                                   XP Points:
                                 </span>
                                 <span className="font-medium text-gray-900">
                                   {selectedContent.assessment.xpPoints}
                                 </span>
-                              </div>
+                              </div> */}
                             </div>
                           </div>
 

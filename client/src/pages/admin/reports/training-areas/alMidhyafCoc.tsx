@@ -64,7 +64,7 @@ interface TrainingAreaReportData {
     frontlinerType: string;
     alMidhyafOverallProgress: string;
     // module1Progress: number;
-    vxPoints: number;
+    // vxPoints: number;
     registrationDate: string;
     lastLoginDate: string;
   }>;
