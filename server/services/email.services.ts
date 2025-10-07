@@ -107,7 +107,7 @@ export async function sendEmail(params: {
 }) {
   try {
     const cmd = new SendEmailCommand({
-      FromEmailAddress: "info@potential.com",
+      FromEmailAddress: "vxacademy@dctabudhabi.ae",
       Destination: { ToAddresses: [params.to] },
       Content: {
         Simple: {
@@ -132,7 +132,7 @@ export async function sendCustomTextEmail(params: {
 }) {
   try {
     const cmd = new SendEmailCommand({
-      FromEmailAddress: "info@potential.com",
+      FromEmailAddress: "vxacademy@dctabudhabi.ae",
       Destination: { ToAddresses: params.to },
       Content: {
         Simple: {
