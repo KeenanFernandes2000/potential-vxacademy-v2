@@ -179,6 +179,60 @@ export class EmailController {
       );
     }
 
+    // Get all assessments from training area and create hardcoded attempts
+    const baseUrl = process.env.VITE_API_URL;
+    const assessmentsUrl = `${baseUrl}/api/assessments/assessments/training-areas/${trainingAreaId}/`;
+    
+    try {
+      const assessmentsResponse = await fetch(assessmentsUrl);
+      if (assessmentsResponse.ok) {
+        const assessmentsData: any = await assessmentsResponse.json();
+        const allAssessmentIds = (assessmentsData.data || []).map((assessment: any) => assessment.id);
+        console.log(`Found ${allAssessmentIds.length} assessments in training area ${trainingAreaId}`);
+
+        // Create assessment attempts for all assessments (mark as passed with score 100)
+        if (allAssessmentIds.length > 0) {
+          console.log(`Creating assessment attempts for ${allAssessmentIds.length} assessments...`);
+          
+          for (const assessmentId of allAssessmentIds) {
+            try {
+              // Check if assessment attempt already exists
+              const existingAttemptsUrl = `${baseUrl}/api/assessments/users/${userId}/assessments/${assessmentId}/attempts`;
+              const existingAttemptsResponse = await fetch(existingAttemptsUrl);
+              
+              if (existingAttemptsResponse.ok) {
+                const existingAttempts: any = await existingAttemptsResponse.json();
+                if (existingAttempts.data && existingAttempts.data.length > 0) {
+                  continue;
+                }
+              }
+
+              // Create assessment attempt directly using service
+              try {
+                const { AssessmentAttemptService } = await import('../services/assessment.services');
+                
+                await AssessmentAttemptService.createAssessmentAttempt({
+                  userId: userId,
+                  assessmentId: assessmentId,
+                  score: 100,
+                  passed: true,
+                  answers: null
+                });
+                
+                console.log(`✅ Assessment attempt created for assessment ${assessmentId}`);
+              } catch (serviceError) {
+                console.error(`Failed to create assessment attempt for assessment ${assessmentId}:`, serviceError);
+              }
+            } catch (error) {
+              console.error(`Error creating assessment attempt for assessment ${assessmentId}:`, error);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching assessments:", error);
+    }
+
     // Use the CertificateHelper to generate the certificate
     const certificateResult =
       await CertificateHelper.generateTrainingAreaCertificate(

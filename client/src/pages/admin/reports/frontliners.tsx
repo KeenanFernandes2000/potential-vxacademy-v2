@@ -1386,14 +1386,14 @@ const Frontliners = () => {
                         {comprehensiveUserData.user.userType}
                       </p>
                     </div>
-                    <div>
+                    {/* <div>
                       <label className="text-sm text-[#2C2C2C]/60">
                         XP Points
                       </label>
                       <p className="text-[#2C2C2C]">
                         {comprehensiveUserData.user.xp}
                       </p>
-                    </div>
+                    </div> */}
                     <div>
                       <label className="text-sm text-[#2C2C2C]/60">
                         Organization
