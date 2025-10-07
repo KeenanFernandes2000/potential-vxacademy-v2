@@ -299,25 +299,25 @@ export default function HomePage() {
                 title: "Recognized Certification",
                 description:
                   "Earn official certifications and digital badges that highlight your expertise and commitment to excellence. Showcase your achievements with credentials recognized across Abu Dhabi's tourism and hospitality ecosystem.",
-                icon: WorkspacePremiumIcon,
+                icon: "icons/VX Icons-01.png",
               },
               {
                 title: "Career Advancement",
                 description:
                   "Stand out in your field and open doors to new opportunities. With enhanced skills and proven knowledge, you'll be better equipped for promotions, leadership roles, and long-term career growth.",
-                icon: TrendingUpIcon,
+                icon: "icons/VX Icons-02.png",
               },
               {
                 title: "AI-Powered Assistance",
                 description:
                   "Get access to smart, AI-driven tools that guide you through training and provide instant support when you need it most — helping you learn faster and apply knowledge on the job.",
-                icon: SmartToyIcon,
+                icon: "icons/VX Icons-03.png",
               },
               {
                 title: "Self-Paced Training",
                 description:
                   "Learn anytime, anywhere, at your own pace. Whether you're at work, home, or on the go, VX Academy adapts to your schedule so you can grow without limits.",
-                icon: SchoolIcon,
+                icon: "icons/VX Icons-04.png",
               },
             ].map((benefit, index) => (
               <div key={index} className="group">
@@ -329,7 +329,7 @@ export default function HomePage() {
                   <div className="relative z-10">
                     <div className="w-20 h-20 flex items-center justify-center mb-6 transition-transform duration-300">
                       <Icon
-                        Component={benefit.icon}
+                        Component={<img src={benefit.icon} alt={benefit.title} className="w-full h-full object-cover" />}
                         color="#F77860"
                         size={58}
                       />
