@@ -828,6 +828,7 @@ const AssessmentsPage = () => {
             >
               <Edit sx={{ fontSize: 16 }} />
             </Button>
+            
             <Button
               variant="ghost"
               size="sm"
@@ -1024,6 +1025,15 @@ const AssessmentsPage = () => {
               >
                 <Edit sx={{ fontSize: 16 }} />
               </Button>
+              <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-blue-400 hover:bg-blue-400/10"
+                    onClick={() => handleOpenQuestionsModal(assessment)}
+                    title="Questions"
+                  >
+                    <Quiz sx={{ fontSize: 16 }} />
+                  </Button>
               <Button
                 variant="ghost"
                 size="sm"
