@@ -45,6 +45,32 @@ const api = {
     }
   },
 
+  async getAllSubAdminsWithFrontlinerCounts(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/users/users/sub-admins`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(
+        "Failed to fetch sub-admins with frontliner counts:",
+        error
+      );
+      throw error;
+    }
+  },
+
   async createUser(userData: any, token: string) {
     try {
       const baseUrl = import.meta.env.VITE_API_URL;
@@ -252,6 +278,7 @@ interface SubAdminData
   email: string;
   organization: string;
   subOrganization: string;
+  totalFrontliners: number;
   dateAdded: string;
   actions: React.ReactNode;
 }
@@ -314,59 +341,54 @@ const SubAdminPage = () => {
 
       try {
         setIsLoading(true);
-        const response = await api.getAllUsers(token);
-
-        // Filter for sub-admin users only
-        const subAdminUsers =
-          response.data?.filter((user: any) => user.userType === "sub_admin") ||
-          [];
+        const response = await api.getAllSubAdminsWithFrontlinerCounts(token);
 
         // Transform data to match our display format
-        const transformedUsers = subAdminUsers.map((user: any) => ({
-          id: user.id,
-          fullName: `${user.firstName} ${user.lastName}`,
-          email: user.email,
-          organization: user.organization || "N/A",
-          subOrganization: Array.isArray(user.subOrganization)
-            ? user.subOrganization.join(", ")
-            : user.subOrganization || "N/A",
-          asset: user.asset || "N/A",
-          subAsset: user.subAsset || "N/A",
-          dateAdded: user.createdAt
-            ? new Date(user.createdAt).toLocaleDateString()
-            : "N/A",
-          actions: (
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-                onClick={() => handleEmailSubAdmin(user)}
-                title="Send Email"
-              >
-                <Email sx={{ fontSize: 16 }} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-                onClick={() => handleEditSubAdmin(user)}
-                title="Edit"
-              >
-                <Edit sx={{ fontSize: 16 }} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-                onClick={() => handleDeleteSubAdmin(user)}
-                title="Delete"
-              >
-                <Delete sx={{ fontSize: 16 }} />
-              </Button>
-            </div>
-          ),
-        }));
+        const transformedUsers =
+          response.data?.map((user: any) => ({
+            id: user.id,
+            fullName: `${user.firstName} ${user.lastName}`,
+            email: user.email,
+            organization: user.organization || "N/A",
+            subOrganization: Array.isArray(user.subOrganization)
+              ? user.subOrganization.join(", ")
+              : user.subOrganization || "N/A",
+            totalFrontliners: user.totalFrontliners || 0,
+            dateAdded: user.createdAt
+              ? new Date(user.createdAt).toLocaleDateString()
+              : "N/A",
+            actions: (
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                  onClick={() => handleEmailSubAdmin(user)}
+                  title="Send Email"
+                >
+                  <Email sx={{ fontSize: 16 }} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                  onClick={() => handleEditSubAdmin(user)}
+                  title="Edit"
+                >
+                  <Edit sx={{ fontSize: 16 }} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
+                  onClick={() => handleDeleteSubAdmin(user)}
+                  title="Delete"
+                >
+                  <Delete sx={{ fontSize: 16 }} />
+                </Button>
+              </div>
+            ),
+          })) || [];
 
         setSubAdmins(transformedUsers);
         setFilteredSubAdmins(transformedUsers);
@@ -394,10 +416,7 @@ const SubAdminPage = () => {
             subAdmin.subOrganization
               .toLowerCase()
               .includes(query.toLowerCase())) ||
-          (typeof subAdmin.asset === "string" &&
-            subAdmin.asset.toLowerCase().includes(query.toLowerCase())) ||
-          (typeof subAdmin.subAsset === "string" &&
-            subAdmin.subAsset.toLowerCase().includes(query.toLowerCase()))
+          subAdmin.totalFrontliners.toString().includes(query)
       );
       setFilteredSubAdmins(filtered);
     }
@@ -530,57 +549,55 @@ const SubAdminPage = () => {
 
   const refreshUserList = async () => {
     if (!token) return;
-    const updatedResponse = await api.getAllUsers(token);
-    const subAdminUsers =
-      updatedResponse.data?.filter(
-        (user: any) => user.userType === "sub_admin"
-      ) || [];
+    const updatedResponse = await api.getAllSubAdminsWithFrontlinerCounts(
+      token
+    );
 
-    const transformedUsers = subAdminUsers.map((user: any) => ({
-      id: user.id,
-      fullName: `${user.firstName} ${user.lastName}`,
-      email: user.email,
-      organization: user.organization || "N/A",
-      subOrganization: Array.isArray(user.subOrganization)
-        ? user.subOrganization.join(", ")
-        : user.subOrganization || "N/A",
-      asset: user.asset || "N/A",
-      subAsset: user.subAsset || "N/A",
-      dateAdded: user.createdAt
-        ? new Date(user.createdAt).toLocaleDateString()
-        : "N/A",
-      actions: (
-        <div className="flex gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-            onClick={() => handleEmailSubAdmin(user)}
-            title="Send Email"
-          >
-            <Email sx={{ fontSize: 16 }} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
-            onClick={() => handleEditSubAdmin(user)}
-            title="Edit"
-          >
-            <Edit sx={{ fontSize: 16 }} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
-            onClick={() => handleDeleteSubAdmin(user)}
-            title="Delete"
-          >
-            <Delete sx={{ fontSize: 16 }} />
-          </Button>
-        </div>
-      ),
-    }));
+    const transformedUsers =
+      updatedResponse.data?.map((user: any) => ({
+        id: user.id,
+        fullName: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        organization: user.organization || "N/A",
+        subOrganization: Array.isArray(user.subOrganization)
+          ? user.subOrganization.join(", ")
+          : user.subOrganization || "N/A",
+        totalFrontliners: user.totalFrontliners || 0,
+        dateAdded: user.createdAt
+          ? new Date(user.createdAt).toLocaleDateString()
+          : "N/A",
+        actions: (
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => handleEmailSubAdmin(user)}
+              title="Send Email"
+            >
+              <Email sx={{ fontSize: 16 }} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => handleEditSubAdmin(user)}
+              title="Edit"
+            >
+              <Edit sx={{ fontSize: 16 }} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
+              onClick={() => handleDeleteSubAdmin(user)}
+              title="Delete"
+            >
+              <Delete sx={{ fontSize: 16 }} />
+            </Button>
+          </div>
+        ),
+      })) || [];
 
     setSubAdmins(transformedUsers);
     setFilteredSubAdmins(transformedUsers);
@@ -1006,6 +1023,43 @@ const SubAdminPage = () => {
     const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
     const [selectedSubOrgIds, setSelectedSubOrgIds] = useState<number[]>([]);
     const [formSubOrganizations, setFormSubOrganizations] = useState<any[]>([]);
+    const [validationErrors, setValidationErrors] = useState<{
+      first_name?: string;
+      last_name?: string;
+      email?: string;
+      organization?: string;
+    }>({});
+
+    // Validation function
+    const validateForm = () => {
+      const errors: {
+        first_name?: string;
+        last_name?: string;
+        email?: string;
+        organization?: string;
+      } = {};
+
+      if (!formData.first_name.trim()) {
+        errors.first_name = "First name is required";
+      }
+
+      if (!formData.last_name.trim()) {
+        errors.last_name = "Last name is required";
+      }
+
+      if (!formData.email.trim()) {
+        errors.email = "Email address is required";
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        errors.email = "Please enter a valid email address";
+      }
+
+      if (!formData.organization) {
+        errors.organization = "Please select an organization";
+      }
+
+      setValidationErrors(errors);
+      return Object.keys(errors).length === 0;
+    };
 
     // Initialize selected values based on current user data
     useEffect(() => {
@@ -1197,37 +1251,78 @@ const SubAdminPage = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+
+      // Validate form before submission
+      if (!validateForm()) {
+        return;
+      }
+
       await handleUpdateSubAdmin(formData);
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
+      >
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="edit_first_name">First Name *</Label>
             <Input
               id="edit_first_name"
               value={formData.first_name}
-              onChange={(e) =>
-                setFormData({ ...formData, first_name: e.target.value })
-              }
-              className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
+              onChange={(e) => {
+                setFormData({ ...formData, first_name: e.target.value });
+                // Clear validation error when user starts typing
+                if (validationErrors.first_name) {
+                  setValidationErrors({
+                    ...validationErrors,
+                    first_name: undefined,
+                  });
+                }
+              }}
+              className={`rounded-full bg-white text-[#2C2C2C] placeholder:text-[#666666] ${
+                validationErrors.first_name
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-[#E5E5E5]"
+              }`}
               placeholder="Type Sub-Admin's First Name"
               required
             />
+            {validationErrors.first_name && (
+              <p className="text-sm text-red-500">
+                {validationErrors.first_name}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit_last_name">Last Name *</Label>
             <Input
               id="edit_last_name"
               value={formData.last_name}
-              onChange={(e) =>
-                setFormData({ ...formData, last_name: e.target.value })
-              }
-              className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
+              onChange={(e) => {
+                setFormData({ ...formData, last_name: e.target.value });
+                // Clear validation error when user starts typing
+                if (validationErrors.last_name) {
+                  setValidationErrors({
+                    ...validationErrors,
+                    last_name: undefined,
+                  });
+                }
+              }}
+              className={`rounded-full bg-white text-[#2C2C2C] placeholder:text-[#666666] ${
+                validationErrors.last_name
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-[#E5E5E5]"
+              }`}
               placeholder="Type Sub-Admin's Last Name"
               required
             />
+            {validationErrors.last_name && (
+              <p className="text-sm text-red-500">
+                {validationErrors.last_name}
+              </p>
+            )}
           </div>
         </div>
 
@@ -1237,13 +1332,24 @@ const SubAdminPage = () => {
             id="edit_email"
             type="email"
             value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
+            onChange={(e) => {
+              setFormData({ ...formData, email: e.target.value });
+              // Clear validation error when user starts typing
+              if (validationErrors.email) {
+                setValidationErrors({ ...validationErrors, email: undefined });
+              }
+            }}
+            className={`rounded-full bg-white text-[#2C2C2C] placeholder:text-[#666666] ${
+              validationErrors.email
+                ? "border-red-500 focus:border-red-500"
+                : "border-[#E5E5E5]"
+            }`}
             placeholder="Type Sub-Admin's Email Address"
             required
           />
+          {validationErrors.email && (
+            <p className="text-sm text-red-500">{validationErrors.email}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -1255,10 +1361,23 @@ const SubAdminPage = () => {
               if (!isNaN(orgId)) {
                 handleOrgChange(orgId);
               }
+              // Clear validation error when user selects an option
+              if (validationErrors.organization) {
+                setValidationErrors({
+                  ...validationErrors,
+                  organization: undefined,
+                });
+              }
             }}
             required
           >
-            <SelectTrigger className="w-full rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
+            <SelectTrigger
+              className={`w-full rounded-full bg-white text-[#2C2C2C] ${
+                validationErrors.organization
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-[#E5E5E5]"
+              }`}
+            >
               <SelectValue placeholder="Select organization" />
             </SelectTrigger>
             <SelectContent>
@@ -1269,6 +1388,11 @@ const SubAdminPage = () => {
               ))}
             </SelectContent>
           </Select>
+          {validationErrors.organization && (
+            <p className="text-sm text-red-500">
+              {validationErrors.organization}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -1362,8 +1486,7 @@ const SubAdminPage = () => {
     "Email Address",
     "Organization",
     "Sub-Organization",
-    "Asset",
-    "Sub-Asset",
+    "Total Frontliners",
     "Date Added",
     "Actions",
   ];
