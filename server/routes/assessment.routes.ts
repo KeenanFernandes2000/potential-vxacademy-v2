@@ -16,7 +16,7 @@ const authenticateJWT = passport.authenticate("jwt", { session: false });
 router.get("/assessments", AssessmentController.getAllAssessments);
 router.get("/assessments/:id", AssessmentController.getAssessmentById);
 router.get(
-  "assessments/training-areas/:trainingAreaId/",
+  "/assessments/training-areas/:trainingAreaId/",
   AssessmentController.getAssessmentsByTrainingArea
 );
 router.get(

@@ -301,6 +301,58 @@ export class LearningBlockProgressService {
   }
 
   /**
+   * Mark a learning block as completed WITHOUT recalculating progress
+   * Use this when completing multiple blocks and deferring progress calculation
+   */
+  static async completeLearningBlockOnly(
+    userId: number,
+    learningBlockId: number
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const result = await db.transaction(async (tx) => {
+        const learningBlockProgress = await tx
+          .insert(userLearningBlockProgress)
+          .values({
+            userId,
+            learningBlockId,
+            status: "completed",
+            startedAt: new Date(),
+            completedAt: new Date(),
+          })
+          .onConflictDoUpdate({
+            target: [
+              userLearningBlockProgress.userId,
+              userLearningBlockProgress.learningBlockId,
+            ],
+            set: {
+              status: "completed",
+              completedAt: new Date(),
+            },
+          })
+          .returning();
+
+        if (!learningBlockProgress[0]) {
+          throw new Error("Failed to update learning block progress");
+        }
+
+        return {
+          success: true,
+          message: "Learning block completed (no recalculation)",
+        };
+      });
+
+      return result;
+    } catch (error) {
+      console.error("Error completing learning block:", error);
+      return {
+        success: false,
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
+  }
+
+  /**
    * Get learning block progress for a user
    */
   static async getUserLearningBlockProgress(
