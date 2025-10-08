@@ -124,10 +124,7 @@ export const reportServices = {
           .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
           .where(ne(users.userType, "admin"))
           .groupBy(users.organization),
-        db
-          .select({ count: count() })
-          .from(assessmentAttempts)
-          .where(eq(assessmentAttempts.passed, true)),
+        db.select({ count: count() }).from(certificates),
         db
           .select({
             totalProgress: sql<number>`SUM(CAST(${userTrainingAreaProgress.completionPercentage} AS FLOAT))`,
@@ -1026,7 +1023,10 @@ export const reportServices = {
           .orderBy(users.createdAt),
 
         // Total Users (All users in the platform)
-        db.select({ count: count() }).from(users),
+        db
+          .select({ count: count() })
+          .from(users)
+          .where(ne(users.userType, "admin")),
 
         // Total Frontliners (All registered frontliners - users with normal user data)
         db
@@ -1911,10 +1911,7 @@ export const reportServices = {
         db.select({ count: count() }).from(subOrganizations),
 
         // Total Certificates (Certificates issued)
-        db
-          .select({ count: count() })
-          .from(assessmentAttempts)
-          .where(eq(assessmentAttempts.passed, true)),
+        db.select({ count: count() }).from(certificates),
 
         // Total Sub-Admins (Registered sub-admins)
         db

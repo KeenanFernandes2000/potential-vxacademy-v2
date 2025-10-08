@@ -28,6 +28,12 @@ app.use(
 
 app.use(express.json({ limit: "50mb" }));
 
+// Set UTF-8 encoding for all responses
+app.use((req, res, next) => {
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  next();
+});
+
 app.use(passport.initialize());
 
 // Serve uploaded files statically

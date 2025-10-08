@@ -8,6 +8,8 @@ const pool = new Pool({
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+  // Add UTF-8 encoding configuration
+  client_encoding: "UTF8",
 });
 
 // Initialize Drizzle with the pool and schema

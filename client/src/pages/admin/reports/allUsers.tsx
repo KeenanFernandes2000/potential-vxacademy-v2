@@ -357,7 +357,9 @@ const AllUsers = () => {
     "Phone Number": user.phoneNumber || "N/A",
     "User Type": user.userType,
     Organization: user.organization,
-    "Sub-Organization": user.subOrganization || "N/A",
+    "Sub-Organization": Array.isArray(user.subOrganization)
+      ? user.subOrganization.join(", ")
+      : (user.subOrganization || "N/A").toString(),
     "Registration Date": formatDate(user.registrationDate),
     "Last Login Date": formatDate(user.lastLoginDate),
   }));

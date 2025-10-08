@@ -12,14 +12,7 @@ import {
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  MoreVert,
-  Edit,
-  Delete,
-  Close,
-  Publish,
-  Drafts,
-} from "@mui/icons-material";
+import { MoreVert, Edit, Delete, Close } from "@mui/icons-material";
 import {
   Dialog,
   DialogContent,
@@ -153,58 +146,6 @@ const api = {
       throw error;
     }
   },
-
-  async publishModule(moduleId: number, token: string) {
-    try {
-      const baseUrl = import.meta.env.VITE_API_URL;
-      const response = await fetch(
-        `${baseUrl}/api/training/modules/${moduleId}/publish`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Failed to publish module:", error);
-      throw error;
-    }
-  },
-
-  async draftModule(moduleId: number, token: string) {
-    try {
-      const baseUrl = import.meta.env.VITE_API_URL;
-      const response = await fetch(
-        `${baseUrl}/api/training/modules/${moduleId}/draft`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Failed to draft module:", error);
-      throw error;
-    }
-  },
 };
 
 // Type for module data
@@ -309,27 +250,6 @@ const ModulesPage = () => {
                   >
                     <Edit sx={{ fontSize: 16 }} />
                   </Button>
-                  {module.status === "draft" ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-green-400 hover:bg-green-400/10"
-                      onClick={() => handlePublishModule(module.id)}
-                      title="Publish"
-                    >
-                      <Publish sx={{ fontSize: 16 }} />
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-yellow-400 hover:bg-yellow-400/10"
-                      onClick={() => handleDraftModule(module.id)}
-                      title="Draft"
-                    >
-                      <Drafts sx={{ fontSize: 16 }} />
-                    </Button>
-                  )}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -495,56 +415,6 @@ const ModulesPage = () => {
     setIsEditModalOpen(true);
   };
 
-  const handlePublishModule = async (moduleId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const response = await api.publishModule(moduleId, token);
-
-      if (response.success) {
-        await refreshModuleList();
-        setError("");
-        setSuccessMessage("Module published successfully!");
-      } else {
-        setError(response.message || "Failed to publish module");
-      }
-    } catch (error) {
-      console.error("Error publishing module:", error);
-      setError("Failed to publish module. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDraftModule = async (moduleId: number) => {
-    if (!token) {
-      setError("Authentication required");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const response = await api.draftModule(moduleId, token);
-
-      if (response.success) {
-        await refreshModuleList();
-        setError("");
-        setSuccessMessage("Module moved to draft successfully!");
-      } else {
-        setError(response.message || "Failed to draft module");
-      }
-    } catch (error) {
-      console.error("Error drafting module:", error);
-      setError("Failed to draft module. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const refreshModuleList = async () => {
     if (!token) return;
     const [updatedResponse, trainingAreasResponse] = await Promise.all([
@@ -579,27 +449,6 @@ const ModulesPage = () => {
               >
                 <Edit sx={{ fontSize: 16 }} />
               </Button>
-              {module.status === "draft" ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-green-400 hover:bg-green-400/10"
-                  onClick={() => handlePublishModule(module.id)}
-                  title="Publish"
-                >
-                  <Publish sx={{ fontSize: 16 }} />
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-yellow-400 hover:bg-yellow-400/10"
-                  onClick={() => handleDraftModule(module.id)}
-                  title="Draft"
-                >
-                  <Drafts sx={{ fontSize: 16 }} />
-                </Button>
-              )}
               <Button
                 variant="ghost"
                 size="sm"
@@ -815,7 +664,6 @@ const ModulesPage = () => {
 
     return (
       <div className="relative">
-        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="edit_name" className="text-[#2C2C2C]">
