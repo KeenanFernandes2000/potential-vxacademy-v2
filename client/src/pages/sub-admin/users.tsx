@@ -29,6 +29,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // API object for user operations
 const api = {
@@ -196,7 +202,7 @@ const Users = () => {
         botId: "68d631a094d4851d85bb8903",
         botIcon:
           "https://api.potential.com/static/mentors/sdadassd-1753092691035-person.jpeg",
-        botColor: "#404040",
+        botColor: "#F77860",
       });
       (window as any).chatbotInitialized = true;
     };
@@ -333,24 +339,21 @@ const Users = () => {
 
           transformedUser.actions = (
             <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
-                onClick={() => handleViewMore(transformedUser)}
-                title="View Full Profile"
-              >
-                <Visibility sx={{ fontSize: 16 }} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
-                onClick={() => handleEditUser(transformedUser)}
-                title="Edit"
-              >
-                <Edit sx={{ fontSize: 16 }} />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
+                    onClick={() => handleViewMore(transformedUser)}
+                  >
+                    <Visibility sx={{ fontSize: 16 }} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View detailed user profile information</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           );
 
@@ -532,24 +535,21 @@ const Users = () => {
 
         transformedUser.actions = (
           <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
-              onClick={() => handleViewMore(transformedUser)}
-              title="View Full Profile"
-            >
-              <Visibility sx={{ fontSize: 16 }} />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
-              onClick={() => handleEditUser(transformedUser)}
-              title="Edit"
-            >
-              <Edit sx={{ fontSize: 16 }} />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-dawn hover:bg-dawn/10"
+                  onClick={() => handleViewMore(transformedUser)}
+                >
+                  <Visibility sx={{ fontSize: 16 }} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View detailed user profile information</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         );
 
@@ -685,25 +685,39 @@ const Users = () => {
           </Select>
         </div>
         <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setIsEditModalOpen(false);
-              setSelectedUser(null);
-              setError("");
-            }}
-            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:bg-sandstone hover:text-[#2C2C2C]"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="rounded-full bg-dawn hover:bg-[#B85A1A] text-white"
-          >
-            {isLoading ? "Updating..." : "Update User"}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setSelectedUser(null);
+                  setError("");
+                }}
+                className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:bg-sandstone hover:text-[#2C2C2C]"
+              >
+                Cancel
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Close the edit form without saving changes</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="rounded-full bg-dawn hover:bg-[#B85A1A] text-white"
+              >
+                {isLoading ? "Updating..." : "Update User"}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Save the changes to this user's information</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </form>
     );
@@ -727,339 +741,367 @@ const Users = () => {
   ];
 
   return (
-    <div className="space-y-6 max-w-full overflow-hidden">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#2C2C2C]">
-            Frontliners
-          </h1>
-          <p className="text-[#666666] mt-2">
-            Manage frontliners within your organization
-          </p>
-        </div>
-      </header>
+    <TooltipProvider>
+      <div className="space-y-6 max-w-full overflow-hidden">
+        <header className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-[#2C2C2C]">
+              Frontliners
+            </h1>
+            <p className="text-[#666666] mt-2">
+              Manage frontliners within your organization
+            </p>
+          </div>
+        </header>
 
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-          {error}
-        </div>
-      )}
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
 
-      {successMessage && (
-        <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-          {successMessage}
-        </div>
-      )}
+        {successMessage && (
+          <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+            {successMessage}
+          </div>
+        )}
 
-      {/* Search Bar */}
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] h-4 w-4" />
-          <Input
-            placeholder="Search users..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              handleSearch(e.target.value);
-            }}
-            className="pl-10 rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666] w-full"
-          />
-        </div>
-        <div className="flex-shrink-0">
-          <Button
-            onClick={downloadExcel}
-            className="rounded-full bg-dawn hover:bg-[#B85A1A] text-white whitespace-nowrap"
-            disabled={filteredUsers.length === 0}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download Excel
-          </Button>
-        </div>
-      </div>
-
-      {/* Legend/Explanation */}
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+        {/* Search Bar */}
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-red-200 border border-red-300 rounded"></div>
-          <p className="text-red-700 font-medium text-sm">
-            <strong>Red highlighting:</strong> Inactive users who haven't
-            completed the course
-          </p>
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] h-4 w-4" />
+            <Input
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                handleSearch(e.target.value);
+              }}
+              className="pl-10 rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666] w-full"
+            />
+          </div>
+          <div className="flex-shrink-0">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={downloadExcel}
+                  className="rounded-full bg-dawn hover:bg-[#B85A1A] text-white whitespace-nowrap"
+                  disabled={filteredUsers.length === 0}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Excel
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Download all user data as an Excel spreadsheet for offline
+                  analysis
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
+
+        {/* Legend/Explanation */}
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-red-200 border border-red-300 rounded"></div>
+            <p className="text-red-700 font-medium text-sm">
+              <strong>Red highlighting:</strong> Inactive users who haven't
+              logged in in 15 days and haven't completed their courses
+            </p>
+          </div>
+        </div>
+
+        {/* User Table */}
+        <div className="w-full overflow-x-auto border bg-white border-[#E5E5E5] rounded-lg">
+          <Table className="min-w-full">
+            <TableHeader>
+              <TableRow className="border-[#E5E5E5]">
+                {columns.map((column) => (
+                  <TableHead
+                    key={column}
+                    className="text-[#2C2C2C] font-semibold whitespace-nowrap px-4"
+                  >
+                    {column}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.map((user, index) => {
+                const shouldHighlight = shouldHighlightUser(user);
+                return (
+                  <TableRow
+                    key={index}
+                    className={`border-[#E5E5E5] hover:bg-sandstone/50 ${
+                      shouldHighlight ? "bg-red-50 border-red-200" : ""
+                    }`}
+                  >
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.id}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.firstName}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.lastName}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.email}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.eid}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.phoneNumber}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.roleCategory}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.role}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.seniority}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.overallProgress}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.certificates}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.registrationDate}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.lastLoginDate}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.actions}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Edit Modal */}
+        <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+          <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
+            <DialogHeader>
+              <DialogTitle className="text-[#2C2C2C]">Edit User</DialogTitle>
+            </DialogHeader>
+            <EditUserForm />
+          </DialogContent>
+        </Dialog>
+
+        {/* View User Details Modal */}
+        <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+          <DialogContent className="max-w-2xl bg-white border-[#E5E5E5] text-[#2C2C2C] max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-[#2C2C2C]">
+                User Profile Details
+              </DialogTitle>
+            </DialogHeader>
+            {selectedUser && (
+              <div className="space-y-6">
+                {/* Basic Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">First Name</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.firstName}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">Last Name</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.lastName}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">Email Address</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.email}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">EID</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.eid}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">Phone Number</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.phoneNumber}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">User Type</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.userType}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Role Information */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">Role Category</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.roleCategory}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">Role</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.role}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">Seniority</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.seniority}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress and Certificates */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">Overall Progress</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.overallProgress}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">Certificates</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.certificates}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dates */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">Registration Date</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.registrationDate}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">Last Login Date</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.lastLoginDate}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-2 pt-4">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsViewModalOpen(false);
+                          setError("");
+                          setSuccessMessage("");
+                        }}
+                        className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:bg-sandstone hover:text-[#2C2C2C]"
+                      >
+                        Close
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Close the user details view</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={() => {
+                          setIsViewModalOpen(false);
+                          handleEditUser(selectedUser);
+                        }}
+                        className="rounded-full bg-dawn hover:bg-[#B85A1A] text-white"
+                      >
+                        Edit User
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        Open the edit form to modify this user's information
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
-
-      {/* User Table */}
-      <div className="w-full overflow-x-auto border bg-white border-[#E5E5E5] rounded-lg">
-        <Table className="min-w-full">
-          <TableHeader>
-            <TableRow className="border-[#E5E5E5]">
-              {columns.map((column) => (
-                <TableHead
-                  key={column}
-                  className="text-[#2C2C2C] font-semibold whitespace-nowrap px-4"
-                >
-                  {column}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredUsers.map((user, index) => {
-              const shouldHighlight = shouldHighlightUser(user);
-              return (
-                <TableRow
-                  key={index}
-                  className={`border-[#E5E5E5] hover:bg-sandstone/50 ${
-                    shouldHighlight ? "bg-red-50 border-red-200" : ""
-                  }`}
-                >
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.id}
-                  </TableCell>
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.firstName}
-                  </TableCell>
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.lastName}
-                  </TableCell>
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.email}
-                  </TableCell>
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.eid}
-                  </TableCell>
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.phoneNumber}
-                  </TableCell>
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.roleCategory}
-                  </TableCell>
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.role}
-                  </TableCell>
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.seniority}
-                  </TableCell>
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.overallProgress}
-                  </TableCell>
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.certificates}
-                  </TableCell>
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.registrationDate}
-                  </TableCell>
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.lastLoginDate}
-                  </TableCell>
-                  <TableCell
-                    className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
-                      shouldHighlight ? "text-red-700 font-medium" : ""
-                    }`}
-                  >
-                    {user.actions}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Edit Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
-          <DialogHeader>
-            <DialogTitle className="text-[#2C2C2C]">Edit User</DialogTitle>
-          </DialogHeader>
-          <EditUserForm />
-        </DialogContent>
-      </Dialog>
-
-      {/* View User Details Modal */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-2xl bg-white border-[#E5E5E5] text-[#2C2C2C] max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-[#2C2C2C]">
-              User Profile Details
-            </DialogTitle>
-          </DialogHeader>
-          {selectedUser && (
-            <div className="space-y-6">
-              {/* Basic Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[#666666]">First Name</Label>
-                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                    {selectedUser.firstName}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[#666666]">Last Name</Label>
-                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                    {selectedUser.lastName}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[#666666]">Email Address</Label>
-                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                    {selectedUser.email}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[#666666]">EID</Label>
-                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                    {selectedUser.eid}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[#666666]">Phone Number</Label>
-                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                    {selectedUser.phoneNumber}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[#666666]">User Type</Label>
-                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                    {selectedUser.userType}
-                  </div>
-                </div>
-              </div>
-
-              {/* Role Information */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[#666666]">Role Category</Label>
-                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                    {selectedUser.roleCategory}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[#666666]">Role</Label>
-                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                    {selectedUser.role}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[#666666]">Seniority</Label>
-                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                    {selectedUser.seniority}
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress and Certificates */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[#666666]">Overall Progress</Label>
-                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                    {selectedUser.overallProgress}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[#666666]">Certificates</Label>
-                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                    {selectedUser.certificates}
-                  </div>
-                </div>
-              </div>
-
-              {/* Dates */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[#666666]">Registration Date</Label>
-                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                    {selectedUser.registrationDate}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[#666666]">Last Login Date</Label>
-                  <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                    {selectedUser.lastLoginDate}
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsViewModalOpen(false);
-                    setError("");
-                    setSuccessMessage("");
-                  }}
-                  className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] hover:bg-sandstone hover:text-[#2C2C2C]"
-                >
-                  Close
-                </Button>
-                <Button
-                  onClick={() => {
-                    setIsViewModalOpen(false);
-                    handleEditUser(selectedUser);
-                  }}
-                  className="rounded-full bg-dawn hover:bg-[#B85A1A] text-white"
-                >
-                  Edit User
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+    </TooltipProvider>
   );
 };
 

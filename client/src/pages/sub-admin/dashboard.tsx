@@ -9,6 +9,12 @@ import {
   FileText,
   TrendingUp,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Document,
@@ -32,6 +38,14 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [trainingAreaProgress, setTrainingAreaProgress] = useState<any[]>([]);
+  const [overallAverageProgress, setOverallAverageProgress] =
+    useState<number>(0);
+  const [overallProgressStats, setOverallProgressStats] = useState({
+    totalInProgressUsers: 0,
+    totalNotStartedUsers: 0,
+    totalUsers: 0,
+  });
 
   // Invitation states
   const [isLoading, setIsLoading] = useState<{
@@ -131,6 +145,33 @@ const Dashboard = () => {
       const data = await response.json();
       return data;
     },
+
+    async getBulkTrainingAreaProgress(userIds: number[], token: string) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(
+          `${baseUrl}/api/progress/training-areas/bulk`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ userIds }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Failed to fetch bulk training area progress:", error);
+        throw error;
+      }
+    },
   };
 
   // Chatbot cleanup and prevention logic
@@ -195,7 +236,7 @@ const Dashboard = () => {
         botId: "68d631a094d4851d85bb8903",
         botIcon:
           "https://api.potential.com/static/mentors/sdadassd-1753092691035-person.jpeg",
-        botColor: "#404040",
+        botColor: "#F77860",
       });
       (window as any).chatbotInitialized = true;
     };
@@ -237,6 +278,60 @@ const Dashboard = () => {
       (window as any).chatbotInitialized = false;
     };
   }, []);
+
+  const fetchTrainingAreaProgress = async (userIds: number[]) => {
+    if (!token || userIds.length === 0) return;
+
+    try {
+      const response = await api.getBulkTrainingAreaProgress(userIds, token);
+      if (response.success) {
+        const progressData = response.data || [];
+        setTrainingAreaProgress(progressData);
+
+        // Calculate overall average progress across all training areas
+        if (progressData.length > 0) {
+          const totalAverage = progressData.reduce((sum: number, area: any) => {
+            return sum + (area.averageProgress || 0);
+          }, 0);
+          const overallAverage = totalAverage / progressData.length;
+          setOverallAverageProgress(overallAverage);
+
+          // Calculate totals across all training areas
+          const totalInProgressUsers = progressData.reduce(
+            (sum: number, area: any) => {
+              return sum + (area.inProgressUsers || 0);
+            },
+            0
+          );
+
+          const totalNotStartedUsers = progressData.reduce(
+            (sum: number, area: any) => {
+              return sum + (area.notStartedUsers || 0);
+            },
+            0
+          );
+
+          const totalUsers = totalInProgressUsers + totalNotStartedUsers;
+
+          setOverallProgressStats({
+            totalInProgressUsers,
+            totalNotStartedUsers,
+            totalUsers,
+          });
+        } else {
+          setOverallAverageProgress(0);
+          setOverallProgressStats({
+            totalInProgressUsers: 0,
+            totalNotStartedUsers: 0,
+            totalUsers: 0,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching training area progress:", error);
+      // Don't show error to user as this is supplementary data
+    }
+  };
 
   // Fetch dashboard stats and invitations on component mount
   useEffect(() => {
@@ -343,6 +438,13 @@ const Dashboard = () => {
           usersWithProgress,
           usersWithProgressPercentage,
         });
+
+        // Fetch training area progress for all filtered users
+        if (filteredUsersData.length > 0) {
+          await fetchTrainingAreaProgress(
+            filteredUsersData.map((user: any) => user.id)
+          );
+        }
 
         // Fetch invitations
         setIsFetchingInvitations(true);
@@ -737,216 +839,296 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-[#2C2C2C]">
-            Sub-Admin Dashboard
-          </h1>
-          <p className="text-[#666666]">
-            Welcome back! Here's what's happening with your organization!
-          </p>
-          {error && (
-            <div className="bg-red-500/20 border border-red-500/30 p-3">
-              <p className="text-red-300 text-sm">{error}</p>
+    <TooltipProvider>
+      <div className="min-h-screen p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-[#2C2C2C]">
+              Sub-Admin Dashboard
+            </h1>
+            <p className="text-[#666666]">
+              Welcome back! Here's what's happening with your organization!
+            </p>
+            {error && (
+              <div className="bg-red-500/20 border border-red-500/30 p-3">
+                <p className="text-red-300 text-sm">{error}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Message Display */}
+          {message && (
+            <div
+              className={`p-4 rounded-lg ${
+                message.type === "success"
+                  ? "bg-green-50 text-green-800 border border-green-200"
+                  : "bg-red-50 text-red-800 border border-red-200"
+              }`}
+            >
+              {message.text}
             </div>
           )}
-        </div>
 
-        {/* Message Display */}
-        {message && (
-          <div
-            className={`p-4 rounded-lg ${
-              message.type === "success"
-                ? "bg-green-50 text-green-800 border border-green-200"
-                : "bg-red-50 text-red-800 border border-red-200"
-            }`}
-          >
-            {message.text}
+          {/* Invitation Cards */}
+          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+            <Card className="bg-white border-[#E5E5E5]">
+              <CardHeader>
+                <CardTitle className="text-[#2C2C2C]">New Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {hasInvitationLink("new_joiner") ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-[#666666]">
+                      Invitation link is ready. Copy the link or download the
+                      Word document to send to new users.
+                    </p>
+                    <div className="flex gap-2 flex-wrap">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={() =>
+                              copyToClipboard(getInvitationLink("new_joiner")!)
+                            }
+                            variant="outline"
+                            className="flex items-center gap-2 border-[#E5E5E5] text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-sandstone hover:border-dawn hover:scale-95"
+                          >
+                            <Copy className="h-4 w-4" />
+                            Copy Link
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            Copy the invitation link to share with new users
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={() =>
+                              generateWordDocument(
+                                "new_joiner",
+                                getInvitationLink("new_joiner")!
+                              )
+                            }
+                            className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95"
+                          >
+                            <FileText className="h-4 w-4" />
+                            Download Email Template
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            Download a Word document with the invitation link to
+                            send via email
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </div>
+                ) : hasInvitation("new_joiner") ? (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                      <p className="text-sm text-amber-800">
+                        ⚠️ Invitation exists but link is not available. Generate
+                        a new invitation to get the document.
+                      </p>
+                    </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() => makeInvitationRequest("new_joiner")}
+                          disabled={isLoading.newJoiner}
+                          className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
+                        >
+                          {isLoading.newJoiner
+                            ? "Generating Invitation..."
+                            : "Generate New Invitation"}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Create a new invitation link for new users to join
+                          your organization
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm text-[#666666]">
+                      Generate an invitation link for new users to join your
+                      organization.
+                    </p>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() => makeInvitationRequest("new_joiner")}
+                          disabled={isLoading.newJoiner}
+                          className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
+                        >
+                          {isLoading.newJoiner
+                            ? "Generating Invitation..."
+                            : "Generate New User Invitation"}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Create an invitation link for new users to register
+                          and join your organization
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white border-[#E5E5E5]">
+              <CardHeader>
+                <CardTitle className="text-[#2C2C2C]">Existing Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {hasInvitationLink("existing_joiner") ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-[#666666]">
+                      Invitation link is ready. Copy the link or download the
+                      Word document to send to existing users.
+                    </p>
+                    <div className="flex gap-2 flex-wrap">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={() =>
+                              copyToClipboard(
+                                getInvitationLink("existing_joiner")!
+                              )
+                            }
+                            variant="outline"
+                            className="flex items-center gap-2 border-[#E5E5E5] text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-sandstone hover:border-dawn hover:scale-95"
+                          >
+                            <Copy className="h-4 w-4" />
+                            Copy Link
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            Copy the invitation link to share with existing
+                            users
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={() =>
+                              generateWordDocument(
+                                "existing_joiner",
+                                getInvitationLink("existing_joiner")!
+                              )
+                            }
+                            className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95"
+                          >
+                            <FileText className="h-4 w-4" />
+                            Download Email Template
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            Download a Word document with the invitation link to
+                            send via email
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </div>
+                ) : hasInvitation("existing_joiner") ? (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                      <p className="text-sm text-amber-800">
+                        ⚠️ Invitation exists but link is not available. Generate
+                        a new invitation to get the document.
+                      </p>
+                    </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() =>
+                            makeInvitationRequest("existing_joiner")
+                          }
+                          disabled={isLoading.existingJoiner}
+                          className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
+                        >
+                          {isLoading.existingJoiner
+                            ? "Generating Invitation..."
+                            : "Generate New Invitation"}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Create a new invitation link for existing users to
+                          access training
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm text-[#666666]">
+                      Generate an invitation link for existing users to access
+                      training.
+                    </p>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() =>
+                            makeInvitationRequest("existing_joiner")
+                          }
+                          disabled={isLoading.existingJoiner}
+                          className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
+                        >
+                          {isLoading.existingJoiner
+                            ? "Generating Invitation..."
+                            : "Generate Existing User Invitation"}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Create an invitation link for existing users to access
+                          training materials
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
-        )}
 
-        {/* Invitation Cards */}
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-          <Card className="bg-white border-[#E5E5E5]">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C]">New Users</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {hasInvitationLink("new_joiner") ? (
-                <div className="space-y-4">
-                  <p className="text-sm text-[#666666]">
-                    Invitation link is ready. Copy the link or download the Word
-                    document to send to new users.
-                  </p>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button
-                      onClick={() =>
-                        copyToClipboard(getInvitationLink("new_joiner")!)
-                      }
-                      variant="outline"
-                      className="flex items-center gap-2 border-[#E5E5E5] text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-sandstone hover:border-dawn hover:scale-95"
-                    >
-                      <Copy className="h-4 w-4" />
-                      Copy Link
-                    </Button>
-                    <Button
-                      onClick={() =>
-                        generateWordDocument(
-                          "new_joiner",
-                          getInvitationLink("new_joiner")!
-                        )
-                      }
-                      className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Download Email Template
-                    </Button>
-                  </div>
-                </div>
-              ) : hasInvitation("new_joiner") ? (
-                <div className="space-y-4">
-                  <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-                    <p className="text-sm text-amber-800">
-                      ⚠️ Invitation exists but link is not available. Generate a
-                      new invitation to get the document.
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => makeInvitationRequest("new_joiner")}
-                    disabled={isLoading.newJoiner}
-                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
-                  >
-                    {isLoading.newJoiner
-                      ? "Generating Invitation..."
-                      : "Generate New Invitation"}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm text-[#666666]">
-                    Generate an invitation link for new users to join your
-                    organization.
-                  </p>
-                  <Button
-                    onClick={() => makeInvitationRequest("new_joiner")}
-                    disabled={isLoading.newJoiner}
-                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
-                  >
-                    {isLoading.newJoiner
-                      ? "Generating Invitation..."
-                      : "Generate New User Invitation"}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Stats Grid */}
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+            <StatCard
+              title="Total Users"
+              value={stats.totalUsers}
+              icon={Users}
+              change="Users in your organization"
+              changeType="neutral"
+              loading={loading}
+            />
 
-          <Card className="bg-white border-[#E5E5E5]">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C]">Existing Users</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {hasInvitationLink("existing_joiner") ? (
-                <div className="space-y-4">
-                  <p className="text-sm text-[#666666]">
-                    Invitation link is ready. Copy the link or download the Word
-                    document to send to existing users.
-                  </p>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button
-                      onClick={() =>
-                        copyToClipboard(getInvitationLink("existing_joiner")!)
-                      }
-                      variant="outline"
-                      className="flex items-center gap-2 border-[#E5E5E5] text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-sandstone hover:border-dawn hover:scale-95"
-                    >
-                      <Copy className="h-4 w-4" />
-                      Copy Link
-                    </Button>
-                    <Button
-                      onClick={() =>
-                        generateWordDocument(
-                          "existing_joiner",
-                          getInvitationLink("existing_joiner")!
-                        )
-                      }
-                      className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Download Email Template
-                    </Button>
-                  </div>
-                </div>
-              ) : hasInvitation("existing_joiner") ? (
-                <div className="space-y-4">
-                  <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-                    <p className="text-sm text-amber-800">
-                      ⚠️ Invitation exists but link is not available. Generate a
-                      new invitation to get the document.
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => makeInvitationRequest("existing_joiner")}
-                    disabled={isLoading.existingJoiner}
-                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
-                  >
-                    {isLoading.existingJoiner
-                      ? "Generating Invitation..."
-                      : "Generate New Invitation"}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm text-[#666666]">
-                    Generate an invitation link for existing users to access
-                    training.
-                  </p>
-                  <Button
-                    onClick={() => makeInvitationRequest("existing_joiner")}
-                    disabled={isLoading.existingJoiner}
-                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
-                  >
-                    {isLoading.existingJoiner
-                      ? "Generating Invitation..."
-                      : "Generate Existing User Invitation"}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <StatCard
-            title="Total Users"
-            value={stats.totalUsers}
-            icon={Users}
-            change="Users in your organization"
-            changeType="neutral"
-            loading={loading}
-          />
-          <StatCard
-            title="New Users"
-            value={stats.newUsers}
-            icon={UserPlus}
-            change={`${stats.newUsersPercentage}% of total users this month`}
-            changeType="positive"
-            loading={loading}
-          />
-          <StatCard
-            title="Users with Progress"
-            value={stats.usersWithProgress}
-            icon={TrendingUp}
-            change={`${stats.usersWithProgressPercentage}% have started training`}
-            changeType="positive"
-            loading={loading}
-          />
+            <StatCard
+              title="Overall Progress"
+              value={`${overallAverageProgress.toFixed(2)}%`}
+              icon={TrendingUp}
+              change={`${overallProgressStats.totalInProgressUsers}/${overallProgressStats.totalUsers} have started training`}
+              changeType="positive"
+              loading={loading}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 

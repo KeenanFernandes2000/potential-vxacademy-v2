@@ -774,6 +774,110 @@ export class ProgressService {
   }
 
   /**
+   * Get training area progress for multiple users and sum the progress
+   */
+  static async getBulkTrainingAreaProgress(userIds: number[]) {
+    try {
+      // Get all training area progress for the specified users
+      const allProgress = await db
+        .select()
+        .from(userTrainingAreaProgress)
+        .where(inArray(userTrainingAreaProgress.userId, userIds));
+
+      // Group progress by training area ID and calculate sums
+      const progressByTrainingArea = new Map<number, {
+        trainingAreaId: number;
+        totalUsers: number;
+        totalProgress: number;
+        averageProgress: number;
+        completedUsers: number;
+        inProgressUsers: number;
+        notStartedUsers: number;
+      }>();
+
+      // Initialize counters for each training area
+      for (const progress of allProgress) {
+        if (!progressByTrainingArea.has(progress.trainingAreaId)) {
+          progressByTrainingArea.set(progress.trainingAreaId, {
+            trainingAreaId: progress.trainingAreaId,
+            totalUsers: 0,
+            totalProgress: 0,
+            averageProgress: 0,
+            completedUsers: 0,
+            inProgressUsers: 0,
+            notStartedUsers: 0,
+          });
+        }
+      }
+
+      // Count users per training area (including users with no progress)
+      const userCountsByTrainingArea = new Map<number, number>();
+      for (const userId of userIds) {
+        const userProgress = allProgress.filter(p => p.userId === userId);
+        const trainingAreaIds = userProgress.map(p => p.trainingAreaId);
+        
+        // Get all training areas that exist in the system
+        const allTrainingAreas = await db.select({ id: trainingAreas.id }).from(trainingAreas);
+        
+        for (const ta of allTrainingAreas) {
+          if (!userCountsByTrainingArea.has(ta.id)) {
+            userCountsByTrainingArea.set(ta.id, 0);
+          }
+          userCountsByTrainingArea.set(ta.id, userCountsByTrainingArea.get(ta.id)! + 1);
+        }
+      }
+
+      // Calculate progress statistics
+      for (const progress of allProgress) {
+        const stats = progressByTrainingArea.get(progress.trainingAreaId)!;
+        const progressPercentage = parseFloat(progress.completionPercentage || "0");
+        
+        stats.totalUsers = userCountsByTrainingArea.get(progress.trainingAreaId) || 0;
+        stats.totalProgress += progressPercentage;
+        
+        if (progress.status === "completed") {
+          stats.completedUsers++;
+        } else if (progress.status === "in_progress") {
+          stats.inProgressUsers++;
+        } else {
+          stats.notStartedUsers++;
+        }
+      }
+
+      // Calculate averages and handle users with no progress
+      for (const [trainingAreaId, stats] of progressByTrainingArea) {
+        const totalUsers = userCountsByTrainingArea.get(trainingAreaId) || 0;
+        const usersWithProgress = allProgress.filter(p => p.trainingAreaId === trainingAreaId).length;
+        const usersWithoutProgress = totalUsers - usersWithProgress;
+        
+        stats.totalUsers = totalUsers;
+        stats.notStartedUsers += usersWithoutProgress;
+        stats.averageProgress = totalUsers > 0 ? stats.totalProgress / totalUsers : 0;
+      }
+
+      // Convert map to array and get training area names
+      const result = [];
+      for (const [trainingAreaId, stats] of progressByTrainingArea) {
+        const trainingArea = await db
+          .select({ name: trainingAreas.name })
+          .from(trainingAreas)
+          .where(eq(trainingAreas.id, trainingAreaId))
+          .limit(1);
+
+        result.push({
+          ...stats,
+          trainingAreaName: trainingArea[0]?.name || "Unknown Training Area",
+        });
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error getting bulk training area progress:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Get module progress for a user
    */
   static async getUserModuleProgress(

@@ -207,9 +207,7 @@ export default function HomePage() {
       // @ts-ignore
       chatbotembed({
         botId: "68d3c5eb94d4851d85bb6408",
-        botIcon:
-          "https://api.potential.com/static/mentors/sdadassd-1753092691035-person.jpeg",
-        botColor: "#404040",
+        botColor: "#F77860",
       });
       (window as any).chatbotInitialized = true;
     };

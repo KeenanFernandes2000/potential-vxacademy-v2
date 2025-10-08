@@ -66,7 +66,7 @@ const SubAdminLayout = () => {
         botId: "68d631a094d4851d85bb8903",
         botIcon:
           "https://api.potential.com/static/mentors/sdadassd-1753092691035-person.jpeg",
-        botColor: "#404040",
+        botColor: "#F77860",
       });
       (window as any).chatbotInitialized = true;
     };
