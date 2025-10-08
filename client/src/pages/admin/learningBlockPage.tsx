@@ -23,6 +23,75 @@ import {
 
 // API object for learning block operations
 const api = {
+  async getAllTrainingAreas(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/training/training-areas`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch training areas:", error);
+      throw error;
+    }
+  },
+
+  async getAllModules(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/training/modules`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch modules:", error);
+      throw error;
+    }
+  },
+
+  async getAllCourses(token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${baseUrl}/api/training/courses`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch courses:", error);
+      throw error;
+    }
+  },
+
   async getAllUnits(token: string) {
     try {
       const baseUrl = import.meta.env.VITE_API_URL;
@@ -185,6 +254,9 @@ const LearningBlockPage = () => {
     LearningBlockData[]
   >([]);
   const [units, setUnits] = useState<any[]>([]);
+  const [trainingAreas, setTrainingAreas] = useState<any[]>([]);
+  const [modules, setModules] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -226,7 +298,7 @@ const LearningBlockPage = () => {
       formData.xp_points === "" ||
       parseInt(formData.xp_points) < 0
     ) {
-      errors.xp_points = "XP Points must be a non-negative number";
+      errors.xp_points = "VX Points must be a non-negative number";
     }
 
     // Type-specific validations
@@ -271,6 +343,32 @@ const LearningBlockPage = () => {
     }, 5000);
   };
 
+  // Fetch dropdown data on component mount
+  useEffect(() => {
+    const fetchDropdownData = async () => {
+      if (!token) return;
+
+      try {
+        const [trainingAreasRes, modulesRes, coursesRes, unitsRes] =
+          await Promise.all([
+            api.getAllTrainingAreas(token),
+            api.getAllModules(token),
+            api.getAllCourses(token),
+            api.getAllUnits(token),
+          ]);
+
+        setTrainingAreas(trainingAreasRes.data || []);
+        setModules(modulesRes.data || []);
+        setCourses(coursesRes.data || []);
+        setUnits(unitsRes.data || []);
+      } catch (error) {
+        console.error("Error fetching dropdown data:", error);
+      }
+    };
+
+    fetchDropdownData();
+  }, [token]);
+
   // Fetch learning blocks from database on component mount
   useEffect(() => {
     const fetchLearningBlocks = async () => {
@@ -280,22 +378,29 @@ const LearningBlockPage = () => {
         return;
       }
 
+      // Wait until dropdown data is loaded to correctly map names
+      const dropdownsReady =
+        Array.isArray(trainingAreas) &&
+        Array.isArray(modules) &&
+        Array.isArray(courses) &&
+        Array.isArray(units) &&
+        (trainingAreas.length > 0 ||
+          modules.length > 0 ||
+          courses.length > 0 ||
+          units.length > 0);
+      if (!dropdownsReady) {
+        return;
+      }
+
       try {
         setIsLoading(true);
-        const [learningBlocksResponse, unitsResponse] = await Promise.all([
-          api.getAllLearningBlocks(token),
-          api.getAllUnits(token),
-        ]);
-
-        setUnits(unitsResponse.data || []);
+        const learningBlocksResponse = await api.getAllLearningBlocks(token);
 
         // Transform data to match our display format
         const transformedLearningBlocks =
           learningBlocksResponse.data?.map((learningBlock: any) => {
             // Find the unit for this learning block
-            const unit = unitsResponse.data?.find(
-              (u: any) => u.id === learningBlock.unitId
-            );
+            const unit = units.find((u: any) => u.id === learningBlock.unitId);
 
             return {
               id: learningBlock.id,
@@ -341,7 +446,7 @@ const LearningBlockPage = () => {
     };
 
     fetchLearningBlocks();
-  }, [token]);
+  }, [token, trainingAreas, modules, courses, units]);
 
   const handleSearch = (query: string) => {
     if (!query) {
@@ -497,19 +602,12 @@ const LearningBlockPage = () => {
 
   const refreshLearningBlockList = async () => {
     if (!token) return;
-    const [learningBlocksResponse, unitsResponse] = await Promise.all([
-      api.getAllLearningBlocks(token),
-      api.getAllUnits(token),
-    ]);
-
-    setUnits(unitsResponse.data || []);
+    const learningBlocksResponse = await api.getAllLearningBlocks(token);
 
     const transformedLearningBlocks =
       learningBlocksResponse.data?.map((learningBlock: any) => {
         // Find the unit for this learning block
-        const unit = unitsResponse.data?.find(
-          (u: any) => u.id === learningBlock.unitId
-        );
+        const unit = units.find((u: any) => u.id === learningBlock.unitId);
 
         return {
           id: learningBlock.id,
@@ -548,6 +646,9 @@ const LearningBlockPage = () => {
 
   const CreateLearningBlockForm = () => {
     const [formData, setFormData] = useState({
+      training_area_id: "",
+      module_id: "",
+      course_id: "",
       unit_id: "",
       type: "text",
       title: "",
@@ -560,6 +661,94 @@ const LearningBlockPage = () => {
     });
 
     const [editorState, setEditorState] = useState<any>(null);
+    const [filteredModules, setFilteredModules] = useState<any[]>([]);
+    const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
+    const [filteredUnits, setFilteredUnits] = useState<any[]>([]);
+
+    // Filter modules based on selected training area
+    useEffect(() => {
+      if (formData.training_area_id) {
+        const filtered = modules.filter(
+          (module) =>
+            module.trainingAreaId === parseInt(formData.training_area_id)
+        );
+        setFilteredModules(filtered);
+        // Reset module, course, and unit selections
+        setFormData((prev) => ({
+          ...prev,
+          module_id: "",
+          course_id: "",
+          unit_id: "",
+        }));
+      } else {
+        setFilteredModules([]);
+        setFormData((prev) => ({
+          ...prev,
+          module_id: "",
+          course_id: "",
+          unit_id: "",
+        }));
+      }
+    }, [formData.training_area_id, modules]);
+
+    // Filter courses based on selected module
+    useEffect(() => {
+      if (formData.module_id) {
+        const filtered = courses.filter(
+          (course) => course.moduleId === parseInt(formData.module_id)
+        );
+        setFilteredCourses(filtered);
+        // Reset course and unit selections
+        setFormData((prev) => ({ ...prev, course_id: "", unit_id: "" }));
+      } else {
+        setFilteredCourses([]);
+        setFormData((prev) => ({ ...prev, course_id: "", unit_id: "" }));
+      }
+    }, [formData.module_id, courses]);
+
+    // Filter units based on selected course
+    useEffect(() => {
+      if (formData.course_id) {
+        // Get course-units for the selected course
+        const fetchCourseUnits = async () => {
+          try {
+            const baseUrl = import.meta.env.VITE_API_URL;
+            const response = await fetch(
+              `${baseUrl}/api/training/course-units/course/${formData.course_id}`,
+              {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            if (response.ok) {
+              const courseUnitsData = await response.json();
+              const unitIds =
+                courseUnitsData.data?.map((cu: any) => cu.unitId) || [];
+              const filtered = units.filter((unit) =>
+                unitIds.includes(unit.id)
+              );
+              setFilteredUnits(filtered);
+            } else {
+              setFilteredUnits([]);
+            }
+          } catch (error) {
+            console.error("Error fetching course units:", error);
+            setFilteredUnits([]);
+          }
+        };
+
+        fetchCourseUnits();
+        // Reset unit selection
+        setFormData((prev) => ({ ...prev, unit_id: "" }));
+      } else {
+        setFilteredUnits([]);
+        setFormData((prev) => ({ ...prev, unit_id: "" }));
+      }
+    }, [formData.course_id, units, token]);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -574,6 +763,9 @@ const LearningBlockPage = () => {
       };
       await handleCreateLearningBlock(submitData);
       setFormData({
+        training_area_id: "",
+        module_id: "",
+        course_id: "",
         unit_id: "",
         type: "text",
         title: "",
@@ -600,10 +792,72 @@ const LearningBlockPage = () => {
       <div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
+            <Label htmlFor="training_area_id">Training Area</Label>
+            <Select
+              value={formData.training_area_id}
+              onValueChange={(value) =>
+                handleFieldChange("training_area_id", value)
+              }
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select training area" />
+              </SelectTrigger>
+              <SelectContent>
+                {trainingAreas.map((area) => (
+                  <SelectItem key={area.id} value={area.id.toString()}>
+                    {area.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="module_id">Module</Label>
+            <Select
+              value={formData.module_id}
+              onValueChange={(value) => handleFieldChange("module_id", value)}
+              disabled={!formData.training_area_id}
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select module" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredModules.map((module) => (
+                  <SelectItem key={module.id} value={module.id.toString()}>
+                    {module.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="course_id">Course</Label>
+            <Select
+              value={formData.course_id}
+              onValueChange={(value) => handleFieldChange("course_id", value)}
+              disabled={!formData.module_id}
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select course" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredCourses.map((course) => (
+                  <SelectItem key={course.id} value={course.id.toString()}>
+                    {course.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="unit_id">Unit *</Label>
             <Select
               value={formData.unit_id}
               onValueChange={(value) => handleFieldChange("unit_id", value)}
+              disabled={!formData.course_id}
             >
               <SelectTrigger
                 className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
@@ -615,7 +869,7 @@ const LearningBlockPage = () => {
                 <SelectValue placeholder="Select a unit" />
               </SelectTrigger>
               <SelectContent>
-                {units.map((unit) => (
+                {filteredUnits.map((unit) => (
                   <SelectItem key={unit.id} value={unit.id.toString()}>
                     {unit.name}
                   </SelectItem>
@@ -769,8 +1023,8 @@ const LearningBlockPage = () => {
               <p className="text-red-500 text-sm">{validationErrors.order}</p>
             )}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="xp_points">XP Points *</Label>
+          <div className="space-y-2 hidden">
+            <Label htmlFor="xp_points">VX Points *</Label>
             <Input
               id="xp_points"
               type="number"
@@ -817,6 +1071,9 @@ const LearningBlockPage = () => {
 
   const EditLearningBlockForm = () => {
     const [formData, setFormData] = useState({
+      training_area_id: "",
+      module_id: "",
+      course_id: "",
       unit_id: selectedLearningBlock?.unitId?.toString() || "",
       type: selectedLearningBlock?.type || "text",
       title: selectedLearningBlock?.title || "",
@@ -829,6 +1086,75 @@ const LearningBlockPage = () => {
     });
 
     const [editorState, setEditorState] = useState<any>(null);
+    const [filteredModules, setFilteredModules] = useState<any[]>([]);
+    const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
+    const [filteredUnits, setFilteredUnits] = useState<any[]>([]);
+
+    // Filter modules based on selected training area
+    useEffect(() => {
+      if (formData.training_area_id) {
+        const filtered = modules.filter(
+          (module) =>
+            module.trainingAreaId === parseInt(formData.training_area_id)
+        );
+        setFilteredModules(filtered);
+      } else {
+        setFilteredModules([]);
+      }
+    }, [formData.training_area_id, modules]);
+
+    // Filter courses based on selected module
+    useEffect(() => {
+      if (formData.module_id) {
+        const filtered = courses.filter(
+          (course) => course.moduleId === parseInt(formData.module_id)
+        );
+        setFilteredCourses(filtered);
+      } else {
+        setFilteredCourses([]);
+      }
+    }, [formData.module_id, courses]);
+
+    // Filter units based on selected course
+    useEffect(() => {
+      if (formData.course_id) {
+        // Get course-units for the selected course
+        const fetchCourseUnits = async () => {
+          try {
+            const baseUrl = import.meta.env.VITE_API_URL;
+            const response = await fetch(
+              `${baseUrl}/api/training/course-units/course/${formData.course_id}`,
+              {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            if (response.ok) {
+              const courseUnitsData = await response.json();
+              const unitIds =
+                courseUnitsData.data?.map((cu: any) => cu.unitId) || [];
+              const filtered = units.filter((unit) =>
+                unitIds.includes(unit.id)
+              );
+              setFilteredUnits(filtered);
+            } else {
+              setFilteredUnits([]);
+            }
+          } catch (error) {
+            console.error("Error fetching course units:", error);
+            setFilteredUnits([]);
+          }
+        };
+
+        fetchCourseUnits();
+      } else {
+        setFilteredUnits([]);
+      }
+    }, [formData.course_id, units, token]);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -856,10 +1182,72 @@ const LearningBlockPage = () => {
       <div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
+            <Label htmlFor="edit_training_area_id">Training Area</Label>
+            <Select
+              value={formData.training_area_id}
+              onValueChange={(value) =>
+                handleFieldChange("training_area_id", value)
+              }
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select training area" />
+              </SelectTrigger>
+              <SelectContent>
+                {trainingAreas.map((area) => (
+                  <SelectItem key={area.id} value={area.id.toString()}>
+                    {area.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit_module_id">Module</Label>
+            <Select
+              value={formData.module_id}
+              onValueChange={(value) => handleFieldChange("module_id", value)}
+              disabled={!formData.training_area_id}
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select module" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredModules.map((module) => (
+                  <SelectItem key={module.id} value={module.id.toString()}>
+                    {module.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit_course_id">Course</Label>
+            <Select
+              value={formData.course_id}
+              onValueChange={(value) => handleFieldChange("course_id", value)}
+              disabled={!formData.module_id}
+            >
+              <SelectTrigger className="w-full bg-white border-2 border-sandstone text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full">
+                <SelectValue placeholder="Select course" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredCourses.map((course) => (
+                  <SelectItem key={course.id} value={course.id.toString()}>
+                    {course.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="edit_unit_id">Unit *</Label>
             <Select
               value={formData.unit_id}
               onValueChange={(value) => handleFieldChange("unit_id", value)}
+              disabled={!formData.course_id}
             >
               <SelectTrigger
                 className={`w-full bg-white border-2 text-[#2C2C2C] focus:border-dawn hover:border-dawn transition-all duration-300 py-4 lg:py-5 text-base rounded-full ${
@@ -871,7 +1259,7 @@ const LearningBlockPage = () => {
                 <SelectValue placeholder="Select a unit" />
               </SelectTrigger>
               <SelectContent>
-                {units.map((unit) => (
+                {filteredUnits.map((unit) => (
                   <SelectItem key={unit.id} value={unit.id.toString()}>
                     {unit.name}
                   </SelectItem>
@@ -924,12 +1312,23 @@ const LearningBlockPage = () => {
           {formData.type === "text" && (
             <div className="space-y-2">
               <Label htmlFor="edit_content">Content *</Label>
-              <div className="min-h-[200px]">
+              <div
+                className={`min-h-[200px] border-2 rounded-lg p-2 ${
+                  validationErrors.content
+                    ? "border-red-500"
+                    : "border-sandstone"
+                }`}
+              >
                 <Editor
                   content={selectedLearningBlock?.content}
                   onChange={setEditorState}
                 />
               </div>
+              {validationErrors.content && (
+                <p className="text-red-500 text-sm">
+                  {validationErrors.content}
+                </p>
+              )}
             </div>
           )}
           {formData.type === "video" && (
@@ -938,12 +1337,19 @@ const LearningBlockPage = () => {
               <Input
                 id="edit_video_url"
                 value={formData.video_url}
-                onChange={(e) =>
-                  setFormData({ ...formData, video_url: e.target.value })
-                }
-                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                onChange={(e) => handleFieldChange("video_url", e.target.value)}
+                className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                  validationErrors.video_url
+                    ? "border-red-500"
+                    : "border-sandstone"
+                }`}
                 required
               />
+              {validationErrors.video_url && (
+                <p className="text-red-500 text-sm">
+                  {validationErrors.video_url}
+                </p>
+              )}
             </div>
           )}
           {formData.type === "image" && (
@@ -952,12 +1358,19 @@ const LearningBlockPage = () => {
               <Input
                 id="edit_image_url"
                 value={formData.image_url}
-                onChange={(e) =>
-                  setFormData({ ...formData, image_url: e.target.value })
-                }
-                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                onChange={(e) => handleFieldChange("image_url", e.target.value)}
+                className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                  validationErrors.image_url
+                    ? "border-red-500"
+                    : "border-sandstone"
+                }`}
                 required
               />
+              {validationErrors.image_url && (
+                <p className="text-red-500 text-sm">
+                  {validationErrors.image_url}
+                </p>
+              )}
             </div>
           )}
           {formData.type === "interactive" && (
@@ -969,12 +1382,21 @@ const LearningBlockPage = () => {
                 id="edit_interactive_data"
                 value={formData.interactive_data}
                 onChange={(e) =>
-                  setFormData({ ...formData, interactive_data: e.target.value })
+                  handleFieldChange("interactive_data", e.target.value)
                 }
-                className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+                className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                  validationErrors.interactive_data
+                    ? "border-red-500"
+                    : "border-sandstone"
+                }`}
                 placeholder='{"type": "quiz", "questions": []}'
                 required
               />
+              {validationErrors.interactive_data && (
+                <p className="text-red-500 text-sm">
+                  {validationErrors.interactive_data}
+                </p>
+              )}
             </div>
           )}
           <div className="space-y-2">
@@ -983,27 +1405,37 @@ const LearningBlockPage = () => {
               id="edit_order"
               type="number"
               value={formData.order}
-              onChange={(e) =>
-                setFormData({ ...formData, order: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => handleFieldChange("order", e.target.value)}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                validationErrors.order ? "border-red-500" : "border-sandstone"
+              }`}
               min="1"
               required
             />
+            {validationErrors.order && (
+              <p className="text-red-500 text-sm">{validationErrors.order}</p>
+            )}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit_xp_points">XP Points *</Label>
+          <div className="space-y-2 hidden">
+            <Label htmlFor="edit_xp_points">VX Points *</Label>
             <Input
               id="edit_xp_points"
               type="number"
               value={formData.xp_points}
-              onChange={(e) =>
-                setFormData({ ...formData, xp_points: e.target.value })
-              }
-              className="bg-white border-sandstone text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full"
+              onChange={(e) => handleFieldChange("xp_points", e.target.value)}
+              className={`bg-white text-[#2C2C2C] placeholder:text-[#666666] focus:bg-white focus:border-dawn transition-all duration-300 py-4 lg:py-5 text-base border-2 hover:border-dawn rounded-full ${
+                validationErrors.xp_points
+                  ? "border-red-500"
+                  : "border-sandstone"
+              }`}
               min="0"
               required
             />
+            {validationErrors.xp_points && (
+              <p className="text-red-500 text-sm">
+                {validationErrors.xp_points}
+              </p>
+            )}
           </div>
           <div className="flex justify-end gap-2">
             <Button
@@ -1064,7 +1496,7 @@ const LearningBlockPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-4xl bg-card border-border text-card-foreground max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl bg-card border-border text-card-foreground max-h-[80%] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-muted">
           <DialogHeader>
             <DialogTitle className="text-card-foreground">
               Edit Learning Block

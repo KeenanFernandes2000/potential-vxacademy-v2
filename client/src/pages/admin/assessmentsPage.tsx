@@ -828,7 +828,7 @@ const AssessmentsPage = () => {
             >
               <Edit sx={{ fontSize: 16 }} />
             </Button>
-            
+
             <Button
               variant="ghost"
               size="sm"
@@ -1026,14 +1026,14 @@ const AssessmentsPage = () => {
                 <Edit sx={{ fontSize: 16 }} />
               </Button>
               <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-blue-400 hover:bg-blue-400/10"
-                    onClick={() => handleOpenQuestionsModal(assessment)}
-                    title="Questions"
-                  >
-                    <Quiz sx={{ fontSize: 16 }} />
-                  </Button>
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-[#2C2C2C] hover:text-blue-400 hover:bg-blue-400/10"
+                onClick={() => handleOpenQuestionsModal(assessment)}
+                title="Questions"
+              >
+                <Quiz sx={{ fontSize: 16 }} />
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -2394,7 +2394,7 @@ const AssessmentsPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-4xl bg-card border-border text-card-foreground max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl bg-card border-border text-card-foreground max-h-[80%] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-muted">
           <DialogHeader>
             <DialogTitle className="text-card-foreground">
               Edit Assessment
@@ -2419,7 +2419,7 @@ const AssessmentsPage = () => {
         open={isQuestionsModalOpen}
         onOpenChange={setIsQuestionsModalOpen}
       >
-        <DialogContent className="max-w-6xl bg-card border-border text-card-foreground max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl bg-card border-border text-card-foreground max-h-[80%] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-muted">
           <DialogHeader>
             <DialogTitle className="text-card-foreground">
               Questions for: {selectedAssessment?.title}
@@ -2491,7 +2491,7 @@ const AssessmentsPage = () => {
         open={isEditQuestionModalOpen}
         onOpenChange={setIsEditQuestionModalOpen}
       >
-        <DialogContent className="max-w-2xl bg-card border-border text-card-foreground max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl bg-card border-border text-card-foreground max-h-[80%] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-muted">
           <DialogHeader>
             <DialogTitle className="text-card-foreground">
               {selectedQuestion ? "Edit Question" : "Create Question"}
