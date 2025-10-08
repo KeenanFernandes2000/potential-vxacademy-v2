@@ -311,7 +311,10 @@ const Dashboard = () => {
             0
           );
 
-          const totalUsers = totalInProgressUsers + totalNotStartedUsers;
+          // Use the actual totalUsers from the bulk endpoint data
+          const totalUsers = progressData.reduce((sum: number, area: any) => {
+            return sum + (area.totalUsers || 0);
+          }, 0);
 
           setOverallProgressStats({
             totalInProgressUsers,
