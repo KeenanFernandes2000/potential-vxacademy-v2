@@ -445,14 +445,17 @@ const OrganizationPage = () => {
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
+      >
         <div className="space-y-2">
           <Label htmlFor="edit_name">Organization Name *</Label>
           <Input
             id="edit_name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666] w-full"
             placeholder="Type Organization Name"
             required
           />
@@ -466,7 +469,7 @@ const OrganizationPage = () => {
               setIsEditModalOpen(false);
               setSelectedOrganization(null);
             }}
-            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]"
           >
             Cancel
           </Button>
@@ -484,7 +487,7 @@ const OrganizationPage = () => {
   return (
     <AdminPageLayout
       title="Organization Management"
-      description="Manage Organizations and Sub-Organizations"
+      description="Manage Your Organizations"
     >
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
@@ -507,7 +510,7 @@ const OrganizationPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
+        <DialogContent className="max-w-2xl bg-white border-[#E5E5E5] text-[#2C2C2C] max-h-[80%] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-muted">
           <DialogHeader className="relative">
             <DialogTitle className="text-[#2C2C2C]">
               Edit Organization

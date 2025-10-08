@@ -567,12 +567,19 @@ const SubOrganizationPage = () => {
     const [availableSubAssets, setAvailableSubAssets] = useState<
       SubAssetData[]
     >([]);
+    const [orgSearchQuery, setOrgSearchQuery] = useState("");
     const [validationErrors, setValidationErrors] = useState<{
       name?: string;
       organizationId?: string;
       assetId?: string;
       subAssetId?: string;
     }>({});
+    const searchInputRef = React.useRef<HTMLInputElement>(null);
+
+    // Filter organizations based on search query
+    const filteredOrganizations = organizations.filter((org) =>
+      org.name.toLowerCase().includes(orgSearchQuery.toLowerCase())
+    );
 
     // Validation function
     const validateForm = () => {
@@ -657,7 +664,7 @@ const SubOrganizationPage = () => {
                 setValidationErrors({ ...validationErrors, name: undefined });
               }
             }}
-            className={`rounded-full bg-white text-[#2C2C2C] placeholder:text-[#666666] ${
+            className={`rounded-full bg-white text-[#2C2C2C] placeholder:text-[#666666] w-full ${
               validationErrors.name
                 ? "border-red-500 focus:border-red-500"
                 : "border-[#E5E5E5]"
@@ -694,15 +701,46 @@ const SubOrganizationPage = () => {
             >
               <SelectValue placeholder="Select an organization" />
             </SelectTrigger>
-            <SelectContent>
-              {organizations.map((organization) => (
-                <SelectItem
-                  key={organization.id}
-                  value={organization.id.toString()}
-                >
-                  {organization.name}
-                </SelectItem>
-              ))}
+            <SelectContent className="max-h-80">
+              <div className="sticky top-0 z-10 bg-white border-b p-2">
+                <Input
+                  ref={searchInputRef}
+                  placeholder="Search organizations..."
+                  value={orgSearchQuery}
+                  onChange={(e) => setOrgSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
+                  onBlur={(e) => e.stopPropagation()}
+                  className="w-full"
+                  autoFocus
+                />
+              </div>
+              <div className="max-h-60 overflow-y-auto">
+                {filteredOrganizations.length === 0 ? (
+                  <div className="p-2 text-sm text-gray-500">
+                    No organizations found
+                  </div>
+                ) : (
+                  filteredOrganizations.map((organization) => (
+                    <SelectItem
+                      key={organization.id}
+                      value={organization.id.toString()}
+                      onSelect={() => {
+                        setOrgSearchQuery("");
+                        // Ensure focus returns to search input after selection
+                        setTimeout(() => {
+                          if (searchInputRef.current) {
+                            searchInputRef.current.focus();
+                          }
+                        }, 0);
+                      }}
+                    >
+                      {organization.name}
+                    </SelectItem>
+                  ))
+                )}
+              </div>
             </SelectContent>
           </Select>
           {validationErrors.organizationId && (
@@ -742,7 +780,7 @@ const SubOrganizationPage = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="subAsset">Sub Asset *</Label>
+          <Label htmlFor="subAsset">Asset Sub-Category *</Label>
           <Select
             value={formData.subAssetId}
             onValueChange={(value) => {
@@ -765,7 +803,7 @@ const SubOrganizationPage = () => {
                   : "border-[#E5E5E5]"
               }`}
             >
-              <SelectValue placeholder="Select a sub asset" />
+              <SelectValue placeholder="Select a Asset Sub-Category" />
             </SelectTrigger>
             <SelectContent>
               {availableSubAssets.map((subAsset) => (
@@ -811,6 +849,13 @@ const SubOrganizationPage = () => {
     const [availableSubAssets, setAvailableSubAssets] = useState<
       SubAssetData[]
     >([]);
+    const [orgSearchQuery, setOrgSearchQuery] = useState("");
+    const searchInputRef = React.useRef<HTMLInputElement>(null);
+
+    // Filter organizations based on search query
+    const filteredOrganizations = organizations.filter((org) =>
+      org.name.toLowerCase().includes(orgSearchQuery.toLowerCase())
+    );
 
     // Filter sub-assets when component mounts or asset changes using cached data
     useEffect(() => {
@@ -844,14 +889,17 @@ const SubOrganizationPage = () => {
     };
 
     return (
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent"
+      >
         <div className="space-y-2">
           <Label htmlFor="edit_name">Sub-Organization Name *</Label>
           <Input
             id="edit_name"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
+            className="rounded-full bg-white text-[#2C2C2C] placeholder:text-[#666666] border-[#E5E5E5] w-full"
             required
           />
         </div>
@@ -865,18 +913,49 @@ const SubOrganizationPage = () => {
             }
             required
           >
-            <SelectTrigger className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] w-full">
+            <SelectTrigger className="rounded-full bg-white text-[#2C2C2C] w-full border-[#E5E5E5]">
               <SelectValue placeholder="Select an organization" />
             </SelectTrigger>
-            <SelectContent>
-              {organizations.map((organization) => (
-                <SelectItem
-                  key={organization.id}
-                  value={organization.id.toString()}
-                >
-                  {organization.name}
-                </SelectItem>
-              ))}
+            <SelectContent className="max-h-80">
+              <div className="sticky top-0 z-10 bg-white border-b p-2">
+                <Input
+                  ref={searchInputRef}
+                  placeholder="Search organizations..."
+                  value={orgSearchQuery}
+                  onChange={(e) => setOrgSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
+                  onBlur={(e) => e.stopPropagation()}
+                  className="w-full"
+                  autoFocus
+                />
+              </div>
+              <div className="max-h-60 overflow-y-auto">
+                {filteredOrganizations.length === 0 ? (
+                  <div className="p-2 text-sm text-gray-500">
+                    No organizations found
+                  </div>
+                ) : (
+                  filteredOrganizations.map((organization) => (
+                    <SelectItem
+                      key={organization.id}
+                      value={organization.id.toString()}
+                      onSelect={() => {
+                        setOrgSearchQuery("");
+                        // Ensure focus returns to search input after selection
+                        setTimeout(() => {
+                          if (searchInputRef.current) {
+                            searchInputRef.current.focus();
+                          }
+                        }, 0);
+                      }}
+                    >
+                      {organization.name}
+                    </SelectItem>
+                  ))
+                )}
+              </div>
             </SelectContent>
           </Select>
         </div>
@@ -888,7 +967,7 @@ const SubOrganizationPage = () => {
             onValueChange={handleAssetChange}
             required
           >
-            <SelectTrigger className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] w-full">
+            <SelectTrigger className="rounded-full bg-white text-[#2C2C2C] w-full border-[#E5E5E5]">
               <SelectValue placeholder="Select an asset" />
             </SelectTrigger>
             <SelectContent>
@@ -902,7 +981,7 @@ const SubOrganizationPage = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="edit_subAsset">Sub Asset *</Label>
+          <Label htmlFor="edit_subAsset">Asset Sub-Category *</Label>
           <Select
             value={formData.subAssetId}
             onValueChange={(value) =>
@@ -910,8 +989,8 @@ const SubOrganizationPage = () => {
             }
             required
           >
-            <SelectTrigger className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] w-full">
-              <SelectValue placeholder="Select a sub asset" />
+            <SelectTrigger className="rounded-full bg-white text-[#2C2C2C] w-full border-[#E5E5E5]">
+              <SelectValue placeholder="Select a Asset Sub-Category" />
             </SelectTrigger>
             <SelectContent>
               {availableSubAssets.map((subAsset) => (
@@ -931,7 +1010,7 @@ const SubOrganizationPage = () => {
               setIsEditModalOpen(false);
               setSelectedSubOrganization(null);
             }}
-            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#666666]"
+            className="rounded-full bg-white border-[#E5E5E5] text-[#2C2C2C]"
           >
             Cancel
           </Button>
@@ -945,10 +1024,10 @@ const SubOrganizationPage = () => {
 
   const columns = [
     "ID",
-    "Name",
+    "Sub-Organization",
     "Organization",
     "Asset",
-    "Sub-Asset",
+    "Asset Sub-Category",
     "Actions",
   ];
 
@@ -978,11 +1057,19 @@ const SubOrganizationPage = () => {
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md bg-white border-[#E5E5E5] text-[#2C2C2C]">
+        <DialogContent className="max-w-2xl bg-white border-[#E5E5E5] text-[#2C2C2C] max-h-[80%] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-muted">
           <DialogHeader>
             <DialogTitle className="text-[#2C2C2C]">
               Edit Sub-Organization
             </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </Button>
           </DialogHeader>
           <EditSubOrganizationForm />
         </DialogContent>

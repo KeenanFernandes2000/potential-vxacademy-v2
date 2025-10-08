@@ -1205,16 +1205,6 @@ const LearningPathsPage = () => {
 
     return (
       <div className="relative">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="absolute top-0 right-0 h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10 z-10"
-          onClick={onClose}
-        >
-          <Close sx={{ fontSize: 20 }} />
-        </Button>
-
         <form
           onSubmit={handleSubmit}
           className="space-y-6 max-h-[28rem] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent mt-6"
@@ -1338,10 +1328,18 @@ const LearningPathsPage = () => {
         }}
       >
         <DialogContent className="max-w-6xl bg-white border-white/20 text-[#2C2C2C] max-h-[90%]">
-          <DialogHeader>
+          <DialogHeader className="relative">
             <DialogTitle className="text-[#2C2C2C]">
               Assign Units - {selectedRole?.name}
             </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
+              onClick={handleModalClose}
+            >
+              <Close sx={{ fontSize: 20 }} />
+            </Button>
           </DialogHeader>
 
           <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent">
