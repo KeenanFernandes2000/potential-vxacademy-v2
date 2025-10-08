@@ -149,47 +149,78 @@ export default function HomePage() {
     //   mirror: true,
     // });
 
-    // Check if script is already loaded to prevent duplicate loading
-    const existingScript = document.getElementById("chatbot-embed-script");
-    if (existingScript) {
-      // Script already exists, just initialize the chatbot
-      if (window.chatbotembed && typeof window.chatbotembed === "function") {
-        window.chatbotembed({
-          botId: "68d3c5eb94d4851d85bb6408",
-          botIcon:
-            "https://api.potential.com/static/mentors/sdadassd-1753092691035-person.jpeg",
-          botColor: "#404040",
-        });
-      }
-    } else {
-      // Dynamically load the chatbot script
-      const script = document.createElement("script");
-      script.src = "https://ai.potential.com/static/embed/chat.js";
-      script.charset = "utf-8";
-      script.type = "text/javascript";
-      script.crossOrigin = "anonymous";
-      script.async = true;
-      script.id = "chatbot-embed-script";
-
-      // Initialize chatbot after script loads
-      script.onload = () => {
-        // @ts-ignore
-        chatbotembed({
-          botId: "68d3c5eb94d4851d85bb6408",
-          botIcon:
-            "https://api.potential.com/static/mentors/sdadassd-1753092691035-person.jpeg",
-          botColor: "#404040",
-        });
-      };
-
-      // Handle script loading errors
-      script.onerror = () => {
-        console.error("Failed to load chatbot script");
-      };
-
-      // Append script to document head
-      document.head.appendChild(script);
+    // Global flag to prevent multiple chatbot initializations
+    if ((window as any).chatbotInitialized) {
+      return;
     }
+
+    // Aggressive cleanup: Remove ALL existing chatbot instances before creating new ones
+    const existingChatHosts = document.querySelectorAll("#potChatHost");
+    existingChatHosts.forEach((host) => {
+      host.remove();
+    });
+
+    // Remove any other chatbot-related elements
+    const chatbotElements = document.querySelectorAll('[id^="pot"]');
+    chatbotElements.forEach((element) => {
+      element.remove();
+    });
+
+    // Remove any existing chatbot scripts
+    const existingScripts = document.querySelectorAll("#chatbot-embed-script");
+    existingScripts.forEach((script) => {
+      script.remove();
+    });
+
+    // Clean up the global chatbotembed function
+    if (window.chatbotembed) {
+      delete window.chatbotembed;
+    }
+
+    // Double-check: If potChatHost still exists after cleanup, don't proceed
+    const stillExistingChatHost = document.getElementById("potChatHost");
+    if (stillExistingChatHost) {
+      console.warn(
+        "potChatHost still exists after cleanup, skipping initialization"
+      );
+      return;
+    }
+
+    // Dynamically load the chatbot script
+    const script = document.createElement("script");
+    script.src = "https://ai.potential.com/static/embed/chat.js";
+    script.charset = "utf-8";
+    script.type = "text/javascript";
+    script.crossOrigin = "anonymous";
+    script.async = true;
+    script.id = "chatbot-embed-script";
+
+    // Initialize chatbot after script loads
+    script.onload = () => {
+      // Final check before initialization
+      const finalCheck = document.getElementById("potChatHost");
+      if (finalCheck) {
+        console.warn("potChatHost exists during initialization, skipping");
+        return;
+      }
+
+      // @ts-ignore
+      chatbotembed({
+        botId: "68d3c5eb94d4851d85bb6408",
+        botIcon:
+          "https://api.potential.com/static/mentors/sdadassd-1753092691035-person.jpeg",
+        botColor: "#404040",
+      });
+      (window as any).chatbotInitialized = true;
+    };
+
+    // Handle script loading errors
+    script.onerror = () => {
+      console.error("Failed to load chatbot script");
+    };
+
+    // Append script to document head
+    document.head.appendChild(script);
 
     // Cleanup function
     return () => {
@@ -215,6 +246,9 @@ export default function HomePage() {
       if (window.chatbotembed) {
         delete window.chatbotembed;
       }
+
+      // Reset the global flag
+      (window as any).chatbotInitialized = false;
     };
   }, []);
 
@@ -394,7 +428,13 @@ export default function HomePage() {
                   <div className="relative z-10">
                     <div className="w-20 h-20 flex items-center justify-center mb-6 transition-transform duration-300">
                       <Icon
-                        Component={<img src={benefit.icon} alt={benefit.title} className="w-full h-full object-cover" />}
+                        Component={
+                          <img
+                            src={benefit.icon}
+                            alt={benefit.title}
+                            className="w-full h-full object-cover"
+                          />
+                        }
                         color="#F77860"
                         size={58}
                       />

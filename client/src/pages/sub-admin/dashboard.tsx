@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, UserPlus, Loader2, Copy, FileText } from "lucide-react";
+import {
+  Users,
+  UserPlus,
+  Loader2,
+  Copy,
+  FileText,
+  TrendingUp,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Document,
@@ -20,6 +27,8 @@ const Dashboard = () => {
     totalUsers: 0,
     newUsers: 0,
     newUsersPercentage: 0,
+    usersWithProgress: 0,
+    usersWithProgressPercentage: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -124,6 +133,111 @@ const Dashboard = () => {
     },
   };
 
+  // Chatbot cleanup and prevention logic
+  useEffect(() => {
+    // Global flag to prevent multiple chatbot initializations
+    if ((window as any).chatbotInitialized) {
+      return;
+    }
+
+    // Aggressive cleanup: Remove ALL existing chatbot instances before creating new ones
+    const existingChatHosts = document.querySelectorAll("#potChatHost");
+    existingChatHosts.forEach((host) => {
+      host.remove();
+    });
+
+    // Remove any other chatbot-related elements
+    const chatbotElements = document.querySelectorAll('[id^="pot"]');
+    chatbotElements.forEach((element) => {
+      element.remove();
+    });
+
+    // Remove any existing chatbot scripts
+    const existingScripts = document.querySelectorAll("#chatbot-embed-script");
+    existingScripts.forEach((script) => {
+      script.remove();
+    });
+
+    // Clean up the global chatbotembed function
+    if (window.chatbotembed) {
+      delete window.chatbotembed;
+    }
+
+    // Double-check: If potChatHost still exists after cleanup, don't proceed
+    const stillExistingChatHost = document.getElementById("potChatHost");
+    if (stillExistingChatHost) {
+      console.warn(
+        "potChatHost still exists after cleanup, skipping initialization"
+      );
+      return;
+    }
+
+    // Dynamically load the chatbot script
+    const script = document.createElement("script");
+    script.src = "https://ai.potential.com/static/embed/chat.js";
+    script.charset = "utf-8";
+    script.type = "text/javascript";
+    script.crossOrigin = "anonymous";
+    script.async = true;
+    script.id = "chatbot-embed-script";
+
+    // Initialize chatbot after script loads
+    script.onload = () => {
+      // Final check before initialization
+      const finalCheck = document.getElementById("potChatHost");
+      if (finalCheck) {
+        console.warn("potChatHost exists during initialization, skipping");
+        return;
+      }
+
+      // @ts-ignore
+      chatbotembed({
+        botId: "68d631a094d4851d85bb8903",
+        botIcon:
+          "https://api.potential.com/static/mentors/sdadassd-1753092691035-person.jpeg",
+        botColor: "#404040",
+      });
+      (window as any).chatbotInitialized = true;
+    };
+
+    // Handle script loading errors
+    script.onerror = () => {
+      console.error("Failed to load chatbot script");
+    };
+
+    // Append script to document head
+    document.head.appendChild(script);
+
+    // Cleanup function
+    return () => {
+      // Remove the script tag
+      const scriptElement = document.getElementById("chatbot-embed-script");
+      if (scriptElement) {
+        scriptElement.remove();
+      }
+
+      // Remove chatbot UI elements
+      const potChatHost = document.getElementById("potChatHost");
+      if (potChatHost) {
+        potChatHost.remove();
+      }
+
+      // Remove any other chatbot-related elements
+      const chatbotElements = document.querySelectorAll('[id^="pot"]');
+      chatbotElements.forEach((element) => {
+        element.remove();
+      });
+
+      // Clean up the global chatbotembed function
+      if (window.chatbotembed) {
+        delete window.chatbotembed;
+      }
+
+      // Reset the global flag
+      (window as any).chatbotInitialized = false;
+    };
+  }, []);
+
   // Fetch dashboard stats and invitations on component mount
   useEffect(() => {
     const fetchData = async () => {
@@ -208,14 +322,26 @@ const Dashboard = () => {
           );
         }).length;
 
-        // Calculate percentage
+        // Count users with progress (overallProgress > 0)
+        const usersWithProgress = filteredUsersData.filter((user: any) => {
+          const progress = parseFloat(user.overallProgress || "0");
+          return progress > 0;
+        }).length;
+
+        // Calculate percentages
         const newUsersPercentage =
           totalUsers > 0 ? Math.round((newUsers / totalUsers) * 100) : 0;
+        const usersWithProgressPercentage =
+          totalUsers > 0
+            ? Math.round((usersWithProgress / totalUsers) * 100)
+            : 0;
 
         setStats({
           totalUsers,
           newUsers,
           newUsersPercentage,
+          usersWithProgress,
+          usersWithProgressPercentage,
         });
 
         // Fetch invitations
@@ -793,7 +919,7 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           <StatCard
             title="Total Users"
             value={stats.totalUsers}
@@ -807,6 +933,14 @@ const Dashboard = () => {
             value={stats.newUsers}
             icon={UserPlus}
             change={`${stats.newUsersPercentage}% of total users this month`}
+            changeType="positive"
+            loading={loading}
+          />
+          <StatCard
+            title="Users with Progress"
+            value={stats.usersWithProgress}
+            icon={TrendingUp}
+            change={`${stats.usersWithProgressPercentage}% have started training`}
             changeType="positive"
             loading={loading}
           />
