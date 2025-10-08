@@ -13,7 +13,7 @@ import {
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { MoreVert, Edit, Delete } from "@mui/icons-material";
+import { MoreVert, Edit, Delete, Close } from "@mui/icons-material";
 import {
   Dialog,
   DialogContent,
@@ -1169,6 +1169,14 @@ const CoursesPage = () => {
         <DialogContent className="max-w-2xl bg-card border-border text-card-foreground max-h-[80%] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-muted">
           <DialogHeader>
             <DialogTitle className="text-[#2C2C2C]">Edit Course</DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </Button>
           </DialogHeader>
           <EditCourseForm />
         </DialogContent>

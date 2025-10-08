@@ -654,19 +654,19 @@ const ModulesPage = () => {
 
       return (
         <div className="relative">
-          <Button
+          {/* <Button
             variant="ghost"
             size="sm"
             className="absolute top-0 right-0 h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
             onClick={onClose}
           >
             <Close sx={{ fontSize: 20 }} />
-          </Button>
-          <div className="mb-6">
+          </Button> */}
+          {/* <div className="mb-6">
             <h3 className="text-lg font-semibold text-[#2C2C2C]">
               Create Module
             </h3>
-          </div>
+          </div> */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-[#2C2C2C]">
@@ -975,6 +975,19 @@ const ModulesPage = () => {
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="max-w-2xl bg-card border-border text-card-foreground max-h-[80%] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-muted">
+          <DialogHeader>
+            <DialogTitle className="text-card-foreground">
+              Edit Module
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </Button>
+          </DialogHeader>
           <EditModuleForm
             onClose={() => {
               setIsEditModalOpen(false);

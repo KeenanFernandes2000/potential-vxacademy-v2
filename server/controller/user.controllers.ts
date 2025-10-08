@@ -2886,6 +2886,22 @@ export class userControllers {
       throw createError("Invalid or expired invitation token", 404);
     }
 
+    // Get asset and sub-asset names from the sub-organization
+    let assetName = result.subAdminDetails.user.asset;
+    let subAssetName = result.subAdminDetails.user.subAsset;
+
+    // If we have sub-organization details, get the actual asset and sub-asset names
+    if (result.subAdminDetails.subAdmin?.subOrganizationId) {
+      const assetSubAssetNames = await SubOrganizationService.getAssetAndSubAssetNamesBySubOrg(
+        result.subAdminDetails.subAdmin.subOrganizationId
+      );
+      
+      if (assetSubAssetNames) {
+        assetName = assetSubAssetNames.assetName;
+        subAssetName = assetSubAssetNames.subAssetName;
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: "Invitation retrieved successfully",
@@ -2893,8 +2909,8 @@ export class userControllers {
         subAdmin: {
           organization: result.subAdminDetails.user.organization,
           subOrganization: result.subAdminDetails.user.subOrganization,
-          asset: result.subAdminDetails.user.asset,
-          subAsset: result.subAdminDetails.user.subAsset,
+          asset: assetName,
+          subAsset: subAssetName,
         },
       },
     });

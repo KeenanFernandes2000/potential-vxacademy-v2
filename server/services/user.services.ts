@@ -127,6 +127,19 @@ export class OrganizationService {
 
     return !!organization;
   }
+
+  /**
+   * Get organization ID by name
+   */
+  static async getOrganizationIdByName(name: string): Promise<number | null> {
+    const [organization] = await db
+      .select({ id: organizations.id })
+      .from(organizations)
+      .where(eq(organizations.name, name))
+      .limit(1);
+
+    return organization?.id || null;
+  }
 }
 
 // ==================== SUB-ORGANIZATION SERVICE ====================
@@ -265,6 +278,54 @@ export class SubOrganizationService {
       .limit(1);
 
     return subOrganization || null;
+  }
+
+  /**
+   * Get sub-organization by name and organization ID
+   */
+  static async getSubOrgByNameAndOrgId(
+    name: string,
+    organizationId: number
+  ): Promise<SubOrganization | null> {
+    const [subOrganization] = await db
+      .select()
+      .from(subOrganizations)
+      .where(
+        and(
+          eq(subOrganizations.name, name),
+          eq(subOrganizations.organizationId, organizationId)
+        )
+      )
+      .limit(1);
+
+    return subOrganization || null;
+  }
+
+  /**
+   * Get asset and sub-asset names by sub-organization ID
+   */
+  static async getAssetAndSubAssetNamesBySubOrg(
+    subOrgId: number
+  ): Promise<{ assetName: string; subAssetName: string } | null> {
+    const [result] = await db
+      .select({
+        assetName: assets.name,
+        subAssetName: subAssets.name,
+      })
+      .from(subOrganizations)
+      .leftJoin(assets, eq(subOrganizations.assetId, assets.id))
+      .leftJoin(subAssets, eq(subOrganizations.subAssetId, subAssets.id))
+      .where(eq(subOrganizations.id, subOrgId))
+      .limit(1);
+
+    if (!result || !result.assetName || !result.subAssetName) {
+      return null;
+    }
+
+    return {
+      assetName: result.assetName,
+      subAssetName: result.subAssetName,
+    };
   }
 }
 
