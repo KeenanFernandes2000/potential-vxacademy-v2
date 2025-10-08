@@ -43,14 +43,10 @@ interface ReportData {
   };
   subOrganizations: SubOrganization[];
   generalStats: {
+    totalOrganizations: number;
+    activeOrganizations: number;
     totalSubOrganizations: number;
     activeSubOrganizations: number;
-    totalFrontliners: number;
-    registeredFrontliners: number;
-    totalCertificatesIssued: number;
-    totalCompletedAlMidhyaf: number;
-    totalVxPointsEarned: number;
-    overallProgress: number;
   };
 }
 
@@ -273,9 +269,7 @@ const SubOrganizations = () => {
       filtered = filtered.filter(
         (subOrg) =>
           subOrg.name.toLowerCase().includes(query.toLowerCase()) ||
-          subOrg.organization.toLowerCase().includes(query.toLowerCase()) ||
-          subOrg.subAdminName.toLowerCase().includes(query.toLowerCase()) ||
-          subOrg.subAdminEmail.toLowerCase().includes(query.toLowerCase())
+          subOrg.organization.toLowerCase().includes(query.toLowerCase())
       );
     }
 
@@ -293,12 +287,8 @@ const SubOrganizations = () => {
         "Organization",
         "Asset",
         "Asset Sub-Category",
-        "Total Frontliners",
         "Registered Frontliners",
-        "Sub-Admin Name",
-        "Sub-Admin Email",
         "Status",
-        "Created",
       ],
       ...filteredSubOrganizations.map((subOrg) => [
         subOrg.id,
@@ -306,12 +296,8 @@ const SubOrganizations = () => {
         subOrg.organization,
         subOrg.asset,
         subOrg.subAsset,
-        subOrg.totalFrontliners.toString(),
         subOrg.registeredFrontliners.toString(),
-        subOrg.subAdminName,
-        subOrg.subAdminEmail,
         subOrg.status,
-        formatDate(subOrg.createdAt),
       ]),
     ]
       .map((row) => row.join(","))
@@ -342,12 +328,8 @@ const SubOrganizations = () => {
     Organization: subOrg.organization,
     Asset: subOrg.asset,
     "Asset Sub-Category": subOrg.subAsset,
-    "Total Frontliners": subOrg.totalFrontliners.toString(),
     "Registered Frontliners": subOrg.registeredFrontliners.toString(),
-    "Sub-Admin Name": subOrg.subAdminName,
-    "Sub-Admin Email": subOrg.subAdminEmail,
     Status: subOrg.status,
-    Created: formatDate(subOrg.createdAt),
   }));
 
   if (loading) {
@@ -396,25 +378,45 @@ const SubOrganizations = () => {
     >
       <div className="space-y-6">
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total Number of Frontliners
+                Total Organizations
               </CardTitle>
-              <Users className="h-4 w-4 text-blue-400" />
+              <Building2 className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
               <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalFrontliners}
+                {reportData.generalStats.totalOrganizations}
               </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Registered organizations
+              </p>
             </CardContent>
           </Card>
 
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total Number of Organizations
+                Active Organizations
+              </CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-5xl font-bold text-[#2C2C2C]">
+                {reportData.generalStats.activeOrganizations}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Organizations with active users in the last 15 days
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
+                Total Sub-Organizations
               </CardTitle>
               <Building2 className="h-4 w-4 text-dawn" />
             </CardHeader>
@@ -422,72 +424,46 @@ const SubOrganizations = () => {
               <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalSubOrganizations}
               </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Registered sub-organizations
+              </p>
             </CardContent>
           </Card>
 
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total Certificates Issued
+                Active Sub-Organizations
               </CardTitle>
-              <Award className="h-4 w-4 text-green-400" />
+              <Users className="h-4 w-4 text-purple-400" />
             </CardHeader>
             <CardContent>
               <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalCertificatesIssued}
+                {reportData.generalStats.activeSubOrganizations}
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total who completed Al Midyaf
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-purple-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalCompletedAlMidhyaf}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Additional Stats Row */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total VX Points Earned
-              </CardTitle>
-              <Award className="h-4 w-4 text-yellow-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalVxPointsEarned}
-              </div>
-            </CardContent>
-          </Card> */}
-
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Overall Progress
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.overallProgress}%
-              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Sub-organizations with active users in the last 15 days
+              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Filter Section */}
         <div className="mb-6 p-4 bg-sandstone rounded-lg border border-[#E5E5E5]">
-          <h3 className="text-lg font-semibold text-dawn mb-4">Filters:</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-dawn">Filter By</h3>
+            {hasActiveFilters && (
+              <Button
+                onClick={clearAllFilters}
+                variant="outline"
+                size="sm"
+                className="text-dawn border-dawn hover:bg-dawn hover:text-white"
+              >
+                <X className="mr-2 h-4 w-4" />
+                Reset Filters
+              </Button>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="assetFilter" className="text-[#2C2C2C]">
@@ -542,18 +518,6 @@ const SubOrganizations = () => {
               </Select>
             </div>
           </div>
-          {hasActiveFilters && (
-            <div className="mt-4 flex justify-end">
-              <Button
-                variant="outline"
-                onClick={clearAllFilters}
-                className="bg-red-500/20 border-red-500/30 text-white hover:bg-red-500/30"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Clear Filters
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* Export Button */}
@@ -577,12 +541,8 @@ const SubOrganizations = () => {
             "Organization",
             "Asset",
             "Asset Sub-Category",
-            "Total Frontliners",
             "Registered Frontliners",
-            "Sub-Admin Name",
-            "Sub-Admin Email",
             "Status",
-            "Created",
           ]}
           onSearch={handleSearch}
         />

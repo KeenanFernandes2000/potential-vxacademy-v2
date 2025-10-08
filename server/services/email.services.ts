@@ -106,6 +106,9 @@ export async function sendEmail(params: {
   text: string;
 }) {
   try {
+    if (process.env.NODE_ENV === "development") {
+      return;
+    }
     const cmd = new SendEmailCommand({
       FromEmailAddress: "vxacademy@dctabudhabi.ae",
       Destination: { ToAddresses: [params.to] },

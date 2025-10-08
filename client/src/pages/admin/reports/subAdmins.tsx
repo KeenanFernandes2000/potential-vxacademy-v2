@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
   Loader2,
   X,
   Download,
+  ChevronDown,
 } from "lucide-react";
 import {
   Select,
@@ -20,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import AdminTableLayout from "@/components/adminTableLayout";
@@ -56,12 +58,8 @@ interface ReportData {
   dataTableColumns: string[];
   dataTableRows: SubAdmin[];
   generalStats: {
-    totalFrontliners: number;
-    totalOrganizations: number;
-    totalCertificatesIssued: number;
-    totalCompletedAlMidhyaf: number;
-    totalVxPointsEarned: number;
-    overallProgress: number;
+    totalSubAdmins: number;
+    activeSubAdmins: number;
   };
 }
 
@@ -77,6 +75,13 @@ const SubAdmins = () => {
   const [selectedSubAsset, setSelectedSubAsset] = useState<string>("all");
   const [selectedOrganization, setSelectedOrganization] =
     useState<string>("all");
+
+  // Organization search state
+  const [organizationSearchQuery, setOrganizationSearchQuery] =
+    useState<string>("");
+  const [showOrganizationDropdown, setShowOrganizationDropdown] =
+    useState<boolean>(false);
+  const organizationDropdownRef = useRef<HTMLDivElement>(null);
 
   // Asset and sub-asset state for dynamic filtering
   const [assets, setAssets] = useState<Array<{ id: number; name: string }>>([]);
@@ -245,35 +250,31 @@ const SubAdmins = () => {
   useEffect(() => {
     // Reset organization selection when sub-asset changes
     setSelectedOrganization("all");
+    setOrganizationSearchQuery("");
   }, [selectedSubAsset]);
 
-  // Function to get filtered organizations based on selected asset and sub-asset
-  const getFilteredOrganizations = () => {
-    if (!reportData) return [];
+  // Handle click outside to close organization dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        organizationDropdownRef.current &&
+        !organizationDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowOrganizationDropdown(false);
+      }
+    };
 
-    let filtered = reportData.dataTableRows;
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
-    // Filter by asset
-    if (selectedAsset !== "all") {
-      filtered = filtered.filter(
-        (subAdmin) => subAdmin.asset === selectedAsset
-      );
-    }
-
-    // Filter by sub-asset
-    if (selectedSubAsset !== "all") {
-      filtered = filtered.filter(
-        (subAdmin) => subAdmin.subAsset === selectedSubAsset
-      );
-    }
-
-    // Get unique organizations from filtered data
-    const uniqueOrganizations = Array.from(
-      new Set(filtered.map((subAdmin) => subAdmin.organization))
-    ).map((org) => ({ value: org, label: org }));
-
-    return uniqueOrganizations;
-  };
+  // Filter organizations based on search query
+  const filteredOrganizations =
+    reportData?.filters.organizations.filter((org) =>
+      org.label.toLowerCase().includes(organizationSearchQuery.toLowerCase())
+    ) || [];
 
   // Filter sub-admins based on all criteria
   useEffect(() => {
@@ -310,6 +311,28 @@ const SubAdmins = () => {
     setSelectedAsset("all");
     setSelectedSubAsset("all");
     setSelectedOrganization("all");
+    setOrganizationSearchQuery("");
+    setShowOrganizationDropdown(false);
+  };
+
+  // Handle organization selection
+  const handleOrganizationSelect = (organization: string) => {
+    setSelectedOrganization(organization);
+    if (organization === "all") {
+      setOrganizationSearchQuery("");
+    } else {
+      const selectedOrg = reportData?.filters.organizations.find(
+        (org) => org.value === organization
+      );
+      setOrganizationSearchQuery(selectedOrg?.label || "");
+    }
+    setShowOrganizationDropdown(false);
+  };
+
+  // Handle organization search input
+  const handleOrganizationSearch = (query: string) => {
+    setOrganizationSearchQuery(query);
+    setShowOrganizationDropdown(true);
   };
 
   // Check if any filters are active
@@ -394,12 +417,13 @@ const SubAdmins = () => {
     Asset: subAdmin.asset,
     "Asset Sub-Category": subAdmin.subAsset,
     Organization: subAdmin.organization,
-    "Sub-Organization": subAdmin.subOrganization || "N/A",
+    "Sub-Organization": Array.isArray(subAdmin.subOrganization)
+      ? subAdmin.subOrganization.join(", ")
+      : (subAdmin.subOrganization || "N/A").toString().replace(/,/g, ", "),
     "Total Frontliners": subAdmin.totalFrontliners.toString(),
     "Registered Frontliners": subAdmin.registeredFrontliners.toString(),
     "Registration Date": formatDate(subAdmin.registrationDate),
     "Last Login Date": formatDate(subAdmin.lastLoginDate),
-    "Remind Sub-Admin": "Action Button",
   }));
 
   if (loading) {
@@ -448,76 +472,17 @@ const SubAdmins = () => {
     >
       <div className="space-y-6">
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total Number of Frontliners
-              </CardTitle>
-              <Users className="h-4 w-4 text-dawn" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalFrontliners}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total Number of Organizations
-              </CardTitle>
-              <Building2 className="h-4 w-4 text-blue-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalOrganizations}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total Certificates Issued
-              </CardTitle>
-              <Award className="h-4 w-4 text-green-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalCertificatesIssued}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total who completed Al Midyaf
-              </CardTitle>
-              <BookOpen className="h-4 w-4 text-purple-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalCompletedAlMidhyaf}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Additional Stats */}
         <div className="grid gap-4 md:grid-cols-2">
           {/* <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total VX Points Earned
+                Total Sub-Admins
               </CardTitle>
-              <Award className="h-4 w-4 text-blue-400" />
+              <Shield className="h-4 w-4 text-dawn" />
             </CardHeader>
             <CardContent>
               <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalVxPointsEarned.toLocaleString()}
+                {reportData.generalStats.totalSubAdmins}
               </div>
             </CardContent>
           </Card> */}
@@ -525,13 +490,13 @@ const SubAdmins = () => {
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Overall Progress
+                Active Sub-Admins
               </CardTitle>
-              <TrendingUp className="h-4 w-4 text-dawn" />
+              <Users className="h-4 w-4 text-green-400" />
             </CardHeader>
             <CardContent>
               <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.overallProgress}%
+                {reportData.generalStats.activeSubAdmins}
               </div>
             </CardContent>
           </Card>
@@ -539,7 +504,20 @@ const SubAdmins = () => {
 
         {/* Filter Section */}
         <div className="mb-6 p-4 bg-sandstone rounded-lg border border-[#E5E5E5]">
-          <h3 className="text-lg font-semibold text-dawn mb-4">Filter By</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-dawn">Filter By</h3>
+            {hasActiveFilters && (
+              <Button
+                onClick={clearAllFilters}
+                variant="outline"
+                size="sm"
+                className="text-dawn border-dawn hover:bg-dawn hover:text-white"
+              >
+                <X className="mr-2 h-4 w-4" />
+                Reset Filters
+              </Button>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="assetFilter" className="text-[#2C2C2C]">
@@ -597,37 +575,53 @@ const SubAdmins = () => {
               <Label htmlFor="organizationFilter" className="text-[#2C2C2C]">
                 Organization
               </Label>
-              <Select
-                value={selectedOrganization}
-                onValueChange={setSelectedOrganization}
-                disabled={!reportData}
-              >
-                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Organizations</SelectItem>
-                  {getFilteredOrganizations().map((org) => (
-                    <SelectItem key={org.value} value={org.value}>
-                      {org.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative" ref={organizationDropdownRef}>
+                <Input
+                  value={organizationSearchQuery}
+                  onChange={(e) => handleOrganizationSearch(e.target.value)}
+                  onFocus={() => setShowOrganizationDropdown(true)}
+                  placeholder={
+                    selectedOrganization === "all"
+                      ? "All Organizations"
+                      : "Search organizations..."
+                  }
+                  className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] pr-8"
+                />
+                <ChevronDown
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 cursor-pointer"
+                  onClick={() =>
+                    setShowOrganizationDropdown(!showOrganizationDropdown)
+                  }
+                />
+
+                {showOrganizationDropdown && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-[#E5E5E5] rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <div
+                      className="px-3 py-2 text-sm text-[#2C2C2C] hover:bg-gray-50 cursor-pointer border-b border-gray-100"
+                      onClick={() => handleOrganizationSelect("all")}
+                    >
+                      All Organizations
+                    </div>
+                    {filteredOrganizations.length > 0 ? (
+                      filteredOrganizations.map((org) => (
+                        <div
+                          key={org.value}
+                          className="px-3 py-2 text-sm text-[#2C2C2C] hover:bg-gray-50 cursor-pointer"
+                          onClick={() => handleOrganizationSelect(org.value)}
+                        >
+                          {org.label}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500">
+                        No organizations found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          {hasActiveFilters && (
-            <div className="mt-4 flex justify-end">
-              <Button
-                variant="outline"
-                onClick={clearAllFilters}
-                className="bg-red-500/20 border-red-500/30 text-white hover:bg-red-500/30"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Clear Filters
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* Export Button */}

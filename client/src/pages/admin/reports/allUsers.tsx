@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,6 @@ import {
   X,
   Building2,
   Award,
-  BookOpen,
-  TrendingUp,
 } from "lucide-react";
 import {
   Select,
@@ -65,13 +63,11 @@ interface ReportData {
   };
   dataTableColumns: string[];
   dataTableRows: User[];
-  generalStats: {
+  userTypeStats: {
+    totalUsers: number;
     totalFrontliners: number;
-    totalOrganizations: number;
-    totalCertificatesIssued: number;
-    totalCompletedAlMidhyaf: number;
-    totalVxPointsEarned: number;
-    overallProgress: number;
+    totalSubAdmins: number;
+    totalAdmins: number;
   };
 }
 
@@ -86,8 +82,18 @@ const AllUsers = () => {
   const [selectedUserType, setSelectedUserType] = useState<string>("all");
   const [selectedOrganization, setSelectedOrganization] =
     useState<string>("all");
-  const [selectedRegistrationDate, setSelectedRegistrationDate] =
-    useState<string>("all");
+  const [selectedRegistrationDateRange, setSelectedRegistrationDateRange] =
+    useState<{
+      from: string;
+      to: string;
+    }>({ from: "", to: "" });
+
+  // Organization search state
+  const [organizationSearchQuery, setOrganizationSearchQuery] =
+    useState<string>("");
+  const [showOrganizationDropdown, setShowOrganizationDropdown] =
+    useState<boolean>(false);
+  const organizationDropdownRef = useRef<HTMLDivElement>(null);
 
   // API object for user operations
   const api = {
@@ -143,6 +149,23 @@ const AllUsers = () => {
     fetchUsersReport();
   }, [token]);
 
+  // Handle click outside to close organization dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        organizationDropdownRef.current &&
+        !organizationDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowOrganizationDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   // Filter users based on all criteria
   useEffect(() => {
     if (!reportData) return;
@@ -161,16 +184,46 @@ const AllUsers = () => {
       );
     }
 
-    // Filter by registration date
-    if (selectedRegistrationDate !== "all") {
+    // Filter by registration date range
+    if (
+      selectedRegistrationDateRange.from ||
+      selectedRegistrationDateRange.to
+    ) {
       filtered = filtered.filter((user) => {
         if (user.registrationDate === "N/A") return false;
         const userDate = new Date(user.registrationDate);
-        const filterDate = new Date(selectedRegistrationDate + "-01");
-        return (
-          userDate.getFullYear() === filterDate.getFullYear() &&
-          userDate.getMonth() === filterDate.getMonth()
-        );
+
+        // If only from date is set
+        if (
+          selectedRegistrationDateRange.from &&
+          !selectedRegistrationDateRange.to
+        ) {
+          const fromDate = new Date(selectedRegistrationDateRange.from);
+          return userDate >= fromDate;
+        }
+
+        // If only to date is set
+        if (
+          !selectedRegistrationDateRange.from &&
+          selectedRegistrationDateRange.to
+        ) {
+          const toDate = new Date(selectedRegistrationDateRange.to);
+          toDate.setHours(23, 59, 59, 999); // Include the entire day
+          return userDate <= toDate;
+        }
+
+        // If both dates are set
+        if (
+          selectedRegistrationDateRange.from &&
+          selectedRegistrationDateRange.to
+        ) {
+          const fromDate = new Date(selectedRegistrationDateRange.from);
+          const toDate = new Date(selectedRegistrationDateRange.to);
+          toDate.setHours(23, 59, 59, 999); // Include the entire day
+          return userDate >= fromDate && userDate <= toDate;
+        }
+
+        return true;
       });
     }
 
@@ -179,21 +232,58 @@ const AllUsers = () => {
     reportData,
     selectedUserType,
     selectedOrganization,
-    selectedRegistrationDate,
+    selectedRegistrationDateRange,
   ]);
+
+  // Filter organizations based on search query
+  const filteredOrganizations =
+    reportData?.filters.organizations.filter((org) =>
+      org.label.toLowerCase().includes(organizationSearchQuery.toLowerCase())
+    ) || [];
 
   // Clear all filters
   const clearAllFilters = () => {
     setSelectedUserType("all");
     setSelectedOrganization("all");
-    setSelectedRegistrationDate("all");
+    setSelectedRegistrationDateRange({ from: "", to: "" });
+    setOrganizationSearchQuery("");
+    setShowOrganizationDropdown(false);
+  };
+
+  // Handle organization selection
+  const handleOrganizationSelect = (organization: string) => {
+    setSelectedOrganization(organization);
+    if (organization === "all") {
+      setOrganizationSearchQuery("");
+    } else {
+      const selectedOrg = reportData?.filters.organizations.find(
+        (org) => org.value === organization
+      );
+      setOrganizationSearchQuery(selectedOrg?.label || "");
+    }
+    setShowOrganizationDropdown(false);
+  };
+
+  // Handle organization search input
+  const handleOrganizationSearch = (query: string) => {
+    setOrganizationSearchQuery(query);
+    setShowOrganizationDropdown(true);
+  };
+
+  // Handle date range changes
+  const handleDateRangeChange = (field: "from" | "to", value: string) => {
+    setSelectedRegistrationDateRange((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   // Check if any filters are active
   const hasActiveFilters =
     selectedUserType !== "all" ||
     selectedOrganization !== "all" ||
-    selectedRegistrationDate !== "all";
+    selectedRegistrationDateRange.from !== "" ||
+    selectedRegistrationDateRange.to !== "";
 
   // Handle search
   const handleSearch = (query: string) => {
@@ -267,7 +357,9 @@ const AllUsers = () => {
     "Phone Number": user.phoneNumber || "N/A",
     "User Type": user.userType,
     Organization: user.organization,
-    "Sub-Organization": user.subOrganization || "N/A",
+    "Sub-Organization": Array.isArray(user.subOrganization)
+      ? user.subOrganization.join(", ")
+      : (user.subOrganization || "N/A").toString(),
     "Registration Date": formatDate(user.registrationDate),
     "Last Login Date": formatDate(user.lastLoginDate),
   }));
@@ -317,8 +409,25 @@ const AllUsers = () => {
       description="Complete overview of all users in the system"
     >
       <div className="space-y-6">
-        {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        {/* User Type Statistics Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
+                Total Users
+              </CardTitle>
+              <Users className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-[#2C2C2C]">
+                {reportData.userTypeStats.totalUsers}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                All users in the platform
+              </p>
+            </CardContent>
+          </Card>
+
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
@@ -327,75 +436,64 @@ const AllUsers = () => {
               <Users className="h-4 w-4 text-dawn" />
             </CardHeader>
             <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalFrontliners}
+              <div className="text-3xl font-bold text-[#2C2C2C]">
+                {reportData.userTypeStats.totalFrontliners}
               </div>
+              <p className="text-xs text-gray-500 mt-1">
+                All registered frontliners
+              </p>
             </CardContent>
           </Card>
 
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total Organizations
+                Total Sub-Admins
               </CardTitle>
-              <Building2 className="h-4 w-4 text-blue-400" />
+              <Building2 className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalOrganizations}
+              <div className="text-3xl font-bold text-[#2C2C2C]">
+                {reportData.userTypeStats.totalSubAdmins}
               </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Registered sub-admins
+              </p>
             </CardContent>
           </Card>
 
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total Certificates Issued
+                Total Admins
               </CardTitle>
-              <Award className="h-4 w-4 text-green-400" />
+              <Award className="h-4 w-4 text-purple-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalCertificatesIssued}
+              <div className="text-3xl font-bold text-[#2C2C2C]">
+                {reportData.userTypeStats.totalAdmins}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Additional Stats */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total who completed Al Midyaf
-              </CardTitle>
-              <BookOpen className="h-4 w-4 text-purple-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalCompletedAlMidhyaf}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Overall Progress
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-dawn" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.overallProgress}%
-              </div>
+              <p className="text-xs text-gray-500 mt-1">Assigned admins</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Filter Section */}
         <div className="mb-6 p-4 bg-sandstone rounded-lg border border-[#E5E5E5]">
-          <h3 className="text-lg font-semibold text-dawn mb-4">Filter By</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-dawn">Filter By</h3>
+            {hasActiveFilters && (
+              <Button
+                onClick={clearAllFilters}
+                variant="outline"
+                size="sm"
+                className="text-dawn border-dawn hover:bg-dawn hover:text-white"
+              >
+                <X className="mr-2 h-4 w-4" />
+                Reset Filters
+              </Button>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="userTypeFilter" className="text-[#2C2C2C]">
@@ -422,46 +520,83 @@ const AllUsers = () => {
               <Label htmlFor="organizationFilter" className="text-[#2C2C2C]">
                 Organization
               </Label>
-              <Select
-                value={selectedOrganization}
-                onValueChange={setSelectedOrganization}
-              >
-                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Organizations</SelectItem>
-                  {reportData.filters.organizations.map((org) => (
-                    <SelectItem key={org.value} value={org.value}>
-                      {org.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative" ref={organizationDropdownRef}>
+                <Input
+                  value={organizationSearchQuery}
+                  onChange={(e) => handleOrganizationSearch(e.target.value)}
+                  onFocus={() => setShowOrganizationDropdown(true)}
+                  placeholder={
+                    selectedOrganization === "all"
+                      ? "All Organizations"
+                      : "Search organizations..."
+                  }
+                  className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] pr-8"
+                />
+                <ChevronDown
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 cursor-pointer"
+                  onClick={() =>
+                    setShowOrganizationDropdown(!showOrganizationDropdown)
+                  }
+                />
+
+                {showOrganizationDropdown && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-[#E5E5E5] rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <div
+                      className="px-3 py-2 text-sm text-[#2C2C2C] hover:bg-gray-50 cursor-pointer border-b border-gray-100"
+                      onClick={() => handleOrganizationSelect("all")}
+                    >
+                      All Organizations
+                    </div>
+                    {filteredOrganizations.length > 0 ? (
+                      filteredOrganizations.map((org) => (
+                        <div
+                          key={org.value}
+                          className="px-3 py-2 text-sm text-[#2C2C2C] hover:bg-gray-50 cursor-pointer"
+                          onClick={() => handleOrganizationSelect(org.value)}
+                        >
+                          {org.label}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500">
+                        No organizations found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               <Label
                 htmlFor="registrationDateFilter"
-                className="text-[#2C2C2C]"
+                className="text-[#2C2C2C] text-center block"
               >
-                Registration Date
+                Registration Date Range
               </Label>
-              <Select
-                value={selectedRegistrationDate}
-                onValueChange={setSelectedRegistrationDate}
-              >
-                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
-                  <SelectValue placeholder="Select date" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Dates</SelectItem>
-                  {reportData.filters.registrationDates.map((date) => (
-                    <SelectItem key={date.value} value={date.value}>
-                      {date.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Input
+                    type="date"
+                    value={selectedRegistrationDateRange.from}
+                    onChange={(e) =>
+                      handleDateRangeChange("from", e.target.value)
+                    }
+                    placeholder="From date"
+                    className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] text-sm"
+                  />
+                </div>
+                <div>
+                  <Input
+                    type="date"
+                    value={selectedRegistrationDateRange.to}
+                    onChange={(e) =>
+                      handleDateRangeChange("to", e.target.value)
+                    }
+                    placeholder="To date"
+                    className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] text-sm"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
