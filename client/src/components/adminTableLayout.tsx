@@ -1,5 +1,6 @@
 import React, { ReactNode, useState, useEffect } from "react";
 import { Search, Plus, ChevronUp, ChevronDown } from "lucide-react";
+import { Close } from "@mui/icons-material";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -831,6 +832,14 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
                 <DialogTitle className="text-card-foreground">
                   {createButtonText}
                 </DialogTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-4 top-4 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+                  onClick={() => setIsCreateModalOpen(false)}
+                >
+                  <Close sx={{ fontSize: 16 }} />
+                </Button>
               </DialogHeader>
               {React.cloneElement(createForm as React.ReactElement<any>, {
                 onClose: () => {

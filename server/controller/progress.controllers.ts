@@ -284,6 +284,43 @@ export class ProgressController {
   }
 
   /**
+   * Get training area progress for multiple users and sum the progress
+   * POST /api/progress/training-areas/bulk
+   */
+  static async getBulkTrainingAreaProgress(req: Request, res: Response) {
+    const { userIds } = req.body;
+
+    // Validate input
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      throw createError("Valid array of user IDs is required", 400);
+    }
+
+    // Validate each user ID
+    for (const userId of userIds) {
+      if (typeof userId !== "number" || userId <= 0) {
+        throw createError("All user IDs must be valid positive numbers", 400);
+      }
+    }
+
+    try {
+      const progress = await ProgressService.getBulkTrainingAreaProgress(userIds);
+
+      res.status(200).json({
+        success: true,
+        message: "Bulk training area progress retrieved successfully",
+        data: progress,
+      });
+    } catch (error) {
+      console.error("Error getting bulk training area progress:", error);
+      throw createError(
+        "Failed to retrieve bulk training area progress",
+        500,
+        error instanceof Error ? [error.message] : ["Unknown error occurred"]
+      );
+    }
+  }
+
+  /**
    * Get module progress for a user
    * GET /api/progress/modules/:userId
    * GET /api/progress/modules/:userId/:moduleId

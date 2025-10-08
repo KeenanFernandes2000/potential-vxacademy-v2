@@ -51,7 +51,7 @@ interface User {
   role?: string;
   seniority?: string;
   frontlinerType?: string;
-  vxPoints?: number;
+  // vxPoints?: number;
   overallProgress?: number;
 }
 

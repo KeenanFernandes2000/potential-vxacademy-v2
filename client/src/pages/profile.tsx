@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import UserSidebar from "@/components/userSidebar";
 import SubAdminSidebar from "@/components/subAdminSidebar";
 import AdminSidebar from "@/components/adminSidebar";
-import { BarChart, CheckCircle, TrackChanges } from "@mui/icons-material";
 import { useAuth } from "@/hooks/useAuth";
 
 type Props = {};
@@ -61,14 +57,6 @@ const ProfilePage = (props: Props) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Overview data state
-  const [overviewData, setOverviewData] = useState({
-    totalCourses: 0,
-    completedCourses: 0,
-    overallProgress: 0,
-    loading: true,
-  });
-
   // User profile state
   const [userData, setUserData] = useState<NormalUserData>({
     first_name: "",
@@ -80,6 +68,18 @@ const ProfilePage = (props: Props) => {
     eid: "",
     phone_number: "",
   });
+
+  // Editable fields state for sub-admin
+  const [subAdminData, setSubAdminData] = useState({
+    job_title: "",
+    eid: "",
+    phone_number: "",
+    total_frontliners: 0,
+  });
+
+  // Form state
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Helper function to update form data based on profile data
   const updateFormDataFromProfile = (profileData: any) => {
@@ -102,119 +102,21 @@ const ProfilePage = (props: Props) => {
         profileData.subAdminDetails?.phoneNumber ||
         "",
     });
+
+    // Set sub-admin specific data
+    if (profileData.subAdminDetails) {
+      setSubAdminData({
+        job_title: profileData.subAdminDetails.jobTitle || "",
+        eid: profileData.subAdminDetails.eid || "",
+        phone_number: profileData.subAdminDetails.phoneNumber || "",
+        total_frontliners: profileData.subAdminDetails.totalFrontliners || 0,
+      });
+    }
   };
 
   // Fetch user profile data
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (!user || !token) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        const baseUrl = import.meta.env.VITE_API_URL;
-
-        // Fetch user details
-        const userResponse = await fetch(
-          `${baseUrl}/api/users/users/${user.id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!userResponse.ok) {
-          throw new Error("Failed to fetch user profile");
-        }
-
-        const userResult = await userResponse.json();
-        if (userResult.success) {
-          updateFormDataFromProfile(userResult.data);
-        }
-      } catch (err: any) {
-        console.error("Error fetching user profile:", err);
-        setError(err.message || "Failed to load user profile");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUserProfile();
-  }, [user, token]);
-
-  // Fetch overview data (courses and progress)
-  useEffect(() => {
-    const fetchOverviewData = async () => {
-      if (!user || !token) {
-        setOverviewData((prev) => ({ ...prev, loading: false }));
-        return;
-      }
-
-      try {
-        setOverviewData((prev) => ({ ...prev, loading: true }));
-        const baseUrl = import.meta.env.VITE_API_URL;
-
-        // Fetch all courses
-        const coursesResponse = await fetch(`${baseUrl}/api/training/courses`);
-        let totalCourses = 0;
-        if (coursesResponse.ok) {
-          const coursesResult = await coursesResponse.json();
-          if (coursesResult.success && coursesResult.data) {
-            totalCourses = coursesResult.data.length;
-          }
-        }
-
-        // Fetch user progress
-        const progressResponse = await fetch(
-          `${baseUrl}/api/progress/courses/${user.id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        let completedCourses = 0;
-        let overallProgress = 0;
-
-        if (progressResponse.ok) {
-          const progressResult = await progressResponse.json();
-          if (progressResult.success && progressResult.data) {
-            const courseProgress = progressResult.data;
-            completedCourses = courseProgress.filter(
-              (course: any) => course.progress === 100
-            ).length;
-
-            // Calculate overall progress
-            if (courseProgress.length > 0) {
-              const totalProgress = courseProgress.reduce(
-                (sum: number, course: any) => sum + (course.progress || 0),
-                0
-              );
-              overallProgress = Math.round(
-                totalProgress / courseProgress.length
-              );
-            }
-          }
-        }
-
-        setOverviewData({
-          totalCourses,
-          completedCourses,
-          overallProgress,
-          loading: false,
-        });
-      } catch (err: any) {
-        console.error("Error fetching overview data:", err);
-        setOverviewData((prev) => ({ ...prev, loading: false }));
-      }
-    };
-
-    fetchOverviewData();
   }, [user, token]);
 
   // Get current user data based on user type
@@ -285,63 +187,207 @@ const ProfilePage = (props: Props) => {
     }));
   };
 
+  const handleSubAdminChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setSubAdminData((prev) => ({
+      ...prev,
+      [name]: name === "total_frontliners" ? parseInt(value) || 0 : value,
+    }));
+  };
+
+  const handleEditToggle = () => {
+    setIsEditing(!isEditing);
+  };
+
+  const handleCancel = () => {
+    // Reset to original values
+    if (userProfile) {
+      updateFormDataFromProfile(userProfile);
+    }
+    setIsEditing(false);
+  };
+
   // Form submission handlers
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !token || !userProfile) return;
 
     try {
+      setSaving(true);
       const baseUrl = import.meta.env.VITE_API_URL;
 
-      // Only update basic user data (first name, last name, email)
-      const userUpdateData = {
-        firstName: userData.first_name,
-        lastName: userData.last_name,
-        email: userData.email,
-      };
+      // Update user-specific data based on user type
+      if (userProfile.userType === "user") {
+        // Update basic user data first
+        const basicUserUpdateData = {
+          firstName: userData.first_name,
+          lastName: userData.last_name,
+        };
 
-      const response = await fetch(`${baseUrl}/api/users/users/${user.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(userUpdateData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update profile");
-      }
-
-      const result = await response.json();
-      if (result.success) {
-        alert("Profile updated successfully!");
-        // Refresh the profile data by refetching
-        try {
-          const userResponse = await fetch(
-            `${baseUrl}/api/users/users/${user.id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (userResponse.ok) {
-            const userResult = await userResponse.json();
-            if (userResult.success) {
-              updateFormDataFromProfile(userResult.data);
-            }
+        const basicUserResponse = await fetch(
+          `${baseUrl}/api/users/users/${user.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(basicUserUpdateData),
           }
-        } catch (err) {
-          console.error("Error refreshing profile data:", err);
+        );
+
+        if (!basicUserResponse.ok) {
+          throw new Error("Failed to update basic user profile");
         }
-      } else {
-        throw new Error(result.message || "Failed to update profile");
+
+        const basicUserResult = await basicUserResponse.json();
+        if (!basicUserResult.success) {
+          throw new Error(
+            basicUserResult.message || "Failed to update basic user profile"
+          );
+        }
+
+        // Update normal user specific data
+        const userUpdateData = {
+          roleCategory: userData.role_category,
+          role: userData.role,
+          seniority: userData.seniority,
+          eid: userData.eid,
+          phoneNumber: userData.phone_number,
+        };
+
+        const response = await fetch(
+          `${baseUrl}/api/users/normal-users/${user.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(userUpdateData),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to update user profile");
+        }
+
+        const result = await response.json();
+        if (result.success) {
+          alert("Profile updated successfully!");
+          setIsEditing(false);
+          // Refresh the profile data
+          await fetchUserProfile();
+        } else {
+          throw new Error(result.message || "Failed to update profile");
+        }
+      } else if (userProfile.userType === "sub_admin") {
+        // Update basic user data first
+        const userUpdateData = {
+          firstName: userData.first_name,
+          lastName: userData.last_name,
+        };
+
+        const userResponse = await fetch(
+          `${baseUrl}/api/users/users/${user.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(userUpdateData),
+          }
+        );
+
+        if (!userResponse.ok) {
+          throw new Error("Failed to update user profile");
+        }
+
+        const userResult = await userResponse.json();
+        if (!userResult.success) {
+          throw new Error(
+            userResult.message || "Failed to update user profile"
+          );
+        }
+
+        // Update sub-admin specific data
+        const subAdminUpdateData = {
+          jobTitle: subAdminData.job_title,
+          eid: subAdminData.eid,
+          phoneNumber: subAdminData.phone_number,
+          totalFrontliners: subAdminData.total_frontliners,
+        };
+
+        const response = await fetch(
+          `${baseUrl}/api/users/sub-admins/${user.id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(subAdminUpdateData),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to update sub-admin profile");
+        }
+
+        const result = await response.json();
+        if (result.success) {
+          alert("Profile updated successfully!");
+          setIsEditing(false);
+          // Refresh the profile data
+          await fetchUserProfile();
+        } else {
+          throw new Error(result.message || "Failed to update profile");
+        }
       }
     } catch (error: any) {
       console.error("Error updating profile:", error);
       alert(`Failed to update profile: ${error.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Helper function to refetch user profile
+  const fetchUserProfile = async () => {
+    if (!user || !token) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const baseUrl = import.meta.env.VITE_API_URL;
+
+      // Fetch user details
+      const userResponse = await fetch(
+        `${baseUrl}/api/users/users/${user.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!userResponse.ok) {
+        throw new Error("Failed to fetch user profile");
+      }
+
+      const userResult = await userResponse.json();
+      if (userResult.success) {
+        updateFormDataFromProfile(userResult.data);
+      }
+    } catch (err: any) {
+      console.error("Error fetching user profile:", err);
+      setError(err.message || "Failed to load user profile");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -397,7 +443,7 @@ const ProfilePage = (props: Props) => {
 
                   {/* Stats */}
                   <div className="flex items-center space-x-6 text-sm">
-                    <div className="hidden flex items-center space-x-2">
+                    <div className="hidden items-center space-x-2">
                       <span className="text-muted-foreground">🏅</span>
                       <span className="text-muted-foreground">
                         {currentUser.level}
@@ -414,164 +460,315 @@ const ProfilePage = (props: Props) => {
               </div>
             </div>
 
-            {/* Tabs Section */}
-            <div className="bg-card/80 backdrop-blur-sm border border-border rounded-lg">
-              <Tabs defaultValue="overview" className="w-full">
-                <div className="border-b border-border">
-                  <TabsList className="bg-transparent h-auto p-0 w-full justify-start">
-                    <TabsTrigger
-                      value="overview"
-                      className="bg-transparent border-0 text-foreground data-[state=active]:bg-muted/50 data-[state=active]:text-foreground rounded-lg px-6 py-4"
-                    >
-                      Overview
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="details"
-                      className="bg-transparent border-0 text-foreground data-[state=active]:bg-muted/50 data-[state=active]:text-foreground rounded-lg px-6 py-4"
-                    >
-                      User Details
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
-
-                {/* Overview Tab */}
-                <TabsContent value="overview" className="p-6 min-w-full">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <Card className="bg-card/50 border-border rounded-lg">
-                      <CardContent className="p-6">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-primary/20 flex items-center justify-center rounded-lg">
-                            <BarChart className="text-primary text-xl" />
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground text-sm">
-                              Total Courses
-                            </p>
-                            <p className="text-card-foreground text-2xl font-bold">
-                              {overviewData.loading ? (
-                                <div className="animate-pulse bg-muted/50 h-8 w-12 rounded"></div>
-                              ) : (
-                                overviewData.totalCourses
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="hidden bg-card/50 border-border rounded-lg">
-                      <CardContent className="p-6">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-primary/20 flex items-center justify-center rounded-lg">
-                            <span className="text-primary text-xl">⭐</span>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground text-sm">
-                              Experience Points
-                            </p>
-                            <p className="text-card-foreground text-2xl font-bold">
-                              {currentUser.xp}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-card/50 border-border rounded-lg">
-                      <CardContent className="p-6">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-primary/20 flex items-center justify-center rounded-lg">
-                            <span className="text-primary text-xl">📅</span>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground text-sm">
-                              Join Year
-                            </p>
-                            <p className="text-card-foreground text-2xl font-bold">
-                              {userProfile
-                                ? new Date(userProfile.createdAt).getFullYear()
-                                : "N/A"}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+            {/* User Details Section */}
+            <div className="bg-card/80 backdrop-blur-sm border border-border rounded-lg p-6">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground text-lg">
+                      Loading profile...
+                    </p>
                   </div>
-                </TabsContent>
-
-                {/* User Details Tab */}
-                <TabsContent value="details" className="p-6">
-                  {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                      <div className="text-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                        <p className="text-muted-foreground text-lg">
-                          Loading profile...
-                        </p>
-                      </div>
-                    </div>
-                  ) : error ? (
-                    <div className="text-center py-12">
-                      <p className="text-destructive text-lg mb-4">
-                        Error loading profile
-                      </p>
-                      <p className="text-muted-foreground">{error}</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      {/* Basic user information - all fields are read-only */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <label
-                            htmlFor="first_name"
-                            className="block text-foreground font-medium"
-                          >
-                            First Name
-                          </label>
-                          <Input
-                            id="first_name"
-                            name="first_name"
-                            value={userData.first_name}
-                            readOnly
-                            className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label
-                            htmlFor="last_name"
-                            className="block text-foreground font-medium"
-                          >
-                            Last Name
-                          </label>
-                          <Input
-                            id="last_name"
-                            name="last_name"
-                            value={userData.last_name}
-                            readOnly
-                            className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label
-                          htmlFor="email"
-                          className="block text-foreground font-medium"
+                </div>
+              ) : error ? (
+                <div className="text-center py-12">
+                  <p className="text-destructive text-lg mb-4">
+                    Error loading profile
+                  </p>
+                  <p className="text-muted-foreground">{error}</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-semibold text-card-foreground">
+                      User Details
+                    </h2>
+                    <div className="flex gap-2">
+                      {!isEditing ? (
+                        <Button
+                          onClick={handleEditToggle}
+                          variant="outline"
+                          size="sm"
                         >
-                          Email
-                        </label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          value={userData.email}
-                          readOnly
-                          className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
-                        />
-                      </div>
+                          Edit
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            onClick={handleCancel}
+                            variant="outline"
+                            size="sm"
+                            disabled={saving}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleProfileUpdate}
+                            size="sm"
+                            disabled={saving}
+                          >
+                            {saving ? "Saving..." : "Save"}
+                          </Button>
+                        </>
+                      )}
                     </div>
-                  )}
-                </TabsContent>
-              </Tabs>
+                  </div>
+
+                  {/* Basic user information */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="first_name"
+                        className="block text-foreground font-medium"
+                      >
+                        First Name
+                      </label>
+                      <Input
+                        id="first_name"
+                        name="first_name"
+                        value={userData.first_name}
+                        onChange={handleUserChange}
+                        readOnly={!isEditing}
+                        className={
+                          isEditing
+                            ? "bg-background border-border text-foreground placeholder:text-muted-foreground rounded-lg"
+                            : "bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="last_name"
+                        className="block text-foreground font-medium"
+                      >
+                        Last Name
+                      </label>
+                      <Input
+                        id="last_name"
+                        name="last_name"
+                        value={userData.last_name}
+                        onChange={handleUserChange}
+                        readOnly={!isEditing}
+                        className={
+                          isEditing
+                            ? "bg-background border-border text-foreground placeholder:text-muted-foreground rounded-lg"
+                            : "bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="email"
+                      className="block text-foreground font-medium"
+                    >
+                      Email
+                    </label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={userData.email}
+                      readOnly
+                      className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
+                    />
+                  </div>
+
+                  {/* User type specific fields */}
+                  {userProfile?.userType === "user" &&
+                    userProfile?.normalUserDetails && (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label
+                              htmlFor="role_category"
+                              className="block text-foreground font-medium"
+                            >
+                              Role Category
+                            </label>
+                            <Input
+                              id="role_category"
+                              name="role_category"
+                              value={userData.role_category}
+                              readOnly
+                              className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label
+                              htmlFor="role"
+                              className="block text-foreground font-medium"
+                            >
+                              Role
+                            </label>
+                            <Input
+                              id="role"
+                              name="role"
+                              value={userData.role}
+                              onChange={handleUserChange}
+                              readOnly={!isEditing}
+                              className={
+                                isEditing
+                                  ? "bg-background border-border text-foreground placeholder:text-muted-foreground rounded-lg"
+                                  : "bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label
+                              htmlFor="seniority"
+                              className="block text-foreground font-medium"
+                            >
+                              Seniority
+                            </label>
+                            <Input
+                              id="seniority"
+                              name="seniority"
+                              value={userData.seniority}
+                              onChange={handleUserChange}
+                              readOnly={!isEditing}
+                              className={
+                                isEditing
+                                  ? "bg-background border-border text-foreground placeholder:text-muted-foreground rounded-lg"
+                                  : "bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label
+                              htmlFor="eid"
+                              className="block text-foreground font-medium"
+                            >
+                              Employee ID
+                            </label>
+                            <Input
+                              id="eid"
+                              name="eid"
+                              value={userData.eid}
+                              readOnly
+                              className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="phone_number"
+                            className="block text-foreground font-medium"
+                          >
+                            Phone Number
+                          </label>
+                          <Input
+                            id="phone_number"
+                            name="phone_number"
+                            value={userData.phone_number}
+                            readOnly
+                            className="bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                  {userProfile?.userType === "sub_admin" &&
+                    userProfile?.subAdminDetails && (
+                      <>
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="job_title"
+                            className="block text-foreground font-medium"
+                          >
+                            Job Title
+                          </label>
+                          <Input
+                            id="job_title"
+                            name="job_title"
+                            value={subAdminData.job_title}
+                            onChange={handleSubAdminChange}
+                            readOnly={!isEditing}
+                            className={
+                              isEditing
+                                ? "bg-background border-border text-foreground placeholder:text-muted-foreground rounded-lg"
+                                : "bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
+                            }
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label
+                              htmlFor="eid"
+                              className="block text-foreground font-medium"
+                            >
+                              Employee ID
+                            </label>
+                            <Input
+                              id="eid"
+                              name="eid"
+                              value={subAdminData.eid}
+                              onChange={handleSubAdminChange}
+                              readOnly={!isEditing}
+                              className={
+                                isEditing
+                                  ? "bg-background border-border text-foreground placeholder:text-muted-foreground rounded-lg"
+                                  : "bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label
+                              htmlFor="phone_number"
+                              className="block text-foreground font-medium"
+                            >
+                              Phone Number
+                            </label>
+                            <Input
+                              id="phone_number"
+                              name="phone_number"
+                              value={subAdminData.phone_number}
+                              onChange={handleSubAdminChange}
+                              readOnly={!isEditing}
+                              className={
+                                isEditing
+                                  ? "bg-background border-border text-foreground placeholder:text-muted-foreground rounded-lg"
+                                  : "bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        {userProfile.subAdminDetails.totalFrontliners !==
+                          undefined && (
+                          <div className="space-y-2">
+                            <label
+                              htmlFor="total_frontliners"
+                              className="block text-foreground font-medium"
+                            >
+                              Total Frontliners
+                            </label>
+                            <Input
+                              id="total_frontliners"
+                              name="total_frontliners"
+                              type="number"
+                              value={subAdminData.total_frontliners}
+                              onChange={handleSubAdminChange}
+                              readOnly={!isEditing}
+                              className={
+                                isEditing
+                                  ? "bg-background border-border text-foreground placeholder:text-muted-foreground rounded-lg"
+                                  : "bg-muted/50 border-border text-foreground placeholder:text-muted-foreground rounded-lg cursor-not-allowed"
+                              }
+                            />
+                          </div>
+                        )}
+                      </>
+                    )}
+                </div>
+              )}
             </div>
           </div>
         </SidebarInset>

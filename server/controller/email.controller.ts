@@ -9,6 +9,7 @@ import { sendByType, sendCustomTextEmail } from "../services/email.services";
 import {
   CertificateHelper,
   LearningBlockProgressService,
+  ProgressService,
 } from "../services/progress.services";
 import { db } from "../db/connection";
 import type { CustomError } from "../middleware/errorHandling";
@@ -138,7 +139,7 @@ export class EmailController {
       );
 
       const completionPromises = learningBlocks.map((learningBlock: any) =>
-        LearningBlockProgressService.completeLearningBlock(
+        LearningBlockProgressService.completeLearningBlockOnly(
           userId,
           learningBlock.id
         )
@@ -182,12 +183,13 @@ export class EmailController {
     // Get all assessments from training area and create hardcoded attempts
     const baseUrl = process.env.VITE_API_URL;
     const assessmentsUrl = `${baseUrl}/api/assessments/assessments/training-areas/${trainingAreaId}/`;
+    let allAssessmentIds: number[] = [];
     
     try {
       const assessmentsResponse = await fetch(assessmentsUrl);
       if (assessmentsResponse.ok) {
         const assessmentsData: any = await assessmentsResponse.json();
-        const allAssessmentIds = (assessmentsData.data || []).map((assessment: any) => assessment.id);
+        allAssessmentIds = (assessmentsData.data || []).map((assessment: any) => assessment.id);
         console.log(`Found ${allAssessmentIds.length} assessments in training area ${trainingAreaId}`);
 
         // Create assessment attempts for all assessments (mark as passed with score 100)
@@ -209,6 +211,7 @@ export class EmailController {
 
               // Create assessment attempt directly using service
               try {
+                // Import the assessment attempt service
                 const { AssessmentAttemptService } = await import('../services/assessment.services');
                 
                 await AssessmentAttemptService.createAssessmentAttempt({
@@ -233,6 +236,15 @@ export class EmailController {
       console.error("Error fetching assessments:", error);
     }
 
+    // Recalculate all progress for the user after completing all learning blocks AND assessments
+    console.log(`Recalculating progress for user ${userId}...`);
+    const recalcResult = await ProgressService.recalculateUserProgress(userId);
+    if (recalcResult.success) {
+      console.log(`✅ ${recalcResult.message}`);
+    } else {
+      console.error(`❌ Failed to recalculate progress: ${recalcResult.message}`);
+    }
+
     // Use the CertificateHelper to generate the certificate
     const certificateResult =
       await CertificateHelper.generateTrainingAreaCertificate(
@@ -253,6 +265,18 @@ export class EmailController {
         trainingAreaName: trainingArea?.name,
         url: `${process.env.FRONTEND_URL}/certificate/${certificateResult.certificateId}`,
       },
+    });
+
+    // Send success response back to frontend
+    res.status(200).json({
+      success: true,
+      message: "Initial assessment passed - learning blocks completed, assessments created, progress recalculated, and certificate generated",
+      data: {
+        learningBlocksCompleted: learningBlocks.length,
+        assessmentsCreated: allAssessmentIds.length,
+        certificateId: certificateResult.certificateId,
+        progressRecalculated: recalcResult.success
+      }
     });
   }
 

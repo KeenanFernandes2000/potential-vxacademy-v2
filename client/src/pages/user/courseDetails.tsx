@@ -638,7 +638,7 @@ const CourseDetails = () => {
         setAllUnitsAsFiltered(transformedCourse.units);
       } catch (error: any) {
         console.error("Error fetching course data:", error);
-        setError(error.message || "Failed to load course data");
+        setError(error.message || "Network error");
       } finally {
         setIsLoading(false);
       }
@@ -670,7 +670,7 @@ const CourseDetails = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Error Loading Course
+            Network Error
           </h1>
           <p className="text-gray-600 mb-4">{error}</p>
           <Button onClick={() => navigate("/user/courses")}>
@@ -687,7 +687,7 @@ const CourseDetails = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Course Not Found
+            Network Error
           </h1>
           <Button onClick={() => navigate("/user/courses")}>
             <ArrowLeft className="w-4 h-4 mr-2" />

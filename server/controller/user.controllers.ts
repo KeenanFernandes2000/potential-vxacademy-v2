@@ -718,6 +718,50 @@ export class userControllers {
   }
 
   /**
+   * Get all sub-admin users with their frontliner counts
+   * GET /users/sub-admins?limit=10&offset=0
+   */
+  static async getAllSubAdminsWithFrontlinerCounts(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const limit = req.query.limit
+      ? parseInt(req.query.limit as string)
+      : undefined;
+    const offset = req.query.offset
+      ? parseInt(req.query.offset as string)
+      : undefined;
+
+    // Validate pagination parameters
+    if (limit !== undefined && (isNaN(limit) || limit <= 0 || limit > 100)) {
+      throw createError(
+        "Limit must be a positive number between 1 and 100",
+        400
+      );
+    }
+
+    if (offset !== undefined && (isNaN(offset) || offset < 0)) {
+      throw createError("Offset must be a non-negative number", 400);
+    }
+
+    const subAdmins = await UserService.getAllSubAdminsWithFrontlinerCounts(
+      limit,
+      offset
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Sub-admins with frontliner counts retrieved successfully",
+      data: subAdmins,
+      meta: {
+        limit: limit || null,
+        offset: offset || 0,
+        count: subAdmins.length,
+      },
+    });
+  }
+
+  /**
    * Get user by ID with all related data
    * GET /users/:id
    */
@@ -2886,6 +2930,22 @@ export class userControllers {
       throw createError("Invalid or expired invitation token", 404);
     }
 
+    // Get asset and sub-asset names from the sub-organization
+    let assetName = result.subAdminDetails.user.asset;
+    let subAssetName = result.subAdminDetails.user.subAsset;
+
+    // If we have sub-organization details, get the actual asset and sub-asset names
+    if (result.subAdminDetails.subAdmin?.subOrganizationId) {
+      const assetSubAssetNames = await SubOrganizationService.getAssetAndSubAssetNamesBySubOrg(
+        result.subAdminDetails.subAdmin.subOrganizationId
+      );
+      
+      if (assetSubAssetNames) {
+        assetName = assetSubAssetNames.assetName;
+        subAssetName = assetSubAssetNames.subAssetName;
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: "Invitation retrieved successfully",
@@ -2893,8 +2953,8 @@ export class userControllers {
         subAdmin: {
           organization: result.subAdminDetails.user.organization,
           subOrganization: result.subAdminDetails.user.subOrganization,
-          asset: result.subAdminDetails.user.asset,
-          subAsset: result.subAdminDetails.user.subAsset,
+          asset: assetName,
+          subAsset: subAssetName,
         },
       },
     });
@@ -3466,6 +3526,112 @@ export class userControllers {
     } catch (error: any) {
       console.error("Get comprehensive user details error:", error);
       throw createError("Failed to retrieve comprehensive user details", 500);
+    }
+  }
+
+  /**
+   * Get sub-organization by name and organization ID
+   * GET /sub-organizations/by-name/:organizationId/:name
+   */
+  static async getSubOrganizationByNameAndOrgId(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const organizationId = parseInt(req.params.organizationId as string);
+    const name = req.params.name as string;
+
+    if (isNaN(organizationId) || organizationId <= 0) {
+      throw createError("Invalid organization ID", 400);
+    }
+
+    if (!name || name.trim() === "") {
+      throw createError("Sub-organization name is required", 400);
+    }
+
+    try {
+      const subOrganization = await SubOrganizationService.getSubOrgByNameAndOrgId(
+        name,
+        organizationId
+      );
+
+      if (!subOrganization) {
+        throw createError("Sub-organization not found", 404);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Sub-organization retrieved successfully",
+        data: subOrganization,
+      });
+    } catch (error: any) {
+      console.error("Get sub-organization by name and org ID error:", error);
+      throw createError("Failed to retrieve sub-organization", 500);
+    }
+  }
+
+  /**
+   * Get asset and sub-asset names by sub-organization ID
+   * GET /sub-organizations/:id/asset-info
+   */
+  static async getAssetAndSubAssetNamesBySubOrg(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const subOrgId = parseInt(req.params.id as string);
+
+    if (isNaN(subOrgId) || subOrgId <= 0) {
+      throw createError("Invalid sub-organization ID", 400);
+    }
+
+    try {
+      const assetInfo = await SubOrganizationService.getAssetAndSubAssetNamesBySubOrg(
+        subOrgId
+      );
+
+      if (!assetInfo) {
+        throw createError("Asset information not found for this sub-organization", 404);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Asset information retrieved successfully",
+        data: assetInfo,
+      });
+    } catch (error: any) {
+      console.error("Get asset and sub-asset names by sub-org error:", error);
+      throw createError("Failed to retrieve asset information", 500);
+    }
+  }
+
+  /**
+   * Get organization ID by name
+   * GET /organizations/by-name/:name
+   */
+  static async getOrganizationIdByName(
+    req: Request,
+    res: Response
+  ): Promise<void> {
+    const name = req.params.name as string;
+
+    if (!name || name.trim() === "") {
+      throw createError("Organization name is required", 400);
+    }
+
+    try {
+      const organizationId = await OrganizationService.getOrganizationIdByName(name);
+
+      if (!organizationId) {
+        throw createError("Organization not found", 404);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Organization ID retrieved successfully",
+        data: { id: organizationId },
+      });
+    } catch (error: any) {
+      console.error("Get organization ID by name error:", error);
+      throw createError("Failed to retrieve organization ID", 500);
     }
   }
 }

@@ -343,12 +343,12 @@ const AdminSidebar = () => {
     },
     {
       key: "learningPath",
-      title: "Learning Path",
+      title: "Learning Path Management",
       items: learningPathNavItems,
     },
     {
       key: "organization",
-      title: "Organization",
+      title: "Organization Management",
       items: organizationNavItems,
     },
     {

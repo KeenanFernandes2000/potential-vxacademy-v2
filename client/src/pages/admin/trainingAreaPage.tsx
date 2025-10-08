@@ -690,6 +690,14 @@ const TrainingAreaPage = () => {
             <DialogTitle className="text-[#2C2C2C]">
               Edit Training Area
             </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-4 top-4 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </Button>
           </DialogHeader>
           <EditTrainingAreaForm />
         </DialogContent>

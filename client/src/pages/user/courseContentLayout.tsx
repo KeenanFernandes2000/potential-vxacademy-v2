@@ -298,18 +298,33 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
     },
   };
 
-  // Set initial selected content to first accessible learning block
+  // Set initial selected content to first incomplete learning block or first accessible content
   React.useEffect(() => {
     if (units.length > 0 && !isInitialized) {
       const allContent = getAllContentInOrder();
-      const firstAccessibleContent = allContent.find((content) => {
+
+      // First, try to find the first incomplete learning block that's accessible
+      const firstIncompleteLearningBlock = allContent.find((content) => {
         if (content.type === "learningBlock") {
-          return isLearningBlockAccessible(content.item, content.unitOrder);
-        } else if (content.type === "assessment") {
-          return isAssessmentAccessible(content.item, content.unitOrder);
+          return (
+            isLearningBlockAccessible(content.item, content.unitOrder) &&
+            content.item.status !== "completed"
+          );
         }
         return false;
       });
+
+      // If no incomplete learning block found, fall back to first accessible content
+      const firstAccessibleContent =
+        firstIncompleteLearningBlock ||
+        allContent.find((content) => {
+          if (content.type === "learningBlock") {
+            return isLearningBlockAccessible(content.item, content.unitOrder);
+          } else if (content.type === "assessment") {
+            return isAssessmentAccessible(content.item, content.unitOrder);
+          }
+          return false;
+        });
 
       if (firstAccessibleContent) {
         const initialContent = {
@@ -1718,14 +1733,14 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                                   {selectedContent.assessment.passingScore}%
                                 </span>
                               </div>
-                              <div className="flex justify-between">
+                              {/* <div className="flex justify-between">
                                 <span className="text-gray-700">
                                   XP Points:
                                 </span>
                                 <span className="font-medium text-gray-900">
                                   {selectedContent.assessment.xpPoints}
                                 </span>
-                              </div>
+                              </div> */}
                             </div>
                           </div>
 
@@ -1780,12 +1795,13 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                         </div>
                       </div>
 
-                      {/* Assessment Results Tabs - Only show if there are passed attempts */}
+                      {/* Assessment Results Tabs - Show if there are passed attempts OR if user has no remaining attempts */}
                       {Array.isArray(assessmentAttempts) &&
                         assessmentAttempts.length > 0 &&
                         Array.isArray(assessmentQuestions) &&
                         assessmentQuestions.length > 0 &&
-                        assessmentAttempts[0]?.passed === true && (
+                        (assessmentAttempts[0]?.passed === true ||
+                          hasExceededAttemptLimit()) && (
                           <div className="mt-8">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">
                               Assessment Results:
@@ -1881,9 +1897,9 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                             </div>
                           ) : (
                             // Failed assessment - show completion message
-                            <div className="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-lg text-center">
+                            <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-center">
                               <div className="flex items-center justify-center mb-2">
-                                <span className="text-orange-600 mr-2">⚠️</span>
+                                <CheckCircle className="text-green-600 mr-2" />
                                 <span className="font-semibold">
                                   Assessment Completed
                                 </span>

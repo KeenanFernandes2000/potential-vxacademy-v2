@@ -127,6 +127,19 @@ export class OrganizationService {
 
     return !!organization;
   }
+
+  /**
+   * Get organization ID by name
+   */
+  static async getOrganizationIdByName(name: string): Promise<number | null> {
+    const [organization] = await db
+      .select({ id: organizations.id })
+      .from(organizations)
+      .where(eq(organizations.name, name))
+      .limit(1);
+
+    return organization?.id || null;
+  }
 }
 
 // ==================== SUB-ORGANIZATION SERVICE ====================
@@ -265,6 +278,54 @@ export class SubOrganizationService {
       .limit(1);
 
     return subOrganization || null;
+  }
+
+  /**
+   * Get sub-organization by name and organization ID
+   */
+  static async getSubOrgByNameAndOrgId(
+    name: string,
+    organizationId: number
+  ): Promise<SubOrganization | null> {
+    const [subOrganization] = await db
+      .select()
+      .from(subOrganizations)
+      .where(
+        and(
+          eq(subOrganizations.name, name),
+          eq(subOrganizations.organizationId, organizationId)
+        )
+      )
+      .limit(1);
+
+    return subOrganization || null;
+  }
+
+  /**
+   * Get asset and sub-asset names by sub-organization ID
+   */
+  static async getAssetAndSubAssetNamesBySubOrg(
+    subOrgId: number
+  ): Promise<{ assetName: string; subAssetName: string } | null> {
+    const [result] = await db
+      .select({
+        assetName: assets.name,
+        subAssetName: subAssets.name,
+      })
+      .from(subOrganizations)
+      .leftJoin(assets, eq(subOrganizations.assetId, assets.id))
+      .leftJoin(subAssets, eq(subOrganizations.subAssetId, subAssets.id))
+      .where(eq(subOrganizations.id, subOrgId))
+      .limit(1);
+
+    if (!result || !result.assetName || !result.subAssetName) {
+      return null;
+    }
+
+    return {
+      assetName: result.assetName,
+      subAssetName: result.subAssetName,
+    };
   }
 }
 
@@ -623,6 +684,48 @@ export class UserService {
         normalUsers.existing,
         normalUsers.initialAssessment
       );
+
+    if (limit !== undefined) {
+      query.limit(limit);
+    }
+
+    if (offset !== undefined) {
+      query.offset(offset);
+    }
+
+    return await query;
+  }
+
+  /**
+   * Get all sub-admin users with their frontliner counts
+   */
+  static async getAllSubAdminsWithFrontlinerCounts(
+    limit?: number,
+    offset?: number
+  ): Promise<any[]> {
+    const query = db
+      .select({
+        // User fields
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        organization: users.organization,
+        subOrganization: users.subOrganization,
+        asset: users.asset,
+        subAsset: users.subAsset,
+        userType: users.userType,
+        createdAt: users.createdAt,
+        lastLogin: users.lastLogin,
+        // Sub-admin fields
+        jobTitle: subAdmins.jobTitle,
+        totalFrontliners: subAdmins.totalFrontliners,
+        eid: subAdmins.eid,
+        phoneNumber: subAdmins.phoneNumber,
+      })
+      .from(users)
+      .leftJoin(subAdmins, eq(users.id, subAdmins.userId))
+      .where(eq(users.userType, "sub_admin"));
 
     if (limit !== undefined) {
       query.limit(limit);

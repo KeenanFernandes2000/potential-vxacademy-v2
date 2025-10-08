@@ -149,47 +149,76 @@ export default function HomePage() {
     //   mirror: true,
     // });
 
-    // Check if script is already loaded to prevent duplicate loading
-    const existingScript = document.getElementById("chatbot-embed-script");
-    if (existingScript) {
-      // Script already exists, just initialize the chatbot
-      if (window.chatbotembed && typeof window.chatbotembed === "function") {
-        window.chatbotembed({
-          botId: "68d3c5eb94d4851d85bb6408",
-          botIcon:
-            "https://api.potential.com/static/mentors/sdadassd-1753092691035-person.jpeg",
-          botColor: "#404040",
-        });
-      }
-    } else {
-      // Dynamically load the chatbot script
-      const script = document.createElement("script");
-      script.src = "https://ai.potential.com/static/embed/chat.js";
-      script.charset = "utf-8";
-      script.type = "text/javascript";
-      script.crossOrigin = "anonymous";
-      script.async = true;
-      script.id = "chatbot-embed-script";
-
-      // Initialize chatbot after script loads
-      script.onload = () => {
-        // @ts-ignore
-        chatbotembed({
-          botId: "68d3c5eb94d4851d85bb6408",
-          botIcon:
-            "https://api.potential.com/static/mentors/sdadassd-1753092691035-person.jpeg",
-          botColor: "#404040",
-        });
-      };
-
-      // Handle script loading errors
-      script.onerror = () => {
-        console.error("Failed to load chatbot script");
-      };
-
-      // Append script to document head
-      document.head.appendChild(script);
+    // Global flag to prevent multiple chatbot initializations
+    if ((window as any).chatbotInitialized) {
+      return;
     }
+
+    // Aggressive cleanup: Remove ALL existing chatbot instances before creating new ones
+    const existingChatHosts = document.querySelectorAll("#potChatHost");
+    existingChatHosts.forEach((host) => {
+      host.remove();
+    });
+
+    // Remove any other chatbot-related elements
+    const chatbotElements = document.querySelectorAll('[id^="pot"]');
+    chatbotElements.forEach((element) => {
+      element.remove();
+    });
+
+    // Remove any existing chatbot scripts
+    const existingScripts = document.querySelectorAll("#chatbot-embed-script");
+    existingScripts.forEach((script) => {
+      script.remove();
+    });
+
+    // Clean up the global chatbotembed function
+    if (window.chatbotembed) {
+      delete window.chatbotembed;
+    }
+
+    // Double-check: If potChatHost still exists after cleanup, don't proceed
+    const stillExistingChatHost = document.getElementById("potChatHost");
+    if (stillExistingChatHost) {
+      console.warn(
+        "potChatHost still exists after cleanup, skipping initialization"
+      );
+      return;
+    }
+
+    // Dynamically load the chatbot script
+    const script = document.createElement("script");
+    script.src = "https://ai.potential.com/static/embed/chat.js";
+    script.charset = "utf-8";
+    script.type = "text/javascript";
+    script.crossOrigin = "anonymous";
+    script.async = true;
+    script.id = "chatbot-embed-script";
+
+    // Initialize chatbot after script loads
+    script.onload = () => {
+      // Final check before initialization
+      const finalCheck = document.getElementById("potChatHost");
+      if (finalCheck) {
+        console.warn("potChatHost exists during initialization, skipping");
+        return;
+      }
+
+      // @ts-ignore
+      chatbotembed({
+        botId: "68d3c5eb94d4851d85bb6408",
+        botColor: "#F77860",
+      });
+      (window as any).chatbotInitialized = true;
+    };
+
+    // Handle script loading errors
+    script.onerror = () => {
+      console.error("Failed to load chatbot script");
+    };
+
+    // Append script to document head
+    document.head.appendChild(script);
 
     // Cleanup function
     return () => {
@@ -215,6 +244,9 @@ export default function HomePage() {
       if (window.chatbotembed) {
         delete window.chatbotembed;
       }
+
+      // Reset the global flag
+      (window as any).chatbotInitialized = false;
     };
   }, []);
 
@@ -364,25 +396,25 @@ export default function HomePage() {
                 title: "Recognized Certification",
                 description:
                   "Earn official certifications and digital badges that highlight your expertise and commitment to excellence. Showcase your achievements with credentials recognized across Abu Dhabi's tourism and hospitality ecosystem.",
-                icon: WorkspacePremiumIcon,
+                icon: "icons/VX Icons-01.png",
               },
               {
                 title: "Career Advancement",
                 description:
                   "Stand out in your field and open doors to new opportunities. With enhanced skills and proven knowledge, you'll be better equipped for promotions, leadership roles, and long-term career growth.",
-                icon: TrendingUpIcon,
+                icon: "icons/VX Icons-02.png",
               },
               {
                 title: "AI-Powered Assistance",
                 description:
                   "Get access to smart, AI-driven tools that guide you through training and provide instant support when you need it most — helping you learn faster and apply knowledge on the job.",
-                icon: SmartToyIcon,
+                icon: "icons/VX Icons-03.png",
               },
               {
                 title: "Self-Paced Training",
                 description:
                   "Learn anytime, anywhere, at your own pace. Whether you're at work, home, or on the go, VX Academy adapts to your schedule so you can grow without limits.",
-                icon: SchoolIcon,
+                icon: "icons/VX Icons-04.png",
               },
             ].map((benefit, index) => (
               <div key={index} className="group">
@@ -394,7 +426,13 @@ export default function HomePage() {
                   <div className="relative z-10">
                     <div className="w-20 h-20 flex items-center justify-center mb-6 transition-transform duration-300">
                       <Icon
-                        Component={benefit.icon}
+                        Component={
+                          <img
+                            src={benefit.icon}
+                            alt={benefit.title}
+                            className="w-full h-full object-cover"
+                          />
+                        }
                         color="#F77860"
                         size={58}
                       />

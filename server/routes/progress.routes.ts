@@ -89,6 +89,18 @@ router.get(
 );
 
 /**
+ * @route   POST /api/progress/training-areas/bulk
+ * @desc    Get training area progress for multiple users and sum the progress
+ * @access  Private (Sub-admin, Admin)
+ */
+router.post(
+  "/training-areas/bulk",
+  authenticateJWT,
+  authorizeRoles("sub_admin", "admin"),
+  ProgressController.getBulkTrainingAreaProgress
+);
+
+/**
  * @route   GET /api/progress/training-areas/:userId/:trainingAreaId
  * @desc    Get specific training area progress for a user
  * @access  Private (User [own data], Sub-admin, Admin)

@@ -22,6 +22,7 @@ router.post("/password-reset/reset", userControllers.resetPassword);
 // ==================== USER CRUD FUNCTIONS ====================
 router.get("/users", userControllers.getAllUsers);
 router.get("/users/with-details", userControllers.getAllUsersWithDetails);
+router.get("/users/sub-admins", userControllers.getAllSubAdminsWithFrontlinerCounts);
 router.get(
   "/users/by-progress-threshold",
   userControllers.getUsersByProgressThreshold
@@ -72,6 +73,7 @@ router.delete("/seniority-levels/:id", userControllers.deleteSeniorityLevel);
 
 // ==================== ORGANIZATIONS CRUD FUNCTIONS ====================
 router.get("/organizations", userControllers.getAllOrganizations);
+router.get("/organizations/by-name/:name", userControllers.getOrganizationIdByName);
 router.get("/organizations/:id", userControllers.getOrganizationById);
 router.post("/organizations", userControllers.createOrganization);
 router.put("/organizations/:id", userControllers.updateOrganization);
@@ -86,6 +88,14 @@ router.get(
 router.get(
   "/sub-organizations/by-asset/:assetId/:subAssetId",
   userControllers.getSubOrganizationByAssetAndSubAsset
+);
+router.get(
+  "/sub-organizations/by-name/:organizationId/:name",
+  userControllers.getSubOrganizationByNameAndOrgId
+);
+router.get(
+  "/sub-organizations/:id/asset-info",
+  userControllers.getAssetAndSubAssetNamesBySubOrg
 );
 router.get("/sub-organizations/:id", userControllers.getSubOrganizationById);
 router.post("/sub-organizations", userControllers.createSubOrganization);

@@ -426,7 +426,7 @@ const GeneralVxSoftSkills = () => {
     "Frontliner Type": user.frontlinerType,
     "Al Midhyaf Progress": user.alMidhyafOverallProgress + "%",
     "Module 1 Progress": user.module1Progress + "%",
-    "VX Points": user.vxPoints,
+    // "VX Points": user.vxPoints,
     "Registration Date": formatDate(user.registrationDate),
     "Last Login Date": formatDate(user.lastLoginDate),
   }));
@@ -540,7 +540,7 @@ const GeneralVxSoftSkills = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+          {/* <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
                 Total VX Points Earned
@@ -552,7 +552,7 @@ const GeneralVxSoftSkills = () => {
                 {reportData.generalStats.totalVxPointsEarned.toLocaleString()}
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Additional Stats */}

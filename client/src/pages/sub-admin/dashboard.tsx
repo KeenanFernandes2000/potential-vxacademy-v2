@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, UserPlus, Loader2, Copy, FileText } from "lucide-react";
+import {
+  Users,
+  UserPlus,
+  Loader2,
+  Copy,
+  FileText,
+  TrendingUp,
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Document,
@@ -20,9 +33,19 @@ const Dashboard = () => {
     totalUsers: 0,
     newUsers: 0,
     newUsersPercentage: 0,
+    usersWithProgress: 0,
+    usersWithProgressPercentage: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [trainingAreaProgress, setTrainingAreaProgress] = useState<any[]>([]);
+  const [overallAverageProgress, setOverallAverageProgress] =
+    useState<number>(0);
+  const [overallProgressStats, setOverallProgressStats] = useState({
+    totalInProgressUsers: 0,
+    totalNotStartedUsers: 0,
+    totalUsers: 0,
+  });
 
   // Invitation states
   const [isLoading, setIsLoading] = useState<{
@@ -122,6 +145,195 @@ const Dashboard = () => {
       const data = await response.json();
       return data;
     },
+
+    async getBulkTrainingAreaProgress(userIds: number[], token: string) {
+      try {
+        const baseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(
+          `${baseUrl}/api/progress/training-areas/bulk`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ userIds }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Failed to fetch bulk training area progress:", error);
+        throw error;
+      }
+    },
+  };
+
+  // Chatbot cleanup and prevention logic
+  useEffect(() => {
+    // Global flag to prevent multiple chatbot initializations
+    if ((window as any).chatbotInitialized) {
+      return;
+    }
+
+    // Aggressive cleanup: Remove ALL existing chatbot instances before creating new ones
+    const existingChatHosts = document.querySelectorAll("#potChatHost");
+    existingChatHosts.forEach((host) => {
+      host.remove();
+    });
+
+    // Remove any other chatbot-related elements
+    const chatbotElements = document.querySelectorAll('[id^="pot"]');
+    chatbotElements.forEach((element) => {
+      element.remove();
+    });
+
+    // Remove any existing chatbot scripts
+    const existingScripts = document.querySelectorAll("#chatbot-embed-script");
+    existingScripts.forEach((script) => {
+      script.remove();
+    });
+
+    // Clean up the global chatbotembed function
+    if (window.chatbotembed) {
+      delete window.chatbotembed;
+    }
+
+    // Double-check: If potChatHost still exists after cleanup, don't proceed
+    const stillExistingChatHost = document.getElementById("potChatHost");
+    if (stillExistingChatHost) {
+      console.warn(
+        "potChatHost still exists after cleanup, skipping initialization"
+      );
+      return;
+    }
+
+    // Dynamically load the chatbot script
+    const script = document.createElement("script");
+    script.src = "https://ai.potential.com/static/embed/chat.js";
+    script.charset = "utf-8";
+    script.type = "text/javascript";
+    script.crossOrigin = "anonymous";
+    script.async = true;
+    script.id = "chatbot-embed-script";
+
+    // Initialize chatbot after script loads
+    script.onload = () => {
+      // Final check before initialization
+      const finalCheck = document.getElementById("potChatHost");
+      if (finalCheck) {
+        console.warn("potChatHost exists during initialization, skipping");
+        return;
+      }
+
+      // @ts-ignore
+      chatbotembed({
+        botId: "68d631a094d4851d85bb8903",
+        botIcon:
+          "https://api.potential.com/static/mentors/sdadassd-1753092691035-person.jpeg",
+        botColor: "#F77860",
+      });
+      (window as any).chatbotInitialized = true;
+    };
+
+    // Handle script loading errors
+    script.onerror = () => {
+      console.error("Failed to load chatbot script");
+    };
+
+    // Append script to document head
+    document.head.appendChild(script);
+
+    // Cleanup function
+    return () => {
+      // Remove the script tag
+      const scriptElement = document.getElementById("chatbot-embed-script");
+      if (scriptElement) {
+        scriptElement.remove();
+      }
+
+      // Remove chatbot UI elements
+      const potChatHost = document.getElementById("potChatHost");
+      if (potChatHost) {
+        potChatHost.remove();
+      }
+
+      // Remove any other chatbot-related elements
+      const chatbotElements = document.querySelectorAll('[id^="pot"]');
+      chatbotElements.forEach((element) => {
+        element.remove();
+      });
+
+      // Clean up the global chatbotembed function
+      if (window.chatbotembed) {
+        delete window.chatbotembed;
+      }
+
+      // Reset the global flag
+      (window as any).chatbotInitialized = false;
+    };
+  }, []);
+
+  const fetchTrainingAreaProgress = async (userIds: number[]) => {
+    if (!token || userIds.length === 0) return;
+
+    try {
+      const response = await api.getBulkTrainingAreaProgress(userIds, token);
+      if (response.success) {
+        const progressData = response.data || [];
+        setTrainingAreaProgress(progressData);
+
+        // Calculate overall average progress across all training areas
+        if (progressData.length > 0) {
+          const totalAverage = progressData.reduce((sum: number, area: any) => {
+            return sum + (area.averageProgress || 0);
+          }, 0);
+          const overallAverage = totalAverage / progressData.length;
+          setOverallAverageProgress(overallAverage);
+
+          // Calculate totals across all training areas
+          const totalInProgressUsers = progressData.reduce(
+            (sum: number, area: any) => {
+              return sum + (area.inProgressUsers || 0);
+            },
+            0
+          );
+
+          const totalNotStartedUsers = progressData.reduce(
+            (sum: number, area: any) => {
+              return sum + (area.notStartedUsers || 0);
+            },
+            0
+          );
+
+          // Use the actual totalUsers from the bulk endpoint data
+          const totalUsers = progressData.reduce((sum: number, area: any) => {
+            return sum + (area.totalUsers || 0);
+          }, 0);
+
+          setOverallProgressStats({
+            totalInProgressUsers,
+            totalNotStartedUsers,
+            totalUsers,
+          });
+        } else {
+          setOverallAverageProgress(0);
+          setOverallProgressStats({
+            totalInProgressUsers: 0,
+            totalNotStartedUsers: 0,
+            totalUsers: 0,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching training area progress:", error);
+      // Don't show error to user as this is supplementary data
+    }
   };
 
   // Fetch dashboard stats and invitations on component mount
@@ -148,11 +360,11 @@ const Dashboard = () => {
         const usersResponse = await api.getAllUsers(token);
         let filteredUsersData = usersResponse.data || [];
 
-        // Filter users based on current user's organization, suborganization, assets, and subassets (same logic as users.tsx)
+        // Filter users based on current user's organization and suborganizations, include only frontliners (same logic as users.tsx)
         if (currentUserData) {
           filteredUsersData = filteredUsersData.filter((user: any) => {
-            // Filter out Sub_admin users
-            if (user.userType === "sub_admin") {
+            // Include only regular users (exclude admins/sub-admins/etc.)
+            if (user.userType !== "user") {
               return false;
             }
 
@@ -161,22 +373,30 @@ const Dashboard = () => {
               return false;
             }
 
-            // Filter by suborganization if current user has one
+            // Filter by suborganization if current user has suborganizations
             if (
               currentUserData.subOrganization &&
-              user.subOrganization !== currentUserData.subOrganization
+              Array.isArray(currentUserData.subOrganization) &&
+              currentUserData.subOrganization.length > 0
             ) {
-              return false;
-            }
+              // If user has suborganizations, check if they have any matching suborganization
+              if (
+                !user.subOrganization ||
+                !Array.isArray(user.subOrganization) ||
+                user.subOrganization.length === 0
+              ) {
+                return false;
+              }
 
-            // Filter by asset
-            if (user.asset !== currentUserData.asset) {
-              return false;
-            }
+              // Check if user has any suborganization that matches current user's suborganizations
+              const hasMatchingSubOrg = user.subOrganization.some(
+                (userSubOrg: string) =>
+                  currentUserData.subOrganization.includes(userSubOrg)
+              );
 
-            // Filter by subasset
-            if (user.subAsset !== currentUserData.subAsset) {
-              return false;
+              if (!hasMatchingSubOrg) {
+                return false;
+              }
             }
 
             return true;
@@ -200,15 +420,34 @@ const Dashboard = () => {
           );
         }).length;
 
-        // Calculate percentage
+        // Count users with progress (overallProgress > 0)
+        const usersWithProgress = filteredUsersData.filter((user: any) => {
+          const progress = parseFloat(user.overallProgress || "0");
+          return progress > 0;
+        }).length;
+
+        // Calculate percentages
         const newUsersPercentage =
           totalUsers > 0 ? Math.round((newUsers / totalUsers) * 100) : 0;
+        const usersWithProgressPercentage =
+          totalUsers > 0
+            ? Math.round((usersWithProgress / totalUsers) * 100)
+            : 0;
 
         setStats({
           totalUsers,
           newUsers,
           newUsersPercentage,
+          usersWithProgress,
+          usersWithProgressPercentage,
         });
+
+        // Fetch training area progress for all filtered users
+        if (filteredUsersData.length > 0) {
+          await fetchTrainingAreaProgress(
+            filteredUsersData.map((user: any) => user.id)
+          );
+        }
 
         // Fetch invitations
         setIsFetchingInvitations(true);
@@ -327,7 +566,14 @@ const Dashboard = () => {
 
       // Generate invitation link using the API response
       if (data.data?.invitationLink) {
-        const invitationUrl = data.data.invitationLink;
+        let invitationUrl = data.data.invitationLink;
+
+        // Ensure the URL has the type parameter
+        const url = new URL(invitationUrl);
+        if (!url.searchParams.has("type")) {
+          url.searchParams.set("type", type);
+          invitationUrl = url.toString();
+        }
 
         // Update invitation links state immediately
         setInvitationLinks((prev) => {
@@ -603,208 +849,296 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-[#2C2C2C]">
-            Sub-Admin Dashboard
-          </h1>
-          <p className="text-[#666666]">
-            Welcome back! Here's what's happening with your organization!
-          </p>
-          {error && (
-            <div className="bg-red-500/20 border border-red-500/30 p-3">
-              <p className="text-red-300 text-sm">{error}</p>
+    <TooltipProvider>
+      <div className="min-h-screen p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-[#2C2C2C]">
+              Sub-Admin Dashboard
+            </h1>
+            <p className="text-[#666666]">
+              Welcome back! Here's what's happening with your organization!
+            </p>
+            {error && (
+              <div className="bg-red-500/20 border border-red-500/30 p-3">
+                <p className="text-red-300 text-sm">{error}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Message Display */}
+          {message && (
+            <div
+              className={`p-4 rounded-lg ${
+                message.type === "success"
+                  ? "bg-green-50 text-green-800 border border-green-200"
+                  : "bg-red-50 text-red-800 border border-red-200"
+              }`}
+            >
+              {message.text}
             </div>
           )}
-        </div>
 
-        {/* Message Display */}
-        {message && (
-          <div
-            className={`p-4 rounded-lg ${
-              message.type === "success"
-                ? "bg-green-50 text-green-800 border border-green-200"
-                : "bg-red-50 text-red-800 border border-red-200"
-            }`}
-          >
-            {message.text}
+          {/* Invitation Cards */}
+          <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+            <Card className="bg-white border-[#E5E5E5]">
+              <CardHeader>
+                <CardTitle className="text-[#2C2C2C]">New Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {hasInvitationLink("new_joiner") ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-[#666666]">
+                      Invitation link is ready. Copy the link or download the
+                      Word document to send to new users.
+                    </p>
+                    <div className="flex gap-2 flex-wrap">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={() =>
+                              copyToClipboard(getInvitationLink("new_joiner")!)
+                            }
+                            variant="outline"
+                            className="flex items-center gap-2 border-[#E5E5E5] text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-sandstone hover:border-dawn hover:scale-95"
+                          >
+                            <Copy className="h-4 w-4" />
+                            Copy Link
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            Copy the invitation link to share with new users
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={() =>
+                              generateWordDocument(
+                                "new_joiner",
+                                getInvitationLink("new_joiner")!
+                              )
+                            }
+                            className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95"
+                          >
+                            <FileText className="h-4 w-4" />
+                            Download Email Template
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            Download a Word document with the invitation link to
+                            send via email
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </div>
+                ) : hasInvitation("new_joiner") ? (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                      <p className="text-sm text-amber-800">
+                        ⚠️ Invitation exists but link is not available. Generate
+                        a new invitation to get the document.
+                      </p>
+                    </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() => makeInvitationRequest("new_joiner")}
+                          disabled={isLoading.newJoiner}
+                          className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
+                        >
+                          {isLoading.newJoiner
+                            ? "Generating Invitation..."
+                            : "Generate New Invitation"}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Create a new invitation link for new users to join
+                          your organization
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm text-[#666666]">
+                      Generate an invitation link for new users to join your
+                      organization.
+                    </p>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() => makeInvitationRequest("new_joiner")}
+                          disabled={isLoading.newJoiner}
+                          className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
+                        >
+                          {isLoading.newJoiner
+                            ? "Generating Invitation..."
+                            : "Generate New User Invitation"}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Create an invitation link for new users to register
+                          and join your organization
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white border-[#E5E5E5]">
+              <CardHeader>
+                <CardTitle className="text-[#2C2C2C]">Existing Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {hasInvitationLink("existing_joiner") ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-[#666666]">
+                      Invitation link is ready. Copy the link or download the
+                      Word document to send to existing users.
+                    </p>
+                    <div className="flex gap-2 flex-wrap">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={() =>
+                              copyToClipboard(
+                                getInvitationLink("existing_joiner")!
+                              )
+                            }
+                            variant="outline"
+                            className="flex items-center gap-2 border-[#E5E5E5] text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-sandstone hover:border-dawn hover:scale-95"
+                          >
+                            <Copy className="h-4 w-4" />
+                            Copy Link
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            Copy the invitation link to share with existing
+                            users
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={() =>
+                              generateWordDocument(
+                                "existing_joiner",
+                                getInvitationLink("existing_joiner")!
+                              )
+                            }
+                            className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95"
+                          >
+                            <FileText className="h-4 w-4" />
+                            Download Email Template
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            Download a Word document with the invitation link to
+                            send via email
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </div>
+                ) : hasInvitation("existing_joiner") ? (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                      <p className="text-sm text-amber-800">
+                        ⚠️ Invitation exists but link is not available. Generate
+                        a new invitation to get the document.
+                      </p>
+                    </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() =>
+                            makeInvitationRequest("existing_joiner")
+                          }
+                          disabled={isLoading.existingJoiner}
+                          className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
+                        >
+                          {isLoading.existingJoiner
+                            ? "Generating Invitation..."
+                            : "Generate New Invitation"}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Create a new invitation link for existing users to
+                          access training
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm text-[#666666]">
+                      Generate an invitation link for existing users to access
+                      training.
+                    </p>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={() =>
+                            makeInvitationRequest("existing_joiner")
+                          }
+                          disabled={isLoading.existingJoiner}
+                          className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
+                        >
+                          {isLoading.existingJoiner
+                            ? "Generating Invitation..."
+                            : "Generate Existing User Invitation"}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>
+                          Create an invitation link for existing users to access
+                          training materials
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
-        )}
 
-        {/* Invitation Cards */}
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-          <Card className="bg-white border-[#E5E5E5]">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C]">New Users</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {hasInvitationLink("new_joiner") ? (
-                <div className="space-y-4">
-                  <p className="text-sm text-[#666666]">
-                    Invitation link is ready. Copy the link or download the Word
-                    document to send to new users.
-                  </p>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button
-                      onClick={() =>
-                        copyToClipboard(getInvitationLink("new_joiner")!)
-                      }
-                      variant="outline"
-                      className="flex items-center gap-2 border-[#E5E5E5] text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-sandstone hover:border-dawn hover:scale-95"
-                    >
-                      <Copy className="h-4 w-4" />
-                      Copy Link
-                    </Button>
-                    <Button
-                      onClick={() =>
-                        generateWordDocument(
-                          "new_joiner",
-                          getInvitationLink("new_joiner")!
-                        )
-                      }
-                      className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Download Email Template
-                    </Button>
-                  </div>
-                </div>
-              ) : hasInvitation("new_joiner") ? (
-                <div className="space-y-4">
-                  <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-                    <p className="text-sm text-amber-800">
-                      ⚠️ Invitation exists but link is not available. Generate a
-                      new invitation to get the document.
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => makeInvitationRequest("new_joiner")}
-                    disabled={isLoading.newJoiner}
-                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
-                  >
-                    {isLoading.newJoiner
-                      ? "Generating Invitation..."
-                      : "Generate New Invitation"}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm text-[#666666]">
-                    Generate an invitation link for new users to join your
-                    organization.
-                  </p>
-                  <Button
-                    onClick={() => makeInvitationRequest("new_joiner")}
-                    disabled={isLoading.newJoiner}
-                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
-                  >
-                    {isLoading.newJoiner
-                      ? "Generating Invitation..."
-                      : "Generate New User Invitation"}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Stats Grid */}
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+            <StatCard
+              title="Total Users"
+              value={stats.totalUsers}
+              icon={Users}
+              change="Users in your organization"
+              changeType="neutral"
+              loading={loading}
+            />
 
-          <Card className="bg-white border-[#E5E5E5]">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C]">Existing Users</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {hasInvitationLink("existing_joiner") ? (
-                <div className="space-y-4">
-                  <p className="text-sm text-[#666666]">
-                    Invitation link is ready. Copy the link or download the Word
-                    document to send to existing users.
-                  </p>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button
-                      onClick={() =>
-                        copyToClipboard(getInvitationLink("existing_joiner")!)
-                      }
-                      variant="outline"
-                      className="flex items-center gap-2 border-[#E5E5E5] text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-sandstone hover:border-dawn hover:scale-95"
-                    >
-                      <Copy className="h-4 w-4" />
-                      Copy Link
-                    </Button>
-                    <Button
-                      onClick={() =>
-                        generateWordDocument(
-                          "existing_joiner",
-                          getInvitationLink("existing_joiner")!
-                        )
-                      }
-                      className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Download Email Template
-                    </Button>
-                  </div>
-                </div>
-              ) : hasInvitation("existing_joiner") ? (
-                <div className="space-y-4">
-                  <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-                    <p className="text-sm text-amber-800">
-                      ⚠️ Invitation exists but link is not available. Generate a
-                      new invitation to get the document.
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => makeInvitationRequest("existing_joiner")}
-                    disabled={isLoading.existingJoiner}
-                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
-                  >
-                    {isLoading.existingJoiner
-                      ? "Generating Invitation..."
-                      : "Generate New Invitation"}
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-sm text-[#666666]">
-                    Generate an invitation link for existing users to access
-                    training.
-                  </p>
-                  <Button
-                    onClick={() => makeInvitationRequest("existing_joiner")}
-                    disabled={isLoading.existingJoiner}
-                    className="w-full bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50"
-                  >
-                    {isLoading.existingJoiner
-                      ? "Generating Invitation..."
-                      : "Generate Existing User Invitation"}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <StatCard
-            title="Total Users"
-            value={stats.totalUsers}
-            icon={Users}
-            change="Users in your organization"
-            changeType="neutral"
-            loading={loading}
-          />
-          <StatCard
-            title="New Users"
-            value={stats.newUsers}
-            icon={UserPlus}
-            change={`${stats.newUsersPercentage}% of total users this month`}
-            changeType="positive"
-            loading={loading}
-          />
+            <StatCard
+              title="Overall Progress"
+              value={`${overallAverageProgress.toFixed(2)}%`}
+              icon={TrendingUp}
+              change={`${overallProgressStats.totalInProgressUsers}/${overallProgressStats.totalUsers} have started training`}
+              changeType="positive"
+              loading={loading}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 

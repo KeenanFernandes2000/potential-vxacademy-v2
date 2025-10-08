@@ -246,6 +246,88 @@ const api = {
     }
   },
 
+  async getSubOrganizationByNameAndOrgId(organizationId: number, name: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/sub-organizations/by-name/${organizationId}/${encodeURIComponent(
+          name
+        )}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(
+        "Error fetching sub-organization by name and org ID:",
+        error
+      );
+      throw error;
+    }
+  },
+
+  async getAssetAndSubAssetNamesBySubOrg(subOrgId: number) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/sub-organizations/${subOrgId}/asset-info`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching asset and sub-asset names:", error);
+      throw error;
+    }
+  },
+
+  async getOrganizationIdByName(name: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/organizations/by-name/${encodeURIComponent(
+          name
+        )}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching organization ID by name:", error);
+      throw error;
+    }
+  },
+
   async getAllAssets() {
     try {
       const baseUrl = import.meta.env.VITE_API_URL;
@@ -549,6 +631,58 @@ const joinPage = (props: Props) => {
     }
   };
 
+  // Function to update assets and sub-assets when sub-organization is selected
+  const updateAssetsFromSubOrganization = async (subOrgName: string) => {
+    if (!subOrgName || !form2Data.organization) {
+      return;
+    }
+
+    try {
+      // First get the organization ID
+      const orgResponse = await api.getOrganizationIdByName(
+        form2Data.organization
+      );
+      if (!orgResponse.success || !orgResponse.data?.id) {
+        console.error("Failed to get organization ID");
+        return;
+      }
+
+      const organizationId = orgResponse.data.id;
+
+      // Get the sub-organization details
+      const subOrgResponse = await api.getSubOrganizationByNameAndOrgId(
+        organizationId,
+        subOrgName
+      );
+
+      if (subOrgResponse.success && subOrgResponse.data) {
+        const subOrgId = subOrgResponse.data.id;
+
+        // Get asset and sub-asset information
+        const assetInfoResponse = await api.getAssetAndSubAssetNamesBySubOrg(
+          subOrgId
+        );
+
+        if (assetInfoResponse.success && assetInfoResponse.data) {
+          const { assetName, subAssetName } = assetInfoResponse.data;
+
+          // Update the form data with the asset and sub-asset information
+          setForm2Data((prev) => ({
+            ...prev,
+            asset: assetName,
+            subAsset: subAssetName,
+          }));
+
+          // Update the asset and sub-asset IDs for further processing
+          setAssetId(assetInfoResponse.data.assetId || null);
+          setSubAssetId(assetInfoResponse.data.subAssetId || null);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to update assets from sub-organization:", error);
+    }
+  };
+
   // Function to fetch sub-organizations when organization changes (fallback)
   const fetchSubOrganizations = async (organizationId: string) => {
     if (!organizationId || organizationId === "") {
@@ -620,6 +754,29 @@ const joinPage = (props: Props) => {
                   ...prev,
                   subOrganization: "",
                 }));
+              }
+
+              // If asset and sub-asset are provided, set them up for proper handling
+              if (
+                response.data.subAdmin.asset &&
+                response.data.subAdmin.subAsset
+              ) {
+                // Try to find the asset and sub-asset IDs
+                const asset = assets.find(
+                  (a) => a.name === response.data.subAdmin.asset
+                );
+                const subAsset = subAssets.find(
+                  (sa) => sa.name === response.data.subAdmin.subAsset
+                );
+
+                if (asset) {
+                  setAssetId(asset.id);
+                  // Fetch sub-assets for this asset
+                  fetchSubAssets(asset.id);
+                }
+                if (subAsset) {
+                  setSubAssetId(subAsset.id);
+                }
               }
             }
           } else {
@@ -736,6 +893,11 @@ const joinPage = (props: Props) => {
       ...prev,
       subOrganization: value,
     }));
+
+    // Update assets and sub-assets when sub-organization is selected
+    if (value) {
+      updateAssetsFromSubOrganization(value);
+    }
   };
 
   const handleForm1Submit = async (e: React.FormEvent) => {
@@ -1386,6 +1548,10 @@ const joinPage = (props: Props) => {
                         {form2Data.subAsset}
                       </p>
                     </div>
+                  </div>
+                  <div className="text-xs text-[#2C2C2C]/60 mt-2">
+                    This information is automatically updated when you select a
+                    sub-organization.
                   </div>
                 </div>
               )}
