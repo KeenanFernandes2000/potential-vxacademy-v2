@@ -278,6 +278,8 @@ interface SubAdminData
   email: string;
   organization: string;
   subOrganization: string;
+  asset: string;
+  subAsset: string;
   totalFrontliners: number;
   dateAdded: string;
   actions: React.ReactNode;
@@ -353,6 +355,8 @@ const SubAdminPage = () => {
             subOrganization: Array.isArray(user.subOrganization)
               ? user.subOrganization.join(", ")
               : user.subOrganization || "N/A",
+            asset: user.asset || "N/A",
+            subAsset: user.subAsset || "N/A",
             totalFrontliners: user.totalFrontliners || 0,
             dateAdded: user.createdAt
               ? new Date(user.createdAt).toLocaleDateString()
@@ -416,6 +420,10 @@ const SubAdminPage = () => {
             subAdmin.subOrganization
               .toLowerCase()
               .includes(query.toLowerCase())) ||
+          (typeof subAdmin.asset === "string" &&
+            subAdmin.asset.toLowerCase().includes(query.toLowerCase())) ||
+          (typeof subAdmin.subAsset === "string" &&
+            subAdmin.subAsset.toLowerCase().includes(query.toLowerCase())) ||
           subAdmin.totalFrontliners.toString().includes(query)
       );
       setFilteredSubAdmins(filtered);
@@ -562,6 +570,8 @@ const SubAdminPage = () => {
         subOrganization: Array.isArray(user.subOrganization)
           ? user.subOrganization.join(", ")
           : user.subOrganization || "N/A",
+        asset: user.asset || "N/A",
+        subAsset: user.subAsset || "N/A",
         totalFrontliners: user.totalFrontliners || 0,
         dateAdded: user.createdAt
           ? new Date(user.createdAt).toLocaleDateString()
@@ -1587,6 +1597,8 @@ const SubAdminPage = () => {
     "Email Address",
     "Organization",
     "Sub-Organization",
+    "Asset",
+    "Asset Sub-Categories",
     "Total Frontliners",
     "Date Added",
     "Actions",
@@ -1624,7 +1636,7 @@ const SubAdminPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              className="absolute right-0 top-0 h-8 w-8 p-0 text-[#2C2C2C] hover:text-red-400 hover:bg-red-400/10"
+              className="absolute right-0 top-0 h-8 w-8 p-0 text-[#2C2C2C] hover:text-[#00d8cc] hover:bg-[#00d8cc]/10"
               onClick={() => {
                 setIsEditModalOpen(false);
                 setSelectedUser(null);

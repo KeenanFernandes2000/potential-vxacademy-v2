@@ -815,17 +815,7 @@ const ModulesPage = () => {
 
     return (
       <div className="relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="absolute top-0 right-0 h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
-          onClick={onClose}
-        >
-          <Close sx={{ fontSize: 20 }} />
-        </Button>
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-[#2C2C2C]">Edit Module</h3>
-        </div>
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="edit_name" className="text-[#2C2C2C]">
