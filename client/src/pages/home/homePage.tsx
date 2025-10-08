@@ -4,6 +4,17 @@ import { useState, useEffect } from "react";
 // import "aos/dist/aos.css";
 import "../../homepage.css";
 
+// TypeScript declaration for chatbot embed
+declare global {
+  interface Window {
+    chatbotembed?: (config: {
+      botId: string;
+      botIcon: string;
+      botColor: string;
+    }) => void;
+  }
+}
+
 import { Button } from "@/components/ui/button";
 import Autoplay from "embla-carousel-autoplay";
 import {
@@ -138,19 +149,73 @@ export default function HomePage() {
     //   mirror: true,
     // });
 
-    const potChatHost = (globalThis as any).document?.getElementById(
-      "potChatHost"
-    );
-    if (potChatHost) {
-      potChatHost.remove();
+    // Check if script is already loaded to prevent duplicate loading
+    const existingScript = document.getElementById("chatbot-embed-script");
+    if (existingScript) {
+      // Script already exists, just initialize the chatbot
+      if (window.chatbotembed && typeof window.chatbotembed === "function") {
+        window.chatbotembed({
+          botId: "68d3c5eb94d4851d85bb6408",
+          botIcon:
+            "https://api.potential.com/static/mentors/sdadassd-1753092691035-person.jpeg",
+          botColor: "#404040",
+        });
+      }
+    } else {
+      // Dynamically load the chatbot script
+      const script = document.createElement("script");
+      script.src = "https://ai.potential.com/static/embed/chat.js";
+      script.charset = "utf-8";
+      script.type = "text/javascript";
+      script.crossOrigin = "anonymous";
+      script.async = true;
+      script.id = "chatbot-embed-script";
+
+      // Initialize chatbot after script loads
+      script.onload = () => {
+        // @ts-ignore
+        chatbotembed({
+          botId: "68d3c5eb94d4851d85bb6408",
+          botIcon:
+            "https://api.potential.com/static/mentors/sdadassd-1753092691035-person.jpeg",
+          botColor: "#404040",
+        });
+      };
+
+      // Handle script loading errors
+      script.onerror = () => {
+        console.error("Failed to load chatbot script");
+      };
+
+      // Append script to document head
+      document.head.appendChild(script);
     }
-    // // @ts-ignore
-    // chatbotembed({
-    //   botId: "687d2feed500b7283933ad2c",
-    //   botIcon:
-    //     "https://ai.potential.com/static/mentors/AbuDhabiExperience-1753076809518-abudhabi.png",
-    //   botColor: "#d64444",
-    // });
+
+    // Cleanup function
+    return () => {
+      // Remove the script tag
+      const scriptElement = document.getElementById("chatbot-embed-script");
+      if (scriptElement) {
+        scriptElement.remove();
+      }
+
+      // Remove chatbot UI elements
+      const potChatHost = document.getElementById("potChatHost");
+      if (potChatHost) {
+        potChatHost.remove();
+      }
+
+      // Remove any other chatbot-related elements
+      const chatbotElements = document.querySelectorAll('[id^="pot"]');
+      chatbotElements.forEach((element) => {
+        element.remove();
+      });
+
+      // Clean up the global chatbotembed function
+      if (window.chatbotembed) {
+        delete window.chatbotembed;
+      }
+    };
   }, []);
 
   return (
