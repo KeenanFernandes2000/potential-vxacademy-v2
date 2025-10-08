@@ -1897,9 +1897,9 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                             </div>
                           ) : (
                             // Failed assessment - show completion message
-                            <div className="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-lg text-center">
+                            <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-center">
                               <div className="flex items-center justify-center mb-2">
-                                <span className="text-orange-600 mr-2">⚠️</span>
+                                <CheckCircle className="text-green-600 mr-2" />
                                 <span className="font-semibold">
                                   Assessment Completed
                                 </span>
