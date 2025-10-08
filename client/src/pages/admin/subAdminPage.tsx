@@ -616,12 +616,14 @@ const SubAdminPage = () => {
     const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
     const [selectedSubOrgIds, setSelectedSubOrgIds] = useState<number[]>([]);
     const [formSubOrganizations, setFormSubOrganizations] = useState<any[]>([]);
+    const [orgSearchQuery, setOrgSearchQuery] = useState("");
     const [validationErrors, setValidationErrors] = useState<{
       first_name?: string;
       last_name?: string;
       email?: string;
       organization?: string;
     }>({});
+    const searchInputRef = React.useRef<HTMLInputElement>(null);
 
     // Validation function
     const validateForm = () => {
@@ -653,6 +655,11 @@ const SubAdminPage = () => {
       setValidationErrors(errors);
       return Object.keys(errors).length === 0;
     };
+
+    // Filter organizations based on search query
+    const filteredOrganizations = organizations.filter((org) =>
+      org.name.toLowerCase().includes(orgSearchQuery.toLowerCase())
+    );
 
     const handleOrgChange = async (orgId: number) => {
       // Validate orgId to prevent NaN API calls
@@ -906,12 +913,46 @@ const SubAdminPage = () => {
             >
               <SelectValue placeholder="Select organization" />
             </SelectTrigger>
-            <SelectContent>
-              {organizations.map((org) => (
-                <SelectItem key={org.id} value={org.id.toString()}>
-                  {org.name}
-                </SelectItem>
-              ))}
+            <SelectContent className="max-h-80">
+              <div className="sticky top-0 z-10 bg-white border-b p-2">
+                <Input
+                  ref={searchInputRef}
+                  placeholder="Search organizations..."
+                  value={orgSearchQuery}
+                  onChange={(e) => setOrgSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
+                  onBlur={(e) => e.stopPropagation()}
+                  className="w-full"
+                  autoFocus
+                />
+              </div>
+              <div className="max-h-60 overflow-y-auto">
+                {filteredOrganizations.length === 0 ? (
+                  <div className="p-2 text-sm text-gray-500">
+                    No organizations found
+                  </div>
+                ) : (
+                  filteredOrganizations.map((org) => (
+                    <SelectItem
+                      key={org.id}
+                      value={org.id.toString()}
+                      onSelect={() => {
+                        setOrgSearchQuery("");
+                        // Ensure focus returns to search input after selection
+                        setTimeout(() => {
+                          if (searchInputRef.current) {
+                            searchInputRef.current.focus();
+                          }
+                        }, 0);
+                      }}
+                    >
+                      {org.name}
+                    </SelectItem>
+                  ))
+                )}
+              </div>
             </SelectContent>
           </Select>
           {validationErrors.organization && (
@@ -964,7 +1005,7 @@ const SubAdminPage = () => {
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 hidden">
           <Label htmlFor="asset">Assets</Label>
           <Input
             id="asset"
@@ -975,7 +1016,7 @@ const SubAdminPage = () => {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 hidden">
           <Label htmlFor="sub_asset">Sub Assets</Label>
           <Input
             id="sub_asset"
@@ -1023,12 +1064,14 @@ const SubAdminPage = () => {
     const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
     const [selectedSubOrgIds, setSelectedSubOrgIds] = useState<number[]>([]);
     const [formSubOrganizations, setFormSubOrganizations] = useState<any[]>([]);
+    const [orgSearchQuery, setOrgSearchQuery] = useState("");
     const [validationErrors, setValidationErrors] = useState<{
       first_name?: string;
       last_name?: string;
       email?: string;
       organization?: string;
     }>({});
+    const searchInputRef = React.useRef<HTMLInputElement>(null);
 
     // Validation function
     const validateForm = () => {
@@ -1060,6 +1103,11 @@ const SubAdminPage = () => {
       setValidationErrors(errors);
       return Object.keys(errors).length === 0;
     };
+
+    // Filter organizations based on search query
+    const filteredOrganizations = organizations.filter((org) =>
+      org.name.toLowerCase().includes(orgSearchQuery.toLowerCase())
+    );
 
     // Initialize selected values based on current user data
     useEffect(() => {
@@ -1139,8 +1187,27 @@ const SubAdminPage = () => {
               });
           }
         }
+
+        // Restore focus to search input after form initialization
+        setTimeout(() => {
+          if (searchInputRef.current) {
+            searchInputRef.current.focus();
+          }
+        }, 100);
       }
     }, [selectedUser, organizations, token]);
+
+    // Focus search input when edit modal opens
+    useEffect(() => {
+      if (isEditModalOpen && searchInputRef.current) {
+        const timer = setTimeout(() => {
+          if (searchInputRef.current) {
+            searchInputRef.current.focus();
+          }
+        }, 200);
+        return () => clearTimeout(timer);
+      }
+    }, [isEditModalOpen]);
 
     const handleOrgChange = async (orgId: number) => {
       // Validate orgId to prevent NaN API calls
@@ -1380,12 +1447,46 @@ const SubAdminPage = () => {
             >
               <SelectValue placeholder="Select organization" />
             </SelectTrigger>
-            <SelectContent>
-              {organizations.map((org) => (
-                <SelectItem key={org.id} value={org.id.toString()}>
-                  {org.name}
-                </SelectItem>
-              ))}
+            <SelectContent className="max-h-80">
+              <div className="sticky top-0 z-10 bg-white border-b p-2">
+                <Input
+                  ref={searchInputRef}
+                  placeholder="Search organizations..."
+                  value={orgSearchQuery}
+                  onChange={(e) => setOrgSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onFocus={(e) => e.stopPropagation()}
+                  onBlur={(e) => e.stopPropagation()}
+                  className="w-full"
+                  autoFocus
+                />
+              </div>
+              <div className="max-h-60 overflow-y-auto">
+                {filteredOrganizations.length === 0 ? (
+                  <div className="p-2 text-sm text-gray-500">
+                    No organizations found
+                  </div>
+                ) : (
+                  filteredOrganizations.map((org) => (
+                    <SelectItem
+                      key={org.id}
+                      value={org.id.toString()}
+                      onSelect={() => {
+                        setOrgSearchQuery("");
+                        // Ensure focus returns to search input after selection
+                        setTimeout(() => {
+                          if (searchInputRef.current) {
+                            searchInputRef.current.focus();
+                          }
+                        }, 0);
+                      }}
+                    >
+                      {org.name}
+                    </SelectItem>
+                  ))
+                )}
+              </div>
             </SelectContent>
           </Select>
           {validationErrors.organization && (
@@ -1438,7 +1539,7 @@ const SubAdminPage = () => {
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 hidden">
           <Label htmlFor="edit_asset">Assets</Label>
           <Input
             id="edit_asset"
@@ -1449,7 +1550,7 @@ const SubAdminPage = () => {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 hidden">
           <Label htmlFor="edit_sub_asset">Sub Assets</Label>
           <Input
             id="edit_sub_asset"
