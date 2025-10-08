@@ -29,6 +29,8 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "@/hooks/useAuth";
 import { lexicalToHtml } from "@/utils/lexicalToHtml";
+import * as Plyr from "plyr";
+import "plyr/dist/plyr.css";
 
 interface LearningBlock {
   id: number;
@@ -1199,7 +1201,170 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
       videoId = url.split("youtu.be/")[1]?.split("?")[0] || "";
     }
 
-    return `https://www.youtube.com/embed/${videoId}`;
+    // Add parameters to disable watch later, share, and other YouTube UI elements
+    const params = new URLSearchParams({
+      origin: window.location.origin,
+      iv_load_policy: "3",
+      modestbranding: "1",
+      playsinline: "1",
+      showinfo: "0",
+      rel: "0",
+      fs: "0",
+      cc_load_policy: "0",
+      disablekb: "0",
+      enablejsapi: "1",
+    });
+
+    return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
+  };
+
+  // Plyr Video Component for direct video files
+  const PlyrVideoPlayer: React.FC<{ videoUrl: string; content?: string }> = ({
+    videoUrl,
+    content,
+  }) => {
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const plyrRef = useRef<Plyr | null>(null);
+
+    useEffect(() => {
+      if (videoRef.current && !plyrRef.current) {
+        // Initialize Plyr
+        plyrRef.current = new Plyr.default(videoRef.current, {
+          controls: [
+            "play-large",
+            "restart",
+            "rewind",
+            "play",
+            "fast-forward",
+            "progress",
+            "current-time",
+            "duration",
+            "mute",
+            "volume",
+            "captions",
+            "settings",
+            "pip",
+            "airplay",
+            "fullscreen",
+          ],
+          settings: ["captions", "quality", "speed"],
+          speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+          quality: {
+            default: 720,
+            options: [1080, 720, 480, 360],
+          },
+        });
+
+        // Cleanup on unmount
+        return () => {
+          if (plyrRef.current) {
+            plyrRef.current.destroy();
+            plyrRef.current = null;
+          }
+        };
+      }
+    }, []);
+
+    return (
+      <div className="w-full">
+        <video
+          ref={videoRef}
+          className="w-full max-w-full h-auto rounded-lg shadow-md"
+          preload="metadata"
+          crossOrigin="anonymous"
+        >
+          <source src={videoUrl} type="video/mp4" />
+          <source src={videoUrl} type="video/webm" />
+          <source src={videoUrl} type="video/ogg" />
+          Your browser does not support the video tag.
+        </video>
+        {content && (
+          <div className="mt-4">
+            <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words">
+              {content}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Plyr YouTube Video Component
+  const PlyrYouTubePlayer: React.FC<{ videoUrl: string; content?: string }> = ({
+    videoUrl,
+    content,
+  }) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const plyrRef = useRef<Plyr | null>(null);
+
+    useEffect(() => {
+      if (containerRef.current && !plyrRef.current) {
+        // Initialize Plyr for YouTube
+        plyrRef.current = new Plyr.default(containerRef.current, {
+          controls: [
+            "play-large",
+            "restart",
+            "rewind",
+            "play",
+            "fast-forward",
+            "progress",
+            "current-time",
+            "duration",
+            "mute",
+            "volume",
+            "settings",
+            "pip",
+            "airplay",
+            "fullscreen",
+          ],
+          settings: ["quality", "speed"],
+          speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+          youtube: {
+            noCookie: false,
+            rel: 0,
+            showinfo: 0,
+            iv_load_policy: 3,
+            modestbranding: 1,
+            playsinline: 1,
+            fs: 0,
+            cc_load_policy: 0,
+            disablekb: 0,
+            enablejsapi: 1,
+            origin: window.location.origin,
+          },
+        });
+
+        // Cleanup on unmount
+        return () => {
+          if (plyrRef.current) {
+            plyrRef.current.destroy();
+            plyrRef.current = null;
+          }
+        };
+      }
+    }, []);
+
+    return (
+      <div className="w-full">
+        <div className="plyr__video-embed" ref={containerRef}>
+          <iframe
+            src={videoUrl}
+            allowFullScreen
+            allowTransparency
+            allow="autoplay"
+            className="w-full rounded-lg shadow-md"
+            style={{ aspectRatio: "16/9" }}
+          />
+        </div>
+        {content && (
+          <div className="mt-4">
+            <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words">
+              {content}
+            </p>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderContent = (content: string, type: string, videoUrl?: string) => {
@@ -1209,54 +1374,11 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
           // Check if it's a YouTube URL
           if (isYouTubeUrl(videoUrl)) {
             const embedUrl = getYouTubeEmbedUrl(videoUrl);
-            return (
-              <div className="w-full">
-                <div
-                  className="relative w-full"
-                  style={{ paddingBottom: "56.25%" }}
-                >
-                  <iframe
-                    src={embedUrl}
-                    title="YouTube video player"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                    className="absolute top-0 left-0 w-full h-full rounded-lg shadow-md"
-                  />
-                </div>
-                {content && (
-                  <div className="mt-4">
-                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words">
-                      {content}
-                    </p>
-                  </div>
-                )}
-              </div>
-            );
+            return <PlyrYouTubePlayer videoUrl={embedUrl} content={content} />;
           } else {
-            // Handle direct video file URLs
+            // Handle direct video file URLs with Plyr
             const encodedUrl = encodeURI(videoUrl);
-            return (
-              <div className="w-full">
-                <video
-                  controls
-                  className="w-full max-w-full h-auto rounded-lg shadow-md"
-                  preload="metadata"
-                >
-                  <source src={encodedUrl} type="video/mp4" />
-                  <source src={encodedUrl} type="video/webm" />
-                  <source src={encodedUrl} type="video/ogg" />
-                  Your browser does not support the video tag.
-                </video>
-                {content && (
-                  <div className="mt-4">
-                    <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words">
-                      {content}
-                    </p>
-                  </div>
-                )}
-              </div>
-            );
+            return <PlyrVideoPlayer videoUrl={encodedUrl} content={content} />;
           }
         }
         return (
