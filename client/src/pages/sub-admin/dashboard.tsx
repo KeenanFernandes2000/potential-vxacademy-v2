@@ -563,7 +563,14 @@ const Dashboard = () => {
 
       // Generate invitation link using the API response
       if (data.data?.invitationLink) {
-        const invitationUrl = data.data.invitationLink;
+        let invitationUrl = data.data.invitationLink;
+
+        // Ensure the URL has the type parameter
+        const url = new URL(invitationUrl);
+        if (!url.searchParams.has("type")) {
+          url.searchParams.set("type", type);
+          invitationUrl = url.toString();
+        }
 
         // Update invitation links state immediately
         setInvitationLinks((prev) => {

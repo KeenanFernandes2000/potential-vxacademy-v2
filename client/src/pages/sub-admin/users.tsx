@@ -118,6 +118,8 @@ interface UserData
   email: string;
   eid: string;
   phoneNumber: string;
+  organization: string;
+  subOrganization: string;
   roleCategory: string;
   role: string;
   seniority: string;
@@ -320,6 +322,11 @@ const Users = () => {
             email: user.email,
             eid: user.eid || "N/A",
             phoneNumber: user.phoneNumber || "N/A",
+            organization: user.organization || "N/A",
+            subOrganization:
+              user.subOrganization && Array.isArray(user.subOrganization)
+                ? user.subOrganization.join(", ")
+                : user.subOrganization || "N/A",
             roleCategory: user.roleCategory || "N/A",
             role: user.role || "N/A",
             seniority: user.seniority || "N/A",
@@ -516,6 +523,11 @@ const Users = () => {
           email: user.email,
           eid: user.eid || "N/A",
           phoneNumber: user.phoneNumber || "N/A",
+          organization: user.organization || "N/A",
+          subOrganization:
+            user.subOrganization && Array.isArray(user.subOrganization)
+              ? user.subOrganization.join(", ")
+              : user.subOrganization || "N/A",
           roleCategory: user.roleCategory || "N/A",
           role: user.role || "N/A",
           seniority: user.seniority || "N/A",
@@ -583,6 +595,8 @@ const Users = () => {
       "Email Address": user.email,
       EID: user.eid,
       "Phone Number": user.phoneNumber,
+      Organization: user.organization,
+      "Sub-Organization": user.subOrganization,
       "Role Category": user.roleCategory,
       Role: user.role,
       Seniority: user.seniority,
@@ -730,6 +744,8 @@ const Users = () => {
     "Email Address",
     "EID",
     "Phone Number",
+    "Organization",
+    "Sub-Organization",
     "Role Category",
     "Role",
     "Seniority",
@@ -885,6 +901,20 @@ const Users = () => {
                         shouldHighlight ? "text-red-700 font-medium" : ""
                       }`}
                     >
+                      {user.organization}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
+                      {user.subOrganization}
+                    </TableCell>
+                    <TableCell
+                      className={`text-[#2C2C2C] whitespace-nowrap px-4 ${
+                        shouldHighlight ? "text-red-700 font-medium" : ""
+                      }`}
+                    >
                       {user.roleCategory}
                     </TableCell>
                     <TableCell
@@ -996,9 +1026,15 @@ const Users = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[#666666]">User Type</Label>
+                    <Label className="text-[#666666]">Organization</Label>
                     <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
-                      {selectedUser.userType}
+                      {selectedUser.organization}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[#666666]">Sub-Organization</Label>
+                    <div className="p-3 bg-sandstone rounded-lg text-[#2C2C2C]">
+                      {selectedUser.subOrganization}
                     </div>
                   </div>
                 </div>
