@@ -1,494 +1,729 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+"use client";
+
+import { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import {
-  Send as SendIcon,
-  Plus as PlusIcon,
-  User as UserIcon,
-  Bot as BotIcon,
-  Upload as UploadIcon,
-  Camera as CameraIcon,
-  X as CloseIcon,
-  Copy as CopyIcon,
-  RotateCcw as RegenerateIcon,
+  Mic,
+  MicOff,
+  Send,
+  Plus,
+  MessageSquare,
+  Volume2,
+  VolumeX,
+  Phone,
+  PhoneOff,
+  Copy,
+  Check,
+  RotateCcw,
+  Edit3,
+  Sparkles,
+  User,
+  Bot,
+  Trash2,
+  X,
+  Sun,
+  Moon,
+  Paperclip,
+  Upload,
+  Image,
+  FileText,
+  File,
+  Cloud,
+  HardDrive,
+  Camera,
+  Video,
+  Music,
+  Archive,
+  Code,
 } from "lucide-react";
 
 interface Message {
   id: string;
   text: string;
-  timestamp: string;
-  sender: "user" | "assistant";
+  timestamp: Date;
+  isUser: boolean;
+  isVoice?: boolean;
+  isStreaming?: boolean;
+  attachments?: FileAttachment[];
+  audioBlob?: Blob;
+  audioUrl?: string;
+  audioDuration?: number;
+}
+
+interface FileAttachment {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  url?: string;
+  preview?: string;
+  isUploading?: boolean;
+  uploadProgress?: number;
+  serverFilename?: string;
+}
+
+interface UploadOption {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  description: string;
+  action: () => void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
+interface BotConfig {
+  _id: string;
+  system: string;
+  name: string;
+  greeting: string;
+  audiotts: boolean;
+  audiostt: boolean;
+  rag: boolean;
+  prePrompt?: string[];
+  collectLead: boolean;
+  active: boolean;
+  botColor?: string;
+  imageName?: string;
+  description?: string;
 }
 
 interface SectionChatProps {
   className?: string;
+  botId: string;
+  pdfId?: string;
 }
 
-const SectionChat: React.FC<SectionChatProps> = ({ className = "" }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: "Hey",
-      timestamp: "10:52 AM",
-      sender: "assistant",
-    },
-  ]);
-  const [inputValue, setInputValue] = useState("");
-  const [showFilePopup, setShowFilePopup] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [previewFile, setPreviewFile] = useState<File | null>(null);
+const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId }) => {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [mounted, setMounted] = useState(false);
+  const [botConfig, setBotConfig] = useState<BotConfig | null>(null);
+  const [isLoadingConfig, setIsLoadingConfig] = useState(true);
 
-  // Dummy bot responses
-  const botResponses = [
-    "That's an interesting question! Let me help you with that.",
-    "I understand what you're asking. Here's what I think...",
-    "Great point! Based on my knowledge, I would suggest...",
-    "I'm here to help! Could you provide more details about that?",
-    "That's a common concern. Let me explain how we can approach this...",
-    "I appreciate you sharing that. Here's my perspective...",
-    "Excellent question! This is something many people wonder about.",
-    "I'd be happy to assist you with that. Let me break it down...",
-  ];
+  const baseUrl = 'http://localhost:8001';
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isVoiceCall, setIsVoiceCall] = useState(false);
+  const [recordingMode, setRecordingMode] = useState<'normal' | 'recording' | 'playback'>('normal');
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [finalRecordingTime, setFinalRecordingTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackProgress, setPlaybackProgress] = useState(0);
+  const [recordingStream, setRecordingStream] = useState<MediaStream | null>(null);
+  const [recordingAudioLevels, setRecordingAudioLevels] = useState<number[]>(new Array(50).fill(0));
+  const [recordedAudioBlob, setRecordedAudioBlob] = useState<Blob | null>(null);
+  const [recordedAudioUrl, setRecordedAudioUrl] = useState<string | null>(null);
+  const [recordedAudioDuration, setRecordedAudioDuration] = useState(0);
+  const [currentPlaybackTime, setCurrentPlaybackTime] = useState(0);
+  const [playbackWaveformBars, setPlaybackWaveformBars] = useState<number[]>(new Array(50).fill(2));
+  const [chatAudioStates, setChatAudioStates] = useState<{[messageId: string]: {isPlaying: boolean, currentTime: number, progress: number}}>({});
+  const [chatWaveformBars, setChatWaveformBars] = useState<{[messageId: string]: number[]}>({});
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+  const isPdfUploadingRef = useRef(false);
+  const [isProcessingAudio, setIsProcessingAudio] = useState(false);
+  const [showUploadOptions, setShowUploadOptions] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [attachments, setAttachments] = useState<FileAttachment[]>([]);
+  const [audioLevels, setAudioLevels] = useState<number[]>(new Array(20).fill(0));
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  
+  // Lead collection modal state
+  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [leadName, setLeadName] = useState("");
+  const [leadEmail, setLeadEmail] = useState("");
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: "", type: "error" as "success" | "error" | "warning" });
 
-  const getRandomBotResponse = () => {
-    return botResponses[Math.floor(Math.random() * botResponses.length)];
+  // Translations - English only
+  const t = {
+    helloBeforeContinue: "Hello! Before we continue, please provide your details",
+    name: "Name",
+    enterName: "Enter your name",
+    nameRequired: "Name is required",
+    email: "Email",
+    enterEmail: "Enter your email",
+    emailRequired: "Email is required",
+    invalidEmail: "Invalid email address",
+    getStarted: "Get Started",
+    welcomeMessage: "Welcome! How can I assist you today?"
   };
 
-  const isImageFile = (file: File) => {
-    return file.type.startsWith("image/");
-  };
+  // Toast helper function
+  const showToast = useCallback((message: string, type: "success" | "error" | "warning" = "error") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, show: false })), 5000);
+  }, []);
 
-  const openFile = (file: File) => {
-    const url = URL.createObjectURL(file);
-    const link = document.createElement("a");
-    link.href = url;
-    link.target = "_blank";
-    link.download = file.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const handlePreviewFile = (file: File) => {
-    if (isImageFile(file)) {
-      setPreviewFile(file);
-    } else {
-      openFile(file);
+  // Helper function to get valid ice breaker questions
+  const getIceBreakerQuestions = useCallback(() => {
+    if (!botConfig?.prePrompt || !Array.isArray(botConfig.prePrompt)) {
+      return [];
     }
-  };
+    
+    return botConfig.prePrompt
+      .filter(question => question && question.trim() !== "")
+      .map(question => question.trim());
+  }, [botConfig?.prePrompt]);
 
-  const copyMessage = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      // You could add a toast notification here
-      console.log("Message copied to clipboard");
-    });
-  };
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const recognitionRef = useRef<any>(null);
+  const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingAudioContextRef = useRef<AudioContext | null>(null);
+  const recordingAnalyserRef = useRef<AnalyserNode | null>(null);
+  const recordingAnimationFrameRef = useRef<number | null>(null);
+  const recordingMediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordingAudioChunksRef = useRef<Blob[]>([]);
+  const playbackAudioRef = useRef<HTMLAudioElement | null>(null);
+  const chatAudioRefs = useRef<{[messageId: string]: HTMLAudioElement}>({});
+  const recordedAudioBlobRef = useRef<Blob | null>(null);
 
-  const regenerateMessage = (messageId: string) => {
-    // Remove the current message and generate a new one
-    setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
+  // Utility functions
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
 
-    // Generate a new bot response
-    setTimeout(() => {
-      const newBotMessage: Message = {
-        id: Date.now().toString(),
-        text: getRandomBotResponse(),
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        sender: "assistant",
-      };
-      setMessages((prev) => [...prev, newBotMessage]);
-    }, 500);
-  };
+  const adjustTextareaHeight = useCallback(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height =
+        Math.min(textareaRef.current.scrollHeight, 200) + "px";
+    }
+  }, []);
 
-  const handleSendMessage = () => {
-    if (inputValue.trim()) {
+  const formatTime = useCallback((date: Date) => {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }, []);
+
+  const formatFileSize = useCallback((bytes: number) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  }, []);
+
+  const copyMessage = useCallback((text: string, messageId: string) => {
+    navigator.clipboard.writeText(text.replace(/[#*`]/g, ""));
+      setCopiedMessageId(messageId);
+      setTimeout(() => {
+        setCopiedMessageId(null);
+      }, 2000);
+  }, []);
+
+  // Fetch bot configuration
+  useEffect(() => {
+    const fetchBotConfig = async () => {
+      try {
+        setIsLoadingConfig(true);
+        const response = await fetch(`${baseUrl}/api/admin/bot/${botId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch bot configuration");
+        }
+        const config: BotConfig = await response.json();
+        setBotConfig(config);
+
+        // Set initial greeting message
+        setMessages([
+          {
+            id: "1",
+            text: config.greeting,
+            timestamp: new Date(),
+            isUser: false,
+          },
+        ]);
+
+        // Show lead collection modal if enabled
+        if (config.collectLead) {
+          setShowLeadModal(true);
+        }
+    } catch (error) {
+        console.error("Error fetching bot config:", error);
+        // Use fallback configuration
+        setBotConfig({
+          _id: botId,
+          system: "You are a helpful AI assistant.",
+          name: "AI Assistant",
+          greeting: "Hello! How can I help you today?",
+          audiotts: false,
+          audiostt: false,
+          rag: false,
+          collectLead: false,
+          active: true,
+        });
+    } finally {
+        setIsLoadingConfig(false);
+      }
+    };
+
+    fetchBotConfig();
+  }, [botId, baseUrl]);
+
+  // Effects
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [newMessage, adjustTextareaHeight]);
+
+  const sendMessage = useCallback(
+    async (messageText: string, isVoice = false) => {
+      if (
+        (!messageText.trim() && attachments.length === 0) ||
+        !botConfig
+      )
+        return;
+
       const userMessage: Message = {
         id: Date.now().toString(),
-        text: inputValue,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        sender: "user",
+        text: messageText,
+        timestamp: new Date(),
+        isUser: true,
+        isVoice,
+        attachments: attachments.length > 0 ? [...attachments] : undefined,
       };
 
       setMessages((prev) => [...prev, userMessage]);
-      setInputValue("");
+      setNewMessage("");
+      const currentAttachments = [...attachments];
+      setAttachments([]);
+      setIsTyping(true);
 
-      // Simulate bot response after a short delay
-      setTimeout(() => {
-        const botMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: getRandomBotResponse(),
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          sender: "assistant",
-        };
-        setMessages((prev) => [...prev, botMessage]);
-      }, 1000);
-    }
-  };
-
-  const handleFileUpload = (type: "computer" | "camera") => {
-    if (type === "computer") {
-      // Create a file input element
-      const fileInput = document.createElement("input");
-      fileInput.type = "file";
-      fileInput.accept = "image/*,video/*,audio/*,.pdf,.doc,.docx,.txt";
-      fileInput.multiple = true;
-
-      fileInput.onchange = (e) => {
-        const files = Array.from((e.target as HTMLInputElement).files || []);
-        if (files.length > 0) {
-          setUploadedFiles((prev) => [...prev, ...files]);
-
-          // Add a message about the uploaded files
-          const fileMessage: Message = {
-            id: Date.now().toString(),
-            text: `Uploaded ${files.length} file(s): ${files
-              .map((f) => `${f.name} (${Math.round(f.size / 1024)} KB)`)
-              .join(", ")}`,
-            timestamp: new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-            sender: "user",
-          };
-          setMessages((prev) => [...prev, fileMessage]);
-        }
+      const botMessageId = (Date.now() + 1).toString();
+      const botMessage: Message = {
+        id: botMessageId,
+        text: "",
+        timestamp: new Date(),
+        isUser: false,
+        isStreaming: true,
       };
 
-      fileInput.click();
-    } else if (type === "camera") {
-      // Access camera for photo capture
-      navigator.mediaDevices
-        .getUserMedia({ video: true })
-        .then((stream) => {
-          // Create a video element to capture the photo
-          const video = document.createElement("video");
-          video.srcObject = stream;
-          video.play();
+      setMessages((prev) => [...prev, botMessage]);
 
-          // Create a canvas to capture the photo
-          const canvas = document.createElement("canvas");
-          const context = canvas.getContext("2d");
+      try {
+        // Prepare form data
+        const formData = new FormData();
+        formData.append("id", botConfig._id);
+        formData.append("system", botConfig.system);
+        formData.append("message", messageText);
+        formData.append("AI", botConfig.name.replace(/\s+/g, "").toLowerCase());
 
-          video.addEventListener("loadedmetadata", () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+        // Add filename if there are attachments
+        if (
+          currentAttachments.length > 0 &&
+          currentAttachments[0].serverFilename
+        ) {
+          formData.append("filename", currentAttachments[0].serverFilename);
+        }
 
-            // Draw the video frame to canvas
-            context?.drawImage(video, 0, 0);
-
-            // Convert canvas to blob
-            canvas.toBlob(
-              (blob) => {
-                if (blob) {
-                  const file = new File([blob], `photo-${Date.now()}.jpg`, {
-                    type: "image/jpeg",
-                  });
-                  setUploadedFiles((prev) => [...prev, file]);
-
-                  // Add a message about the captured photo
-                  const photoMessage: Message = {
-                    id: Date.now().toString(),
-                    text: `Captured photo: ${file.name} (${Math.round(
-                      file.size / 1024
-                    )} KB)`,
-                    timestamp: new Date().toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }),
-                    sender: "user",
-                  };
-                  setMessages((prev) => [...prev, photoMessage]);
-                }
-
-                // Stop the camera stream
-                stream.getTracks().forEach((track) => track.stop());
-              },
-              "image/jpeg",
-              0.8
-            );
-          });
-        })
-        .catch((error) => {
-          console.error("Error accessing camera:", error);
-          alert("Unable to access camera. Please check your permissions.");
+        // Call streaming API
+        const response = await fetch(`${baseUrl}/streaming`, {
+          method: "POST",
+          body: formData,
         });
-    }
 
-    setShowFilePopup(false);
-  };
+        if (!response.ok) {
+          throw new Error("Network response was not ok.");
+        }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+        // Handle streaming response
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error("No response body reader available");
+        }
+
+        let fullResponse = "";
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { done, value } = await reader.read();
+
+          if (done) {
+            setIsTyping(false);
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === botMessageId
+                  ? { ...msg, isStreaming: false }
+                  : msg
+              )
+            );
+            break;
+          }
+
+          const chunk = decoder.decode(value, { stream: true });
+          fullResponse += chunk;
+
+          // Update the streaming message
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === botMessageId
+                ? { ...msg, text: fullResponse }
+                : msg
+            )
+          );
+
+          // Small delay for smooth streaming effect
+          await new Promise((resolve) => setTimeout(resolve, 30));
+        }
+      } catch (error) {
+        console.error("Error sending message:", error);
+        setIsTyping(false);
+
+        // Show error message
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === botMessageId
+              ? {
+                  ...msg,
+                  text: "Sorry, an error occurred while processing your request. Please try again.",
+                  isStreaming: false,
+                }
+              : msg
+          )
+        );
+      }
+    },
+    [
+      isMuted,
+      attachments,
+      botConfig,
+      baseUrl,
+    ]
+  );
+
+  const handleSendMessage = useCallback(() => {
+    sendMessage(newMessage);
+  }, [newMessage, sendMessage]);
+
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
-  };
+    },
+    [handleSendMessage]
+  );
 
+  // Show loading state while fetching configuration
+  if (isLoadingConfig || !botConfig) {
+    return (
+      <div className={`flex h-screen bg-gray-100 dark:bg-gray-900 items-center justify-center ${className}`}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">
+            Loading chatbot configuration...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show disabled state if bot is not active
+  if (!botConfig.active) {
   return (
-    <div className={`flex flex-col h-full bg-background ${className}`}>
-      {/* Header Section */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-card">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center border-2 border-primary/20">
-            <UserIcon className="w-5 h-5 text-primary-foreground" />
+      <div className={`flex h-screen bg-gray-100 dark:bg-gray-900 items-center justify-center ${className}`}>
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Bot className="w-10 h-10 text-gray-400 dark:text-gray-500" />
           </div>
-          <div>
-            <h3 className="font-semibold text-foreground">Prod</h3>
-            <p className="text-sm text-green-500">Online</p>
+          
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+            {botConfig.name} is Disabled
+          </h1>
+          
+          <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+            This bot is currently disabled and needs to be activated from the dashboard before it can be used.
+          </p>
+          
+          <div className="flex justify-center mb-8">
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-violet-500 hover:bg-violet-600 text-white rounded-lg transition-colors font-medium"
+              type="button"
+            >
+              Refresh Page
+            </button>
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Chat Display Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background">
-        {messages.map((message) => (
+  return (
+    <div className={`${className}`}>
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2">
           <div
-            key={message.id}
-            className={`flex flex-col ${
-              message.sender === "user" ? "items-end" : "items-start"
+            className={`flex items-center p-4 rounded-lg shadow-lg max-w-sm ${
+              toast.type === "success"
+                ? "bg-green-50 border border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400"
+                : toast.type === "warning"
+                ? "bg-yellow-50 border border-yellow-200 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-400"
+                : "bg-red-50 border border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400"
             }`}
           >
-            <div
-              className={`flex items-start space-x-2 group ${
-                message.sender === "user"
-                  ? "flex-row-reverse space-x-reverse max-w-xs"
-                  : "max-w-2xl"
-              }`}
+            <div className="ml-3 flex-1">
+              <p className="text-sm font-medium">{toast.message}</p>
+            </div>
+            <button
+              onClick={() => setToast(prev => ({ ...prev, show: false }))}
+              className="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
             >
-              {/* Message Icon */}
-              <div
-                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  message.sender === "assistant"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                {message.sender === "assistant" ? (
-                  <BotIcon className="w-3 h-3" />
-                ) : (
-                  <UserIcon className="w-3 h-3" />
-                )}
-              </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
-              {/* Message Bubble */}
-              <div
-                className={`px-4 py-2 rounded-lg border ${
-                  message.sender === "assistant"
-                    ? "bg-muted text-muted-foreground border-border"
-                    : "bg-primary text-primary-foreground border-primary/20"
-                }`}
-              >
-                <p className="text-sm">
-                  {message.text.includes("Uploaded") ||
-                  message.text.includes("Captured") ? (
-                    <span>
-                      {message.text.split(": ")[0]}:{" "}
-                      <span
-                        className="underline cursor-pointer hover:text-blue-400 transition-colors"
-                        onClick={() => {
-                          // Find the file by name from the message (remove size info)
-                          const fileNameWithSize = message.text.split(": ")[1];
-                          const fileName = fileNameWithSize.split(" (")[0];
-                          const file = uploadedFiles.find(
-                            (f) => f.name === fileName
-                          );
-                          if (file) {
-                            handlePreviewFile(file);
-                          }
-                        }}
-                      >
-                        {message.text.split(": ")[1]}
-                      </span>
-                    </span>
+      <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+        <div className="flex-1 flex flex-col bg-gray-100 dark:bg-gray-900">
+          <header className="sticky top-0 before:absolute before:inset-0 before:backdrop-blur-md max-lg:before:bg-white/90 dark:max-lg:before:bg-gray-800/90 before:-z-10 z-30 lg:before:bg-gray-100/90 dark:lg:before:bg-gray-900/90">
+            <div className="px-2 sm:px-4 md:px-6 lg:px-8">
+              <div className="flex items-center justify-between h-16 lg:border-b border-gray-200 dark:border-gray-700/60">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  {/* Show bot image if available, otherwise show bot icon */}
+                  {botConfig?.imageName ? (
+                    <div className="w-10 h-10 sm:w-10 sm:h-10 rounded-full flex items-center justify-center">
+                      <img
+                        src={`${baseUrl}/static/mentors/${botConfig.imageName}`}
+                        alt={botConfig.name}
+                        className="rounded-full object-cover"
+                      />
+                    </div>
                   ) : (
-                    message.text
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    </div>
                   )}
-                </p>
+
+                  <div>
+                    <h2 className="text-sm sm:text-lg font-semibold text-gray-800 dark:text-gray-100">
+                      {botConfig?.name || "AI Assistant"}
+                    </h2>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">
+                        {isTyping ? "⚡ Thinking..." : "Online"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+            {messages.length > 0 ? (
+              <div className="px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 w-full">
+                <div className="space-y-3 sm:space-y-4">
+                  {messages.map((message, index) => (
+                    <div
+                      key={message.id}
+                      className={`flex gap-2 sm:gap-3 ${
+                        message.isUser ? "justify-end" : "justify-start"
+                      }`}
+                    >
+                      {!message.isUser && (
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                        </div>
+                      )}
+
+                      <div
+                        className={`group max-w-[240px] min-[345px]:max-w-[270px] min-[400px]:max-w-[320px] min-[430px]:max-w-xl ${
+                          message.isUser ? "order-first" : ""
+                        }`}
+                      >
+                        <div
+                          className={`relative px-3 py-2 sm:px-4 sm:py-3 rounded-2xl shadow-sm ${
+                            message.isUser
+                              ? "bg-violet-500 text-white"
+                              : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700/60"
+                          }`}
+                        >
+                          <div className="prose prose-sm max-w-none">
+                            {message.isUser ? (
+                              <p className="text-white m-0 leading-relaxed">
+                                {message.text}
+                              </p>
+                            ) : (
+                              <div className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+                                {message.text}
+                              </div>
+                            )}
               </div>
 
-              {/* Copy and Regenerate Icons for Assistant Messages */}
-              {message.sender === "assistant" && (
-                <div className="flex flex-col space-y-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 hover:bg-muted/50"
-                    onClick={() => copyMessage(message.text)}
-                    title="Copy message"
+                          {message.isStreaming && (
+                            <div className="flex items-center mt-3">
+                              <div className="flex space-x-1">
+                                <div className="w-2 h-2 bg-violet-500 rounded-full animate-bounce"></div>
+                                <div
+                                  className="w-2 h-2 bg-violet-500 rounded-full animate-bounce"
+                                  style={{ animationDelay: "0.1s" }}
+                                ></div>
+                                <div
+                                  className="w-2 h-2 bg-violet-500 rounded-full animate-bounce"
+                                  style={{ animationDelay: "0.2s" }}
+                                ></div>
+                              </div>
+                            </div>
+                          )}
+
+                          {!message.isStreaming && !message.isUser && (
+                            <div className="absolute left-full bottom-0 ml-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                              <div className="flex flex-col gap-1">
+                                <button
+                    onClick={() => copyMessage(message.text, message.id)}
+                                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded transition-colors"
+                                  title="Copy"
                   >
-                    <CopyIcon className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 hover:bg-muted/50"
-                    onClick={() => regenerateMessage(message.id)}
-                    title="Regenerate response"
-                  >
-                    <RegenerateIcon className="w-3 h-3" />
-                  </Button>
+                    {copiedMessageId === message.id ? (
+                                    <Check className="w-3 h-3 text-gray-800 dark:text-gray-200" />
+                                  ) : (
+                                    <Copy className="w-3 h-3" />
+                                  )}
+                                </button>
+                              </div>
                 </div>
               )}
             </div>
 
-            {/* Timestamp */}
-            <p
-              className={`text-xs text-muted-foreground mt-1 ${
-                message.sender === "assistant" ? "ml-8" : "mr-8"
-              }`}
-            >
-              {message.timestamp}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Message Input and Footer Section */}
-      <div className="p-4 border-t border-border bg-card relative">
-        <div className="flex items-center space-x-2 mb-3">
-          <div className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setShowFilePopup(!showFilePopup)}
-            >
-              <PlusIcon className="w-4 h-4" />
-            </Button>
-
-            {/* File Upload Popup */}
-            {showFilePopup && (
-              <div className="absolute bottom-12 left-0 bg-card border border-border rounded-lg shadow-lg p-4 w-64 z-10">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-semibold text-foreground">Add file</h4>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => setShowFilePopup(false)}
-                  >
-                    <CloseIcon className="w-4 h-4" />
-                  </Button>
+                        <div
+                          className={`mt-1 text-xs text-gray-500 dark:text-gray-400 ${
+                            message.isUser ? "text-right" : "text-left"
+                          }`}
+                        >
+                          {formatTime(message.timestamp)}
                 </div>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Upload or take a photo.
-                </p>
+                      </div>
 
-                <div className="space-y-2">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start p-3 h-auto hover:bg-muted/50"
-                    onClick={() => handleFileUpload("computer")}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <UploadIcon className="w-5 h-5 text-foreground" />
-                      <div className="text-left">
-                        <p className="font-medium text-foreground">
-                          Upload from Computer
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Browse files on your device.
-                        </p>
+                      {message.isUser && (
+                        <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <User className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  <div ref={messagesEndRef} />
                       </div>
                     </div>
-                  </Button>
+            ) : (
+              <div className="flex-1 flex items-center justify-center h-full px-2 sm:px-4 md:px-6 lg:px-8">
+                <div className="text-center max-w-md mx-auto">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                    <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                  </div>
 
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start p-3 h-auto hover:bg-muted/50"
-                    onClick={() => handleFileUpload("camera")}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <CameraIcon className="w-5 h-5 text-green-500" />
-                      <div className="text-left">
-                        <p className="font-medium text-foreground">
-                          Take Photo
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Capture with camera.
-                        </p>
-                      </div>
-                    </div>
-                  </Button>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold mb-4">
+                    Welcome to AI Assistant
+                  </h3>
+
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
+                    Start a conversation to begin exploring what AI can do for you.
+                  </p>
                 </div>
               </div>
             )}
           </div>
 
+          {/* Ice Breaker Questions Bubbles */}
+          {messages.length === 1 && getIceBreakerQuestions().length > 0 && (
+            <div className="px-2 sm:px-4 md:px-6 lg:px-8 py-4 border-b border-gray-200 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/50">
+              <div className="flex flex-wrap gap-2 justify-center max-w-4xl mx-auto">
+                {getIceBreakerQuestions().map((question, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      setNewMessage(question);
+                      setTimeout(() => {
+                        sendMessage(question);
+                      }, 100);
+                    }}
+                    className="px-4 py-2 text-sm font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-700 dark:hover:text-violet-300 hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-200 dark:border-gray-700/60 hover:border-violet-300 dark:hover:border-violet-600/60 shadow-sm"
+                    type="button"
+                  >
+                    {question}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700/60 shadow-sm">
+            <div className="px-2 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4">
+              <div className="w-full max-w-full min-w-0">
+                <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex-1 relative">
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+                    <textarea
+                      ref={textareaRef}
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Message AI Assistant..."
-              className="pr-12 bg-input border-border"
+                      placeholder="Message AI Assistant..."
+                      rows={1}
+                      className="w-full px-2 py-2 sm:px-4 sm:py-3 pr-2 sm:pr-4 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none max-h-48 transition-all placeholder-gray-500 text-sm sm:text-base"
+                      style={{ minHeight: "40px" }}
             />
           </div>
-          <Button
-            onClick={handleSendMessage}
-            size="icon"
-            className="h-8 w-8 bg-primary hover:bg-primary/90"
-          >
-            <SendIcon className="w-4 h-4" />
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground text-center">
-          AI can make mistakes. Verify important information.
-        </p>
-      </div>
 
-      {/* Image Preview Modal */}
-      {previewFile && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-lg max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-border">
-              <h3 className="font-semibold text-foreground">
-                {previewFile.name}
-              </h3>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setPreviewFile(null)}
-              >
-                <CloseIcon className="w-4 h-4" />
-              </Button>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }}
+                    disabled={!newMessage.trim()}
+                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-violet-500 hover:bg-violet-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-full transition-colors disabled:cursor-not-allowed cursor-pointer"
+                    title="Send message"
+                    type="button"
+                  >
+                    <Send className="w-3 h-3 sm:w-4 sm:h-4" />
+                  </button>
+        </div>
+      </div>
             </div>
-            <div className="p-4">
-              <img
-                src={URL.createObjectURL(previewFile)}
-                alt={previewFile.name}
-                className="max-w-full max-h-[70vh] object-contain mx-auto"
-                onLoad={() =>
-                  URL.revokeObjectURL(URL.createObjectURL(previewFile))
-                }
-              />
+            
+            <div className="px-2 sm:px-4 md:px-6 lg:px-8 pb-2">
+              <div className="text-xs text-gray-500 dark:text-gray-400 text-center whitespace-nowrap">
+                AI can make mistakes. Verify important information.
             </div>
-            <div className="flex items-center justify-end space-x-2 p-4 border-t border-border">
-              <Button variant="outline" onClick={() => setPreviewFile(null)}>
-                Close
-              </Button>
-              <Button
-                onClick={() => {
-                  openFile(previewFile);
-                  setPreviewFile(null);
-                }}
-              >
-                Download
-              </Button>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
