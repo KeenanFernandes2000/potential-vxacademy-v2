@@ -298,18 +298,33 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
     },
   };
 
-  // Set initial selected content to first accessible learning block
+  // Set initial selected content to first incomplete learning block or first accessible content
   React.useEffect(() => {
     if (units.length > 0 && !isInitialized) {
       const allContent = getAllContentInOrder();
-      const firstAccessibleContent = allContent.find((content) => {
+
+      // First, try to find the first incomplete learning block that's accessible
+      const firstIncompleteLearningBlock = allContent.find((content) => {
         if (content.type === "learningBlock") {
-          return isLearningBlockAccessible(content.item, content.unitOrder);
-        } else if (content.type === "assessment") {
-          return isAssessmentAccessible(content.item, content.unitOrder);
+          return (
+            isLearningBlockAccessible(content.item, content.unitOrder) &&
+            content.item.status !== "completed"
+          );
         }
         return false;
       });
+
+      // If no incomplete learning block found, fall back to first accessible content
+      const firstAccessibleContent =
+        firstIncompleteLearningBlock ||
+        allContent.find((content) => {
+          if (content.type === "learningBlock") {
+            return isLearningBlockAccessible(content.item, content.unitOrder);
+          } else if (content.type === "assessment") {
+            return isAssessmentAccessible(content.item, content.unitOrder);
+          }
+          return false;
+        });
 
       if (firstAccessibleContent) {
         const initialContent = {
@@ -1780,12 +1795,13 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                         </div>
                       </div>
 
-                      {/* Assessment Results Tabs - Only show if there are passed attempts */}
+                      {/* Assessment Results Tabs - Show if there are passed attempts OR if user has no remaining attempts */}
                       {Array.isArray(assessmentAttempts) &&
                         assessmentAttempts.length > 0 &&
                         Array.isArray(assessmentQuestions) &&
                         assessmentQuestions.length > 0 &&
-                        assessmentAttempts[0]?.passed === true && (
+                        (assessmentAttempts[0]?.passed === true ||
+                          hasExceededAttemptLimit()) && (
                           <div className="mt-8">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">
                               Assessment Results:

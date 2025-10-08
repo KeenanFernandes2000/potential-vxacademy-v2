@@ -1604,18 +1604,18 @@ export class ProgressService {
 
       const learningPathCompletion = {
         
-        courseUnitIds: courseUnitsResult.map(courseUnit => courseUnit.unitId),
-        pathUnitIds: unitRoleAssignmentsResult.flatMap(assignment => assignment.unitIds),
+        courseUnitIds: courseUnitIds,
+        pathUnitIds: assignedUnitIds,
         unitRoleAssignments: unitRoleAssignmentsResult.map(assignment => ({
           id: assignment.id,
           name: assignment.name,
         })),
-        show: courseUnitsResult.map(courseUnit => courseUnit.unitId).filter(unitId => 
-          unitRoleAssignmentsResult.flatMap(assignment => assignment.unitIds).includes(unitId)
-        ),
-        complete: courseUnitsResult.map(courseUnit => courseUnit.unitId).filter(unitId => 
-          !unitRoleAssignmentsResult.flatMap(assignment => assignment.unitIds).includes(unitId)
-        ),
+        show: unitRoleAssignmentsResult.length > 0 
+          ? courseUnitIds.filter(unitId => assignedUnitIds.includes(unitId))
+          : courseUnitIds, // Return all course units if no learning path exists
+        complete: unitRoleAssignmentsResult.length > 0 
+          ? courseUnitIds.filter(unitId => !assignedUnitIds.includes(unitId))
+          : [], // No complete units if no learning path exists (all units are in show)
         
       };
       
