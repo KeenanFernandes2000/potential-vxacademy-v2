@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,6 +57,7 @@ interface Frontliner {
   roleCategory: string;
   role: string;
   seniority: string;
+  frontlinerType: string;
   overallProgress: number;
   alMidhyaf: number;
   adInformation: number;
@@ -81,10 +82,9 @@ interface ReportData {
   generalStats: {
     totalFrontliners: number;
     activeFrontliners: number;
-    totalVxPoints: number;
-    averageAlMidhyaf: number;
+    totalCertificates: number;
+    alMidhyafProgress: number;
     averageProgress: number;
-    totalOrganizations: number;
   };
 }
 
@@ -101,6 +101,19 @@ const Frontliners = () => {
   const [organizationFilter, setOrganizationFilter] = useState("all");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
+  // Organization and sub-organization search states
+  const [organizationSearchQuery, setOrganizationSearchQuery] =
+    useState<string>("");
+  const [showOrganizationDropdown, setShowOrganizationDropdown] =
+    useState<boolean>(false);
+  const organizationDropdownRef = useRef<HTMLDivElement>(null);
+
+  const [subOrganizationSearchQuery, setSubOrganizationSearchQuery] =
+    useState<string>("");
+  const [showSubOrganizationDropdown, setShowSubOrganizationDropdown] =
+    useState<boolean>(false);
+  const subOrganizationDropdownRef = useRef<HTMLDivElement>(null);
+
   // Filter states
   const [selectedAsset, setSelectedAsset] = useState<string>("all");
   const [selectedSubAsset, setSelectedSubAsset] = useState<string>("all");
@@ -109,6 +122,11 @@ const Frontliners = () => {
   const [selectedRoleCategory, setSelectedRoleCategory] =
     useState<string>("all");
   const [selectedProgress, setSelectedProgress] = useState<string>("all");
+  const [selectedRegistrationDateRange, setSelectedRegistrationDateRange] =
+    useState<{
+      from: string;
+      to: string;
+    }>({ from: "", to: "" });
 
   // Asset and sub-asset state for dynamic filtering
   const [assets, setAssets] = useState<Array<{ id: number; name: string }>>([]);
@@ -323,6 +341,8 @@ const Frontliners = () => {
     setSelectedSubAsset("all");
     setOrganizationFilter("all");
     setSelectedSubOrganization("all");
+    setOrganizationSearchQuery("");
+    setSubOrganizationSearchQuery("");
   }, [selectedAsset, assets]);
 
   // Handle sub-asset selection change
@@ -330,13 +350,50 @@ const Frontliners = () => {
     // Reset organization and sub-organization selection when sub-asset changes
     setOrganizationFilter("all");
     setSelectedSubOrganization("all");
+    setOrganizationSearchQuery("");
+    setSubOrganizationSearchQuery("");
   }, [selectedSubAsset]);
 
   // Handle organization selection change
   useEffect(() => {
     // Reset sub-organization selection when organization changes
     setSelectedSubOrganization("all");
+    setSubOrganizationSearchQuery("");
   }, [organizationFilter]);
+
+  // Handle click outside to close organization dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        organizationDropdownRef.current &&
+        !organizationDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowOrganizationDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Handle click outside to close sub-organization dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        subOrganizationDropdownRef.current &&
+        !subOrganizationDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowSubOrganizationDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Function to get filtered organizations based on selected asset and sub-asset
   const getFilteredOrganizations = () => {
@@ -394,16 +451,50 @@ const Frontliners = () => {
     }
 
     // Get unique sub-organizations from filtered data
+    // Handle both array and string cases
+    const allSubOrgs = filtered.flatMap((frontliner) => {
+      if (Array.isArray(frontliner.subOrganization)) {
+        return frontliner.subOrganization;
+      }
+      return frontliner.subOrganization ? [frontliner.subOrganization] : [];
+    });
+
     const uniqueSubOrganizations = Array.from(
-      new Set(
-        filtered
-          .map((frontliner) => frontliner.subOrganization)
-          .filter((subOrg) => subOrg && subOrg !== "N/A")
-      )
+      new Set(allSubOrgs.filter((subOrg) => subOrg && subOrg !== "N/A"))
     ).map((subOrg) => ({ value: subOrg, label: subOrg }));
 
     return uniqueSubOrganizations;
   };
+
+  // Filter organizations based on search query
+  const filteredOrganizations = (() => {
+    if (!reportData?.filters.organizations) return [];
+
+    return reportData.filters.organizations.filter((org) => {
+      // More comprehensive check
+      if (!org || !org.label || typeof org.label !== "string") {
+        return false;
+      }
+
+      const searchQuery = organizationSearchQuery || "";
+      return org.label.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  })();
+
+  // Filter sub-organizations based on search query
+  const filteredSubOrganizations = (() => {
+    if (!reportData?.filters.subOrganizations) return [];
+
+    return reportData.filters.subOrganizations.filter((subOrg) => {
+      // Simple check - same pattern as organization filter
+      if (!subOrg || !subOrg.label || typeof subOrg.label !== "string") {
+        return false;
+      }
+
+      const searchQuery = subOrganizationSearchQuery || "";
+      return subOrg.label.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  })();
 
   // Filter frontliners based on all criteria
   useEffect(() => {
@@ -434,9 +525,13 @@ const Frontliners = () => {
 
     // Filter by sub-organization
     if (selectedSubOrganization !== "all") {
-      filtered = filtered.filter(
-        (frontliner) => frontliner.subOrganization === selectedSubOrganization
-      );
+      filtered = filtered.filter((frontliner) => {
+        // Handle both array and string cases
+        if (Array.isArray(frontliner.subOrganization)) {
+          return frontliner.subOrganization.includes(selectedSubOrganization);
+        }
+        return frontliner.subOrganization === selectedSubOrganization;
+      });
     }
 
     // Filter by role category
@@ -502,6 +597,49 @@ const Frontliners = () => {
       );
     }
 
+    // Filter by registration date range
+    if (
+      selectedRegistrationDateRange.from ||
+      selectedRegistrationDateRange.to
+    ) {
+      filtered = filtered.filter((frontliner) => {
+        if (frontliner.registrationDate === "N/A") return false;
+        const userDate = new Date(frontliner.registrationDate);
+
+        // If only from date is set
+        if (
+          selectedRegistrationDateRange.from &&
+          !selectedRegistrationDateRange.to
+        ) {
+          const fromDate = new Date(selectedRegistrationDateRange.from);
+          return userDate >= fromDate;
+        }
+
+        // If only to date is set
+        if (
+          !selectedRegistrationDateRange.from &&
+          selectedRegistrationDateRange.to
+        ) {
+          const toDate = new Date(selectedRegistrationDateRange.to);
+          toDate.setHours(23, 59, 59, 999); // Include the entire day
+          return userDate <= toDate;
+        }
+
+        // If both dates are set
+        if (
+          selectedRegistrationDateRange.from &&
+          selectedRegistrationDateRange.to
+        ) {
+          const fromDate = new Date(selectedRegistrationDateRange.from);
+          const toDate = new Date(selectedRegistrationDateRange.to);
+          toDate.setHours(23, 59, 59, 999); // Include the entire day
+          return userDate >= fromDate && userDate <= toDate;
+        }
+
+        return true;
+      });
+    }
+
     setFilteredFrontliners(filtered);
   }, [
     reportData,
@@ -513,6 +651,7 @@ const Frontliners = () => {
     selectedProgress,
     searchTerm,
     statusFilter,
+    selectedRegistrationDateRange,
   ]);
 
   // Clear all filters
@@ -525,6 +664,59 @@ const Frontliners = () => {
     setSelectedProgress("all");
     setSearchTerm("");
     setStatusFilter("all");
+    setSelectedRegistrationDateRange({ from: "", to: "" });
+    setOrganizationSearchQuery("");
+    setSubOrganizationSearchQuery("");
+    setShowOrganizationDropdown(false);
+    setShowSubOrganizationDropdown(false);
+  };
+
+  // Handle organization selection
+  const handleOrganizationSelect = (organization: string) => {
+    setOrganizationFilter(organization);
+    if (organization === "all") {
+      setOrganizationSearchQuery("");
+    } else {
+      const selectedOrg = reportData?.filters.organizations.find(
+        (org) => org.value === organization
+      );
+      setOrganizationSearchQuery(selectedOrg?.label || "");
+    }
+    setShowOrganizationDropdown(false);
+  };
+
+  // Handle organization search input
+  const handleOrganizationSearch = (query: string) => {
+    setOrganizationSearchQuery(query);
+    setShowOrganizationDropdown(true);
+  };
+
+  // Handle sub-organization selection
+  const handleSubOrganizationSelect = (subOrganization: string) => {
+    setSelectedSubOrganization(subOrganization);
+    if (subOrganization === "all") {
+      setSubOrganizationSearchQuery("");
+    } else {
+      const selectedSubOrg = reportData?.filters.subOrganizations.find(
+        (subOrg) => subOrg.value === subOrganization
+      );
+      setSubOrganizationSearchQuery(selectedSubOrg?.label || "");
+    }
+    setShowSubOrganizationDropdown(false);
+  };
+
+  // Handle sub-organization search input
+  const handleSubOrganizationSearch = (query: string) => {
+    setSubOrganizationSearchQuery(query);
+    setShowSubOrganizationDropdown(true);
+  };
+
+  // Handle date range changes
+  const handleDateRangeChange = (field: "from" | "to", value: string) => {
+    setSelectedRegistrationDateRange((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   // Check if any filters are active
@@ -536,7 +728,9 @@ const Frontliners = () => {
     selectedRoleCategory !== "all" ||
     selectedProgress !== "all" ||
     searchTerm !== "" ||
-    statusFilter !== "all";
+    statusFilter !== "all" ||
+    selectedRegistrationDateRange.from !== "" ||
+    selectedRegistrationDateRange.to !== "";
 
   // Toggle accordion row
   const toggleRow = (frontlinerId: string) => {
@@ -568,6 +762,7 @@ const Frontliners = () => {
         "Role Category",
         "Role",
         "Seniority",
+        "Frontliner Type",
         "Overall Progress",
         "Al Midhyaf",
         "AD Information",
@@ -595,6 +790,7 @@ const Frontliners = () => {
         frontliner.roleCategory,
         frontliner.role,
         frontliner.seniority,
+        frontliner.frontlinerType,
         `${frontliner.overallProgress}%`,
         `${frontliner.alMidhyaf}%`,
         `${frontliner.adInformation}%`,
@@ -695,6 +891,9 @@ const Frontliners = () => {
               <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.totalFrontliners}
               </div>
+              <p className="text-xs text-[#2C2C2C]/60 mt-1">
+                Registered Frontliners
+              </p>
             </CardContent>
           </Card>
 
@@ -709,40 +908,49 @@ const Frontliners = () => {
               <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.activeFrontliners}
               </div>
+              <p className="text-xs text-[#2C2C2C]/60 mt-1">
+                Active in last 15 days
+              </p>
             </CardContent>
           </Card>
 
-          {/* <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total VX Points
+                Total Certificates
               </CardTitle>
               <Award className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent>
               <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalVxPoints.toLocaleString()}
+                {reportData.generalStats.totalCertificates}
               </div>
-            </CardContent>
-          </Card> */}
-
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Al Midhyaf Progress
-              </CardTitle>
-              <BookOpen className="h-4 w-4 text-purple-400" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.averageAlMidhyaf}%
-              </div>
+              <p className="text-xs text-[#2C2C2C]/60 mt-1">
+                Certificates issued
+              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Additional Stats */}
         <div className="grid gap-4 md:grid-cols-2">
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
+                Al-Midhyaf Progress
+              </CardTitle>
+              <BookOpen className="h-4 w-4 text-purple-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-5xl font-bold text-[#2C2C2C]">
+                {reportData.generalStats.alMidhyafProgress}%
+              </div>
+              <p className="text-xs text-[#2C2C2C]/60 mt-1">
+                Al-Midhyaf completion rate
+              </p>
+            </CardContent>
+          </Card>
+
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
@@ -754,27 +962,29 @@ const Frontliners = () => {
               <div className="text-5xl font-bold text-[#2C2C2C]">
                 {reportData.generalStats.averageProgress}%
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Organizations
-              </CardTitle>
-              <Building2 className="h-4 w-4 text-dawn" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-bold text-[#2C2C2C]">
-                {reportData.generalStats.totalOrganizations}
-              </div>
+              <p className="text-xs text-[#2C2C2C]/60 mt-1">
+                Overall completion rate
+              </p>
             </CardContent>
           </Card>
         </div>
 
         {/* Filter Section */}
         <div className="mb-6 p-4 bg-sandstone rounded-lg border border-[#E5E5E5]">
-          <h3 className="text-lg font-semibold text-dawn mb-4">Filter By</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-dawn">Filter By</h3>
+            {hasActiveFilters && (
+              <Button
+                onClick={clearAllFilters}
+                variant="outline"
+                size="sm"
+                className="text-dawn border-dawn hover:bg-dawn hover:text-white"
+              >
+                <X className="mr-2 h-4 w-4" />
+                Reset Filters
+              </Button>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="assetFilter" className="text-[#2C2C2C]">
@@ -832,45 +1042,106 @@ const Frontliners = () => {
               <Label htmlFor="organizationFilter" className="text-[#2C2C2C]">
                 Organization
               </Label>
-              <Select
-                value={organizationFilter}
-                onValueChange={setOrganizationFilter}
-                disabled={!reportData}
-              >
-                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
-                  <SelectValue placeholder="Select organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Organizations</SelectItem>
-                  {getFilteredOrganizations().map((org) => (
-                    <SelectItem key={org.value} value={org.value}>
-                      {org.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative" ref={organizationDropdownRef}>
+                <Input
+                  value={organizationSearchQuery}
+                  onChange={(e) => handleOrganizationSearch(e.target.value)}
+                  onFocus={() => setShowOrganizationDropdown(true)}
+                  placeholder={
+                    organizationFilter === "all"
+                      ? "All Organizations"
+                      : "Search organizations..."
+                  }
+                  className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] pr-8"
+                />
+                <ChevronDown
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 cursor-pointer"
+                  onClick={() =>
+                    setShowOrganizationDropdown(!showOrganizationDropdown)
+                  }
+                />
+
+                {showOrganizationDropdown && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-[#E5E5E5] rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <div
+                      className="px-3 py-2 text-sm text-[#2C2C2C] hover:bg-gray-50 cursor-pointer border-b border-gray-100"
+                      onClick={() => handleOrganizationSelect("all")}
+                    >
+                      All Organizations
+                    </div>
+                    {filteredOrganizations.length > 0 ? (
+                      filteredOrganizations.map((org) => (
+                        <div
+                          key={org.value}
+                          className="px-3 py-2 text-sm text-[#2C2C2C] hover:bg-gray-50 cursor-pointer"
+                          onClick={() => handleOrganizationSelect(org.value)}
+                        >
+                          {org.label}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500">
+                        No organizations found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="subOrganizationFilter" className="text-[#2C2C2C]">
                 Sub-Organization
               </Label>
-              <Select
-                value={selectedSubOrganization}
-                onValueChange={setSelectedSubOrganization}
-                disabled={!reportData}
-              >
-                <SelectTrigger className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C]">
-                  <SelectValue placeholder="Select sub-organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Sub-Organizations</SelectItem>
-                  {getFilteredSubOrganizations().map((subOrg) => (
-                    <SelectItem key={subOrg.value} value={subOrg.value || ""}>
-                      {subOrg.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative" ref={subOrganizationDropdownRef}>
+                <Input
+                  value={subOrganizationSearchQuery}
+                  onChange={(e) => handleSubOrganizationSearch(e.target.value)}
+                  onFocus={() => setShowSubOrganizationDropdown(true)}
+                  placeholder={
+                    selectedSubOrganization === "all"
+                      ? "All Sub-Organizations"
+                      : "Search sub-organizations..."
+                  }
+                  className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] pr-8"
+                />
+                <ChevronDown
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 cursor-pointer"
+                  onClick={() =>
+                    setShowSubOrganizationDropdown(!showSubOrganizationDropdown)
+                  }
+                />
+
+                {showSubOrganizationDropdown && (
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-[#E5E5E5] rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <div
+                      className="px-3 py-2 text-sm text-[#2C2C2C] hover:bg-gray-50 cursor-pointer border-b border-gray-100"
+                      onClick={() => handleSubOrganizationSelect("all")}
+                    >
+                      All Sub-Organizations
+                    </div>
+                    {filteredSubOrganizations.length > 0 ? (
+                      filteredSubOrganizations.map((subOrg) => {
+                        if (!subOrg.value) return null;
+                        return (
+                          <div
+                            key={subOrg.value}
+                            className="px-3 py-2 text-sm text-[#2C2C2C] hover:bg-gray-50 cursor-pointer"
+                            onClick={() =>
+                              handleSubOrganizationSelect(subOrg.value!)
+                            }
+                          >
+                            {subOrg.label}
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500">
+                        No sub-organizations found
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
@@ -930,33 +1201,41 @@ const Frontliners = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-4">
             <div className="space-y-2">
-              <Label htmlFor="searchFilter" className="text-[#2C2C2C]">
-                Search
+              <Label
+                htmlFor="registrationDateFilter"
+                className="text-[#2C2C2C] text-center block"
+              >
+                Registration Date Range
               </Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#2C2C2C]/60 h-4 w-4" />
-                <Input
-                  placeholder="Search frontliners..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#2C2C2C]/60"
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Input
+                    type="date"
+                    value={selectedRegistrationDateRange.from}
+                    onChange={(e) =>
+                      handleDateRangeChange("from", e.target.value)
+                    }
+                    placeholder="From date"
+                    className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] text-sm"
+                  />
+                </div>
+                <div>
+                  <Input
+                    type="date"
+                    value={selectedRegistrationDateRange.to}
+                    onChange={(e) =>
+                      handleDateRangeChange("to", e.target.value)
+                    }
+                    placeholder="To date"
+                    className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] text-sm"
+                  />
+                </div>
               </div>
             </div>
           </div>
-          {hasActiveFilters && (
-            <div className="mt-4 flex justify-end">
-              <Button
-                variant="outline"
-                onClick={clearAllFilters}
-                className="bg-red-500/20 border-red-500/30 text-white hover:bg-red-500/30"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Clear Filters
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* Export Button */}
@@ -970,371 +1249,353 @@ const Frontliners = () => {
           </Button>
         </div>
 
+        {/* Search Bar */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#2C2C2C]/60 h-4 w-4" />
+          <Input
+            placeholder="Search frontliners..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 bg-white border-[#E5E5E5] text-[#2C2C2C] placeholder:text-[#2C2C2C]/60"
+          />
+        </div>
+
         {/* Frontliners Accordion Table */}
-        <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-          <CardHeader>
-            <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-              <Users className="h-5 w-5 text-dawn" />
-              Frontliners List ({filteredFrontliners.length} results)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="border bg-card/50 backdrop-blur-sm border-border w-full max-w-8xl mx-auto rounded-lg overflow-hidden">
+          <div className="overflow-x-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sandstone/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sandstone/50">
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 text-dawn animate-spin" />
               </div>
             ) : (
-              <div className="space-y-2">
-                {/* Table Header */}
-                <div className="grid grid-cols-12 gap-4 p-4 bg-white/5 rounded-lg border border-white/10">
-                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
-                    User ID
-                  </div>
-                  <div className="col-span-2 text-[#2C2C2C] font-medium truncate">
-                    Name
-                  </div>
-                  <div className="col-span-2 text-[#2C2C2C] font-medium truncate">
-                    Email
-                  </div>
-                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
-                    EID
-                  </div>
-                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
-                    Asset
-                  </div>
-                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
-                    Organization
-                  </div>
-                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
-                    Role
-                  </div>
-                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
-                    Progress
-                  </div>
-                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
-                    Status
-                  </div>
-                  <div className="col-span-1 text-[#2C2C2C] font-medium truncate">
-                    Actions
-                  </div>
-                </div>
-
-                {/* Accordion Rows */}
-                {filteredFrontliners.map((frontliner) => (
-                  <div
-                    key={frontliner.id}
-                    className="border border-white/10 rounded-lg overflow-hidden"
-                  >
-                    {/* Primary Row */}
-                    <div
-                      className="grid grid-cols-12 gap-4 p-4 bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
-                      onClick={() => toggleRow(frontliner.id)}
-                    >
-                      <div
-                        className="col-span-1 text-[#2C2C2C] font-medium truncate"
-                        title={frontliner.id}
-                      >
-                        {frontliner.id}
-                      </div>
-                      <div
-                        className="col-span-2 text-[#2C2C2C] truncate"
-                        title={`${frontliner.firstName} ${frontliner.lastName}`}
-                      >
-                        {frontliner.firstName} {frontliner.lastName}
-                      </div>
-                      <div
-                        className="col-span-2 text-[#2C2C2C] truncate"
-                        title={frontliner.email}
-                      >
-                        {frontliner.email}
-                      </div>
-                      <div
-                        className="col-span-1 text-[#2C2C2C] truncate"
-                        title={frontliner.eid}
-                      >
-                        {frontliner.eid}
-                      </div>
-                      <div
-                        className="col-span-1 text-[#2C2C2C] truncate"
-                        title={frontliner.asset}
-                      >
-                        {frontliner.asset}
-                      </div>
-                      <div
-                        className="col-span-1 text-[#2C2C2C] truncate"
-                        title={frontliner.organization}
-                      >
-                        {frontliner.organization}
-                      </div>
-                      <div
-                        className="col-span-1 text-[#2C2C2C] truncate"
-                        title={frontliner.role}
-                      >
-                        {frontliner.role}
-                      </div>
-                      <div className="col-span-1 text-[#2C2C2C]">
-                        <div className="flex items-center gap-2">
-                          <div className="w-12 bg-white/20 rounded-full h-2">
-                            <div
-                              className="bg-[#00d8cc] h-2 rounded-full"
-                              style={{
-                                width: `${formatProgress(
-                                  frontliner.overallProgress
-                                )}%`,
-                              }}
-                            ></div>
-                          </div>
-                          <span className="text-xs">
-                            {formatProgress(frontliner.overallProgress)}%
-                          </span>
-                        </div>
-                      </div>
-                      <div className="col-span-1 text-[#2C2C2C]">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs ${
-                            frontliner.status === "active"
-                              ? "bg-green-500/20 text-black"
-                              : "bg-red-500/20 text-black"
-                          }`}
+              <div className="w-full">
+                <Table className="table-auto w-full">
+                  <TableHeader className="sticky top-0 bg-card/50 backdrop-blur-sm z-10">
+                    <TableRow className="border-border">
+                      <TableHead className="text-foreground font-semibold whitespace-nowrap">
+                        User ID
+                      </TableHead>
+                      <TableHead className="text-foreground font-semibold whitespace-nowrap">
+                        Full Name
+                      </TableHead>
+                      <TableHead className="text-foreground font-semibold whitespace-nowrap">
+                        Email
+                      </TableHead>
+                      <TableHead className="text-foreground font-semibold whitespace-nowrap">
+                        Organization
+                      </TableHead>
+                      <TableHead className="text-foreground font-semibold whitespace-nowrap">
+                        Sub-Organization
+                      </TableHead>
+                      <TableHead className="text-foreground font-semibold whitespace-nowrap">
+                        Role Category
+                      </TableHead>
+                      <TableHead className="text-foreground font-semibold whitespace-nowrap">
+                        Seniority
+                      </TableHead>
+                      <TableHead className="text-foreground font-semibold whitespace-nowrap">
+                        Overall Progress
+                      </TableHead>
+                      <TableHead className="text-foreground font-semibold whitespace-nowrap">
+                        Status
+                      </TableHead>
+                      <TableHead className="text-foreground font-semibold whitespace-nowrap">
+                        Actions
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredFrontliners.map((frontliner) => (
+                      <React.Fragment key={frontliner.id}>
+                        {/* Primary Row */}
+                        <TableRow
+                          className="border-border hover:bg-muted/50 cursor-pointer transition-colors"
+                          onClick={() => toggleRow(frontliner.id)}
                         >
-                          {frontliner.status}
-                        </span>
-                      </div>
-                      <div className="col-span-1 flex items-center gap-2">
-                        {expandedRows.has(frontliner.id) ? (
-                          <ChevronDown className="h-4 w-4 text-[#2C2C2C]/60" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 text-[#2C2C2C]/60" />
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-white/10"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleViewUserDetails(frontliner.id);
-                          }}
-                          disabled={loadingUserDetails}
-                        >
-                          {loadingUserDetails ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Expanded Row */}
-                    {expandedRows.has(frontliner.id) && (
-                      <div className="bg-white/5 border-t border-white/10 p-4">
-                        <div className="grid grid-cols-12 gap-4">
-                          <div className="col-span-2">
-                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                              Phone Number
-                            </div>
-                            <div
-                              className="text-[#2C2C2C] truncate"
-                              title={frontliner.phoneNumber}
-                            >
-                              {frontliner.phoneNumber}
-                            </div>
-                          </div>
-                          <div className="col-span-2">
-                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                              Asset Sub-Category
-                            </div>
-                            <div
-                              className="text-[#2C2C2C] truncate"
-                              title={frontliner.subAsset}
-                            >
-                              {frontliner.subAsset}
-                            </div>
-                          </div>
-                          <div className="col-span-2">
-                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                              Sub-Organization
-                            </div>
-                            <div
-                              className="text-[#2C2C2C] truncate"
-                              title={frontliner.subOrganization || "N/A"}
-                            >
-                              {frontliner.subOrganization || "N/A"}
-                            </div>
-                          </div>
-                          <div className="col-span-2">
-                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                              Role Category
-                            </div>
-                            <div
-                              className="text-[#2C2C2C] truncate"
-                              title={frontliner.roleCategory}
-                            >
-                              {frontliner.roleCategory}
-                            </div>
-                          </div>
-                          <div className="col-span-2">
-                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                              Seniority
-                            </div>
-                            <div
-                              className="text-[#2C2C2C] truncate"
-                              title={frontliner.seniority}
-                            >
-                              {frontliner.seniority}
-                            </div>
-                          </div>
-                          <div className="col-span-2">
-                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                              VX Points
-                            </div>
-                            <div
-                              className="text-[#2C2C2C] truncate"
-                              title={frontliner.vxPoints.toLocaleString()}
-                            >
-                              {frontliner.vxPoints.toLocaleString()}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 grid grid-cols-12 gap-4">
-                          <div className="col-span-2">
-                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                              Al Midhyaf
-                            </div>
+                          <TableCell className="text-foreground/90 whitespace-nowrap">
+                            {frontliner.id}
+                          </TableCell>
+                          <TableCell className="text-foreground/90 whitespace-nowrap">
+                            {frontliner.firstName} {frontliner.lastName}
+                          </TableCell>
+                          <TableCell className="text-foreground/90 whitespace-nowrap">
+                            {frontliner.email}
+                          </TableCell>
+                          <TableCell className="text-foreground/90 whitespace-nowrap">
+                            {frontliner.organization}
+                          </TableCell>
+                          <TableCell className="text-foreground/90 whitespace-nowrap">
+                            {Array.isArray(frontliner.subOrganization)
+                              ? frontliner.subOrganization.join(", ")
+                              : frontliner.subOrganization || "N/A"}
+                          </TableCell>
+                          <TableCell className="text-foreground/90 whitespace-nowrap">
+                            {frontliner.roleCategory}
+                          </TableCell>
+                          <TableCell className="text-foreground/90 whitespace-nowrap">
+                            {frontliner.seniority}
+                          </TableCell>
+                          <TableCell className="text-foreground/90 whitespace-nowrap">
                             <div className="flex items-center gap-2">
-                              <div className="w-16 bg-white/20 rounded-full h-2">
+                              <div className="w-12 bg-gray-200 rounded-full h-2">
                                 <div
-                                  className="bg-blue-500 h-2 rounded-full"
+                                  className="bg-dawn h-2 rounded-full"
                                   style={{
                                     width: `${formatProgress(
-                                      frontliner.alMidhyaf
+                                      frontliner.overallProgress
                                     )}%`,
                                   }}
                                 ></div>
                               </div>
-                              <span className="text-xs text-[#2C2C2C]">
-                                {formatProgress(frontliner.alMidhyaf)}%
+                              <span className="text-xs">
+                                {formatProgress(frontliner.overallProgress)}%
                               </span>
                             </div>
-                          </div>
-                          <div className="col-span-2">
-                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                              AD Information
-                            </div>
+                          </TableCell>
+                          <TableCell className="text-foreground/90 whitespace-nowrap">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                frontliner.status === "active"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-red-100 text-red-700"
+                              }`}
+                            >
+                              {frontliner.status}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-foreground/90 whitespace-nowrap">
                             <div className="flex items-center gap-2">
-                              <div className="w-16 bg-white/20 rounded-full h-2">
-                                <div
-                                  className="bg-green-500 h-2 rounded-full"
-                                  style={{
-                                    width: `${formatProgress(
-                                      frontliner.adInformation
-                                    )}%`,
-                                  }}
-                                ></div>
-                              </div>
-                              <span className="text-xs text-[#2C2C2C]">
-                                {formatProgress(frontliner.adInformation)}%
-                              </span>
-                            </div>
-                          </div>
-                          <div className="col-span-2">
-                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                              VX Soft Skills
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-16 bg-white/20 rounded-full h-2">
-                                <div
-                                  className="bg-purple-500 h-2 rounded-full"
-                                  style={{
-                                    width: `${formatProgress(
-                                      frontliner.generalVxSoftSkills
-                                    )}%`,
-                                  }}
-                                ></div>
-                              </div>
-                              <span className="text-xs text-[#2C2C2C]">
-                                {formatProgress(frontliner.generalVxSoftSkills)}
-                                %
-                              </span>
-                            </div>
-                          </div>
-                          <div className="col-span-2">
-                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                              VX Hard Skills
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-16 bg-white/20 rounded-full h-2">
-                                <div
-                                  className="bg-orange-500 h-2 rounded-full"
-                                  style={{
-                                    width: `${formatProgress(
-                                      frontliner.generalVxHardSkills
-                                    )}%`,
-                                  }}
-                                ></div>
-                              </div>
-                              <span className="text-xs text-[#2C2C2C]">
-                                {formatProgress(frontliner.generalVxHardSkills)}
-                                %
-                              </span>
-                            </div>
-                          </div>
-                          <div className="col-span-2">
-                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                              Managerial Competencies
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="w-16 bg-white/20 rounded-full h-2">
-                                <div
-                                  className="bg-red-500 h-2 rounded-full"
-                                  style={{
-                                    width: `${formatProgress(
-                                      frontliner.managerialCompetencies
-                                    )}%`,
-                                  }}
-                                ></div>
-                              </div>
-                              <span className="text-xs text-[#2C2C2C]">
-                                {formatProgress(
-                                  frontliner.managerialCompetencies
+                              {expandedRows.has(frontliner.id) ? (
+                                <ChevronDown className="h-4 w-4 text-gray-500" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-gray-500" />
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-dawn hover:text-[#B85A1A] hover:bg-dawn/10"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewUserDetails(frontliner.id);
+                                }}
+                                disabled={loadingUserDetails}
+                              >
+                                {loadingUserDetails ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
                                 )}
-                                %
-                              </span>
+                              </Button>
                             </div>
-                          </div>
-                          <div className="col-span-2">
-                            <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                              Registration Date
-                            </div>
-                            <div
-                              className="text-[#2C2C2C] truncate"
-                              title={formatDate(frontliner.registrationDate)}
-                            >
-                              {formatDate(frontliner.registrationDate)}
-                            </div>
-                          </div>
-                        </div>
+                          </TableCell>
+                        </TableRow>
 
-                        <div className="mt-4">
-                          <div className="text-xs text-[#2C2C2C]/60 mb-1">
-                            Last Login Date
-                          </div>
-                          <div
-                            className="text-[#2C2C2C] truncate"
-                            title={formatDate(frontliner.lastLoginDate)}
-                          >
-                            {formatDate(frontliner.lastLoginDate)}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                        {/* Expanded Row */}
+                        {expandedRows.has(frontliner.id) && (
+                          <TableRow className="border-border bg-muted/30">
+                            <TableCell colSpan={10} className="p-6">
+                              <div className="space-y-6">
+                                {/* Basic Information */}
+                                <div className="grid grid-cols-5 gap-4">
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                      EID
+                                    </div>
+                                    <div className="text-foreground text-sm">
+                                      {frontliner.eid}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                      Phone Number
+                                    </div>
+                                    <div className="text-foreground text-sm">
+                                      {frontliner.phoneNumber}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                      Asset
+                                    </div>
+                                    <div className="text-foreground text-sm">
+                                      {frontliner.asset}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                      Asset Sub-Category
+                                    </div>
+                                    <div className="text-foreground text-sm">
+                                      {frontliner.subAsset}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                      Role
+                                    </div>
+                                    <div className="text-foreground text-sm">
+                                      {frontliner.role}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Frontliner Type */}
+                                <div className="grid grid-cols-1 gap-4">
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                      Frontliner Type
+                                    </div>
+                                    <div className="text-foreground text-sm">
+                                      {frontliner.frontlinerType}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Training Progress */}
+                                <div className="grid grid-cols-6 gap-4">
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                      Al Midhyaf
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-16 bg-gray-200 rounded-full h-2">
+                                        <div
+                                          className="bg-blue-500 h-2 rounded-full"
+                                          style={{
+                                            width: `${formatProgress(
+                                              frontliner.alMidhyaf
+                                            )}%`,
+                                          }}
+                                        ></div>
+                                      </div>
+                                      <span className="text-xs text-foreground">
+                                        {formatProgress(frontliner.alMidhyaf)}%
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                      AD Information
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-16 bg-gray-200 rounded-full h-2">
+                                        <div
+                                          className="bg-green-500 h-2 rounded-full"
+                                          style={{
+                                            width: `${formatProgress(
+                                              frontliner.adInformation
+                                            )}%`,
+                                          }}
+                                        ></div>
+                                      </div>
+                                      <span className="text-xs text-foreground">
+                                        {formatProgress(
+                                          frontliner.adInformation
+                                        )}
+                                        %
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                      VX Soft Skills
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-16 bg-gray-200 rounded-full h-2">
+                                        <div
+                                          className="bg-purple-500 h-2 rounded-full"
+                                          style={{
+                                            width: `${formatProgress(
+                                              frontliner.generalVxSoftSkills
+                                            )}%`,
+                                          }}
+                                        ></div>
+                                      </div>
+                                      <span className="text-xs text-foreground">
+                                        {formatProgress(
+                                          frontliner.generalVxSoftSkills
+                                        )}
+                                        %
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                      VX Hard Skills
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-16 bg-gray-200 rounded-full h-2">
+                                        <div
+                                          className="bg-orange-500 h-2 rounded-full"
+                                          style={{
+                                            width: `${formatProgress(
+                                              frontliner.generalVxHardSkills
+                                            )}%`,
+                                          }}
+                                        ></div>
+                                      </div>
+                                      <span className="text-xs text-foreground">
+                                        {formatProgress(
+                                          frontliner.generalVxHardSkills
+                                        )}
+                                        %
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                      Managerial Competencies
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-16 bg-gray-200 rounded-full h-2">
+                                        <div
+                                          className="bg-red-500 h-2 rounded-full"
+                                          style={{
+                                            width: `${formatProgress(
+                                              frontliner.managerialCompetencies
+                                            )}%`,
+                                          }}
+                                        ></div>
+                                      </div>
+                                      <span className="text-xs text-foreground">
+                                        {formatProgress(
+                                          frontliner.managerialCompetencies
+                                        )}
+                                        %
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                      Registration Date
+                                    </div>
+                                    <div className="text-foreground text-sm">
+                                      {formatDate(frontliner.registrationDate)}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Last Login */}
+                                <div>
+                                  <div className="text-xs text-muted-foreground mb-1 font-medium">
+                                    Last Login Date
+                                  </div>
+                                  <div className="text-foreground text-sm">
+                                    {formatDate(frontliner.lastLoginDate)}
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Comprehensive User Details Dialog */}
@@ -1344,9 +1605,19 @@ const Frontliners = () => {
       >
         <DialogContent className="max-w-6xl w-full max-h-[90vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-[#2C2C2C]">
-              Comprehensive User Details
-            </DialogTitle>
+            <div className="flex justify-between items-center">
+              <DialogTitle className="text-xl font-semibold text-[#2C2C2C]">
+                Comprehensive User Details
+              </DialogTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowUserDetailsModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </DialogHeader>
 
           <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
@@ -1519,7 +1790,7 @@ const Frontliners = () => {
 
                   {/* Training Area Progress */}
                   {comprehensiveUserData.progress.trainingAreaProgress.length >
-                    0 && (
+                  0 ? (
                     <div className="mb-4">
                       <h4 className="text-md font-medium text-[#2C2C2C] mb-2">
                         Training Areas
@@ -1533,7 +1804,10 @@ const Frontliners = () => {
                                   {progress.trainingAreaName}
                                 </span>
                                 <span className="text-sm text-[#2C2C2C]/60">
-                                  {progress.completionPercentage}%
+                                  {Number(
+                                    progress.completionPercentage
+                                  ).toFixed(2)}
+                                  %
                                 </span>
                               </div>
                               <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
@@ -1549,10 +1823,21 @@ const Frontliners = () => {
                         )}
                       </div>
                     </div>
+                  ) : (
+                    <div className="mb-4">
+                      <h4 className="text-md font-medium text-[#2C2C2C] mb-2">
+                        Training Areas
+                      </h4>
+                      <div className="bg-gray-50 p-3 rounded text-center">
+                        <span className="text-[#2C2C2C]/60 text-sm">
+                          No training area progress data available
+                        </span>
+                      </div>
+                    </div>
                   )}
 
                   {/* Course Progress */}
-                  {comprehensiveUserData.progress.courseProgress.length > 0 && (
+                  {comprehensiveUserData.progress.courseProgress.length > 0 ? (
                     <div className="mb-4">
                       <h4 className="text-md font-medium text-[#2C2C2C] mb-2">
                         Courses
@@ -1566,7 +1851,10 @@ const Frontliners = () => {
                                   {progress.courseName}
                                 </span>
                                 <span className="text-sm text-[#2C2C2C]/60">
-                                  {progress.completionPercentage}%
+                                  {Number(
+                                    progress.completionPercentage
+                                  ).toFixed(2)}
+                                  %
                                 </span>
                               </div>
                               <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
@@ -1580,6 +1868,17 @@ const Frontliners = () => {
                             </div>
                           )
                         )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mb-4">
+                      <h4 className="text-md font-medium text-[#2C2C2C] mb-2">
+                        Courses
+                      </h4>
+                      <div className="bg-gray-50 p-3 rounded text-center">
+                        <span className="text-[#2C2C2C]/60 text-sm">
+                          No course progress data available
+                        </span>
                       </div>
                     </div>
                   )}
@@ -1601,7 +1900,7 @@ const Frontliners = () => {
                               </span>
                               <div className="flex items-center gap-2">
                                 <span className="text-sm text-[#2C2C2C]/60">
-                                  Score: {attempt.score}
+                                  Score: {Number(attempt.score).toFixed(2)}
                                 </span>
                                 <span
                                   className={`text-sm ${

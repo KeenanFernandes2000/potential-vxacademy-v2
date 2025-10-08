@@ -74,12 +74,12 @@ import CertificatePage from "./pages/certificate";
 const AdminRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full bg-sandstone">
+      <div className="flex h-screen w-full">
         {/* Persistent Admin Sidebar */}
         <AdminSidebar />
 
         {/* Main Content Area */}
-        <SidebarInset className="max-w-[100%]">
+        <SidebarInset className="max-w-[86%]">
           <div className="flex flex-col h-full">
             <main className="flex-1 p-6">
               <div className="space-y-6">{children}</div>

@@ -24,12 +24,12 @@ const Dashboard = () => {
   // State management for API data
   const [stats, setStats] = useState({
     totalUsers: 0,
-    newUsersThisMonth: 0,
     totalFrontliners: 0,
     newFrontliners: 0,
     totalOrganizations: 0,
+    totalSubOrganizations: 0,
     totalCertificates: 0,
-    totalVXPoints: 0,
+    totalSubAdmins: 0,
     averageProgress: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -59,29 +59,6 @@ const Dashboard = () => {
         throw error;
       }
     },
-
-    async getAllUsers(token: string) {
-      try {
-        const baseUrl = import.meta.env.VITE_API_URL;
-        const response = await fetch(`${baseUrl}/api/users/users`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        console.error("Failed to fetch users:", error);
-        throw error;
-      }
-    },
   };
 
   // Fetch dashboard stats on component mount
@@ -97,54 +74,18 @@ const Dashboard = () => {
         setLoading(true);
         setError(null);
 
-        // Get dashboard stats from the new endpoint
+        // Get dashboard stats from the endpoint
         const dashboardStatsResponse = await api.getDashboardStats(token);
         const dashboardStats = dashboardStatsResponse.data || {};
 
-        // Get all users for additional calculations
-        const usersResponse = await api.getAllUsers(token);
-        const allUsers = usersResponse.data || [];
-
-        // Calculate user-related stats
-        const totalUsers = allUsers.length;
-
-        // Filter frontliners (users with userType 'user')
-        const frontliners = allUsers.filter(
-          (user: any) => user.userType === "user"
-        );
-        const totalFrontliners = frontliners.length;
-
-        // Count new users and frontliners (created this month)
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth();
-        const currentYear = currentDate.getFullYear();
-
-        const newUsersThisMonth = allUsers.filter((user: any) => {
-          if (!user.createdAt) return false;
-          const userCreatedDate = new Date(user.createdAt);
-          return (
-            userCreatedDate.getMonth() === currentMonth &&
-            userCreatedDate.getFullYear() === currentYear
-          );
-        }).length;
-
-        const newFrontliners = frontliners.filter((user: any) => {
-          if (!user.createdAt) return false;
-          const userCreatedDate = new Date(user.createdAt);
-          return (
-            userCreatedDate.getMonth() === currentMonth &&
-            userCreatedDate.getFullYear() === currentYear
-          );
-        }).length;
-
         setStats({
-          totalUsers,
-          newUsersThisMonth,
-          totalFrontliners,
-          newFrontliners,
+          totalUsers: dashboardStats.totalUsers || 0,
+          totalFrontliners: dashboardStats.totalFrontliners || 0,
+          newFrontliners: dashboardStats.newFrontliners || 0,
           totalOrganizations: dashboardStats.totalOrganizations || 0,
+          totalSubOrganizations: dashboardStats.totalSubOrganizations || 0,
           totalCertificates: dashboardStats.totalCertificates || 0,
-          totalVXPoints: dashboardStats.totalVxPoints || 0,
+          totalSubAdmins: dashboardStats.totalSubAdmins || 0,
           averageProgress: dashboardStats.averageProgress || 0,
         });
       } catch (err) {
@@ -224,30 +165,22 @@ const Dashboard = () => {
             title="Total Users"
             value={stats.totalUsers.toLocaleString()}
             icon={Users}
-            change="All users in the system"
+            change="All users in the platform"
             changeType="neutral"
-            loading={loading}
-          />
-          <StatCard
-            title="New Users"
-            value={stats.newUsersThisMonth}
-            icon={Users}
-            change="Registered this month"
-            changeType="positive"
             loading={loading}
           />
           <StatCard
             title="Total Frontliners"
             value={stats.totalFrontliners.toLocaleString()}
             icon={Target}
-            change="Active frontliners"
+            change="All registered frontliners"
             changeType="neutral"
             loading={loading}
           />
           <StatCard
             title="New Frontliners"
             value={stats.newFrontliners}
-            icon={Target}
+            icon={TrendingUp}
             change="Joined this month"
             changeType="positive"
             loading={loading}
@@ -261,6 +194,14 @@ const Dashboard = () => {
             loading={loading}
           />
           <StatCard
+            title="Total Sub-Organizations"
+            value={stats.totalSubOrganizations.toLocaleString()}
+            icon={Building2}
+            change="Registered sub-organizations"
+            changeType="neutral"
+            loading={loading}
+          />
+          <StatCard
             title="Total Certificates"
             value={stats.totalCertificates.toLocaleString()}
             icon={GraduationCap}
@@ -269,16 +210,16 @@ const Dashboard = () => {
             loading={loading}
           />
           <StatCard
-            title="Total VX Points"
-            value={stats.totalVXPoints.toLocaleString()}
-            icon={Star}
-            change="Points earned by all users"
+            title="Total Sub-Admins"
+            value={stats.totalSubAdmins.toLocaleString()}
+            icon={Users}
+            change="Registered sub-admins"
             changeType="neutral"
             loading={loading}
           />
           <StatCard
             title="Average Progress"
-            value={`${stats.averageProgress}%`}
+            value={`${stats.averageProgress.toFixed(2)}%`}
             icon={Percent}
             change="Overall completion rate"
             changeType="neutral"

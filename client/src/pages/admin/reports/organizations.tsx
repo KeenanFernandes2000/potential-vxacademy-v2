@@ -30,8 +30,7 @@ interface Organization {
   subOrganization?: string;
   totalFrontliners: number;
   registeredFrontliners: number;
-  subAdminName: string;
-  subAdminEmail: string;
+  hasSubAdmin: boolean;
   createdAt: string;
   status: "active" | "inactive";
 }
@@ -261,11 +260,8 @@ const Organizations = () => {
     let filtered = reportData.organizations;
 
     if (query) {
-      filtered = filtered.filter(
-        (org) =>
-          org.name.toLowerCase().includes(query.toLowerCase()) ||
-          org.subAdminName.toLowerCase().includes(query.toLowerCase()) ||
-          org.subAdminEmail.toLowerCase().includes(query.toLowerCase())
+      filtered = filtered.filter((org) =>
+        org.name.toLowerCase().includes(query.toLowerCase())
       );
     }
 
@@ -283,12 +279,10 @@ const Organizations = () => {
         "Sub-Organization",
         "Total Frontliners",
         "Registered Frontliners",
-        "Sub-Admin Name",
-        "Sub-Admin Email",
+        "Has Subadmin",
         "Asset",
         "Sub-Asset",
         "Status",
-        "Created",
       ],
       ...filteredOrganizations.map((org) => [
         org.id,
@@ -334,12 +328,10 @@ const Organizations = () => {
         })(),
         org.totalFrontliners.toString(),
         org.registeredFrontliners.toString(),
-        org.subAdminName,
-        org.subAdminEmail,
+        org.hasSubAdmin ? "Yes" : "No",
         org.asset,
         org.subAsset,
         org.status,
-        formatDate(org.createdAt),
       ]),
     ]
       .map((row) => row.join(","))
@@ -352,15 +344,6 @@ const Organizations = () => {
     a.download = "organizations-report.csv";
     a.click();
     window.URL.revokeObjectURL(url);
-  };
-
-  const formatDate = (dateString: string) => {
-    if (dateString === "N/A" || !dateString) return "N/A";
-    try {
-      return new Date(dateString).toLocaleDateString();
-    } catch {
-      return "N/A";
-    }
   };
 
   // Prepare table data for AdminTableLayout
@@ -410,12 +393,10 @@ const Organizations = () => {
     })(),
     "Total Frontliners": org.totalFrontliners.toString(),
     "Registered Frontliners": org.registeredFrontliners.toString(),
-    "Sub-Admin Name": org.subAdminName,
-    "Sub-Admin Email": org.subAdminEmail,
+    "Has Subadmin": org.hasSubAdmin ? "Yes" : "No",
     Asset: org.asset,
     "Sub-Asset": org.subAsset,
     Status: org.status,
-    Created: formatDate(org.createdAt),
   }));
 
   if (loading) {
@@ -496,7 +477,7 @@ const Organizations = () => {
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[#2C2C2C]">
-                Total Frontliners
+                Expected Frontliners
               </CardTitle>
               <Users className="h-4 w-4 text-blue-400" />
             </CardHeader>
@@ -524,7 +505,20 @@ const Organizations = () => {
 
         {/* Filter Section */}
         <div className="mb-6 p-4 bg-sandstone rounded-lg border border-[#E5E5E5]">
-          <h3 className="text-lg font-semibold text-dawn mb-4">Filter By</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-dawn">Filter By</h3>
+            {hasActiveFilters && (
+              <Button
+                onClick={clearAllFilters}
+                variant="outline"
+                size="sm"
+                className="text-dawn border-dawn hover:bg-dawn hover:text-white"
+              >
+                <X className="mr-2 h-4 w-4" />
+                Reset Filters
+              </Button>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="assetFilter" className="text-[#2C2C2C]">
@@ -579,18 +573,6 @@ const Organizations = () => {
               </Select>
             </div>
           </div>
-          {hasActiveFilters && (
-            <div className="mt-4 flex justify-end">
-              <Button
-                variant="outline"
-                onClick={clearAllFilters}
-                className="bg-red-500/20 border-red-500/30 text-white hover:bg-red-500/30"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Clear Filters
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* Export Button */}
@@ -612,14 +594,12 @@ const Organizations = () => {
             "Org ID",
             "Organization Name",
             "Sub-Organization",
-            "Total Frontliners",
+            "Expected Frontliners",
             "Registered Frontliners",
-            "Sub-Admin Name",
-            "Sub-Admin Email",
+            "Has Sub-Admin",
             "Asset",
             "Sub-Asset",
             "Status",
-            "Created",
           ]}
           onSearch={handleSearch}
         />

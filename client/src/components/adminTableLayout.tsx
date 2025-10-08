@@ -612,6 +612,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
 
   // Check if a column header contains 'name' using regex
   const isNameColumn = (columnName: string): boolean => {
+    return false;
     const isName = /name/i.test(columnName);
     // console.log(`Column "${columnName}" is name column:`, isName);
     return isName;
@@ -743,7 +744,6 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
         className={`text-foreground font-semibold ${
           isSortable ? "cursor-pointer hover:bg-muted/50 select-none" : ""
         }`}
-        style={{ minWidth: "120px", maxWidth: "200px" }}
         onClick={(e) => {
           if (isDialogOpen) {
             console.log("Dialog is open, ignoring table header click");
@@ -766,7 +766,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
         }}
       >
         <div className="flex items-center gap-2">
-          <span className="truncate max-w-[150px]" title={column}>
+          <span className="whitespace-nowrap" title={column}>
             {column}
           </span>
           {isSortable && (
@@ -1035,8 +1035,8 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
       {/* Table */}
       <div className="border bg-card/50 backdrop-blur-sm border-border w-full max-w-8xl mx-auto rounded-lg overflow-hidden">
         <div className="overflow-x-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sandstone/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sandstone/50 [&::-webkit-scrollbar-corner]:bg-transparent">
-          <div className="min-w-[800px]">
-            <Table className="table-fixed w-full">
+          <div className="w-full">
+            <Table className="table-auto w-full">
               <TableHeader className="sticky top-0 bg-card/50 backdrop-blur-sm z-10">
                 <TableRow className="border-border">
                   {columns.map((column) => (
@@ -1053,7 +1053,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
                     {Object.values(row).map((cell, cellIndex) => (
                       <TableCell
                         key={cellIndex}
-                        className="text-foreground/90 whitespace-nowrap max-w-[200px] truncate"
+                        className="text-foreground/90 whitespace-nowrap"
                       >
                         {typeof cell === "string" || typeof cell === "number"
                           ? String(cell)
