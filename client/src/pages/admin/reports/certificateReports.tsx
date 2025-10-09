@@ -1039,13 +1039,7 @@ const CertificateReports = () => {
                                       Frontliner Type
                                     </div>
                                     <div className="text-foreground text-sm">
-                                      <span
-                                        className={`px-2 py-1 rounded-full text-xs font-medium ${getClassificationColor(
-                                          item.frontlinerType
-                                        )}`}
-                                      >
-                                        {item.frontlinerType}
-                                      </span>
+                                      {item.frontlinerType}
                                     </div>
                                   </div>
                                 </div>
@@ -1161,24 +1155,6 @@ const CertificateReports = () => {
                                         {item.managerialCompetenciesCertificate
                                           ? "Earned"
                                           : "Not Earned"}
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <div className="text-foreground text-sm font-medium">
-                                        Total:{" "}
-                                        {
-                                          [
-                                            item.alMidhyafCertificate,
-                                            item.adInformationCertificate,
-                                            item.generalVXSoftSkillsCertificate,
-                                            item.generalVXHardSkillsCertificate,
-                                            item.managerialCompetenciesCertificate,
-                                          ].filter(Boolean).length
-                                        }
-                                        /5
-                                      </div>
-                                      <div className="text-xs text-muted-foreground mt-1">
-                                        Certificates Earned
                                       </div>
                                     </div>
                                   </div>

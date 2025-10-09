@@ -560,11 +560,13 @@ const Frontliners = () => {
               frontliner.overallProgress >= 51 &&
               frontliner.overallProgress <= 75
             );
-          case "76-100":
+          case "76-99":
             return (
               frontliner.overallProgress >= 76 &&
-              frontliner.overallProgress <= 100
+              frontliner.overallProgress <= 99
             );
+          case "100":
+            return frontliner.overallProgress === 100;
           default:
             return true;
         }
@@ -1182,7 +1184,8 @@ const Frontliners = () => {
                   <SelectItem value="0-25">0-25%</SelectItem>
                   <SelectItem value="26-50">26-50%</SelectItem>
                   <SelectItem value="51-75">51-75%</SelectItem>
-                  <SelectItem value="76-100">76-100%</SelectItem>
+                  <SelectItem value="76-99">76-99%</SelectItem>
+                  <SelectItem value="100">100%</SelectItem>
                 </SelectContent>
               </Select>
             </div>

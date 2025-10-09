@@ -533,7 +533,7 @@ const CoursesPage = () => {
           module_name: module?.name || "N/A",
           training_area_name: trainingArea?.name || "N/A",
           duration: course.duration || 0,
-          level: course.level || "beginner",
+          // level: course.level || "beginner",
           status: (
             <span
               className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -762,7 +762,7 @@ const CoursesPage = () => {
             </Label>
           </div>
         </div>
-        {formData.show_level && (
+        {/* {formData.show_level && (
           <div className="space-y-2">
             <Label htmlFor="level" className="text-[#2C2C2C]">
               Level *
@@ -790,7 +790,7 @@ const CoursesPage = () => {
               </p>
             )}
           </div>
-        )}
+        )} */}
         <div className="space-y-2">
           <Label htmlFor="status" className="text-[#2C2C2C]">
             Status *
@@ -1034,7 +1034,7 @@ const CoursesPage = () => {
             </Label>
           </div>
         </div>
-        {formData.show_level && (
+        {/* {formData.show_level && (
           <div className="space-y-2">
             <Label htmlFor="edit_level" className="text-[#2C2C2C]">
               Level *
@@ -1062,7 +1062,7 @@ const CoursesPage = () => {
               </p>
             )}
           </div>
-        )}
+        )} */}
         <div className="space-y-2">
           <Label htmlFor="edit_status" className="text-[#2C2C2C]">
             Status *

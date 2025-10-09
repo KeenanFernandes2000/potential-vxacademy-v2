@@ -45,14 +45,13 @@ export const reportServices = {
       const [
         // Key Metrics
         totalUsers,
-        activeUsers,
-        totalCourses,
-        completedCourses,
-        totalOrganizations,
-        certificatesIssued,
-        averageCompletionRate,
         totalFrontliners,
-        monthlyGrowth,
+        newFrontliners,
+        totalOrganizations,
+        totalSubOrganizations,
+        certificatesIssued,
+        totalSubAdmins,
+        averageCompletionRate,
 
         // User Growth Data
         userGrowthData,
@@ -94,51 +93,44 @@ export const reportServices = {
         trainingAreaSeniorityDistributionData,
       ] = await Promise.all([
         // Key Metrics
+        // Total Users (All users in the platform)
         db
           .select({ count: count() })
           .from(users)
           .where(ne(users.userType, "admin")),
-        db
-          .select({ count: count() })
-          .from(users)
-          .where(
-            and(
-              gte(
-                users.lastLogin,
-                new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-              ),
-              ne(users.userType, "admin")
-            )
-          ),
-        db
-          .select({ count: count() })
-          .from(courses)
-          .where(eq(courses.status, "published")),
-        db
-          .select({ count: count() })
-          .from(userCourseProgress)
-          .where(eq(userCourseProgress.status, "completed")),
+        // Total Frontliners (All registered frontliners)
+        db.select({ count: count() }).from(normalUsers),
+        // New Frontliners (Joined this month)
         db
           .select({ count: count() })
           .from(users)
           .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
-          .where(ne(users.userType, "admin"))
-          .groupBy(users.organization),
+          .where(
+            and(
+              gte(users.createdAt, sql`DATE_TRUNC('month', CURRENT_DATE)`),
+              lt(
+                users.createdAt,
+                sql`DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'`
+              )
+            )
+          ),
+        // Total Organizations (Registered organizations)
+        db.select({ count: count() }).from(organizations),
+        // Total Sub-Organizations (Registered sub-organizations)
+        db.select({ count: count() }).from(subOrganizations),
+        // Total Certificates (Certificates issued)
         db.select({ count: count() }).from(certificates),
+        // Total Sub-Admins (Registered sub-admins)
+        db
+          .select({ count: count() })
+          .from(users)
+          .where(eq(users.userType, "sub_admin")),
+        // Average Progress (Overall completion rate)
         db
           .select({
             totalProgress: sql<number>`SUM(CAST(${userTrainingAreaProgress.completionPercentage} AS FLOAT))`,
           })
           .from(userTrainingAreaProgress),
-        // Total Frontliners Count
-        db.select({ count: count() }).from(normalUsers),
-        db
-          .select({
-            thisMonth: sql<number>`COUNT(CASE WHEN DATE_TRUNC('month', ${users.createdAt}) = DATE_TRUNC('month', CURRENT_DATE) THEN 1 END)`,
-            lastMonth: sql<number>`COUNT(CASE WHEN DATE_TRUNC('month', ${users.createdAt}) = DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') THEN 1 END)`,
-          })
-          .from(users)
-          .where(ne(users.userType, "admin")),
 
         // User Growth Data - Cumulative
         db
@@ -400,13 +392,6 @@ export const reportServices = {
           .groupBy(trainingAreas.name, normalUsers.seniority),
       ]);
 
-      const growthRate =
-        monthlyGrowth[0]?.lastMonth && monthlyGrowth[0].lastMonth > 0
-          ? ((monthlyGrowth[0].thisMonth - monthlyGrowth[0].lastMonth) /
-              monthlyGrowth[0].lastMonth) *
-            100
-          : 0;
-
       const totalProgress = averageCompletionRate[0]?.totalProgress || 0;
       const totalFrontlinersCount = totalFrontliners[0]?.count || 0;
       const calculatedAverageProgress =
@@ -416,14 +401,13 @@ export const reportServices = {
         // Key Metrics
         keyMetrics: {
           totalUsers: totalUsers[0]?.count || 0,
-          activeUsers: activeUsers[0]?.count || 0,
-          totalCourses: totalCourses[0]?.count || 0,
-          completedCourses: completedCourses[0]?.count || 0,
-          totalOrganizations: totalOrganizations.length,
+          totalFrontliners: totalFrontlinersCount,
+          newFrontliners: newFrontliners[0]?.count || 0,
+          totalOrganizations: totalOrganizations[0]?.count || 0,
+          totalSubOrganizations: totalSubOrganizations[0]?.count || 0,
           certificatesIssued: certificatesIssued[0]?.count || 0,
-          averageCompletionRate:
-            Math.round(calculatedAverageProgress * 100) / 100,
-          monthlyGrowth: Math.round(growthRate * 100) / 100,
+          totalSubAdmins: totalSubAdmins[0]?.count || 0,
+          averageProgress: Math.round(calculatedAverageProgress * 100) / 100,
         },
 
         // Analytics Data
@@ -448,13 +432,13 @@ export const reportServices = {
       return {
         keyMetrics: {
           totalUsers: 0,
-          activeUsers: 0,
-          totalCourses: 0,
-          completedCourses: 0,
+          totalFrontliners: 0,
+          newFrontliners: 0,
           totalOrganizations: 0,
+          totalSubOrganizations: 0,
           certificatesIssued: 0,
-          averageCompletionRate: 0,
-          monthlyGrowth: 0,
+          totalSubAdmins: 0,
+          averageProgress: 0,
         },
         userGrowth: [],
         assetDistribution: [],
@@ -1158,14 +1142,9 @@ export const reportServices = {
           count: count(),
         })
         .from(users)
+        .innerJoin(normalUsers, eq(users.id, normalUsers.userId))
         .where(
-          and(
-            sql`${users.organization} IS NOT NULL`,
-            gte(
-              users.lastLogin,
-              new Date(Date.now() - 15 * 24 * 60 * 60 * 1000)
-            )
-          )
+          gte(users.lastLogin, new Date(Date.now() - 15 * 24 * 60 * 60 * 1000))
         )
         .groupBy(users.organization);
 
@@ -1518,7 +1497,7 @@ export const reportServices = {
           })
           .from(organizations),
 
-        // Sub-admins data with comprehensive statistics - include all users with userType 'sub_admin'
+        // Sub-admins data with comprehensive statistics - include only users who exist in both users and subAdmins tables
         db
           .select({
             userId: users.id,
@@ -1576,25 +1555,21 @@ export const reportServices = {
           .where(eq(users.userType, "sub_admin"))
           .orderBy(users.createdAt),
 
-        // Total sub-admins count (all users with userType 'sub_admin')
+        // Total sub-admins count (users with userType 'sub_admin' who exist in both users and subAdmins tables)
         db
           .select({ count: count() })
           .from(users)
           .where(eq(users.userType, "sub_admin")),
 
-        // Active sub-admins count (sub-admins who have frontliners with last login within 15 days)
+        // Active sub-admins count (sub-admins who exist in both users and subAdmins tables and have logged in within 15 days)
         db
           .select({ count: countDistinct(users.id) })
           .from(users)
+          .innerJoin(subAdmins, eq(users.id, subAdmins.userId))
           .where(
             and(
               eq(users.userType, "sub_admin"),
-              sql`EXISTS (
-                SELECT 1 FROM normal_users nu
-                INNER JOIN users u ON nu.user_id = u.id
-                WHERE u.organization = ${users.organization}
-                AND u.last_login >= NOW() - INTERVAL '15 days'
-              )`
+              gte(users.lastLogin, sql`NOW() - INTERVAL '15 days'`)
             )
           ),
       ]);

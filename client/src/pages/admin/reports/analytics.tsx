@@ -58,13 +58,13 @@ const Analytics = () => {
 
   const [analytics, setAnalytics] = useState({
     totalUsers: 0,
-    activeUsers: 0,
-    totalCourses: 0,
-    completedCourses: 0,
+    totalFrontliners: 0,
+    newFrontliners: 0,
     totalOrganizations: 0,
+    totalSubOrganizations: 0,
     certificatesIssued: 0,
-    averageCompletionRate: "0",
-    monthlyGrowth: 0,
+    totalSubAdmins: 0,
+    averageProgress: 0,
   });
 
   // Additional analytics data states
@@ -211,59 +211,67 @@ const Analytics = () => {
             title="Total Users"
             value={analytics.totalUsers.toLocaleString()}
             icon={Users}
-            change={`+${analytics.monthlyGrowth}% this month`}
-            changeType="positive"
-            loading={loading}
-          />
-          <StatCard
-            title="Active Users"
-            value={analytics.activeUsers.toLocaleString()}
-            icon={Activity}
-            change="Currently online"
+            change="All users in the platform"
             changeType="neutral"
             loading={loading}
           />
           <StatCard
-            title="Total Courses"
-            value={analytics.totalCourses}
-            icon={BookOpen}
-            change="Available courses"
+            title="Total Frontliners"
+            value={analytics.totalFrontliners.toLocaleString()}
+            icon={Users}
+            change="All registered frontliners"
             changeType="neutral"
             loading={loading}
           />
           <StatCard
-            title="Certificates Issued"
-            value={analytics.certificatesIssued}
-            icon={Award}
-            change="Total issued"
-            changeType="positive"
-            loading={loading}
-          />
-        </div>
-
-        {/* Secondary Metrics */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <StatCard
-            title="Course Completions"
-            value={analytics.completedCourses}
-            icon={Target}
-            change="Total completions"
+            title="New Frontliners"
+            value={analytics.newFrontliners.toLocaleString()}
+            icon={TrendingUp}
+            change="Joined this month"
             changeType="positive"
             loading={loading}
           />
           <StatCard
-            title="Organizations"
-            value={analytics.totalOrganizations}
+            title="Total Organizations"
+            value={analytics.totalOrganizations.toLocaleString()}
             icon={Users}
             change="Registered organizations"
             changeType="neutral"
             loading={loading}
           />
+        </div>
+
+        {/* Secondary Metrics */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            title="Completion Rate"
-            value={`${analytics.averageCompletionRate}%`}
-            icon={TrendingUp}
-            change="Average across all courses"
+            title="Total Sub-Organizations"
+            value={analytics.totalSubOrganizations.toLocaleString()}
+            icon={Users}
+            change="Registered sub-organizations"
+            changeType="neutral"
+            loading={loading}
+          />
+          <StatCard
+            title="Total Certificates"
+            value={analytics.certificatesIssued.toLocaleString()}
+            icon={Award}
+            change="Certificates issued"
+            changeType="positive"
+            loading={loading}
+          />
+          <StatCard
+            title="Total Sub-Admins"
+            value={analytics.totalSubAdmins.toLocaleString()}
+            icon={Users}
+            change="Registered sub-admins"
+            changeType="neutral"
+            loading={loading}
+          />
+          <StatCard
+            title="Average Progress"
+            value={`${analytics.averageProgress.toFixed(2)}%`}
+            icon={Target}
+            change="Overall completion rate"
             changeType="positive"
             loading={loading}
           />
@@ -539,50 +547,51 @@ const Analytics = () => {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-                  {/* Chart 11: Heatmap - Training Completion Rates (Full Width) */}
-        <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-          <CardHeader>
-            <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-              <Activity className="h-5 w-5 text-dawn" />
-              Training Completion Heatmap
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {trainingCompletionHeatmap.map((item: any, index: number) => (
-                <div
-                  key={index}
-                  className="p-4 border border-[#E5E5E5] rounded-lg bg-sandstone hover:shadow-md transition-shadow"
-                >
-                  <div className="font-medium text-sm mb-2 text-[#2C2C2C]">
-                    {item.trainingArea}
-                  </div>
+          {/* Chart 11: Heatmap - Training Completion Rates (Full Width) */}
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <Activity className="h-5 w-5 text-dawn" />
+                Training Completion Heatmap
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {trainingCompletionHeatmap.map((item: any, index: number) => (
                   <div
-                    className="text-lg font-bold mb-2"
-                    style={{
-                      color: item.completionRate > 50 ? "#d2691e" : "#B85A1A",
-                    }}
+                    key={index}
+                    className="p-4 border border-[#E5E5E5] rounded-lg bg-sandstone hover:shadow-md transition-shadow"
                   >
-                    {item.completionRate}%
-                  </div>
-                  <div className="text-xs text-[#2C2C2C]/50">
-                    {item.completedCourses}/{item.totalEnrollments} enrollments
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div className="font-medium text-sm mb-2 text-[#2C2C2C]">
+                      {item.trainingArea}
+                    </div>
                     <div
-                      className="h-2 rounded-full"
+                      className="text-lg font-bold mb-2"
                       style={{
-                        width: `${item.completionRate}%`,
-                        backgroundColor:
-                          item.completionRate > 50 ? "#d2691e" : "#B85A1A",
+                        color: item.completionRate > 50 ? "#d2691e" : "#B85A1A",
                       }}
-                    ></div>
+                    >
+                      {item.completionRate}%
+                    </div>
+                    <div className="text-xs text-[#2C2C2C]/50">
+                      {item.completedCourses}/{item.totalEnrollments}{" "}
+                      enrollments
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div
+                        className="h-2 rounded-full"
+                        style={{
+                          width: `${item.completionRate}%`,
+                          backgroundColor:
+                            item.completionRate > 50 ? "#d2691e" : "#B85A1A",
+                        }}
+                      ></div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Charts Row 5: Certificate and Training Analytics */}
