@@ -280,7 +280,7 @@ const Analytics = () => {
         {/* Charts Row 1: User Growth and Role Distribution */}
         <div className="grid gap-4 md:grid-cols-2">
           {/* Chart 1: Line Chart - User Growth Over Time */}
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+          {/* <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
               <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-dawn" />
@@ -335,8 +335,41 @@ const Analytics = () => {
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
-          </Card>
+          </Card> */}
 
+          {/* Chart 2: Bar Chart - User Distribution by Asset */}
+          {/* <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-dawn" />
+                User Distribution by Asset
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={roleDistribution}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                  <XAxis dataKey="asset" stroke="#666666" />
+                  <YAxis stroke="#666666" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#ffffff",
+                      border: "1px solid #E5E5E5",
+                      borderRadius: "8px",
+                      color: "#2C2C2C",
+                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="userCount" fill="#d2691e" name="Users" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card> */}
+        </div>
+
+        {/* Charts Row 2: Pie Charts - Asset and Seniority Distribution */}
+        <div className="grid gap-4 md:grid-cols-3">
           {/* Chart 2: Bar Chart - User Distribution by Asset */}
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
@@ -366,10 +399,7 @@ const Analytics = () => {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Charts Row 2: Pie Charts - Asset and Seniority Distribution */}
-        <div className="grid gap-4 md:grid-cols-2">
           {/* Chart 3: Pie Chart - Asset Distribution */}
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
@@ -400,7 +430,7 @@ const Analytics = () => {
                       />
                     ))}
                   </Pie>
-                  <Tooltip
+                  {/* <Tooltip
                     contentStyle={{
                       backgroundColor: "#ffffff",
                       border: "1px solid #E5E5E5",
@@ -408,7 +438,7 @@ const Analytics = () => {
                       color: "#2C2C2C",
                       boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
-                  />
+                  /> */}
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
@@ -444,7 +474,7 @@ const Analytics = () => {
                       />
                     ))}
                   </Pie>
-                  <Tooltip
+                  {/* <Tooltip
                     contentStyle={{
                       backgroundColor: "#ffffff",
                       border: "1px solid #E5E5E5",
@@ -452,7 +482,7 @@ const Analytics = () => {
                       color: "#2C2C2C",
                       boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
-                  />
+                  /> */}
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
@@ -727,7 +757,7 @@ const Analytics = () => {
                       />
                     ))}
                   </Pie>
-                  <Tooltip
+                  {/* <Tooltip
                     contentStyle={{
                       backgroundColor: "#ffffff",
                       border: "1px solid #E5E5E5",
@@ -735,7 +765,7 @@ const Analytics = () => {
                       color: "#2C2C2C",
                       boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
                     }}
-                  />
+                  /> */}
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
