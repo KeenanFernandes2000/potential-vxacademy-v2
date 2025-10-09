@@ -139,6 +139,7 @@ const validateUserInput = (
     }
   }
 
+
   return {
     isValid: errors.length === 0,
     errors,
@@ -225,6 +226,16 @@ const validateUpdateUserInput = (
           );
         }
       }
+    }
+  }
+
+  // Validation for totalFrontliners if provided
+  if (data.totalFrontliners !== undefined && data.totalFrontliners !== null) {
+    if (
+      typeof data.totalFrontliners !== "number" ||
+      data.totalFrontliners < 0
+    ) {
+      errors.push("Total frontliners must be a non-negative number");
     }
   }
 
@@ -606,6 +617,17 @@ export class userControllers {
 
     const newUser = await UserService.createUser(userData);
 
+    // If this is a sub-admin, create the sub-admin record with default values
+    if (newUser.userType === "sub_admin") {
+      await db.insert(subAdmins).values({
+        userId: newUser.id,
+        jobTitle: "Sub-Admin", // Default job title
+        totalFrontliners: null, // Will be set later when user completes registration
+        eid: `EID-${newUser.id}`, // Generate a default EID
+        phoneNumber: "000-000-0000", // Default phone number
+      });
+    }
+
     // Generate JWT token for auto-login after registration
     const token = jwt.sign(
       { id: newUser.id, email: newUser.email },
@@ -903,6 +925,32 @@ export class userControllers {
     if (req.body.userType) updateData.userType = req.body.userType;
 
     const updatedUser = await UserService.updateUser(userId, updateData);
+
+    // If this is a sub-admin and totalFrontliners is provided, check if user exists in subAdmins table first
+    if (req.body.userType === "sub_admin" && req.body.totalFrontliners !== undefined) {
+      // Check if user exists in subAdmins table
+      const [existingSubAdmin] = await db
+        .select()
+        .from(subAdmins)
+        .where(eq(subAdmins.userId, userId))
+        .limit(1);
+
+      if (existingSubAdmin) {
+        // User exists in subAdmins table, update totalFrontliners
+        const subAdminUpdateData: any = {};
+        if (req.body.totalFrontliners !== undefined) {
+          subAdminUpdateData.totalFrontliners = req.body.totalFrontliners;
+        }
+        
+        if (Object.keys(subAdminUpdateData).length > 0) {
+          await db
+            .update(subAdmins)
+            .set(subAdminUpdateData)
+            .where(eq(subAdmins.userId, userId));
+        }
+      }
+      // If user doesn't exist in subAdmins table, we don't update totalFrontliners
+    }
 
     res.status(200).json({
       success: true,
