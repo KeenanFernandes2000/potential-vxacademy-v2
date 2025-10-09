@@ -617,16 +617,6 @@ export class userControllers {
 
     const newUser = await UserService.createUser(userData);
 
-    // If this is a sub-admin, create the sub-admin record with default values
-    if (newUser.userType === "sub_admin") {
-      await db.insert(subAdmins).values({
-        userId: newUser.id,
-        jobTitle: "Sub-Admin", // Default job title
-        totalFrontliners: null, // Will be set later when user completes registration
-        eid: `EID-${newUser.id}`, // Generate a default EID
-        phoneNumber: "000-000-0000", // Default phone number
-      });
-    }
 
     // Generate JWT token for auto-login after registration
     const token = jwt.sign(
