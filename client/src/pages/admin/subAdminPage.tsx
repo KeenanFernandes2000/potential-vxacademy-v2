@@ -268,6 +268,32 @@ const api = {
       throw error;
     }
   },
+
+  async checkSubAdminExists(userId: number, token: string) {
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(
+        `${baseUrl}/api/users/sub-admins/check/${userId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Failed to check sub-admin existence:", error);
+      throw error;
+    }
+  },
 };
 
 // Type for sub-admin data
@@ -470,7 +496,10 @@ const SubAdminPage = () => {
     }
   };
 
-  const handleUpdateSubAdmin = async (formData: any) => {
+  const handleUpdateSubAdmin = async (
+    formData: any,
+    isSubAdminInTable?: boolean | null
+  ) => {
     if (!token || !selectedUser) {
       setError("Authentication required or no user selected");
       return;
@@ -480,7 +509,7 @@ const SubAdminPage = () => {
       setIsLoading(true);
 
       // Prepare data for API
-      const userData = {
+      const userData: any = {
         firstName: formData.first_name,
         lastName: formData.last_name,
         email: formData.email,
@@ -491,6 +520,11 @@ const SubAdminPage = () => {
         subAsset: formData.sub_asset,
         userType: "sub_admin", // Hard coded as sub-admin
       };
+
+      // Only include totalFrontliners if the user exists in the subAdmins table
+      if (isSubAdminInTable !== false) {
+        userData.totalFrontliners = parseInt(formData.total_frontliners) || 0;
+      }
 
       const response = await api.updateUser(selectedUser.id, userData, token);
 
@@ -1068,6 +1102,7 @@ const SubAdminPage = () => {
       sub_organization: [] as string[],
       asset: "",
       sub_asset: "",
+      total_frontliners: "",
     });
 
     // console.log("Current formData:", formData);
@@ -1080,7 +1115,11 @@ const SubAdminPage = () => {
       last_name?: string;
       email?: string;
       organization?: string;
+      total_frontliners?: string;
     }>({});
+    const [isSubAdminInTable, setIsSubAdminInTable] = useState<boolean | null>(
+      null
+    );
     const searchInputRef = React.useRef<HTMLInputElement>(null);
 
     // Validation function
@@ -1090,6 +1129,7 @@ const SubAdminPage = () => {
         last_name?: string;
         email?: string;
         organization?: string;
+        total_frontliners?: string;
       } = {};
 
       if (!formData.first_name.trim()) {
@@ -1110,6 +1150,19 @@ const SubAdminPage = () => {
         errors.organization = "Please select an organization";
       }
 
+      // Only validate total_frontliners if the user exists in the subAdmins table
+      if (isSubAdminInTable !== false) {
+        if (!formData.total_frontliners.trim()) {
+          errors.total_frontliners = "Total frontliners is required";
+        } else if (
+          isNaN(Number(formData.total_frontliners)) ||
+          Number(formData.total_frontliners) < 0
+        ) {
+          errors.total_frontliners =
+            "Total frontliners must be a valid non-negative number";
+        }
+      }
+
       setValidationErrors(errors);
       return Object.keys(errors).length === 0;
     };
@@ -1122,22 +1175,9 @@ const SubAdminPage = () => {
     // Initialize selected values based on current user data
     useEffect(() => {
       if (selectedUser) {
-        // console.log("Initializing form data with selectedUser:", selectedUser);
-        // console.log("selectedUser keys:", Object.keys(selectedUser));
-        // console.log("selectedUser.firstName:", selectedUser.firstName);
-        // console.log("selectedUser.LastName:", selectedUser.LastName);
-        // console.log("selectedUser.lastName:", selectedUser.lastName);
-
         // Get first and last name directly from selectedUser properties
         const firstName = selectedUser.firstName || "";
         const lastName = selectedUser.LastName || selectedUser.lastName || ""; // Try both cases
-
-        //  console.log(
-        //   "Direct names - firstName:",
-        //   firstName,
-        //   "lastName:",
-        //   lastName
-        // );
 
         // Update form data when selectedUser changes
         const newFormData = {
@@ -1155,6 +1195,7 @@ const SubAdminPage = () => {
             : [],
           asset: selectedUser?.asset || "",
           sub_asset: selectedUser?.subAsset || "",
+          total_frontliners: selectedUser?.totalFrontliners?.toString() || "",
         };
 
         // console.log("Setting form data to:", newFormData);
@@ -1206,6 +1247,23 @@ const SubAdminPage = () => {
         }, 100);
       }
     }, [selectedUser, organizations, token]);
+
+    // Check if user exists in subAdmins table
+    useEffect(() => {
+      if (selectedUser && token) {
+        api
+          .checkSubAdminExists(selectedUser.id, token)
+          .then((response) => {
+            setIsSubAdminInTable(response.data?.exists || false);
+          })
+          .catch((error) => {
+            console.error("Error checking sub-admin existence:", error);
+            setIsSubAdminInTable(false);
+          });
+      } else {
+        setIsSubAdminInTable(null);
+      }
+    }, [selectedUser, token]);
 
     // Focus search input when edit modal opens
     useEffect(() => {
@@ -1334,7 +1392,7 @@ const SubAdminPage = () => {
         return;
       }
 
-      await handleUpdateSubAdmin(formData);
+      await handleUpdateSubAdmin(formData, isSubAdminInTable);
     };
 
     return (
@@ -1569,6 +1627,54 @@ const SubAdminPage = () => {
             className="rounded-full bg-gray-50 border-[#E5E5E5] text-[#2C2C2C] cursor-not-allowed"
             placeholder="Sub-assets will be populated based on selected sub-organizations"
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit_total_frontliners">
+            Total Frontliners{" "}
+            {isSubAdminInTable === false ? "(Not Available)" : "*"}
+          </Label>
+          <Input
+            id="edit_total_frontliners"
+            type="number"
+            min="0"
+            value={formData.total_frontliners}
+            onChange={(e) => {
+              setFormData({ ...formData, total_frontliners: e.target.value });
+              // Clear validation error when user starts typing
+              if (validationErrors.total_frontliners) {
+                setValidationErrors({
+                  ...validationErrors,
+                  total_frontliners: undefined,
+                });
+              }
+            }}
+            disabled={isSubAdminInTable === false}
+            className={`rounded-full text-[#2C2C2C] placeholder:text-[#666666] ${
+              isSubAdminInTable === false
+                ? "bg-gray-50 border-[#E5E5E5] cursor-not-allowed"
+                : validationErrors.total_frontliners
+                ? "bg-white border-red-500 focus:border-red-500"
+                : "bg-white border-[#E5E5E5]"
+            }`}
+            placeholder={
+              isSubAdminInTable === false
+                ? "User not found in sub-admins table"
+                : "Enter total number of frontliners"
+            }
+            required={isSubAdminInTable !== false}
+          />
+          {validationErrors.total_frontliners && (
+            <p className="text-sm text-red-500">
+              {validationErrors.total_frontliners}
+            </p>
+          )}
+          {isSubAdminInTable === false && (
+            <p className="text-sm text-gray-500">
+              This user is not registered in the sub-admins table, so total
+              frontliners cannot be updated.
+            </p>
+          )}
         </div>
 
         <div className="flex justify-end gap-2">
