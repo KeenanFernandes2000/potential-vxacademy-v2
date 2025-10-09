@@ -13,6 +13,7 @@ import {
   X,
   Download,
   ChevronDown,
+  Search,
 } from "lucide-react";
 import {
   Select,
@@ -23,6 +24,14 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useAuth } from "@/hooks/useAuth";
 import AdminTableLayout from "@/components/adminTableLayout";
 
@@ -406,25 +415,47 @@ const SubAdmins = () => {
     }
   };
 
+  // Helper function to check if sub-admin should be highlighted
+  const shouldHighlightSubAdmin = (subAdmin: SubAdmin) => {
+    const hasMissingInfo =
+      subAdmin.eid === "N/A" ||
+      !subAdmin.eid ||
+      subAdmin.phoneNumber === "N/A" ||
+      !subAdmin.phoneNumber;
+
+    const lastLoginDate = new Date(subAdmin.lastLoginDate);
+    const fifteenDaysAgo = new Date();
+    fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+
+    const isInactive =
+      lastLoginDate < fifteenDaysAgo && subAdmin.lastLoginDate !== "N/A";
+
+    return hasMissingInfo && isInactive;
+  };
+
   // Prepare table data for AdminTableLayout
-  const tableData = filteredSubAdmins.map((subAdmin) => ({
-    "User ID": subAdmin.userId,
-    "First Name": subAdmin.firstName,
-    "Last Name": subAdmin.lastName,
-    "Email Address": subAdmin.email,
-    EID: subAdmin.eid,
-    "Phone Number": subAdmin.phoneNumber,
-    Asset: subAdmin.asset,
-    "Asset Sub-Category": subAdmin.subAsset,
-    Organization: subAdmin.organization,
-    "Sub-Organization": Array.isArray(subAdmin.subOrganization)
-      ? subAdmin.subOrganization.join(", ")
-      : (subAdmin.subOrganization || "N/A").toString().replace(/,/g, ", "),
-    "Total Frontliners": subAdmin.totalFrontliners.toString(),
-    "Registered Frontliners": subAdmin.registeredFrontliners.toString(),
-    "Registration Date": formatDate(subAdmin.registrationDate),
-    "Last Login Date": formatDate(subAdmin.lastLoginDate),
-  }));
+  const tableData = filteredSubAdmins.map((subAdmin) => {
+    const shouldHighlight = shouldHighlightSubAdmin(subAdmin);
+    return {
+      "User ID": subAdmin.userId,
+      "First Name": subAdmin.firstName,
+      "Last Name": subAdmin.lastName,
+      "Email Address": subAdmin.email,
+      EID: subAdmin.eid,
+      "Phone Number": subAdmin.phoneNumber,
+      Asset: subAdmin.asset,
+      "Asset Sub-Category": subAdmin.subAsset,
+      Organization: subAdmin.organization,
+      "Sub-Organization": Array.isArray(subAdmin.subOrganization)
+        ? subAdmin.subOrganization.join(", ")
+        : (subAdmin.subOrganization || "N/A").toString().replace(/,/g, ", "),
+      "Total Frontliners": subAdmin.totalFrontliners.toString(),
+      "Registered Frontliners": subAdmin.registeredFrontliners.toString(),
+      "Registration Date": formatDate(subAdmin.registrationDate),
+      "Last Login Date": formatDate(subAdmin.lastLoginDate),
+      _shouldHighlight: shouldHighlight, // Special property for highlighting
+    };
+  });
 
   if (loading) {
     return (
@@ -636,12 +667,86 @@ const SubAdmins = () => {
         </div>
 
         {/* Data Table */}
-        <AdminTableLayout
-          searchPlaceholder="Search sub-admins..."
-          tableData={tableData}
-          columns={reportData.dataTableColumns}
-          onSearch={handleSearch}
-        />
+        <div className="space-y-4">
+          {/* Legend/Explanation */}
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-200 border border-red-300 rounded"></div>
+              <p className="text-red-700 font-medium text-sm">
+                <strong>Red highlighting:</strong> Inactive Sub-admins who
+                haven't completed their registration
+              </p>
+            </div>
+          </div>
+
+          {/* Search Section */}
+          <div className="flex items-center gap-4 justify-between w-full">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search sub-admins..."
+                onChange={(e) => handleSearch(e.target.value)}
+                className="pl-8 bg-background/50 border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary rounded-lg"
+              />
+            </div>
+          </div>
+
+          {/* Custom Table with Row Highlighting */}
+          <div className="border bg-card/50 backdrop-blur-sm border-border w-full max-w-8xl mx-auto rounded-lg overflow-hidden">
+            <div className="overflow-x-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sandstone/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sandstone/50 [&::-webkit-scrollbar-corner]:bg-transparent">
+              <div className="min-w-[1000px]">
+                <Table className="w-full">
+                  <TableHeader className="sticky top-0 bg-card/50 backdrop-blur-sm z-10">
+                    <TableRow className="border-border">
+                      {reportData.dataTableColumns.map((column) => (
+                        <TableHead
+                          key={column}
+                          className="text-foreground font-semibold whitespace-nowrap"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span title={column}>{column}</span>
+                          </div>
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tableData.map((row, index) => {
+                      const shouldHighlight = row._shouldHighlight as boolean;
+                      return (
+                        <TableRow
+                          key={index}
+                          className={`border-border hover:bg-muted/50 ${
+                            shouldHighlight ? "bg-red-50 border-red-200" : ""
+                          }`}
+                        >
+                          {Object.entries(row)
+                            .filter(([key]) => key !== "_shouldHighlight")
+                            .map(([key, value], cellIndex) => (
+                              <TableCell
+                                key={cellIndex}
+                                className={`text-foreground/90 whitespace-nowrap ${
+                                  shouldHighlight
+                                    ? "text-red-700 font-medium"
+                                    : ""
+                                }`}
+                              >
+                                {typeof value === "string" ||
+                                typeof value === "number"
+                                  ? String(value)
+                                  : value}
+                              </TableCell>
+                            ))}
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </AdminPageLayout>
   );
