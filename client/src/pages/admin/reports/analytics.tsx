@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Users,
   BookOpen,
@@ -11,7 +12,12 @@ import {
   Activity,
   Target,
   Loader2,
+  Download,
+  Image,
+  FileText,
 } from "lucide-react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import {
   BarChart,
   Bar,
@@ -52,6 +58,28 @@ const COLORS = [
   "#FFB6C1",
 ];
 
+// Professional monochromatic gradient for bar charts (orange/brown theme)
+const BAR_COLORS = [
+  "#F4C7A0", // Lightest orange
+  "#E8A76F", // Light orange
+  "#DC873E", // Medium-light orange
+  "#D2691E", // Brand color (medium)
+  "#B85A19", // Medium-dark orange
+  "#9E4B14", // Dark orange
+  "#843C0F", // Darkest orange
+];
+
+// Vibrant orange-based colors for pie and donut charts
+const PIE_COLORS = [
+  "#D2691E", // Chocolate (from image)
+  "#E07B3F", // Lighter orange
+  "#F4A460", // Sandy Brown
+  "#FF8C42", // Vibrant orange
+  "#FF7F50", // Coral
+  "#FFA07A", // Light Salmon
+  "#FFB366", // Light orange
+];
+
 const Analytics = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,11 +97,16 @@ const Analytics = () => {
 
   // Additional analytics data states
   const [userGrowth, setUserGrowth] = useState([]);
+  const [userGrowthBar, setUserGrowthBar] = useState<
+    Array<{
+      period: string;
+      newUsers: number;
+      monthOverMonthGrowth: number | null;
+    }>
+  >([]);
   const [assetDistribution, setAssetDistribution] = useState([]);
-  const [roleDistribution, setRoleDistribution] = useState([]);
   const [seniorityDistribution, setSeniorityDistribution] = useState([]);
   const [certificateAnalytics, setCertificateAnalytics] = useState([]);
-  const [activeInactiveUsers, setActiveInactiveUsers] = useState([]);
   const [peakUsageTimes, setPeakUsageTimes] = useState([]);
   const [trainingAreaEnrollments, setTrainingAreaEnrollments] = useState([]);
   const [courseCompletionRates, setCourseCompletionRates] = useState([]);
@@ -87,6 +120,250 @@ const Analytics = () => {
     trainingAreaSeniorityDistribution,
     setTrainingAreaSeniorityDistribution,
   ] = useState([]);
+  const [roleCategoryDistribution, setRoleCategoryDistribution] = useState<
+    Array<{
+      roleCategory: string;
+      userCount: number;
+      percentage: number;
+    }>
+  >([]);
+  const [certificatesPerAsset, setCertificatesPerAsset] = useState<
+    Array<{
+      asset: string;
+      certificateCount: number;
+      percentage: number;
+    }>
+  >([]);
+  const [activeInactiveUsers, setActiveInactiveUsers] = useState<
+    Array<{
+      name: string;
+      value: number;
+      percentage: number;
+    }>
+  >([]);
+  const [trainingAreaCompletionHeatmap, setTrainingAreaCompletionHeatmap] =
+    useState<
+      Array<{
+        trainingArea: string;
+        enrolledUsers: number;
+        totalFrontliners: number;
+        completionRate: number;
+      }>
+    >([]);
+  const [expectedVsActualFrontliners, setExpectedVsActualFrontliners] =
+    useState<
+      Array<{
+        name: string;
+        value: number;
+        percentage: number;
+      }>
+    >([]);
+  const [subAdminAssetDistribution, setSubAdminAssetDistribution] = useState<
+    Array<{
+      asset: string;
+      subAsset: string;
+      userCount: number;
+      percentage: number;
+    }>
+  >([]);
+
+  // Refs for individual chart containers
+  const chartRef = useRef<HTMLDivElement>(null);
+  const growthChartRef = useRef<HTMLDivElement>(null);
+  const roleCategoryChartRef = useRef<HTMLDivElement>(null);
+  const assetDistributionChartRef = useRef<HTMLDivElement>(null);
+  const subAdminAssetChartRef = useRef<HTMLDivElement>(null);
+  const certificatesPieChartRef = useRef<HTMLDivElement>(null);
+  const activeInactiveChartRef = useRef<HTMLDivElement>(null);
+  const seniorityChartRef = useRef<HTMLDivElement>(null);
+  const expectedActualChartRef = useRef<HTMLDivElement>(null);
+  const heatmapRef = useRef<HTMLDivElement>(null);
+
+  // Color helper function for heatmap
+  const getHeatmapColor = (rate: number) => {
+    if (rate >= 86) return "#10B981"; // Dark Green
+    if (rate >= 71) return "#86EFAC"; // Light Green
+    if (rate >= 41) return "#FCD34D"; // Yellow
+    return "#EF4444"; // Red
+  };
+
+  // Helper function to convert oklch colors to hex for html2canvas compatibility
+  const convertOklchToHex = (element: HTMLElement) => {
+    const computedStyle = window.getComputedStyle(element);
+    const allElements = element.querySelectorAll("*");
+
+    // Convert current element
+    if (computedStyle.color.includes("oklch")) {
+      element.style.color = "#000000"; // Fallback to black
+    }
+    if (computedStyle.backgroundColor.includes("oklch")) {
+      element.style.backgroundColor = "#ffffff"; // Fallback to white
+    }
+    if (computedStyle.borderColor.includes("oklch")) {
+      element.style.borderColor = "#e5e5e5"; // Fallback to gray
+    }
+
+    // Convert all child elements
+    allElements.forEach((el) => {
+      const elStyle = window.getComputedStyle(el);
+      if (elStyle.color.includes("oklch")) {
+        (el as HTMLElement).style.color = "#000000";
+      }
+      if (elStyle.backgroundColor.includes("oklch")) {
+        (el as HTMLElement).style.backgroundColor = "#ffffff";
+      }
+      if (elStyle.borderColor.includes("oklch")) {
+        (el as HTMLElement).style.borderColor = "#e5e5e5";
+      }
+    });
+  };
+
+  // Download functions for individual charts
+  const downloadChartAsPNG = async (
+    chartRef: React.RefObject<HTMLDivElement | null>,
+    filename: string
+  ) => {
+    if (!chartRef.current) {
+      console.error("Chart ref is null");
+      return;
+    }
+
+    try {
+      console.log("Starting PNG export for:", filename);
+
+      // Wait a bit to ensure all dynamic content is rendered
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Convert oklch colors to hex before export
+      convertOklchToHex(chartRef.current);
+
+      const canvas = await html2canvas(chartRef.current, {
+        backgroundColor: "#ffffff",
+        scale: 1.5,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        width: chartRef.current.offsetWidth,
+        height: chartRef.current.offsetHeight,
+        scrollX: 0,
+        scrollY: 0,
+        onclone: (clonedDoc) => {
+          // Convert oklch colors in the cloned document
+          const clonedElement = clonedDoc.querySelector(
+            `[data-chart-ref="${filename}"]`
+          ) as HTMLElement;
+          if (clonedElement) {
+            clonedElement.style.visibility = "visible";
+            clonedElement.style.display = "block";
+
+            // Convert oklch colors in cloned document
+            const allElements = clonedElement.querySelectorAll("*");
+            allElements.forEach((el) => {
+              const elStyle = window.getComputedStyle(el);
+              if (elStyle.color.includes("oklch")) {
+                (el as HTMLElement).style.color = "#000000";
+              }
+              if (elStyle.backgroundColor.includes("oklch")) {
+                (el as HTMLElement).style.backgroundColor = "#ffffff";
+              }
+              if (elStyle.borderColor.includes("oklch")) {
+                (el as HTMLElement).style.borderColor = "#e5e5e5";
+              }
+            });
+          }
+        },
+      });
+
+      console.log("Canvas created successfully");
+
+      const link = document.createElement("a");
+      link.download = `${filename}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+
+      console.log("Download initiated successfully");
+    } catch (error) {
+      console.error("Error downloading PNG:", error);
+      console.error(
+        "Error details:",
+        error instanceof Error ? error.message : String(error)
+      );
+
+      // Fallback: try with simpler settings and force color conversion
+      try {
+        console.log("Trying fallback export method...");
+
+        // Force convert all oklch colors to hex
+        convertOklchToHex(chartRef.current);
+
+        const canvas = await html2canvas(chartRef.current, {
+          backgroundColor: "#ffffff",
+          scale: 1,
+          useCORS: false,
+          allowTaint: true,
+          ignoreElements: (element) => {
+            // Skip elements that might have oklch colors
+            const style = window.getComputedStyle(element);
+            return (
+              style.color.includes("oklch") ||
+              style.backgroundColor.includes("oklch") ||
+              style.borderColor.includes("oklch")
+            );
+          },
+        });
+
+        const link = document.createElement("a");
+        link.download = `${filename}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+
+        console.log("Fallback export successful");
+      } catch (fallbackError) {
+        console.error("Fallback export also failed:", fallbackError);
+        alert(
+          `Failed to download chart as PNG due to unsupported color format. Please try again or contact support.`
+        );
+      }
+    }
+  };
+
+  const downloadChartAsPDF = async () => {
+    if (!chartRef.current) return;
+
+    try {
+      const canvas = await html2canvas(chartRef.current, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("landscape", "mm", "a4");
+
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save("frontliner-distribution-by-asset.pdf");
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      alert("Failed to download chart as PDF");
+    }
+  };
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -116,11 +393,10 @@ const Analytics = () => {
 
           // Set all analytics data
           setUserGrowth(data.userGrowth || []);
+          setUserGrowthBar(data.userGrowthBar || []);
           setAssetDistribution(data.assetDistribution || []);
-          setRoleDistribution(data.roleDistribution || []);
           setSeniorityDistribution(data.seniorityDistribution || []);
           setCertificateAnalytics(data.certificateAnalytics || []);
-          setActiveInactiveUsers(data.activeInactiveUsers || []);
           setPeakUsageTimes(data.peakUsageTimes || []);
           setTrainingAreaEnrollments(data.trainingAreaEnrollments || []);
           setCourseCompletionRates(data.courseCompletionRates || []);
@@ -132,6 +408,16 @@ const Analytics = () => {
           setTrainingAreaSeniorityDistribution(
             data.trainingAreaSeniorityDistribution || []
           );
+          setRoleCategoryDistribution(data.roleCategoryDistribution || []);
+          setCertificatesPerAsset(data.certificatesPerAsset || []);
+          setActiveInactiveUsers(data.activeInactiveUsers || []);
+          setTrainingAreaCompletionHeatmap(
+            data.trainingAreaCompletionHeatmap || []
+          );
+          setExpectedVsActualFrontliners(
+            data.expectedVsActualFrontliners || []
+          );
+          setSubAdminAssetDistribution(data.subAdminAssetDistribution || []);
         } else {
           throw new Error(result.error || "Failed to load analytics data");
         }
@@ -163,7 +449,7 @@ const Analytics = () => {
   }) => (
     <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-[#2C2C2C]">
+        <CardTitle className="text-sm font-medium text-black">
           {title}
         </CardTitle>
         {loading ? (
@@ -173,7 +459,7 @@ const Analytics = () => {
         )}
       </CardHeader>
       <CardContent>
-        <div className="text-5xl font-bold text-[#2C2C2C]">
+        <div className="text-5xl font-bold text-black">
           {loading ? "..." : value}
         </div>
         {change && !loading && (
@@ -278,496 +564,868 @@ const Analytics = () => {
         </div>
 
         {/* Charts Row 1: User Growth and Role Distribution */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Chart 1: Line Chart - User Growth Over Time */}
-          {/* <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-dawn" />
-                User Growth Over Time
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={userGrowth}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
-                  <XAxis dataKey="period" stroke="#666666" />
-                  <YAxis stroke="#666666" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: "8px",
-                      color: "#2C2C2C",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                    formatter={(value: any, name: any) => {
-                      if (name === "totalUsers")
-                        return [
-                          value.toLocaleString(),
-                          "Cumulative Total Users",
-                        ];
-                      if (name === "newUsers")
-                        return [
-                          value.toLocaleString(),
-                          "New Users This Period",
-                        ];
-                      return [value, name];
-                    }}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="totalUsers"
-                    stroke="#d2691e"
-                    strokeWidth={3}
-                    name="Cumulative Total Users"
-                    dot={{ fill: "#d2691e", strokeWidth: 2, r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="newUsers"
-                    stroke="#B85A1A"
-                    strokeWidth={2}
-                    name="New Users This Period"
-                    dot={{ fill: "#B85A1A", strokeWidth: 2, r: 3 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card> */}
-
-          {/* Chart 2: Bar Chart - User Distribution by Asset */}
-          {/* <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-dawn" />
-                User Distribution by Asset
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={roleDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
-                  <XAxis dataKey="asset" stroke="#666666" />
-                  <YAxis stroke="#666666" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: "8px",
-                      color: "#2C2C2C",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="userCount" fill="#d2691e" name="Users" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card> */}
-        </div>
-
-        {/* Charts Row 2: Pie Charts - Asset and Seniority Distribution */}
-        <div className="grid gap-4 md:grid-cols-3">
-          {/* Chart 2: Bar Chart - User Distribution by Asset */}
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-dawn" />
-                User Distribution by Asset
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={roleDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
-                  <XAxis dataKey="asset" stroke="#666666" />
-                  <YAxis stroke="#666666" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: "8px",
-                      color: "#2C2C2C",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="userCount" fill="#d2691e" name="Users" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Chart 3: Pie Chart - Asset Distribution */}
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-                <PieChartIcon className="h-5 w-5 text-dawn" />
-                Platform Users by Asset
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={assetDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ asset, percentage }) =>
-                      `${asset} (${percentage}%)`
-                    }
-                    outerRadius={80}
-                    fill="#d2691e"
-                    dataKey="userCount"
-                  >
-                    {assetDistribution.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  {/* <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: "8px",
-                      color: "#2C2C2C",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                  /> */}
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Chart 4: Pie Chart - Manager vs Staff Distribution */}
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-                <Target className="h-5 w-5 text-dawn" />
-                Manager vs Staff Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={seniorityDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ seniority, percentage }) =>
-                      `${seniority} (${percentage}%)`
-                    }
-                    outerRadius={80}
-                    fill="#d2691e"
-                    dataKey="userCount"
-                  >
-                    {seniorityDistribution.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  {/* <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: "8px",
-                      color: "#2C2C2C",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                  /> */}
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Charts Row 3: Area Chart - Active vs Inactive Users */}
         <div className="grid gap-4 md:grid-cols-1">
-          {/* Chart 6: Area Chart - Peak Usage Times */}
+          {/* Chart: Line Chart - User Growth Over Time */}
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-                <Users className="h-5 w-5 text-dawn" />
-                Peak Usage Times
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={peakUsageTimes}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
-                  <XAxis dataKey="period" stroke="#666666" />
-                  <YAxis stroke="#666666" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: "8px",
-                      color: "#2C2C2C",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                  />
-                  <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="activeUsers"
-                    stackId="1"
-                    stroke="#d2691e"
-                    fill="#d2691e"
-                    name="Active Users"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="inactiveUsers"
-                    stackId="1"
-                    stroke="#B85A1A"
-                    fill="#B85A1A"
-                    name="Inactive Users"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Charts Row 4: Course Completion Analytics */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Chart 8: Grouped Bar Chart - Course Completion Rates */}
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-dawn" />
-                Course Completion Rates Over Time
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={courseCompletionRates}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
-                  <XAxis dataKey="period" stroke="#666666" />
-                  <YAxis stroke="#666666" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: "8px",
-                      color: "#2C2C2C",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                  />
-                  <Legend />
-                  <Bar
-                    dataKey="enrollments"
-                    fill="#d2691e"
-                    name="Enrollments"
-                  />
-                  <Bar
-                    dataKey="completions"
-                    fill="#B85A1A"
-                    name="Completions"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-          {/* Chart 11: Heatmap - Training Completion Rates (Full Width) */}
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-                <Activity className="h-5 w-5 text-dawn" />
-                Training Completion Heatmap
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {trainingCompletionHeatmap.map((item: any, index: number) => (
-                  <div
-                    key={index}
-                    className="p-4 border border-[#E5E5E5] rounded-lg bg-sandstone hover:shadow-md transition-shadow"
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-black flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-dawn" />
+                  Growth of Frontliners Over Time (Month-over-Month)
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() =>
+                      downloadChartAsPNG(
+                        growthChartRef,
+                        "frontliners-growth-over-time"
+                      )
+                    }
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1 text-xs"
                   >
-                    <div className="font-medium text-sm mb-2 text-[#2C2C2C]">
-                      {item.trainingArea}
-                    </div>
-                    <div
-                      className="text-lg font-bold mb-2"
-                      style={{
-                        color: item.completionRate > 50 ? "#d2691e" : "#B85A1A",
+                    <Image className="h-3 w-3" />
+                    PNG
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div ref={growthChartRef}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={userGrowthBar}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                    <XAxis dataKey="period" stroke="#666666" />
+                    <YAxis stroke="#666666" />
+                    <Tooltip
+                      content={({ active, payload, label }) => {
+                        if (
+                          active &&
+                          payload &&
+                          payload.length &&
+                          userGrowthBar.length > 0
+                        ) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+                              <p className="font-medium text-black">{label}</p>
+                              <p className="text-sm text-gray-600">
+                                New Users: {data.newUsers}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                Month-over-Month Growth:{" "}
+                                {data.monthOverMonthGrowth || 0}
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
                       }}
-                    >
-                      {item.completionRate}%
-                    </div>
-                    <div className="text-xs text-[#2C2C2C]/50">
-                      {item.completedCourses}/{item.totalEnrollments}{" "}
-                      enrollments
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                      <div
-                        className="h-2 rounded-full"
-                        style={{
-                          width: `${item.completionRate}%`,
-                          backgroundColor:
-                            item.completionRate > 50 ? "#d2691e" : "#B85A1A",
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
+                      contentStyle={{
+                        backgroundColor: "#ffffff",
+                        border: "1px solid #E5E5E5",
+                        borderRadius: "8px",
+                        color: "#2C2C2C",
+                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                      }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="newUsers"
+                      stroke="#d2691e"
+                      strokeWidth={3}
+                      name="New Users"
+                      dot={{ fill: "#d2691e", strokeWidth: 2, r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Charts Row 5: Certificate and Training Analytics */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Chart 9: Certificate Trends */}
+          {/* Chart: Bar Chart - Role Category Distribution */}
           <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-                <Award className="h-5 w-5 text-dawn" />
-                Certificate Trends
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={certificateTrends}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
-                  <XAxis dataKey="trainingArea" stroke="#666666" />
-                  <YAxis stroke="#666666" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: "8px",
-                      color: "#2C2C2C",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                  />
-                  <Legend />
-                  <Bar
-                    dataKey="completionRate"
-                    fill="#FFBB28"
-                    name="Completion Rate (%)"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Chart 10: Certificate Analytics by Asset */}
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-dawn" />
-                Certificate Analytics by Asset
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={certificateAnalytics}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
-                  <XAxis dataKey="asset" stroke="#666666" />
-                  <YAxis stroke="#666666" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: "8px",
-                      color: "#2C2C2C",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                  />
-                  <Legend />
-                  <Bar
-                    dataKey="certificatesEarned"
-                    fill="#d2691e"
-                    name="Certificates Earned"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Charts Row 6: Organization Analytics */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Chart 12: Bar Chart - Organization User Distribution */}
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-dawn" />
-                Organization User Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={trainingAreaSeniorityDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
-                  <XAxis dataKey="organization" stroke="#666666" />
-                  <YAxis stroke="#666666" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: "8px",
-                      color: "#2C2C2C",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="userCount" fill="#d2691e" name="Users" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Chart 13: Pie Chart - Training Area Seniority Distribution */}
-          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
-            <CardHeader>
-              <CardTitle className="text-[#2C2C2C] flex items-center gap-2">
-                <PieChartIcon className="h-5 w-5 text-dawn" />
-                Training Area Seniority Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={trainingAreaSeniorityDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ organization, userCount }) =>
-                      `${organization} (${userCount})`
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-black flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-dawn" />
+                  Frontliners Distribution by Role Categories
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() =>
+                      downloadChartAsPNG(
+                        roleCategoryChartRef,
+                        "role-categories-distribution"
+                      )
                     }
-                    outerRadius={80}
-                    fill="#d2691e"
-                    dataKey="userCount"
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1 text-xs"
                   >
-                    {trainingAreaSeniorityDistribution.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
+                    <Image className="h-3 w-3" />
+                    PNG
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {roleCategoryDistribution.length === 0 ? (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <p>No role category data available</p>
+                </div>
+              ) : (
+                <div ref={roleCategoryChartRef}>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart
+                      data={roleCategoryDistribution}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                      <XAxis
+                        dataKey="roleCategory"
+                        stroke="#666666"
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                        fontSize={12}
+                        tickFormatter={(value) => {
+                          // Truncate long role category names
+                          return value.length > 15
+                            ? value.substring(0, 15) + "..."
+                            : value;
+                        }}
                       />
+                      <YAxis stroke="#666666" />
+                      <Tooltip
+                        content={({ active, payload, label }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+                                <p className="font-medium text-black">
+                                  {data.roleCategory}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Users: {data.userCount}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Percentage: {data.percentage}%
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                        contentStyle={{
+                          backgroundColor: "#ffffff",
+                          border: "1px solid #E5E5E5",
+                          borderRadius: "8px",
+                          color: "#2C2C2C",
+                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                        }}
+                      />
+                      <Bar dataKey="userCount" name="Users" fill="#d2691e">
+                        {roleCategoryDistribution.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={BAR_COLORS[index % BAR_COLORS.length]}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Chart: Bar Chart - User Distribution by Asset */}
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-black flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-dawn" />
+                  Frontliner Distribution by Asset
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() =>
+                      downloadChartAsPNG(
+                        assetDistributionChartRef,
+                        "asset-distribution"
+                      )
+                    }
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    <Image className="h-3 w-3" />
+                    PNG
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {assetDistribution.length === 0 ? (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <p>No asset distribution data available</p>
+                </div>
+              ) : (
+                <div ref={assetDistributionChartRef}>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart
+                      data={assetDistribution}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                      <XAxis
+                        dataKey="asset"
+                        stroke="#666666"
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                        fontSize={12}
+                        tickFormatter={(value) => {
+                          // Truncate long asset names
+                          return value.length > 15
+                            ? value.substring(0, 15) + "..."
+                            : value;
+                        }}
+                      />
+                      <YAxis stroke="#666666" />
+                      <Tooltip
+                        content={({ active, payload, label }) => {
+                          if (
+                            active &&
+                            payload &&
+                            payload.length &&
+                            assetDistribution.length > 0
+                          ) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+                                <p className="font-medium text-black">
+                                  {data.asset}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Users: {data.userCount}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Percentage: {data.percentage}%
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Sub-Asset: {data.subAsset || "N/A"}
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                        contentStyle={{
+                          backgroundColor: "#ffffff",
+                          border: "1px solid #E5E5E5",
+                          borderRadius: "8px",
+                          color: "#2C2C2C",
+                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                        }}
+                      />
+                      <Bar dataKey="userCount" name="Users" fill="#d2691e">
+                        {assetDistribution.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={BAR_COLORS[index % BAR_COLORS.length]}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts Row 2: Sub Admin Asset Distribution */}
+        <div className="grid gap-4 md:grid-cols-1">
+          {/* Chart: Bar Chart - Sub Admin Asset Distribution */}
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-black flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-dawn" />
+                  Sub Admins Distribution by Asset
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() =>
+                      downloadChartAsPNG(
+                        subAdminAssetChartRef,
+                        "sub-admin-asset-distribution"
+                      )
+                    }
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    <Image className="h-3 w-3" />
+                    PNG
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {subAdminAssetDistribution.length === 0 ? (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <p>No sub admin asset distribution data available</p>
+                </div>
+              ) : (
+                <div ref={subAdminAssetChartRef}>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart
+                      data={subAdminAssetDistribution}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" />
+                      <XAxis
+                        dataKey="asset"
+                        stroke="#666666"
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                        interval={0}
+                        fontSize={12}
+                        tickFormatter={(value) => {
+                          // Truncate long asset names
+                          return value.length > 15
+                            ? value.substring(0, 15) + "..."
+                            : value;
+                        }}
+                      />
+                      <YAxis stroke="#666666" />
+                      <Tooltip
+                        content={({ active, payload, label }) => {
+                          if (
+                            active &&
+                            payload &&
+                            payload.length &&
+                            subAdminAssetDistribution.length > 0
+                          ) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+                                <p className="font-medium text-black">
+                                  {data.asset}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Users: {data.userCount}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Percentage: {data.percentage}%
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Sub-Asset: {data.subAsset || "N/A"}
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                        contentStyle={{
+                          backgroundColor: "#ffffff",
+                          border: "1px solid #E5E5E5",
+                          borderRadius: "8px",
+                          color: "#2C2C2C",
+                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                        }}
+                      />
+                      <Bar dataKey="userCount" name="Users" fill="#d2691e">
+                        {subAdminAssetDistribution.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={BAR_COLORS[index % BAR_COLORS.length]}
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts Row 3: Active vs Inactive Users */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          {/* Chart: Pie Chart - Certificates Earned per Asset Category */}
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-black flex items-center gap-2">
+                  <Award className="h-5 w-5 text-dawn" />
+                  Certificates Earned per Asset Category
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() =>
+                      downloadChartAsPNG(
+                        certificatesPieChartRef,
+                        "certificates-per-asset"
+                      )
+                    }
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    <Image className="h-3 w-3" />
+                    PNG
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {certificatesPerAsset.length === 0 ? (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <p>No certificate data available</p>
+                </div>
+              ) : (
+                <div ref={certificatesPieChartRef}>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={certificatesPerAsset}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ asset, percentage }: any) => {
+                          const label = `${asset} (${percentage}%)`;
+                          return label.length > 20
+                            ? `${asset.substring(0, 15)}... (${percentage}%)`
+                            : label;
+                        }}
+                        outerRadius={60}
+                        innerRadius={30}
+                        fill="#d2691e"
+                        dataKey="certificateCount"
+                      >
+                        {certificatesPerAsset.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={PIE_COLORS[index % PIE_COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+                                <p className="font-medium text-black">
+                                  {data.asset}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Certificates: {data.certificateCount}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Percentage: {data.percentage}%
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                        contentStyle={{
+                          backgroundColor: "#ffffff",
+                          border: "1px solid #E5E5E5",
+                          borderRadius: "8px",
+                          color: "#2C2C2C",
+                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          {/* Chart: Donut Chart - Active vs Inactive Users */}
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-black flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-dawn" />
+                  Active Users vs Inactive Users (15 days of inactivity)
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() =>
+                      downloadChartAsPNG(
+                        activeInactiveChartRef,
+                        "active-inactive-users"
+                      )
+                    }
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    <Image className="h-3 w-3" />
+                    PNG
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {activeInactiveUsers.length === 0 ||
+              (activeInactiveUsers[0]?.value === 0 &&
+                activeInactiveUsers[1]?.value === 0) ? (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <p>No active/inactive user data available</p>
+                </div>
+              ) : (
+                <div ref={activeInactiveChartRef}>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={activeInactiveUsers}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percentage }) =>
+                          `${name} (${percentage}%)`
+                        }
+                        outerRadius={80}
+                        innerRadius={50}
+                        fill="#d2691e"
+                        dataKey="value"
+                      >
+                        {activeInactiveUsers.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={PIE_COLORS[index % PIE_COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+                                <p className="font-medium text-black">
+                                  {data.name}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Count: {data.value} users
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Percentage: {data.percentage}%
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                        contentStyle={{
+                          backgroundColor: "#ffffff",
+                          border: "1px solid #E5E5E5",
+                          borderRadius: "8px",
+                          color: "#2C2C2C",
+                          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          {/* Chart: Pie Chart - Manager vs Staff Distribution */}
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-black flex items-center gap-2">
+                  <Target className="h-5 w-5 text-dawn" />
+                  Manager vs Staff Distribution
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() =>
+                      downloadChartAsPNG(
+                        seniorityChartRef,
+                        "seniority-distribution"
+                      )
+                    }
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    <Image className="h-3 w-3" />
+                    PNG
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {seniorityDistribution.length === 0 ? (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <p>No seniority distribution data available</p>
+                </div>
+              ) : (
+                <div ref={seniorityChartRef}>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={seniorityDistribution}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ seniority, percentage }) =>
+                          `${seniority} (${percentage}%)`
+                        }
+                        outerRadius={60}
+                        fill="#d2691e"
+                        dataKey="userCount"
+                      >
+                        {seniorityDistribution.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={PIE_COLORS[index % PIE_COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+                                <p className="font-semibold text-black">
+                                  {data.seniority}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Count: {data.userCount} users
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Percentage: {data.percentage}%
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          {/* Chart: Pie Chart - Expected vs Actual Frontliners */}
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-black flex items-center gap-2">
+                  <Users className="h-5 w-5 text-dawn" />
+                  Expected vs Registered Frontliners
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() =>
+                      downloadChartAsPNG(
+                        expectedActualChartRef,
+                        "expected-vs-actual-frontliners"
+                      )
+                    }
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    <Image className="h-3 w-3" />
+                    PNG
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {expectedVsActualFrontliners.length === 0 ? (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <p>No frontliner data available</p>
+                </div>
+              ) : (
+                <div ref={expectedActualChartRef}>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={expectedVsActualFrontliners}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percentage }) =>
+                          `${name} (${percentage}%)`
+                        }
+                        outerRadius={60}
+                        fill="#d2691e"
+                        dataKey="value"
+                      >
+                        {expectedVsActualFrontliners.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={PIE_COLORS[index % PIE_COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+                                <p className="font-semibold text-black">
+                                  {data.name}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Count: {data.value} frontliners
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                  Percentage: {data.percentage}%
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts Row 3: Training Area Completion Heatmap */}
+        <div className="grid gap-4 md:grid-cols-1">
+          {/* Chart: Heatmap - Training Area Completion */}
+          <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-black flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-dawn" />
+                  Training Area Completion Heatmap
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() =>
+                      downloadChartAsPNG(
+                        heatmapRef,
+                        "training-area-completion-heatmap"
+                      )
+                    }
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    <Image className="h-3 w-3" />
+                    PNG
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {trainingAreaCompletionHeatmap.length === 0 ? (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <p>No training area completion data available</p>
+                </div>
+              ) : (
+                <div
+                  ref={heatmapRef}
+                  data-chart-ref="training-area-completion-heatmap"
+                  className="space-y-2"
+                >
+                  {/* Legend */}
+                  <div className="flex items-center justify-center gap-6 mb-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 rounded"
+                        style={{ backgroundColor: "#10B981" }}
+                      ></div>
+                      <span>Excellent (86-100%)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 rounded"
+                        style={{ backgroundColor: "#86EFAC" }}
+                      ></div>
+                      <span>Good (71-85%)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 rounded"
+                        style={{ backgroundColor: "#FCD34D" }}
+                      ></div>
+                      <span>Medium (41-70%)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 rounded"
+                        style={{ backgroundColor: "#EF4444" }}
+                      ></div>
+                      <span>Low (0-40%)</span>
+                    </div>
+                  </div>
+
+                  {/* Heatmap */}
+                  <div className="space-y-3">
+                    {trainingAreaCompletionHeatmap.map((area, index) => (
+                      <div
+                        key={index}
+                        className="p-4 rounded-lg hover:shadow-md transition-shadow border border-gray-200"
+                        style={{
+                          backgroundColor:
+                            getHeatmapColor(area.completionRate) + "20",
+                        }}
+                      >
+                        {/* Training Area Name */}
+                        <h4 className="font-medium text-black mb-2">
+                          {area.trainingArea}
+                        </h4>
+
+                        {/* Completion Percentage */}
+                        <div
+                          className="text-2xl font-bold mb-2"
+                          style={{
+                            color: getHeatmapColor(area.completionRate),
+                          }}
+                        >
+                          {area.completionRate}%
+                        </div>
+
+                        {/* Enrollment Details */}
+                        <div className="text-sm text-gray-600 mb-3">
+                          {area.enrolledUsers}/{area.totalFrontliners}{" "}
+                          Frontliners enrolled
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full transition-all duration-300"
+                            style={{
+                              width: `${Math.min(area.completionRate, 100)}%`,
+                              backgroundColor: "#d2691e",
+                            }}
+                          ></div>
+                        </div>
+                      </div>
                     ))}
-                  </Pie>
-                  {/* <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#ffffff",
-                      border: "1px solid #E5E5E5",
-                      borderRadius: "8px",
-                      color: "#2C2C2C",
-                      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                    }}
-                  /> */}
-                </PieChart>
-              </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
