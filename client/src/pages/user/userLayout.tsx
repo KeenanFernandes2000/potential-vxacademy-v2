@@ -8,7 +8,7 @@ const UserLayout = () => {
     <SidebarProvider>
       <UserSidebar />
       <SidebarInset>
-        <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-16 md:pt-4">
           <main className="flex-1">
             <Outlet />
           </main>

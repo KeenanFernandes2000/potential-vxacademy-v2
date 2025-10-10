@@ -605,9 +605,9 @@ const Courses = () => {
 
       {/* Courses Coming Soon Section */}
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Courses Coming Soon</h2>
-          <p className="text-gray-600">Exciting new courses are on the way!</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-2 sm:space-y-0">
+          <h2 className="text-xl sm:text-2xl font-bold">Courses Coming Soon</h2>
+          <p className="text-sm sm:text-base text-gray-600">Exciting new courses are on the way!</p>
         </div>
 
         <Carousel
@@ -622,13 +622,13 @@ const Courses = () => {
               stopOnMouseEnter: true,
             }),
           ]}
-          className="w-[90%] ml-16 lg:mx-20"
+          className="w-full px-4 sm:w-[90%] sm:ml-8 md:ml-16 lg:mx-20"
         >
           <CarouselContent className="w-full">
             {comingSoonCourses.map((course) => (
               <CarouselItem
                 key={course.id}
-                className="pl-2 md:pl-4 md:basis-1/2 lg:basis-1/3 "
+                className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3"
               >
                 <ComingSoonCourseCard
                   title={course.name}
@@ -637,8 +637,8 @@ const Courses = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="absolute -left-16 top-1/2 -translate-y-1/2 bg-white hover:bg-sandstone border-sandstone text-[#2C2C2C] hover:text-dawn" />
-          <CarouselNext className="absolute -right-16 top-1/2 -translate-y-1/2 bg-white hover:bg-sandstone border-sandstone text-[#2C2C2C] hover:text-dawn" />
+          <CarouselPrevious className="absolute -left-4 sm:-left-8 md:-left-16 top-1/2 -translate-y-1/2 bg-white hover:bg-sandstone border-sandstone text-[#2C2C2C] hover:text-dawn" />
+          <CarouselNext className="absolute -right-4 sm:-right-8 md:-right-16 top-1/2 -translate-y-1/2 bg-white hover:bg-sandstone border-sandstone text-[#2C2C2C] hover:text-dawn" />
         </Carousel>
       </div>
     </div>

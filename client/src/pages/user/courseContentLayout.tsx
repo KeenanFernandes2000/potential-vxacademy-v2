@@ -1218,6 +1218,45 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
     return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
   };
 
+  // Simple Mobile Video Player (fallback for mobile)
+  const SimpleVideoPlayer: React.FC<{ videoUrl: string; content?: string }> = ({
+    videoUrl,
+    content,
+  }) => {
+    return (
+      <div className="w-full">
+        <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+          <video
+            className="w-full h-full rounded-lg shadow-md"
+            preload="metadata"
+            crossOrigin="anonymous"
+            playsInline
+            controls
+            controlsList="nodownload"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              backgroundColor: "#000",
+            }}
+          >
+            <source src={videoUrl} type="video/mp4" />
+            <source src={videoUrl} type="video/webm" />
+            <source src={videoUrl} type="video/ogg" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        {content && (
+          <div className="mt-3 sm:mt-4">
+            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
+              {content}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Plyr Video Component for direct video files
   const PlyrVideoPlayer: React.FC<{ videoUrl: string; content?: string }> = ({
     videoUrl,
@@ -1225,35 +1264,63 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
   }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const plyrRef = useRef<Plyr | null>(null);
+    const [useSimplePlayer, setUseSimplePlayer] = useState(false);
 
     useEffect(() => {
+      // Check if we're on mobile and use simple player as fallback
+      const isMobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+
+      if (isMobile) {
+        setUseSimplePlayer(true);
+        return;
+      }
+
       if (videoRef.current && !plyrRef.current) {
-        // Initialize Plyr
-        plyrRef.current = new Plyr.default(videoRef.current, {
-          controls: [
-            "play-large",
-            "restart",
-            "rewind",
-            "play",
-            "fast-forward",
-            "progress",
-            "current-time",
-            "duration",
-            "mute",
-            "volume",
-            "captions",
-            "settings",
-            "pip",
-            "airplay",
-            "fullscreen",
-          ],
-          settings: ["captions", "quality", "speed"],
-          speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
-          quality: {
-            default: 720,
-            options: [1080, 720, 480, 360],
-          },
-        });
+        try {
+          // Initialize Plyr with mobile-optimized settings
+          plyrRef.current = new Plyr.default(videoRef.current, {
+            controls: [
+              "play-large",
+              "play",
+              "progress",
+              "current-time",
+              "duration",
+              "mute",
+              "volume",
+              "settings",
+              "fullscreen",
+            ],
+            settings: ["quality", "speed"],
+            speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+            quality: {
+              default: 720,
+              options: [1080, 720, 480, 360],
+            },
+            // Mobile-specific optimizations
+            ratio: "16:9",
+            fullscreen: {
+              enabled: true,
+              fallback: true,
+              iosNative: true,
+            },
+            // Ensure controls are visible on mobile
+            hideControls: false,
+            clickToPlay: true,
+            keyboard: {
+              focused: true,
+              global: false,
+            },
+          });
+        } catch (error) {
+          console.warn(
+            "Plyr initialization failed, falling back to simple player:",
+            error
+          );
+          setUseSimplePlayer(true);
+        }
 
         // Cleanup on unmount
         return () => {
@@ -1265,22 +1332,69 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
       }
     }, []);
 
+    // Use simple player on mobile or if Plyr fails
+    if (useSimplePlayer) {
+      return <SimpleVideoPlayer videoUrl={videoUrl} content={content} />;
+    }
+
     return (
       <div className="w-full">
-        <video
-          ref={videoRef}
-          className="w-full max-w-full h-auto rounded-lg shadow-md"
-          preload="metadata"
-          crossOrigin="anonymous"
-        >
-          <source src={videoUrl} type="video/mp4" />
-          <source src={videoUrl} type="video/webm" />
-          <source src={videoUrl} type="video/ogg" />
-          Your browser does not support the video tag.
-        </video>
+        <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+          <video
+            ref={videoRef}
+            className="w-full h-full rounded-lg shadow-md"
+            preload="metadata"
+            crossOrigin="anonymous"
+            playsInline
+            controls
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              backgroundColor: "#000",
+            }}
+          >
+            <source src={videoUrl} type="video/mp4" />
+            <source src={videoUrl} type="video/webm" />
+            <source src={videoUrl} type="video/ogg" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
         {content && (
-          <div className="mt-4">
-            <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words">
+          <div className="mt-3 sm:mt-4">
+            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
+              {content}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Simple YouTube Player (fallback for mobile)
+  const SimpleYouTubePlayer: React.FC<{
+    videoUrl: string;
+    content?: string;
+  }> = ({ videoUrl, content }) => {
+    return (
+      <div className="w-full">
+        <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+          <iframe
+            src={videoUrl}
+            allowFullScreen
+            allowTransparency
+            allow="autoplay; fullscreen; picture-in-picture"
+            className="w-full h-full rounded-lg shadow-md"
+            style={{
+              width: "100%",
+              height: "100%",
+              border: "none",
+            }}
+          />
+        </div>
+        {content && (
+          <div className="mt-3 sm:mt-4">
+            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
               {content}
             </p>
           </div>
@@ -1296,43 +1410,70 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
   }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const plyrRef = useRef<Plyr | null>(null);
+    const [useSimplePlayer, setUseSimplePlayer] = useState(false);
 
     useEffect(() => {
+      // Check if we're on mobile and use simple player as fallback
+      const isMobile =
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        );
+
+      if (isMobile) {
+        setUseSimplePlayer(true);
+        return;
+      }
+
       if (containerRef.current && !plyrRef.current) {
-        // Initialize Plyr for YouTube
-        plyrRef.current = new Plyr.default(containerRef.current, {
-          controls: [
-            "play-large",
-            "restart",
-            "rewind",
-            "play",
-            "fast-forward",
-            "progress",
-            "current-time",
-            "duration",
-            "mute",
-            "volume",
-            "settings",
-            "pip",
-            "airplay",
-            "fullscreen",
-          ],
-          settings: ["quality", "speed"],
-          speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
-          youtube: {
-            noCookie: false,
-            rel: 0,
-            showinfo: 0,
-            iv_load_policy: 3,
-            modestbranding: 1,
-            playsinline: 1,
-            fs: 0,
-            cc_load_policy: 0,
-            disablekb: 0,
-            enablejsapi: 1,
-            origin: window.location.origin,
-          },
-        });
+        try {
+          // Initialize Plyr for YouTube with mobile optimizations
+          plyrRef.current = new Plyr.default(containerRef.current, {
+            controls: [
+              "play-large",
+              "play",
+              "progress",
+              "current-time",
+              "duration",
+              "mute",
+              "volume",
+              "settings",
+              "fullscreen",
+            ],
+            settings: ["quality", "speed"],
+            speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+            // Mobile-specific optimizations
+            ratio: "16:9",
+            fullscreen: {
+              enabled: true,
+              fallback: true,
+              iosNative: true,
+            },
+            hideControls: false,
+            clickToPlay: true,
+            youtube: {
+              noCookie: false,
+              rel: 0,
+              showinfo: 0,
+              iv_load_policy: 3,
+              modestbranding: 1,
+              playsinline: 1,
+              fs: 1, // Enable fullscreen on mobile
+              cc_load_policy: 0,
+              disablekb: 0,
+              enablejsapi: 1,
+              origin: window.location.origin,
+              // Mobile-specific YouTube parameters
+              controls: 1,
+              autoplay: 0,
+            },
+          });
+        } catch (error) {
+          console.warn(
+            "Plyr YouTube initialization failed, falling back to simple player:",
+            error
+          );
+          setUseSimplePlayer(true);
+        }
 
         // Cleanup on unmount
         return () => {
@@ -1344,21 +1485,32 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
       }
     }, []);
 
+    // Use simple player on mobile or if Plyr fails
+    if (useSimplePlayer) {
+      return <SimpleYouTubePlayer videoUrl={videoUrl} content={content} />;
+    }
+
     return (
       <div className="w-full">
-        <div className="plyr__video-embed" ref={containerRef}>
-          <iframe
-            src={videoUrl}
-            allowFullScreen
-            allowTransparency
-            allow="autoplay"
-            className="w-full rounded-lg shadow-md"
-            style={{ aspectRatio: "16/9" }}
-          />
+        <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+          <div className="plyr__video-embed w-full h-full" ref={containerRef}>
+            <iframe
+              src={videoUrl}
+              allowFullScreen
+              allowTransparency
+              allow="autoplay; fullscreen; picture-in-picture"
+              className="w-full h-full rounded-lg shadow-md"
+              style={{
+                width: "100%",
+                height: "100%",
+                border: "none",
+              }}
+            />
+          </div>
         </div>
         {content && (
-          <div className="mt-4">
-            <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap break-words">
+          <div className="mt-3 sm:mt-4">
+            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
               {content}
             </p>
           </div>
@@ -1445,7 +1597,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
         return (
           <div className="w-full">
             <div
-              className="text-gray-900 leading-relaxed text-base prose prose-gray max-w-none prose-ul:ml-4 prose-ol:ml-4 prose-li:my-1 prose-p:mb-4 prose-headings:mt-6 prose-headings:mb-3"
+              className="text-gray-900 leading-relaxed text-sm sm:text-base prose prose-gray max-w-none prose-ul:ml-2 sm:prose-ul:ml-4 prose-ol:ml-2 sm:prose-ol:ml-4 prose-li:my-1 prose-p:mb-3 sm:prose-p:mb-4 prose-headings:mt-4 sm:prose-headings:mt-6 prose-headings:mb-2 sm:prose-headings:mb-3 prose-h1:text-lg sm:prose-h1:text-xl prose-h2:text-base sm:prose-h2:text-lg prose-h3:text-sm sm:prose-h3:text-base"
               style={{
                 wordBreak: "break-word",
                 overflowWrap: "anywhere",
@@ -1461,13 +1613,13 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
       {/* Course Content (Left Accordion) */}
-      <div className="lg:col-span-1">
-        <div className="bg-white shadow-sm p-6">
+      <div className="lg:col-span-1 order-2 lg:order-1">
+        <div className="bg-white shadow-sm p-3 sm:p-4 md:p-6 rounded-lg">
           <div className="flex items-center mb-4">
-            <BookOpen className="w-5 h-5 text-blue-700 mr-2" />
-            <h2 className="text-lg font-semibold text-gray-900">
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-blue-700 mr-2" />
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900">
               Course Content
             </h2>
           </div>
@@ -1485,15 +1637,15 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                 value={`unit-${unit.id}`}
                 className="border border-gray-200 mb-2"
               >
-                <AccordionTrigger className="text-left text-gray-900 hover:text-gray-900 px-4 py-3">
+                <AccordionTrigger className="text-left text-gray-900 hover:text-gray-900 px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base">
                   <div className="flex items-center">
                     <span className="font-medium text-gray-900">
                       {unit.name}
                     </span>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-2 pl-4">
+                <AccordionContent className="px-3 sm:px-4 pb-3 sm:pb-4">
+                  <div className="space-y-1 sm:space-y-2 pl-2 sm:pl-4">
                     {/* Learning Blocks */}
                     {unit.learningBlocks.map((block) => {
                       const isAccessible = isLearningBlockAccessible(
@@ -1505,7 +1657,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                           key={block.id}
                           data-content-id={block.id}
                           data-content-type="learningBlock"
-                          className={`flex items-center justify-between p-2 transition-colors ${
+                          className={`flex items-center justify-between p-2 sm:p-3 transition-colors rounded ${
                             !isAccessible
                               ? "opacity-50 cursor-not-allowed"
                               : selectedContent?.id === block.id &&
@@ -1519,14 +1671,16 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                             }
                           }}
                         >
-                          <div className="flex items-center text-gray-700">
+                          <div className="flex items-center text-gray-700 min-w-0 flex-1">
                             {!isAccessible ? (
-                              <Lock className="w-4 h-4 text-gray-400" />
+                              <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
                             ) : (
-                              getContentIcon(block.type)
+                              <div className="flex-shrink-0">
+                                {getContentIcon(block.type)}
+                              </div>
                             )}
                             <span
-                              className={`ml-2 text-sm ${
+                              className={`ml-2 text-xs sm:text-sm truncate ${
                                 !isAccessible
                                   ? "text-gray-400"
                                   : "text-gray-700"
@@ -1535,11 +1689,13 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                               {block.title}
                             </span>
                           </div>
-                          {!isAccessible ? (
-                            <Lock className="w-4 h-4 text-gray-400" />
-                          ) : (
-                            getStatusIcon(block.status)
-                          )}
+                          <div className="flex-shrink-0 ml-2">
+                            {!isAccessible ? (
+                              <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                            ) : (
+                              getStatusIcon(block.status)
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -1555,7 +1711,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                           key={assessment.id}
                           data-content-id={assessment.id}
                           data-content-type="assessment"
-                          className={`flex items-center justify-between p-2 transition-colors ${
+                          className={`flex items-center justify-between p-2 sm:p-3 transition-colors rounded ${
                             !isAccessible
                               ? "opacity-50 cursor-not-allowed"
                               : selectedContent?.id === assessment.id &&
@@ -1569,14 +1725,14 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                             }
                           }}
                         >
-                          <div className="flex items-center">
+                          <div className="flex items-center min-w-0 flex-1">
                             {!isAccessible ? (
-                              <Lock className="w-4 h-4 text-gray-400" />
+                              <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0" />
                             ) : (
-                              <HelpOutline className="w-4 h-4 text-gray-700" />
+                              <HelpOutline className="w-3 h-3 sm:w-4 sm:h-4 text-gray-700 flex-shrink-0" />
                             )}
                             <span
-                              className={`ml-2 text-sm ${
+                              className={`ml-2 text-xs sm:text-sm truncate ${
                                 !isAccessible
                                   ? "text-gray-400"
                                   : "text-gray-700"
@@ -1585,11 +1741,13 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                               {assessment.title}
                             </span>
                           </div>
-                          {!isAccessible ? (
-                            <Lock className="w-4 h-4 text-gray-400" />
-                          ) : (
-                            getStatusIcon(assessment.status)
-                          )}
+                          <div className="flex-shrink-0 ml-2">
+                            {!isAccessible ? (
+                              <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                            ) : (
+                              getStatusIcon(assessment.status)
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -1690,25 +1848,25 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
       </div>
 
       {/* Content Area (Right) */}
-      <div className="lg:col-span-2">
-        <div className="bg-white shadow-sm p-6">
+      <div className="lg:col-span-2 order-1 lg:order-2">
+        <div className="bg-white shadow-sm p-3 sm:p-4 md:p-6 rounded-lg">
           {selectedContent ? (
             <>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2 sm:gap-4">
+                <div className="flex items-center min-w-0 flex-1">
                   {selectedContent.type === "learningBlock" ? (
-                    <Description className="w-5 h-5 text-green-700 mr-2" />
+                    <Description className="w-4 h-4 sm:w-5 sm:h-5 text-green-700 mr-2 flex-shrink-0" />
                   ) : (
-                    <HelpOutline className="w-5 h-5 text-green-700 mr-2" />
+                    <HelpOutline className="w-4 h-4 sm:w-5 sm:h-5 text-green-700 mr-2 flex-shrink-0" />
                   )}
-                  <h2 className="text-lg font-semibold text-gray-900">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                     {selectedContent.title}
                   </h2>
                 </div>
                 {selectedContent.type === "learningBlock" &&
                   isCurrentLearningBlockCompleted() && (
-                    <div className="flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                      <CheckCircle className="w-4 h-4 mr-1" />
+                    <div className="flex items-center bg-green-100 text-green-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium flex-shrink-0">
+                      <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                       Completed
                     </div>
                   )}
@@ -1721,13 +1879,13 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                   {isAssessmentStarted && assessmentQuestions.length > 0 ? (
                     <>
                       {/* Header with Progress */}
-                      <div className="mb-6 bg-gray-50 p-5">
-                        <div className="flex justify-between items-center mb-4">
-                          <div className="text-lg font-medium text-gray-900">
+                      <div className="mb-4 sm:mb-6 bg-gray-50 p-3 sm:p-5 rounded-lg">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 gap-2">
+                          <div className="text-sm sm:text-lg font-medium text-gray-900">
                             Question {currentQuestionIndex + 1} of{" "}
                             {assessmentQuestions.length}
                           </div>
-                          <div className="text-lg font-medium text-gray-900">
+                          <div className="text-xs sm:text-lg font-medium text-gray-900">
                             {getAnsweredCount()} of {assessmentQuestions.length}{" "}
                             answered ({getCompletionPercentage()}% complete)
                           </div>
@@ -1746,21 +1904,21 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                       <div className="border-t border-gray-300 mb-8"></div>
 
                       {/* Question Card */}
-                      <div className="bg-white shadow-sm p-8 mb-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-6">
+                      <div className="bg-white shadow-sm p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 rounded-lg">
+                        <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">
                           {
                             assessmentQuestions[currentQuestionIndex]
                               ?.questionText
                           }
                         </h2>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3 sm:space-y-4">
                           {assessmentQuestions[
                             currentQuestionIndex
                           ]?.options.map((option, index) => (
                             <label
                               key={index}
-                              className={`flex items-center p-3 transition-colors ${
+                              className={`flex items-start p-3 transition-colors rounded ${
                                 isSubmittingAssessment
                                   ? "cursor-not-allowed opacity-50"
                                   : "cursor-pointer hover:bg-gray-50"
@@ -1773,10 +1931,10 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                                 checked={selectedAnswer === option}
                                 onChange={() => handleAnswerSelect(option)}
                                 disabled={isSubmittingAssessment}
-                                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 mr-4 disabled:cursor-not-allowed"
+                                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 mr-3 sm:mr-4 mt-0.5 disabled:cursor-not-allowed flex-shrink-0"
                               />
                               <span
-                                className={`text-gray-900 ${
+                                className={`text-sm sm:text-base text-gray-900 ${
                                   isSubmittingAssessment ? "opacity-50" : ""
                                 }`}
                               >
@@ -1788,12 +1946,12 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                       </div>
 
                       {/* Navigation Footer */}
-                      <div className="bg-white shadow-sm p-6">
-                        <div className="flex justify-between items-center mb-4">
+                      <div className="bg-white shadow-sm p-4 sm:p-6 rounded-lg">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-4">
                           <Button
                             onClick={handlePreviousQuestion}
                             disabled={currentQuestionIndex === 0}
-                            className="px-6 py-2 text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full sm:w-auto px-4 sm:px-6 py-2 text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                           >
                             Previous
                           </Button>
@@ -1802,7 +1960,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                             disabled={
                               selectedAnswer === null || isSubmittingAssessment
                             }
-                            className="px-6 py-2 bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-dawn hover:bg-[#B85A1A] text-white disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                           >
                             {isSubmittingAssessment
                               ? "Submitting..."
@@ -1815,8 +1973,8 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
 
                         {/* Instruction Message */}
                         {selectedAnswer === null && (
-                          <div className="bg-blue-50 border border-blue-200 p-4">
-                            <p className="text-blue-800 text-sm">
+                          <div className="bg-blue-50 border border-blue-200 p-3 sm:p-4 rounded">
+                            <p className="text-blue-800 text-xs sm:text-sm">
                               Please select an answer before proceeding to the
                               next question.
                             </p>
@@ -1827,31 +1985,31 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                   ) : (
                     <>
                       {/* Assessment Details - Show when not started */}
-                      <div className="max-w-none mb-6">
-                        <p className="text-gray-900 leading-relaxed text-base mb-6">
+                      <div className="max-w-none mb-4 sm:mb-6">
+                        <p className="text-gray-900 leading-relaxed text-sm sm:text-base mb-4 sm:mb-6">
                           {selectedContent.content}
                         </p>
 
                         {/* Assessment Details */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">
                               Assessment Details:
                             </h3>
-                            <div className="space-y-3">
+                            <div className="space-y-2 sm:space-y-3">
                               <div className="flex justify-between">
-                                <span className="text-gray-700">
+                                <span className="text-sm sm:text-base text-gray-700">
                                   Questions:
                                 </span>
-                                <span className="font-medium text-gray-900">
+                                <span className="font-medium text-sm sm:text-base text-gray-900">
                                   {assessmentQuestions.length}
                                 </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-gray-700">
+                                <span className="text-sm sm:text-base text-gray-700">
                                   Passing Score:
                                 </span>
-                                <span className="font-medium text-gray-900">
+                                <span className="font-medium text-sm sm:text-base text-gray-900">
                                   {selectedContent.assessment.passingScore}%
                                 </span>
                               </div>
@@ -1867,15 +2025,15 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                           </div>
 
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">
                               Attempt Information:
                             </h3>
-                            <div className="space-y-3">
+                            <div className="space-y-2 sm:space-y-3">
                               <div className="flex justify-between">
-                                <span className="text-gray-700">
+                                <span className="text-sm sm:text-base text-gray-700">
                                   Attempts used:
                                 </span>
-                                <span className="font-medium text-gray-900">
+                                <span className="font-medium text-sm sm:text-base text-gray-900">
                                   <span className="text-gray-900">
                                     {selectedContent.assessment.attemptsUsed}
                                   </span>
@@ -1886,11 +2044,11 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                                 </span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-gray-700">
+                                <span className="text-sm sm:text-base text-gray-700">
                                   Attempts remaining:
                                 </span>
                                 <span
-                                  className={`font-medium ${
+                                  className={`font-medium text-sm sm:text-base ${
                                     hasExceededAttemptLimit()
                                       ? "text-red-600"
                                       : "text-gray-900"
@@ -1904,10 +2062,10 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                               </div>
                               {assessmentAttempts.length > 0 && (
                                 <div className="flex justify-between">
-                                  <span className="text-gray-700">
+                                  <span className="text-sm sm:text-base text-gray-700">
                                     Best Score:
                                   </span>
-                                  <span className="font-medium text-green-600">
+                                  <span className="font-medium text-sm sm:text-base text-green-600">
                                     {getBestScore()}%
                                   </span>
                                 </div>
@@ -2037,10 +2195,10 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                         assessmentAttempts.length === 0 ||
                         assessmentAttempts[0]?.passed !== true) &&
                         !hasAttemptedAssessment && (
-                          <div className="mt-6 flex justify-end">
+                          <div className="mt-4 sm:mt-6 flex justify-end">
                             <Button
                               onClick={handleStartAssessment}
-                              className={`px-8 py-3 text-lg font-medium ${
+                              className={`w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-lg font-medium ${
                                 hasExceededAttemptLimit()
                                   ? "bg-gray-400 hover:bg-gray-400 text-white cursor-not-allowed"
                                   : "bg-dawn hover:bg-[#B85A1A] text-white"
@@ -2095,19 +2253,19 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
                       return renderContent(selectedContent.content, "text");
                     })()}
                   </div>
-                  <div className="mt-6 flex justify-end">
+                  <div className="mt-4 sm:mt-6 flex justify-end">
                     <Button
                       className={
                         selectedContent?.type === "learningBlock" &&
                         isCurrentLearningBlockCompleted()
-                          ? "bg-gray-400 hover:bg-gray-400 text-white px-6 py-2 cursor-not-allowed"
+                          ? "w-full sm:w-auto bg-gray-400 hover:bg-gray-400 text-white px-4 sm:px-6 py-2 cursor-not-allowed text-sm sm:text-base"
                           : selectedContent?.type === "learningBlock" &&
                             isCompletingLearningBlock
-                          ? "bg-dawn/70 text-black px-6 py-2 cursor-wait"
+                          ? "w-full sm:w-auto bg-dawn/70 text-black px-4 sm:px-6 py-2 cursor-wait text-sm sm:text-base"
                           : selectedContent?.type === "assessment" &&
                             isSubmittingAssessment
-                          ? "bg-dawn/70 text-black px-6 py-2 cursor-wait"
-                          : "bg-dawn hover:bg-[#B85A1A] text-white px-6 py-2"
+                          ? "w-full sm:w-auto bg-dawn/70 text-black px-4 sm:px-6 py-2 cursor-wait text-sm sm:text-base"
+                          : "w-full sm:w-auto bg-dawn hover:bg-[#B85A1A] text-white px-4 sm:px-6 py-2 text-sm sm:text-base"
                       }
                       onClick={handleCompleteLearningBlock}
                       disabled={
@@ -2135,9 +2293,11 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
               )}
             </>
           ) : (
-            <div className="text-center py-12">
-              <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Select a content item to view</p>
+            <div className="text-center py-8 sm:py-12">
+              <BookOpen className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+              <p className="text-sm sm:text-base text-gray-500">
+                Select a content item to view
+              </p>
             </div>
           )}
         </div>

@@ -203,30 +203,30 @@ const Dashboard = () => {
     <div className="space-y-8">
       {/* Welcome Card */}
       <Card className="bg-white border border-[#E5E5E5] shadow-xl text-[#2C2C2C] rounded-lg">
-        <CardContent className="p-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">
+        <CardContent className="p-4 sm:p-6 md:p-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+            <div className="w-full">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">
                 Welcome, {user?.firstName}!
               </h1>
-              <p className="text-lg opacity-90 mb-4">
+              <p className="text-sm sm:text-base md:text-lg opacity-90 mb-4">
                 Continue your journey in becoming an exceptional hospitality
                 professional.
               </p>
-              <div className="flex items-center space-x-6">
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
                 <div className="flex items-center space-x-2">
-                  <Star className="w-5 h-5" />
-                  <span className="text-3xl font-semibold">
+                  <Star className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="text-xl sm:text-2xl md:text-3xl font-semibold">
                     {progressStats.totalCourses}
                   </span>
-                  <span className="text-lg font-semibold"> Courses Enrolled </span>
+                  <span className="text-sm sm:text-base md:text-lg font-semibold"> Courses Enrolled </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="text-3xl font-semibold">
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="text-xl sm:text-2xl md:text-3xl font-semibold">
                     {progressStats.completedCourses}
                   </span>
-                  <span className="text-lg font-semibold"> Completed </span>
+                  <span className="text-sm sm:text-base md:text-lg font-semibold"> Completed </span>
                   
                 </div>
               </div>

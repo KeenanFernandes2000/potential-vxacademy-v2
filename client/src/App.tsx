@@ -121,7 +121,7 @@ const UserRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
         <UserSidebar />
 
         {/* Main Content Area */}
-        <SidebarInset className="max-w-[80%]">
+        <SidebarInset className="max-w-[100%] lg:max-w-[80%]">
           <div className="flex flex-col h-full">
             <main className="flex-1 p-6">
               <div className="space-y-6">{children}</div>

@@ -308,61 +308,47 @@ const Achievements = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {certificates.map((cert) => (
               <div
                 key={cert.id}
-                className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                className="border rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow"
               >
                 {cert.trainingAreaImageUrl && (
-                  <div className="mb-3">
+                  <div className="mb-2 sm:mb-3">
                     <img
                       src={cert.trainingAreaImageUrl}
                       alt={cert.trainingAreaName}
-                      className="w-full h-24 object-cover rounded-md"
+                      className="w-full h-20 sm:h-24 object-cover rounded-md"
                     />
                   </div>
                 )}
                 <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-sm ">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-sm truncate">
                       {cert.trainingAreaName}
                     </h4>
-                    {cert.trainingAreaDescription && (
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                        {cert.trainingAreaDescription}
-                      </p>
-                    )}
                   </div>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ml-2 ${
-                      cert.status === "active"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {cert.status}
-                  </span>
                 </div>
-                <p className="text-xs text-gray-500 mb-2">
+                <p className="text-xs text-gray-500 mb-2 truncate">
                   #{cert.certificateNumber}
                 </p>
                 <p className="text-xs text-gray-500 mb-3">
                   Issued: {new Date(cert.issueDate).toLocaleDateString()}
                 </p>
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 w-full">
                   {cert.trainingAreaName.toLowerCase().includes("midhyaf") ? (
                     <CertificateFormFiller
                       userName={`${user?.firstName || ""} ${
                         user?.lastName || ""
                       }`.trim()}
-                      className="flex-1"
+                      className="flex-1 flex-col"
                     />
                   ) : (
                     <Button
                       size="sm"
                       variant="outline"
-                      className="flex-1 border-[#B85A1A] text-[#B85A1A] hover:bg-[#B85A1A] hover:text-white"
+                      className="flex-1 border-[#B85A1A] text-[#B85A1A] hover:bg-[#B85A1A] hover:text-white text-xs sm:text-sm px-2 sm:px-4"
                       onClick={() => {
                         console.log(
                           "Certificate download not implemented for:",
@@ -370,8 +356,8 @@ const Achievements = () => {
                         );
                       }}
                     >
-                      <Download className="h-3 w-3 mr-1" />
-                      Download
+                      <Download className="h-3 w-3 sm:mr-1" />
+                      <span className="hidden sm:inline">Download</span>
                     </Button>
                   )}
                 </div>

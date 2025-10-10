@@ -415,10 +415,8 @@ const CourseDetails = () => {
         try {
           // Get values from user data
           const assetName = user.asset || "";
-          const roleCategoryName =
-            user.normalUserDetails?.roleCategory || "";
-          const seniority =
-            user.normalUserDetails?.seniority || "";
+          const roleCategoryName = user.normalUserDetails?.roleCategory || "";
+          const seniority = user.normalUserDetails?.seniority || "";
 
           const learningPathResponse = await api.getLearningPathCompletion(
             assetName,
@@ -699,22 +697,25 @@ const CourseDetails = () => {
   }
 
   return (
-    <div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 lg:py-8">
         {/* Back Navigation */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <Button
             onClick={() => navigate("/user/courses")}
             variant="outline"
-            className="flex items-center gap-2 text-[#2C2C2C] hover:text-[#2C2C2C]"
+            className="flex items-center gap-2 text-[#2C2C2C] hover:text-[#2C2C2C] text-sm sm:text-base"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to My Courses
+            <span className="hidden sm:inline">Back to My Courses</span>
+            <span className="sm:hidden">Back</span>
           </Button>
         </div>
 
         {/* Course Details Card */}
-        <CourseDetailsCard course={course} />
+        <div className="mb-4 sm:mb-6">
+          <CourseDetailsCard course={course} />
+        </div>
 
         {/* Course Content Layout */}
         <CourseContentLayout
