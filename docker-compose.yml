@@ -16,6 +16,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - VITE_API_URL=${VITE_API_URL}
       - VITE_AI_URL=${VITE_AI_URL}
+      - AI_BACKEND_URL=${AI_BACKEND_URL}
     volumes:
       - /home/ftpDev/vxacademy/uploads:/app/server/uploads
     restart: unless-stopped
@@ -32,4 +33,5 @@ services:
     environment:
       - VITE_API_URL=${VITE_API_URL}
       - VITE_AI_URL=${VITE_AI_URL}
+      - AI_BACKEND_URL=${AI_BACKEND_URL}
     restart: unless-stopped

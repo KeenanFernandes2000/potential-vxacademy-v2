@@ -13,7 +13,7 @@ export interface AIChatRequest {
 }
 
 export class AIChatService {
-    private static AI_BACKEND_URL = process.env.AI_BACKEND_URL || "http://localhost:8001";
+    private static AI_BACKEND_URL = process.env.AI_BACKEND_URL || "https://api.potential.com";
 
     /**
      * Get bot configuration from AI backend
