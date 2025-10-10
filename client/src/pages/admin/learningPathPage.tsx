@@ -19,6 +19,7 @@ import AdminPageLayout from "@/pages/admin/adminPageLayout";
 import AdminTableLayout from "@/components/adminTableLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { Delete, Assignment, Close } from "@mui/icons-material";
+import { X } from "lucide-react";
 
 // API object for learning path operations
 const api = {
@@ -550,6 +551,22 @@ const LearningPathsPage = () => {
     setTableFilters(newFilters);
     applyTableFilters("", newFilters);
   };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setTableFilters({
+      assetId: "",
+      roleCategoryId: "",
+    });
+    applyTableFilters("", {
+      assetId: "",
+      roleCategoryId: "",
+    });
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    tableFilters.assetId !== "" || tableFilters.roleCategoryId !== "";
 
   const handleCreateLearningPath = async (formData: any) => {
     if (!token) {
@@ -1327,7 +1344,7 @@ const LearningPathsPage = () => {
           if (!open) handleModalClose();
         }}
       >
-        <DialogContent className="max-w-6xl bg-white border-white/20 text-[#2C2C2C] max-h-[90%]">
+        <DialogContent className="max-w-6xl bg-white border-white/20 text-[#2C2C2C] max-h-[90%] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent">
           <DialogHeader className="relative">
             <DialogTitle className="text-[#2C2C2C]">
               Assign Units - {selectedRole?.name}
@@ -1342,7 +1359,7 @@ const LearningPathsPage = () => {
             </Button>
           </DialogHeader>
 
-          <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-sidebar-border [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-sidebar-accent">
+          <div className="space-y-6 pr-2">
             {/* Unit Filtering Row */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-orange-500">
@@ -1575,7 +1592,20 @@ const LearningPathsPage = () => {
 
       {/* Filter Section */}
       <div className="mb-6 p-4 bg-sandstone rounded-lg border border-[#E5E5E5]">
-        <h3 className="text-lg font-semibold text-dawn mb-4">Filter By</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-dawn">Filter By</h3>
+          {hasActiveFilters && (
+            <Button
+              onClick={clearAllFilters}
+              variant="outline"
+              size="sm"
+              className="text-dawn border-dawn hover:bg-dawn hover:text-white"
+            >
+              <X className="mr-2 h-4 w-4" />
+              Reset Filters
+            </Button>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="assetFilter" className="text-[#2C2C2C]">
