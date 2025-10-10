@@ -893,7 +893,7 @@ const Dashboard = () => {
                       Invitation link is ready. Copy the link or download the
                       Word document to send to new users.
                     </p>
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
@@ -901,10 +901,11 @@ const Dashboard = () => {
                               copyToClipboard(getInvitationLink("new_joiner")!)
                             }
                             variant="outline"
-                            className="flex items-center gap-2 border-[#E5E5E5] text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-sandstone hover:border-dawn hover:scale-95"
+                            className="flex items-center gap-2 border-[#E5E5E5] text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-sandstone hover:border-dawn hover:scale-95 w-full sm:w-auto"
                           >
                             <Copy className="h-4 w-4" />
-                            Copy Link
+                            <span className="hidden sm:inline">Copy Link</span>
+                            <span className="sm:hidden">Copy</span>
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -922,10 +923,13 @@ const Dashboard = () => {
                                 getInvitationLink("new_joiner")!
                               )
                             }
-                            className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95"
+                            className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95 w-full sm:w-auto"
                           >
                             <FileText className="h-4 w-4" />
-                            Download Email Template
+                            <span className="hidden sm:inline">
+                              Download Email Template
+                            </span>
+                            <span className="sm:hidden">Download Template</span>
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -1006,7 +1010,7 @@ const Dashboard = () => {
                       Invitation link is ready. Copy the link or download the
                       Word document to send to existing users.
                     </p>
-                    <div className="flex gap-2 flex-wrap">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
@@ -1016,10 +1020,11 @@ const Dashboard = () => {
                               )
                             }
                             variant="outline"
-                            className="flex items-center gap-2 border-[#E5E5E5] text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-sandstone hover:border-dawn hover:scale-95"
+                            className="flex items-center gap-2 border-[#E5E5E5] text-[#2C2C2C] hover:text-[#2C2C2C] hover:bg-sandstone hover:border-dawn hover:scale-95 w-full sm:w-auto"
                           >
                             <Copy className="h-4 w-4" />
-                            Copy Link
+                            <span className="hidden sm:inline">Copy Link</span>
+                            <span className="sm:hidden">Copy</span>
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -1038,10 +1043,13 @@ const Dashboard = () => {
                                 getInvitationLink("existing_joiner")!
                               )
                             }
-                            className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95"
+                            className="flex items-center gap-2 bg-dawn hover:text-gray-100 text-white hover:scale-95 w-full sm:w-auto"
                           >
                             <FileText className="h-4 w-4" />
-                            Download Email Template
+                            <span className="hidden sm:inline">
+                              Download Email Template
+                            </span>
+                            <span className="sm:hidden">Download Template</span>
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
