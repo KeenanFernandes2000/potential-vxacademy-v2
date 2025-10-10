@@ -122,6 +122,8 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
 
   // Ref for the accordion container to enable scrolling
   const accordionRef = useRef<HTMLDivElement>(null);
+  // Ref for the main content area to scroll to
+  const contentAreaRef = useRef<HTMLDivElement>(null);
 
   // State for selected content
   const [selectedContent, setSelectedContent] = useState<{
@@ -484,6 +486,17 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
     // Check for next content
     const nextContent = findNextAccessibleContent();
     setHasNextContent(!!nextContent);
+
+    // Scroll to the main content area when any item is selected
+    if (contentAreaRef.current) {
+      setTimeout(() => {
+        contentAreaRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+          inline: "nearest",
+        });
+      }, 100); // Small delay to ensure content is updated
+    }
   };
 
   const handleStartAssessment = () => {
@@ -1629,7 +1642,20 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
             className="w-full"
             ref={accordionRef}
             value={expandedUnits[0] || ""}
-            onValueChange={(value) => setExpandedUnits(value ? [value] : [])}
+            onValueChange={(value) => {
+              setExpandedUnits(value ? [value] : []);
+
+              // If a unit is being expanded and we have selected content, scroll to the main content area
+              if (value && selectedContent && contentAreaRef.current) {
+                setTimeout(() => {
+                  contentAreaRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                    inline: "nearest",
+                  });
+                }, 300); // Delay to allow accordion to expand
+              }
+            }}
           >
             {units.map((unit, index) => (
               <AccordionItem
@@ -1848,7 +1874,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
       </div>
 
       {/* Content Area (Right) */}
-      <div className="lg:col-span-2 order-1 lg:order-2">
+      <div className="lg:col-span-2 order-1 lg:order-2" ref={contentAreaRef}>
         <div className="bg-white shadow-sm p-3 sm:p-4 md:p-6 rounded-lg">
           {selectedContent ? (
             <>
