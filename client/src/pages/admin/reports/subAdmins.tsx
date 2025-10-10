@@ -92,6 +92,13 @@ const SubAdmins = () => {
     useState<boolean>(false);
   const organizationDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Registration date range filter state
+  const [selectedRegistrationDateRange, setSelectedRegistrationDateRange] =
+    useState<{
+      from: string;
+      to: string;
+    }>({ from: "", to: "" });
+
   // Asset and sub-asset state for dynamic filtering
   const [assets, setAssets] = useState<Array<{ id: number; name: string }>>([]);
   const [subAssets, setSubAssets] = useState<
@@ -312,14 +319,64 @@ const SubAdmins = () => {
       );
     }
 
+    // Filter by registration date range
+    if (
+      selectedRegistrationDateRange.from ||
+      selectedRegistrationDateRange.to
+    ) {
+      filtered = filtered.filter((subAdmin) => {
+        if (subAdmin.registrationDate === "N/A") return false;
+        const userDate = new Date(subAdmin.registrationDate);
+
+        // If only from date is set
+        if (
+          selectedRegistrationDateRange.from &&
+          !selectedRegistrationDateRange.to
+        ) {
+          const fromDate = new Date(selectedRegistrationDateRange.from);
+          return userDate >= fromDate;
+        }
+
+        // If only to date is set
+        if (
+          !selectedRegistrationDateRange.from &&
+          selectedRegistrationDateRange.to
+        ) {
+          const toDate = new Date(selectedRegistrationDateRange.to);
+          toDate.setHours(23, 59, 59, 999); // Include the entire day
+          return userDate <= toDate;
+        }
+
+        // If both dates are set
+        if (
+          selectedRegistrationDateRange.from &&
+          selectedRegistrationDateRange.to
+        ) {
+          const fromDate = new Date(selectedRegistrationDateRange.from);
+          const toDate = new Date(selectedRegistrationDateRange.to);
+          toDate.setHours(23, 59, 59, 999); // Include the entire day
+          return userDate >= fromDate && userDate <= toDate;
+        }
+
+        return true;
+      });
+    }
+
     setFilteredSubAdmins(filtered);
-  }, [reportData, selectedAsset, selectedSubAsset, selectedOrganization]);
+  }, [
+    reportData,
+    selectedAsset,
+    selectedSubAsset,
+    selectedOrganization,
+    selectedRegistrationDateRange,
+  ]);
 
   // Clear all filters
   const clearAllFilters = () => {
     setSelectedAsset("all");
     setSelectedSubAsset("all");
     setSelectedOrganization("all");
+    setSelectedRegistrationDateRange({ from: "", to: "" });
     setOrganizationSearchQuery("");
     setShowOrganizationDropdown(false);
   };
@@ -344,11 +401,21 @@ const SubAdmins = () => {
     setShowOrganizationDropdown(true);
   };
 
+  // Handle date range changes
+  const handleDateRangeChange = (field: "from" | "to", value: string) => {
+    setSelectedRegistrationDateRange((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
   // Check if any filters are active
   const hasActiveFilters =
     selectedAsset !== "all" ||
     selectedSubAsset !== "all" ||
-    selectedOrganization !== "all";
+    selectedOrganization !== "all" ||
+    selectedRegistrationDateRange.from !== "" ||
+    selectedRegistrationDateRange.to !== "";
 
   // Handle search
   const handleSearch = (query: string) => {
@@ -417,20 +484,24 @@ const SubAdmins = () => {
 
   // Helper function to check if sub-admin should be highlighted
   const shouldHighlightSubAdmin = (subAdmin: SubAdmin) => {
+    // Check if sub-admin hasn't completed their profile (EID or phone number is empty)
     const hasMissingInfo =
       subAdmin.eid === "N/A" ||
       !subAdmin.eid ||
       subAdmin.phoneNumber === "N/A" ||
       !subAdmin.phoneNumber;
 
+    // Check if last login date is longer than 15 days AND there are still 0 registered frontliners
     const lastLoginDate = new Date(subAdmin.lastLoginDate);
     const fifteenDaysAgo = new Date();
     fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
 
-    const isInactive =
-      lastLoginDate < fifteenDaysAgo && subAdmin.lastLoginDate !== "N/A";
+    const isInactiveWithNoRegistrations =
+      lastLoginDate < fifteenDaysAgo &&
+      subAdmin.lastLoginDate !== "N/A" &&
+      Number(subAdmin.registeredFrontliners) === 0;
 
-    return hasMissingInfo && isInactive;
+    return hasMissingInfo || isInactiveWithNoRegistrations;
   };
 
   // Prepare table data for AdminTableLayout
@@ -653,6 +724,40 @@ const SubAdmins = () => {
               </div>
             </div>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-4">
+            <div className="space-y-2">
+              <Label
+                htmlFor="registrationDateFilter"
+                className="text-[#2C2C2C] text-center block"
+              >
+                Registration Date Range
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Input
+                    type="date"
+                    value={selectedRegistrationDateRange.from}
+                    onChange={(e) =>
+                      handleDateRangeChange("from", e.target.value)
+                    }
+                    placeholder="From date"
+                    className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] text-sm"
+                  />
+                </div>
+                <div>
+                  <Input
+                    type="date"
+                    value={selectedRegistrationDateRange.to}
+                    onChange={(e) =>
+                      handleDateRangeChange("to", e.target.value)
+                    }
+                    placeholder="To date"
+                    className="rounded-full w-full bg-white border-[#E5E5E5] text-[#2C2C2C] text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Export Button */}
@@ -673,8 +778,9 @@ const SubAdmins = () => {
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-red-200 border border-red-300 rounded"></div>
               <p className="text-red-700 font-medium text-sm">
-                <strong>Red highlighting:</strong> Inactive Sub-admins who
-                haven't completed their registration
+                <strong>Red highlighting:</strong> Sub-admins who haven't
+                completed their profile or inactive sub-admins with 0 registered
+                frontliners
               </p>
             </div>
           </div>
