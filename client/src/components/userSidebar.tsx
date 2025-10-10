@@ -58,7 +58,7 @@ const UserSidebar = () => {
       url: "/user/achievements",
       badge: null,
     },
-    { title: "AI Tutor", icon: TutorIcon, url: "/user/tutor", badge: null },
+    { title: "AI Concierge", icon: TutorIcon, url: "/user/tutor", badge: null },
   ];
 
   // Mobile Navigation Component

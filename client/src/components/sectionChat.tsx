@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, Suspense } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import CourseCard from "@/components/CourseCard";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Mic,
   MicOff,
@@ -36,6 +40,13 @@ import {
   Code,
 } from "lucide-react";
 
+interface ToolCall {
+  name: string;
+  args: any;
+  id: string;
+  type: string;
+}
+
 interface Message {
   id: string;
   text: string;
@@ -47,6 +58,7 @@ interface Message {
   audioBlob?: Blob;
   audioUrl?: string;
   audioDuration?: number;
+  toolCalls?: ToolCall[];
 }
 
 interface FileAttachment {
@@ -104,7 +116,10 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
   const [botConfig, setBotConfig] = useState<BotConfig | null>(null);
   const [isLoadingConfig, setIsLoadingConfig] = useState(true);
 
-  const baseUrl = 'http://localhost:8001';
+  // Get auth context for user ID and token
+  const { user, token } = useAuth();
+
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isListening, setIsListening] = useState(false);
@@ -230,7 +245,13 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
     const fetchBotConfig = async () => {
       try {
         setIsLoadingConfig(true);
-        const response = await fetch(`${baseUrl}/api/admin/bot/${botId}`);
+        // Use API server proxy instead of calling AI backend directly
+        const response = await fetch(`${apiUrl}/api/ai/bot/${botId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
         if (!response.ok) {
           throw new Error("Failed to fetch bot configuration");
         }
@@ -271,7 +292,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
     };
 
     fetchBotConfig();
-  }, [botId, baseUrl]);
+  }, [botId, apiUrl, token]);
 
   // Effects
   useEffect(() => {
@@ -321,39 +342,38 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
       setMessages((prev) => [...prev, botMessage]);
 
       try {
-        // Prepare form data
-        const formData = new FormData();
-        formData.append("id", botConfig._id);
-        formData.append("system", botConfig.system);
-        formData.append("message", messageText);
-        formData.append("AI", botConfig.name.replace(/\s+/g, "").toLowerCase());
+        // Prepare request body for API server proxy with SSE format
+        const requestBody = {
+          message: messageText,
+          sessionId: `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          systemPrompt: botConfig.system,
+          botName: botConfig.name,
+        };
 
-        // Add filename if there are attachments
-        if (
-          currentAttachments.length > 0 &&
-          currentAttachments[0].serverFilename
-        ) {
-          formData.append("filename", currentAttachments[0].serverFilename);
-        }
-
-        // Call streaming API
-        const response = await fetch(`${baseUrl}/streaming`, {
+        // Call API server SSE endpoint (which will handle training context automatically)
+        const response = await fetch(`${apiUrl}/api/ai/chatbot/${botConfig._id}/chat`, {
           method: "POST",
-          body: formData,
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify(requestBody),
         });
 
         if (!response.ok) {
           throw new Error("Network response was not ok.");
         }
 
-        // Handle streaming response
+        // Handle SSE streaming response
         const reader = response.body?.getReader();
         if (!reader) {
           throw new Error("No response body reader available");
         }
 
         let fullResponse = "";
+        let toolCalls: ToolCall[] = [];
         const decoder = new TextDecoder();
+        let buffer = "";
 
         while (true) {
           const { done, value } = await reader.read();
@@ -363,7 +383,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
             setMessages((prev) =>
               prev.map((msg) =>
                 msg.id === botMessageId
-                  ? { ...msg, isStreaming: false }
+                  ? { ...msg, isStreaming: false, toolCalls: toolCalls.length > 0 ? toolCalls : undefined }
                   : msg
               )
             );
@@ -371,16 +391,107 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
           }
 
           const chunk = decoder.decode(value, { stream: true });
-          fullResponse += chunk;
+          buffer += chunk;
 
-          // Update the streaming message
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === botMessageId
-                ? { ...msg, text: fullResponse }
-                : msg
-            )
-          );
+          // Process SSE format: data: {json}\n\n
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const outerData = JSON.parse(line.slice(6));
+                
+                // Handle nested data: content field
+                if (outerData.content) {
+                  // The content might have nested SSE data
+                  const contentStr = outerData.content;
+                  
+                  // Check if it's a nested SSE message
+                  if (contentStr.startsWith('data: ')) {
+                    const nestedLines = contentStr.split('\n').filter((l: string) => l.trim());
+                    
+                    for (const nestedLine of nestedLines) {
+                      if (nestedLine.startsWith('data: ')) {
+                        try {
+                          const nestedData = JSON.parse(nestedLine.slice(6));
+                          
+                          // Handle tool calls
+                          if (nestedData.toolCall) {
+                            // Don't add to toolCalls yet, wait for final success message
+                          }
+                          
+                          // Handle tool responses
+                          if (nestedData.toolResponse) {
+                            // Tool response received
+                          }
+                          
+                          // Handle content
+                          if (nestedData.content) {
+                            fullResponse = nestedData.content;
+                            
+                            setMessages((prev) =>
+                              prev.map((msg) =>
+                                msg.id === botMessageId
+                                  ? { ...msg, text: fullResponse }
+                                  : msg
+                              )
+                            );
+                          }
+                          
+                          // Handle final success with tool calls
+                          if (nestedData.success && nestedData.response) {
+                            fullResponse = nestedData.response;
+                            if (nestedData.toolCalls && Array.isArray(nestedData.toolCalls)) {
+                              toolCalls = nestedData.toolCalls;
+                            }
+                            
+                            setMessages((prev) =>
+                              prev.map((msg) =>
+                                msg.id === botMessageId
+                                  ? { ...msg, text: fullResponse, toolCalls: toolCalls.length > 0 ? toolCalls : undefined }
+                                  : msg
+                              )
+                            );
+                          }
+                        } catch (nestedParseError) {
+                          // Ignore nested parsing errors
+                        }
+                      }
+                    }
+                  } else {
+                    // Simple content without nested SSE
+                    fullResponse += contentStr;
+                    
+                    setMessages((prev) =>
+                      prev.map((msg) =>
+                        msg.id === botMessageId
+                          ? { ...msg, text: fullResponse }
+                          : msg
+                      )
+                    );
+                  }
+                }
+
+                if (outerData.error) {
+                  throw new Error(outerData.error);
+                }
+
+                if (outerData.done) {
+                  setIsTyping(false);
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === botMessageId
+                        ? { ...msg, isStreaming: false, toolCalls: toolCalls.length > 0 ? toolCalls : undefined }
+                        : msg
+                    )
+                  );
+                }
+              } catch (parseError) {
+                console.error("Error parsing SSE data:", parseError);
+              }
+            }
+          }
 
           // Small delay for smooth streaming effect
           await new Promise((resolve) => setTimeout(resolve, 30));
@@ -404,10 +515,10 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
       }
     },
     [
-      isMuted,
       attachments,
       botConfig,
-      baseUrl,
+      apiUrl,
+      token,
     ]
   );
 
@@ -428,7 +539,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
   // Show loading state while fetching configuration
   if (isLoadingConfig || !botConfig) {
     return (
-      <div className={`flex h-screen bg-gray-100 dark:bg-gray-900 items-center justify-center ${className}`}>
+      <div className={`flex h-full bg-gray-100 dark:bg-gray-900 items-center justify-center ${className}`}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">
@@ -442,7 +553,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
   // Show disabled state if bot is not active
   if (!botConfig.active) {
   return (
-      <div className={`flex h-screen bg-gray-100 dark:bg-gray-900 items-center justify-center ${className}`}>
+      <div className={`flex h-full bg-gray-100 dark:bg-gray-900 items-center justify-center ${className}`}>
         <div className="text-center max-w-md mx-auto px-4">
           <div className="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
             <Bot className="w-10 h-10 text-gray-400 dark:text-gray-500" />
@@ -509,9 +620,9 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
         </div>
       )}
 
-      <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
+      <div className="flex h-full bg-gray-100 dark:bg-gray-900">
         <div className="flex-1 flex flex-col bg-gray-100 dark:bg-gray-900">
-          <header className="sticky top-0 before:absolute before:inset-0 before:backdrop-blur-md max-lg:before:bg-white/90 dark:max-lg:before:bg-gray-800/90 before:-z-10 z-30 lg:before:bg-gray-100/90 dark:lg:before:bg-gray-900/90">
+          <header className="sticky top-0 z-30 rounded-t-lg" style={{backgroundColor: 'rgb(247, 120, 96)'}}>
             <div className="px-2 sm:px-4 md:px-6 lg:px-8">
               <div className="flex items-center justify-between h-16 lg:border-b border-gray-200 dark:border-gray-700/60">
                 <div className="flex items-center gap-2 sm:gap-3">
@@ -519,7 +630,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                   {botConfig?.imageName ? (
                     <div className="w-10 h-10 sm:w-10 sm:h-10 rounded-full flex items-center justify-center">
                       <img
-                        src={`${baseUrl}/static/mentors/${botConfig.imageName}`}
+                        src={`https://api.potential.com/static/mentors/${botConfig.imageName}`}
                         alt={botConfig.name}
                         className="rounded-full object-cover"
                       />
@@ -531,11 +642,12 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                   )}
 
                   <div>
-                    <h2 className="text-sm sm:text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    <h2 className="text-sm sm:text-lg font-semibold text-white">
                       {botConfig?.name || "AI Assistant"}
                     </h2>
                     <div className="flex items-center gap-2">
-                      <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">
+                      {!isTyping && <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>}
+                      <p className="text-xs text-white">
                         {isTyping ? "⚡ Thinking..." : "Online"}
                       </p>
                     </div>
@@ -545,20 +657,24 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
             </div>
           </header>
 
-          <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+          <div className="flex-1 overflow-y-auto" style={{backgroundColor: '#F5F0EB'}}>
             {messages.length > 0 ? (
               <div className="px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 w-full">
                 <div className="space-y-3 sm:space-y-4">
                   {messages.map((message, index) => (
-                    <div
-                      key={message.id}
-                      className={`flex gap-2 sm:gap-3 ${
-                        message.isUser ? "justify-end" : "justify-start"
-                      }`}
-                    >
+                    <div key={message.id} className="w-full">
+                      <div
+                        className={`flex gap-2 sm:gap-3 ${
+                          message.isUser ? "justify-end" : "justify-start"
+                        }`}
+                      >
                       {!message.isUser && (
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Bot className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{border: '1px solid #F77860'}}>
+                          <img
+                            src={`https://api.potential.com/static/mentors/${botConfig?.imageName}`}
+                            alt={botConfig?.name}
+                            className="w-full h-full rounded-full object-cover"
+                          />
                         </div>
                       )}
 
@@ -570,9 +686,10 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                         <div
                           className={`relative px-3 py-2 sm:px-4 sm:py-3 rounded-2xl shadow-sm ${
                             message.isUser
-                              ? "bg-violet-500 text-white"
-                              : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700/60"
+                              ? "text-white"
+                              : "bg-transparent text-gray-900 dark:text-gray-100"
                           }`}
+                          style={message.isUser ? {backgroundColor: '#F77860'} : {border: '2px solid #F77860'}}
                         >
                           <div className="prose prose-sm max-w-none">
                             {message.isUser ? (
@@ -580,8 +697,91 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                                 {message.text}
                               </p>
                             ) : (
-                              <div className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
-                                {message.text}
+                              <div className="text-gray-900 dark:text-gray-100 prose prose-sm max-w-none">
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkGfm]}
+                                  skipHtml={false}
+                                  components={{
+                                    // Style links
+                                    a: ({ ...props }) => (
+                                      <a
+                                        {...props}
+                                        className="text-blue-600 hover:text-blue-800 underline break-words"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      />
+                                    ),
+                                    // Style lists with proper spacing
+                                    ul: ({ ...props }) => (
+                                      <ul {...props} className="list-disc list-outside my-3 space-y-2 pl-6" />
+                                    ),
+                                    ol: ({ ...props }) => (
+                                      <ol {...props} className="list-decimal list-outside my-3 space-y-2 pl-6" />
+                                    ),
+                                    li: ({ ...props }) => (
+                                      <li {...props} className="leading-relaxed mb-2" />
+                                    ),
+                                    // Style headings with proper spacing
+                                    h1: ({ ...props }) => (
+                                      <h1 {...props} className="text-2xl font-bold mt-4 mb-3 first:mt-0" />
+                                    ),
+                                    h2: ({ ...props }) => (
+                                      <h2 {...props} className="text-xl font-bold mt-4 mb-3 first:mt-0" />
+                                    ),
+                                    h3: ({ ...props }) => (
+                                      <h3 {...props} className="text-lg font-bold mt-3 mb-2 first:mt-0" />
+                                    ),
+                                    // Style paragraphs with proper spacing and line breaks
+                                    p: ({ ...props }) => (
+                                      <p {...props} className="mb-4 leading-relaxed first:mt-0 last:mb-0" />
+                                    ),
+                                    // Style code blocks
+                                    code: ({ inline, ...props }: any) => 
+                                      inline ? (
+                                        <code
+                                          {...props}
+                                          className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm font-mono"
+                                        />
+                                      ) : (
+                                        <code
+                                          {...props}
+                                          className="block bg-gray-100 dark:bg-gray-800 p-3 rounded my-3 text-sm font-mono overflow-x-auto"
+                                        />
+                                      ),
+                                    // Style blockquotes
+                                    blockquote: ({ ...props }) => (
+                                      <blockquote
+                                        {...props}
+                                        className="border-l-4 border-gray-300 pl-4 italic my-3"
+                                      />
+                                    ),
+                                    // Style line breaks - force visible breaks
+                                    br: () => <br className="block h-4" />,
+                                    // Style strong/bold
+                                    strong: ({ ...props }) => (
+                                      <strong {...props} className="font-bold" />
+                                    ),
+                                    // Style emphasis/italic
+                                    em: ({ ...props }) => (
+                                      <em {...props} className="italic" />
+                                    ),
+                                    // Style horizontal rules
+                                    hr: () => <hr className="my-4 border-gray-300" />,
+                                    // Remove images from rendering since we handle them in tool calls
+                                    img: () => null,
+                                  }}
+                                >
+                                  {/* Preprocess text for better formatting */}
+                                  {message.text
+                                    // Add line breaks before numbered items
+                                    .replace(/(\d+)\.\s+/g, '\n\n$1. ')
+                                    // Add line breaks after sentences that end with periods followed by capital letters
+                                    .replace(/\.\s+([A-Z])/g, '.\n\n$1')
+                                    // Ensure proper spacing after colons followed by capital letters
+                                    .replace(/:\s+([A-Z])/g, ':\n\n$1')
+                                    .trim()
+                                  }
+                                </ReactMarkdown>
                               </div>
                             )}
               </div>
@@ -589,14 +789,14 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                           {message.isStreaming && (
                             <div className="flex items-center mt-3">
                               <div className="flex space-x-1">
-                                <div className="w-2 h-2 bg-violet-500 rounded-full animate-bounce"></div>
+                                <div className="w-2 h-2 rounded-full animate-bounce" style={{backgroundColor: '#F77860'}}></div>
                                 <div
-                                  className="w-2 h-2 bg-violet-500 rounded-full animate-bounce"
-                                  style={{ animationDelay: "0.1s" }}
+                                  className="w-2 h-2 rounded-full animate-bounce"
+                                  style={{ backgroundColor: '#F77860', animationDelay: "0.1s" }}
                                 ></div>
                                 <div
-                                  className="w-2 h-2 bg-violet-500 rounded-full animate-bounce"
-                                  style={{ animationDelay: "0.2s" }}
+                                  className="w-2 h-2 rounded-full animate-bounce"
+                                  style={{ backgroundColor: '#F77860', animationDelay: "0.2s" }}
                                 ></div>
                               </div>
                             </div>
@@ -622,8 +822,8 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
             </div>
 
                         <div
-                          className={`mt-1 text-xs text-gray-500 dark:text-gray-400 ${
-                            message.isUser ? "text-right" : "text-left"
+                          className={`mt-1 text-xs ${
+                            message.isUser ? "text-right text-gray-500 dark:text-gray-400" : "text-left text-black"
                           }`}
                         >
                           {formatTime(message.timestamp)}
@@ -631,8 +831,45 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                       </div>
 
                       {message.isUser && (
-                        <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center flex-shrink-0">
-                          <User className="w-4 h-4 text-white" />
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: '#F5D5D0', border: '2px solid #F77860'}}>
+                          <User className="w-4 h-4" style={{color: '#F77860'}} />
+                        </div>
+                      )}
+                      </div>
+                      
+                      {/* Render course cards outside the message border */}
+                      {!message.isUser && message.toolCalls && message.toolCalls.length > 0 && (
+                        <div className="w-full mt-4 pl-12">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {message.toolCalls
+                              .filter((tc: ToolCall) => tc.name === 'display_course_card')
+                              .map((toolCall: ToolCall, idx: number) => {
+                                const args = toolCall.args;
+                                // Parse duration to match CourseCard format
+                                const duration = args.duration || "";
+                                const courseId = args.link ? parseInt(args.link.split('/').pop() || "0") : undefined;
+                                
+                                return (
+                                  <div key={toolCall.id || idx} className="w-full flex justify-center">
+                                    <CourseCard
+                                      title={args.name || "Untitled Course"}
+                                      description={args.description || "No description"}
+                                      duration={duration}
+                                      difficulty="beginner"
+                                      progress={args.percentage || 0}
+                                      image={args.image && args.image !== "No image" ? args.image : undefined}
+                                      courseId={courseId}
+                                      onStart={() => {
+                                        // Open in new tab when in chat
+                                        if (courseId) {
+                                          window.open(`/user/courses/${courseId}`, '_blank');
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                );
+                              })}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -662,7 +899,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
 
           {/* Ice Breaker Questions Bubbles */}
           {messages.length === 1 && getIceBreakerQuestions().length > 0 && (
-            <div className="px-2 sm:px-4 md:px-6 lg:px-8 py-4 border-b border-gray-200 dark:border-gray-700/60 bg-gray-50/50 dark:bg-gray-800/50">
+            <div className="" style={{backgroundColor: '#F5F0EB'}}>
               <div className="flex flex-wrap gap-2 justify-center max-w-4xl mx-auto">
                 {getIceBreakerQuestions().map((question, index) => (
                   <button
@@ -673,7 +910,20 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                         sendMessage(question);
                       }, 100);
                     }}
-                    className="px-4 py-2 text-sm font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full hover:bg-violet-50 dark:hover:bg-violet-900/20 hover:text-violet-700 dark:hover:text-violet-300 hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-200 dark:border-gray-700/60 hover:border-violet-300 dark:hover:border-violet-600/60 shadow-sm"
+                    className="px-4 py-2 text-sm font-medium rounded-lg hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer shadow-sm"
+                    style={{
+                      background: 'linear-gradient(135deg, rgb(246, 238, 229) 0%, rgb(237, 220, 203) 100%)',
+                      color: '#F77860',
+                      border: '1px solid #F77860'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#F77860';
+                      e.currentTarget.style.color = 'white';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, rgb(245, 240, 235) 0%, rgb(235, 225, 215) 100%)';
+                      e.currentTarget.style.color = '#F77860';
+                    }}
                     type="button"
                   >
                     {question}
@@ -683,11 +933,10 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
             </div>
           )}
 
-          <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700/60 shadow-sm">
+          <div className="shadow-sm rounded-b-lg" style={{backgroundColor: '#F5F0EB'}}>
             <div className="px-2 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4">
               <div className="w-full max-w-full min-w-0">
-                <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex-1 relative">
+                <div className="flex items-end gap-2">
                     <textarea
                       ref={textareaRef}
                       value={newMessage}
@@ -695,24 +944,43 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
               onKeyPress={handleKeyPress}
                       placeholder="Message AI Assistant..."
                       rows={1}
-                      className="w-full px-2 py-2 sm:px-4 sm:py-3 pr-2 sm:pr-4 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none max-h-48 transition-all placeholder-gray-500 text-sm sm:text-base"
-                      style={{ minHeight: "40px" }}
+                      className="flex-1 px-4 py-2 border-0 rounded-2xl focus:ring-0 focus:outline-none bg-white text-gray-900 resize-none max-h-48 transition-all duration-300 placeholder-gray-400 text-sm sm:text-base"
+                      style={{ 
+                        minHeight: "36px",
+                        boxShadow: '0 0 0 1px rgba(247, 120, 96, 0.2), 0 0 8px rgba(247, 120, 96, 0.1)'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.boxShadow = '0 0 0 1px rgba(247, 120, 96, 0.4), 0 0 20px rgba(247, 120, 96, 0.3), 0 0 40px rgba(247, 120, 96, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.boxShadow = '0 0 0 1px rgba(247, 120, 96, 0.2), 0 0 8px rgba(247, 120, 96, 0.1)';
+                      }}
+                      onMouseEnter={(e) => {
+                        if (document.activeElement !== e.target) {
+                          (e.target as HTMLTextAreaElement).style.boxShadow = '0 0 0 1px rgba(247, 120, 96, 0.3), 0 0 12px rgba(247, 120, 96, 0.2)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (document.activeElement !== e.target) {
+                          (e.target as HTMLTextAreaElement).style.boxShadow = '0 0 0 1px rgba(247, 120, 96, 0.2), 0 0 8px rgba(247, 120, 96, 0.1)';
+                        }
+                      }}
             />
+            
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              disabled={!newMessage.trim()}
+              className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-white rounded-full transition-colors disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
+              style={{backgroundColor: '#F77860'}}
+              title="Send message"
+              type="button"
+            >
+              <Send className="w-3 h-3 sm:w-4 sm:h-4" />
+            </button>
           </div>
-
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleSendMessage();
-                    }}
-                    disabled={!newMessage.trim()}
-                    className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-violet-500 hover:bg-violet-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-full transition-colors disabled:cursor-not-allowed cursor-pointer"
-                    title="Send message"
-                    type="button"
-                  >
-                    <Send className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </button>
-        </div>
       </div>
             </div>
             

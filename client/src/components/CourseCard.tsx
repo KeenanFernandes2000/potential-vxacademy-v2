@@ -44,13 +44,12 @@ const CourseCard: React.FC<CourseCardProps> = ({
   };
 
   const handleStart = () => {
-    // Navigate to course details page
-    if (courseId) {
-      navigate(`/user/courses/${courseId}`);
-    }
-
+    // If onStart is provided, use it (for custom behavior like opening in new tab)
     if (onStart) {
       onStart();
+    } else if (courseId) {
+      // Default behavior: navigate to course details page
+      navigate(`/user/courses/${courseId}`);
     }
   };
 
