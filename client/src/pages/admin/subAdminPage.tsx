@@ -1796,15 +1796,15 @@ const SubAdminPage = () => {
                       );
 
                       if (response.ok) {
-                        // console.log("Reminder email sent successfully");
-                        // You can add a success toast here
+                        console.log("Reminder email sent successfully");
+                        showSuccessMessage("Email sent successfully!");
                       } else {
                         console.error("Failed to send reminder email");
-                        // You can add an error toast here
+                        setError("Failed to send email. Please try again.");
                       }
                     } catch (error) {
                       console.error("Error sending reminder email:", error);
-                      // You can add an error toast here
+                      setError("Failed to send email. Please try again.");
                     }
                   }
 
