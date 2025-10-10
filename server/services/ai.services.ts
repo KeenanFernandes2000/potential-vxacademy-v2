@@ -23,36 +23,21 @@ import {
 export interface AIUserTrainingContext {
     userId: number;
     frontendUrl: string;
-    trainingAreas: Array<{
+    courses: Array<{
         id: number;
         name: string;
         description: string | null;
         imageUrl: string | null;
+        level: string;
+        duration: number | null;
+        showDuration: boolean;
+        showLevel: boolean;
         status: string;
         completionPercentage: string;
-        modules: Array<{
-            id: number;
-            name: string;
-            description: string | null;
-            imageUrl: string | null;
-            status: string;
-            completionPercentage: string;
-            courses: Array<{
-                id: number;
-                name: string;
-                description: string | null;
-                imageUrl: string | null;
-                level: string;
-                duration: number | null;
-                showDuration: boolean;
-                showLevel: boolean;
-                status: string;
-                completionPercentage: string;
-                unitsTotal: number;
-                unitsCompleted: number;
-                courseUrl: string;
-            }>;
-        }>;
+        unitsTotal: number;
+        unitsCompleted: number;
+        courseUrl: string;
+        trainingAreaName: string;
     }>;
     certificates: Array<{
         id: number;
@@ -62,25 +47,7 @@ export interface AIUserTrainingContext {
         expiryDate: Date;
         status: string;
     }>;
-    assessments: {
-        totalAttempts: number;
-        totalPassed: number;
-        recentAttempts: Array<{
-            assessmentTitle: string;
-            score: number;
-            passed: boolean;
-            completedAt: Date;
-        }>;
-    };
-    badges: Array<{
-        name: string;
-        description: string;
-        earnedAt: Date;
-    }>;
     overallProgress: {
-        totalTrainingAreas: number;
-        completedTrainingAreas: number;
-        inProgressTrainingAreas: number;
         totalCourses: number;
         completedCourses: number;
         inProgressCourses: number;
@@ -115,46 +82,7 @@ export class AIService {
                 };
             }
 
-            // Get all training areas with progress
-            const trainingAreasData = await db
-                .select({
-                    id: trainingAreas.id,
-                    name: trainingAreas.name,
-                    description: trainingAreas.description,
-                    imageUrl: trainingAreas.imageUrl,
-                    progressStatus: userTrainingAreaProgress.status,
-                    completionPercentage: userTrainingAreaProgress.completionPercentage,
-                })
-                .from(trainingAreas)
-                .leftJoin(
-                    userTrainingAreaProgress,
-                    and(
-                        eq(userTrainingAreaProgress.trainingAreaId, trainingAreas.id),
-                        eq(userTrainingAreaProgress.userId, userId)
-                    )
-                );
-
-            // Get all modules with progress
-            const modulesData = await db
-                .select({
-                    id: modules.id,
-                    name: modules.name,
-                    description: modules.description,
-                    imageUrl: modules.imageUrl,
-                    trainingAreaId: modules.trainingAreaId,
-                    progressStatus: userModuleProgress.status,
-                    completionPercentage: userModuleProgress.completionPercentage,
-                })
-                .from(modules)
-                .leftJoin(
-                    userModuleProgress,
-                    and(
-                        eq(userModuleProgress.moduleId, modules.id),
-                        eq(userModuleProgress.userId, userId)
-                    )
-                );
-
-            // Get all courses with progress
+            // Get all courses with progress and training area info
             const coursesData = await db
                 .select({
                     id: courses.id,
@@ -168,8 +96,12 @@ export class AIService {
                     moduleId: courses.moduleId,
                     progressStatus: userCourseProgress.status,
                     completionPercentage: userCourseProgress.completionPercentage,
+                    trainingAreaId: modules.trainingAreaId,
+                    trainingAreaName: trainingAreas.name,
                 })
                 .from(courses)
+                .innerJoin(modules, eq(courses.moduleId, modules.id))
+                .innerJoin(trainingAreas, eq(modules.trainingAreaId, trainingAreas.id))
                 .leftJoin(
                     userCourseProgress,
                     and(
@@ -194,7 +126,7 @@ export class AIService {
                     )
                 );
 
-            // Get certificates
+            // Get certificates with training area name
             const certificatesData = await db
                 .select({
                     id: certificates.id,
@@ -204,101 +136,43 @@ export class AIService {
                     expiryDate: certificates.expiryDate,
                     status: certificates.status,
                     courseName: courses.name,
+                    trainingAreaName: trainingAreas.name,
                 })
                 .from(certificates)
                 .innerJoin(courses, eq(certificates.courseId, courses.id))
+                .innerJoin(modules, eq(courses.moduleId, modules.id))
+                .innerJoin(trainingAreas, eq(modules.trainingAreaId, trainingAreas.id))
                 .where(eq(certificates.userId, userId));
 
-            // Get assessment attempts (last 10)
-            const assessmentAttemptsData = await db
-                .select({
-                    assessmentTitle: assessments.title,
-                    score: assessmentAttempts.score,
-                    passed: assessmentAttempts.passed,
-                    completedAt: assessmentAttempts.completedAt,
-                })
-                .from(assessmentAttempts)
-                .innerJoin(assessments, eq(assessmentAttempts.assessmentId, assessments.id))
-                .where(eq(assessmentAttempts.userId, userId))
-                .orderBy(desc(assessmentAttempts.completedAt))
-                .limit(10);
-
-            // Get user badges
-            const badgesData = await db
-                .select({
-                    name: badges.name,
-                    description: badges.description,
-                    earnedAt: userBadges.earnedAt,
-                })
-                .from(userBadges)
-                .innerJoin(badges, eq(userBadges.badgeId, badges.id))
-                .where(eq(userBadges.userId, userId))
-                .orderBy(desc(userBadges.earnedAt));
-
-            // Build hierarchical structure
-            const trainingAreasWithHierarchy = trainingAreasData.map((ta) => {
-                const taModules = modulesData
-                    .filter((m) => m.trainingAreaId === ta.id)
-                    .map((module) => {
-                        const moduleCourses = coursesData
-                            .filter((c) => c.moduleId === module.id)
-                            .map((course) => {
-                                const courseUnits = courseUnitsData.filter(
-                                    (cu) => cu.courseId === course.id
-                                );
-                                const unitsTotal = courseUnits.length;
-                                const unitsCompleted = courseUnits.filter(
-                                    (cu) => cu.progressStatus === "completed"
-                                ).length;
-
-                                return {
-                                    id: course.id,
-                                    name: course.name,
-                                    description: course.description,
-                                    imageUrl: course.imageUrl,
-                                    level: course.level,
-                                    duration: course.duration,
-                                    showDuration: course.showDuration,
-                                    showLevel: course.showLevel,
-                                    status: course.progressStatus || "not_started",
-                                    completionPercentage: course.completionPercentage || "0",
-                                    unitsTotal,
-                                    unitsCompleted,
-                                    courseUrl: `${frontendUrl}/user/courses/${course.id}`,
-                                };
-                            });
-
-                        return {
-                            id: module.id,
-                            name: module.name,
-                            description: module.description,
-                            imageUrl: module.imageUrl,
-                            status: module.progressStatus || "not_started",
-                            completionPercentage: module.completionPercentage || "0",
-                            courses: moduleCourses,
-                        };
-                    });
+            // Build flat course list with training area name
+            const coursesList = coursesData.map((course) => {
+                const courseUnits = courseUnitsData.filter(
+                    (cu) => cu.courseId === course.id
+                );
+                const unitsTotal = courseUnits.length;
+                const unitsCompleted = courseUnits.filter(
+                    (cu) => cu.progressStatus === "completed"
+                ).length;
 
                 return {
-                    id: ta.id,
-                    name: ta.name,
-                    description: ta.description,
-                    imageUrl: ta.imageUrl,
-                    status: ta.progressStatus || "not_started",
-                    completionPercentage: ta.completionPercentage || "0",
-                    modules: taModules,
+                    id: course.id,
+                    name: course.name,
+                    description: course.description,
+                    imageUrl: course.imageUrl,
+                    level: course.level,
+                    duration: course.duration,
+                    showDuration: course.showDuration,
+                    showLevel: course.showLevel,
+                    status: course.progressStatus || "not_started",
+                    completionPercentage: course.completionPercentage || "0",
+                    unitsTotal,
+                    unitsCompleted,
+                    courseUrl: `${frontendUrl}/user/courses/${course.id}`,
+                    trainingAreaName: course.trainingAreaName,
                 };
             });
 
             // Calculate overall progress statistics
-            const totalTrainingAreas = trainingAreasData.length;
-            const completedTrainingAreas = trainingAreasData.filter(
-                (ta) => ta.progressStatus === "completed"
-            ).length;
-            const inProgressTrainingAreas = trainingAreasData.filter(
-                (ta) => ta.progressStatus === "in_progress"
-            ).length;
-
             const totalCourses = coursesData.length;
             const completedCourses = coursesData.filter(
                 (c) => c.progressStatus === "completed"
@@ -307,41 +181,19 @@ export class AIService {
                 (c) => c.progressStatus === "in_progress"
             ).length;
 
-            // Build assessment summary
-            const totalAttempts = assessmentAttemptsData.length;
-            const totalPassed = assessmentAttemptsData.filter((a) => a.passed).length;
-
             const context: AIUserTrainingContext = {
                 userId: user.id,
                 frontendUrl,
-                trainingAreas: trainingAreasWithHierarchy,
+                courses: coursesList,
                 certificates: certificatesData.map((cert) => ({
                     id: cert.id,
-                    trainingAreaName: cert.courseName,
+                    trainingAreaName: cert.trainingAreaName,
                     certificateNumber: cert.certificateNumber,
                     issueDate: cert.issueDate,
                     expiryDate: cert.expiryDate,
                     status: cert.status,
                 })),
-                assessments: {
-                    totalAttempts,
-                    totalPassed,
-                    recentAttempts: assessmentAttemptsData.map((attempt) => ({
-                        assessmentTitle: attempt.assessmentTitle,
-                        score: attempt.score,
-                        passed: attempt.passed,
-                        completedAt: attempt.completedAt,
-                    })),
-                },
-                badges: badgesData.map((badge) => ({
-                    name: badge.name,
-                    description: badge.description,
-                    earnedAt: badge.earnedAt,
-                })),
                 overallProgress: {
-                    totalTrainingAreas,
-                    completedTrainingAreas,
-                    inProgressTrainingAreas,
                     totalCourses,
                     completedCourses,
                     inProgressCourses,
