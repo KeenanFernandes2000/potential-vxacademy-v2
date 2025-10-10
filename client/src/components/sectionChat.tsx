@@ -122,6 +122,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
   const isMobile = useIsMobile();
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const [sessionId] = useState(`session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isListening, setIsListening] = useState(false);
@@ -347,7 +348,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
         // Prepare request body for API server proxy with SSE format
         const requestBody = {
           message: messageText,
-          sessionId: `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+          sessionId: sessionId,
           systemPrompt: botConfig.system,
           botName: botConfig.name,
         };
