@@ -792,13 +792,13 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                           {message.isStreaming && (
                             <div className="flex items-center mt-3">
                               <div className="flex space-x-1">
-                                <div className="w-2 h-2 rounded-full animate-bounce" style={{backgroundColor: '#F77860'}}></div>
+                                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-bounce" style={{backgroundColor: '#F77860'}}></div>
                                 <div
-                                  className="w-2 h-2 rounded-full animate-bounce"
+                                  className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-bounce"
                                   style={{ backgroundColor: '#F77860', animationDelay: "0.1s" }}
                                 ></div>
                                 <div
-                                  className="w-2 h-2 rounded-full animate-bounce"
+                                  className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full animate-bounce"
                                   style={{ backgroundColor: '#F77860', animationDelay: "0.2s" }}
                                 ></div>
                               </div>
