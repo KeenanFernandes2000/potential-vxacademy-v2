@@ -125,8 +125,8 @@ const SectionChat: React.FC<SectionChatProps> = ({
   const { user, token } = useAuth();
   const isMobile = useIsMobile();
 
-  const apiUrl = import.meta.env.VITE_AI_URL;
-  console.log(apiUrl);
+  const apiUrl = "https://ai.potential.com";
+  // console.log(apiUrl);
   const [sessionId] = useState(
     `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
   );
