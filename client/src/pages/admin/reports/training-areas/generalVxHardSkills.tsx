@@ -222,7 +222,7 @@ const GeneralVxHardSkills = () => {
         setLoading(true);
         setError(null);
 
-        const response = await api.getTrainingAreaReport(token, 3); // General VX Hard Skills training area ID
+        const response = await api.getTrainingAreaReport(token, 123); // General VX Hard Skills training area ID
         const reportData = response.data;
 
         setReportData(reportData);
