@@ -1204,31 +1204,14 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
     return url.includes("youtube.com") || url.includes("youtu.be");
   };
 
-  // Helper function to convert YouTube watch URL to embed URL
-  const getYouTubeEmbedUrl = (url: string): string => {
-    let videoId = "";
-
-    if (url.includes("youtube.com/watch?v=")) {
-      videoId = url.split("v=")[1]?.split("&")[0] || "";
-    } else if (url.includes("youtu.be/")) {
-      videoId = url.split("youtu.be/")[1]?.split("?")[0] || "";
-    }
-
-    // Add parameters to disable watch later, share, and other YouTube UI elements
-    const params = new URLSearchParams({
-      origin: window.location.origin,
-      iv_load_policy: "3",
-      modestbranding: "1",
-      playsinline: "1",
-      showinfo: "0",
-      rel: "0",
-      fs: "0",
-      cc_load_policy: "0",
-      disablekb: "0",
-      enablejsapi: "1",
-    });
-
-    return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
+  // Helper function to extract YouTube video ID
+  const getYouTubeId = (url: string): string => {
+    if (!url) return "";
+    if (url.includes("youtu.be/"))
+      return url.split("youtu.be/")[1].split("?")[0];
+    if (url.includes("watch?v=")) return url.split("v=")[1].split("&")[0];
+    if (url.includes("/embed/")) return url.split("/embed/")[1].split("?")[0];
+    return "";
   };
 
   // Simple Mobile Video Player (fallback for mobile)
@@ -1280,33 +1263,40 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
     const [useSimplePlayer, setUseSimplePlayer] = useState(false);
 
     useEffect(() => {
-      // Check if we're on mobile and use simple player as fallback
+      // Check if we're on mobile for specific optimizations
       const isMobile =
         /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
           navigator.userAgent
         );
 
-      if (isMobile) {
-        setUseSimplePlayer(true);
-        return;
-      }
-
       if (videoRef.current && !plyrRef.current) {
         try {
           // Initialize Plyr with mobile-optimized settings
           plyrRef.current = new Plyr.default(videoRef.current, {
-            controls: [
-              "play-large",
-              "play",
-              "progress",
-              "current-time",
-              "duration",
-              "mute",
-              "volume",
-              "settings",
-              "fullscreen",
-            ],
+            controls: isMobile
+              ? [
+                  "play-large",
+                  "play",
+                  "progress",
+                  "current-time",
+                  "duration",
+                  "mute",
+                  "volume",
+                  "fullscreen",
+                ]
+              : [
+                  "play-large",
+                  "play",
+                  "progress",
+                  "current-time",
+                  "duration",
+                  "mute",
+                  "volume",
+                  "settings",
+                  "fullscreen",
+                ],
             settings: ["quality", "speed"],
+
             speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
             quality: {
               default: 720,
@@ -1319,13 +1309,15 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
               fallback: true,
               iosNative: true,
             },
-            // Ensure controls are visible on mobile
+            // Ensure controls are visible and touch-friendly on mobile
             hideControls: false,
             clickToPlay: true,
             keyboard: {
               focused: true,
               global: false,
             },
+            // Ensure progress bar is touch-friendly
+            seekTime: 10,
           });
         } catch (error) {
           console.warn(
@@ -1345,7 +1337,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
       }
     }, []);
 
-    // Use simple player on mobile or if Plyr fails
+    // Use simple player only if Plyr fails to initialize
     if (useSimplePlayer) {
       return <SimpleVideoPlayer videoUrl={videoUrl} content={content} />;
     }
@@ -1421,26 +1413,19 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
     videoUrl,
     content,
   }) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const plyrRef = useRef<Plyr | null>(null);
-    const [useSimplePlayer, setUseSimplePlayer] = useState(false);
+    const id = getYouTubeId(videoUrl);
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const plyrRef = useRef<any>(null);
 
     useEffect(() => {
-      // Check if we're on mobile and use simple player as fallback
-      const isMobile =
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-          navigator.userAgent
-        );
+      if (!id) return;
+      if (!containerRef.current) return;
 
-      if (isMobile) {
-        setUseSimplePlayer(true);
-        return;
-      }
-
-      if (containerRef.current && !plyrRef.current) {
-        try {
-          // Initialize Plyr for YouTube with mobile optimizations
-          plyrRef.current = new Plyr.default(containerRef.current, {
+      try {
+        // Initialize Plyr on the wrapper div (Plyr will create the iframe)
+        plyrRef.current = new Plyr.default(
+          containerRef.current as HTMLElement,
+          {
             controls: [
               "play-large",
               "play",
@@ -1453,81 +1438,41 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
               "fullscreen",
             ],
             settings: ["quality", "speed"],
-            speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
-            // Mobile-specific optimizations
-            ratio: "16:9",
-            fullscreen: {
-              enabled: true,
-              fallback: true,
-              iosNative: true,
-            },
-            hideControls: false,
-            clickToPlay: true,
+
             youtube: {
-              noCookie: false,
-              rel: 0,
-              showinfo: 0,
-              iv_load_policy: 3,
+              noCookie: true,
+              controls: 0, // Hide YouTube controls
               modestbranding: 1,
+              rel: 0,
+              iv_load_policy: 3,
+              fs: 0,
               playsinline: 1,
-              fs: 1, // Enable fullscreen on mobile
-              cc_load_policy: 0,
-              disablekb: 0,
-              enablejsapi: 1,
               origin: window.location.origin,
-              // Mobile-specific YouTube parameters
-              controls: 1,
-              autoplay: 0,
             },
-          });
-        } catch (error) {
-          console.warn(
-            "Plyr YouTube initialization failed, falling back to simple player:",
-            error
-          );
-          setUseSimplePlayer(true);
-        }
-
-        // Cleanup on unmount
-        return () => {
-          if (plyrRef.current) {
-            plyrRef.current.destroy();
-            plyrRef.current = null;
           }
-        };
+        );
+      } catch (err) {
+        console.warn("Plyr init failed:", err);
       }
-    }, []);
 
-    // Use simple player on mobile or if Plyr fails
-    if (useSimplePlayer) {
-      return <SimpleYouTubePlayer videoUrl={videoUrl} content={content} />;
-    }
+      return () => {
+        if (plyrRef.current) {
+          plyrRef.current.destroy();
+          plyrRef.current = null;
+        }
+      };
+    }, [id]);
 
     return (
-      <div className="w-full">
-        <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
-          <div className="plyr__video-embed w-full h-full" ref={containerRef}>
-            <iframe
-              src={videoUrl}
-              allowFullScreen
-              allowTransparency
-              allow="autoplay; fullscreen; picture-in-picture"
-              className="w-full h-full rounded-lg shadow-md"
-              style={{
-                width: "100%",
-                height: "100%",
-                border: "none",
-              }}
-            />
-          </div>
-        </div>
-        {content && (
-          <div className="mt-3 sm:mt-4">
-            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
-              {content}
-            </p>
-          </div>
-        )}
+      <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+        {/* Let Plyr create the iframe using embed id */}
+        <div
+          ref={containerRef}
+          className="plyr__video-embed w-full h-full rounded-lg shadow-md"
+          data-plyr-provider="youtube"
+          data-plyr-embed-id={id}
+        />
+        {content && <div className="mt-3 text-sm text-gray-700">{content}</div>}
       </div>
     );
   };
@@ -1538,8 +1483,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
         if (videoUrl) {
           // Check if it's a YouTube URL
           if (isYouTubeUrl(videoUrl)) {
-            const embedUrl = getYouTubeEmbedUrl(videoUrl);
-            return <PlyrYouTubePlayer videoUrl={embedUrl} content={content} />;
+            return <PlyrYouTubePlayer videoUrl={videoUrl} content={content} />;
           } else {
             // Handle direct video file URLs with Plyr
             const encodedUrl = encodeURI(videoUrl);

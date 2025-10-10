@@ -533,16 +533,6 @@ const MediaPage: React.FC = () => {
               />
               Refresh
             </Button>
-            {selectedFiles.size > 0 && (
-              <Button
-                variant="destructive"
-                onClick={handleBulkDelete}
-                className="bg-red-600 hover:bg-red-700 rounded-full"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Selected ({selectedFiles.size})
-              </Button>
-            )}
           </div>
           <Button
             onClick={() => fileInputRef.current?.click()}
@@ -553,6 +543,20 @@ const MediaPage: React.FC = () => {
             {isUploading ? "Uploading..." : "Upload Files"}
           </Button>
         </div>
+
+        {/* Fixed Delete Button */}
+        {selectedFiles.size > 0 && (
+          <div className="fixed top-10 right-6 z-50">
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              className="bg-red-600 hover:bg-red-700 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-3"
+            >
+              <Trash2 className="w-5 h-5 mr-2" />
+              Delete Selected ({selectedFiles.size})
+            </Button>
+          </div>
+        )}
 
         {/* Upload Area */}
         <Card className="bg-white border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors rounded-none">
@@ -588,7 +592,7 @@ const MediaPage: React.FC = () => {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-[#00d8cc] h-2 rounded-full transition-all duration-300 ease-out"
+                      className="bg-primary h-2 rounded-full transition-all duration-300 ease-out"
                       style={{ width: `${uploadProgress}%` }}
                     ></div>
                   </div>
@@ -625,7 +629,7 @@ const MediaPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={handleSelectAll}
-              className="flex items-center gap-2 text-sm text-gray-200 hover:text-white"
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-black"
             >
               {selectedFiles.size === mediaFiles.length ? (
                 <CheckSquare className="w-4 h-4" />
@@ -656,7 +660,7 @@ const MediaPage: React.FC = () => {
               <Card
                 key={file.id}
                 className={`bg-white border-gray-200 hover:shadow-md transition-shadow cursor-pointer ${
-                  selectedFiles.has(file.id) ? "ring-2 ring-[#00d8cc]" : ""
+                  selectedFiles.has(file.id) ? "ring-2 ring-primary" : ""
                 }`}
               >
                 <CardContent className="p-4">
@@ -667,7 +671,7 @@ const MediaPage: React.FC = () => {
                       className="absolute top-2 left-2 z-10 bg-white rounded p-1 shadow-sm"
                     >
                       {selectedFiles.has(file.id) ? (
-                        <CheckSquare className="w-4 h-4 text-[#00d8cc]" />
+                        <CheckSquare className="w-4 h-4 text-primary" />
                       ) : (
                         <Square className="w-4 h-4 text-gray-400" />
                       )}
@@ -716,19 +720,19 @@ const MediaPage: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Hover overlay with action buttons */}
-                      <div className="absolute inset-0 bg-black/60 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden group-hover:flex">
-                        <div className="flex gap-2">
+                      {/* Action buttons overlay - hover on desktop, hidden on mobile */}
+                      <div className="absolute inset-0 bg-black/60 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden md:flex">
+                        <div className="flex flex-col sm:flex-row gap-2 p-2">
                           <Button
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
                               openPreview(file);
                             }}
-                            className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                            className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm"
                           >
-                            <Eye className="w-4 h-4 mr-1" />
-                            View
+                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                            <span className="hidden sm:inline">View</span>
                           </Button>
                           <Button
                             size="sm"
@@ -736,22 +740,39 @@ const MediaPage: React.FC = () => {
                               e.stopPropagation();
                               handleCopyUrl(file);
                             }}
-                            className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                            className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs sm:text-sm"
                           >
-                            <Copy className="w-4 h-4 mr-1" />
-                            Copy URL
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(file.id);
-                            }}
-                            className="bg-red-500/80 hover:bg-red-600/80 text-white border-red-400/30"
-                          >
-                            <Trash2 className="w-4 h-4" />
+                            <Copy className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                            <span className="hidden sm:inline">Copy URL</span>
                           </Button>
                         </div>
+                      </div>
+
+                      {/* Mobile action buttons - always visible on mobile */}
+                      <div className="absolute bottom-2 left-2 right-2 flex gap-1 md:hidden">
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openPreview(file);
+                          }}
+                          className="flex-1 bg-white/90 hover:bg-white text-gray-800 border-white/30 text-xs h-8"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          View
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopyUrl(file);
+                          }}
+                          className="flex-1 bg-white/90 hover:bg-white text-gray-800 border-white/30 text-xs h-8"
+                        >
+                          <Copy className="w-3 h-3 mr-1" />
+                          Copy
+                        </Button>
+                        
                       </div>
                     </div>
 
@@ -776,20 +797,20 @@ const MediaPage: React.FC = () => {
 
         {/* Preview Modal */}
         <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-          <DialogContent className="max-w-5xl max-h-[95vh] overflow-auto bg-white">
+          <DialogContent className="max-w-5xl max-h-[95vh] overflow-auto bg-white w-[95vw] sm:w-full">
             {previewFile && (
               <div className="space-y-6">
                 {/* Header */}
-                <div className="flex items-center justify-between border-b pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b pb-4 gap-4">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
                       {getFileIcon(previewFile.mimeType)}
                     </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-900">
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
                         {previewFile.originalName}
                       </h2>
-                      <div className="flex items-center gap-2 mt-1">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mt-1">
                         <span
                           className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getFileTypeColor(
                             previewFile.mimeType
@@ -808,7 +829,7 @@ const MediaPage: React.FC = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsPreviewOpen(false)}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-500 hover:text-gray-700 flex-shrink-0"
                   >
                     <X className="w-5 h-5" />
                   </Button>
@@ -893,7 +914,7 @@ const MediaPage: React.FC = () => {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3">
                       <Button
                         onClick={() => handleDownload(previewFile)}
                         className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"

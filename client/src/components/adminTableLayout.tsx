@@ -796,7 +796,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
   return (
     <div className="space-y-4">
       {/* Search and Create Section */}
-      <div className="flex items-center gap-4 justify-between w-full">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -820,7 +820,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
           >
             <DialogTrigger asChild>
               <Button
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg w-full sm:w-auto"
                 style={{ minWidth: "120px", height: "40px" }}
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -854,7 +854,7 @@ const AdminTableLayout: React.FC<AdminTableLayoutProps> = ({
         )}
       </div>
       {/* Conditional Dropdowns Section */}
-      <div className="flex items-center gap-4 w-full">
+      <div className="flex flex-col lg:flex-row gap-4 w-full">
         {/* Training Area Dropdown */}
         {dropdownConfig.showTrainingArea && (
           <Select
