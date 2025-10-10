@@ -1220,13 +1220,13 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
       iv_load_policy: "3",
       modestbranding: "1",
       playsinline: "1",
-      showinfo: "0",
       rel: "0",
       fs: "0",
       cc_load_policy: "0",
       disablekb: "0",
       enablejsapi: "1",
-    });
+      controls: "0",           // 👈 disables native YouTube UI
+    });    
 
     return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
   };
@@ -1476,7 +1476,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
               enablejsapi: 1,
               origin: window.location.origin,
               // Mobile-specific YouTube parameters
-              controls: 1,
+              controls: 0,
               autoplay: 0,
             },
           });
@@ -1513,6 +1513,7 @@ const CourseContentLayout: React.FC<CourseContentLayoutProps> = ({
               allowTransparency
               allow="autoplay; fullscreen; picture-in-picture"
               className="w-full h-full rounded-lg shadow-md"
+              sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
               style={{
                 width: "100%",
                 height: "100%",

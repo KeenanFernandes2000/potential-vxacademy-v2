@@ -182,7 +182,7 @@ export default function CertificateFormFiller({
               disabled={previewLoading}
               id="preview-button"
               variant="outline"
-              className="flex-1 px-2 sm:px-6 py-2 border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-black rounded-full disabled:opacity-50"
+              className="hidden lg:flex flex-1 px-2 sm:px-6 py-2 border-orange-400 text-orange-400 hover:bg-orange-400 hover:text-black rounded-full disabled:opacity-50"
             >
               {previewLoading ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-400" />
@@ -219,8 +219,8 @@ export default function CertificateFormFiller({
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black" />
           ) : (
             <>
-              <Download className="h-4 w-4 " />
-              <span className="hidden sm:inline w-full">Download</span>
+              <span className=" w-full">
+              Download</span>
             </>
           )}
         </Button>
