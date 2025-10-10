@@ -15,6 +15,7 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - VITE_API_URL=${VITE_API_URL}
+      - VITE_AI_URL=${VITE_AI_URL}
     volumes:
       - /home/ftpDev/vxacademy/uploads:/app/server/uploads
     restart: unless-stopped
@@ -25,8 +26,10 @@ services:
       dockerfile: client/dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL}
+        VITE_AI_URL: ${VITE_AI_URL}
     ports:
       - "5000:5000"
     environment:
       - VITE_API_URL=${VITE_API_URL}
+      - VITE_AI_URL=${VITE_AI_URL}
     restart: unless-stopped
