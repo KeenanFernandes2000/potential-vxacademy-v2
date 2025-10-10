@@ -783,7 +783,7 @@ const Users = () => {
         )}
 
         {/* Search Bar */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#666666] h-4 w-4" />
             <Input
@@ -801,11 +801,12 @@ const Users = () => {
               <TooltipTrigger asChild>
                 <Button
                   onClick={downloadExcel}
-                  className="rounded-full bg-dawn hover:bg-[#B85A1A] text-white whitespace-nowrap"
+                  className="rounded-full bg-dawn hover:bg-[#B85A1A] text-white w-full sm:w-auto"
                   disabled={filteredUsers.length === 0}
                 >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download Excel
+                  <Download className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Download Excel</span>
+                  <span className="sm:hidden">Download</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
