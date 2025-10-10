@@ -79,7 +79,7 @@ const AdminRoutesWrapper = ({ children }: { children: React.ReactNode }) => {
         <AdminSidebar />
 
         {/* Main Content Area */}
-        <SidebarInset className="md:max-w-[80%] max-w-[100%]">
+        <SidebarInset className="lg:max-w-[90%] max-w-[100%]">
           <div className="flex flex-col h-full">
             <main className="flex-1 p-6">
               <div className="space-y-6">{children}</div>
