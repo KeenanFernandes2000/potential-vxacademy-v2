@@ -139,7 +139,6 @@ const validateUserInput = (
     }
   }
 
-
   return {
     isValid: errors.length === 0,
     errors,
@@ -617,7 +616,6 @@ export class userControllers {
 
     const newUser = await UserService.createUser(userData);
 
-
     // Generate JWT token for auto-login after registration
     const token = jwt.sign(
       { id: newUser.id, email: newUser.email },
@@ -917,7 +915,10 @@ export class userControllers {
     const updatedUser = await UserService.updateUser(userId, updateData);
 
     // If this is a sub-admin and totalFrontliners is provided, check if user exists in subAdmins table first
-    if (req.body.userType === "sub_admin" && req.body.totalFrontliners !== undefined) {
+    if (
+      req.body.userType === "sub_admin" &&
+      req.body.totalFrontliners !== undefined
+    ) {
       // Check if user exists in subAdmins table
       const [existingSubAdmin] = await db
         .select()
@@ -931,7 +932,7 @@ export class userControllers {
         if (req.body.totalFrontliners !== undefined) {
           subAdminUpdateData.totalFrontliners = req.body.totalFrontliners;
         }
-        
+
         if (Object.keys(subAdminUpdateData).length > 0) {
           await db
             .update(subAdmins)
@@ -1249,6 +1250,11 @@ export class userControllers {
         name: user.firstName,
         url: `${process.env.FRONTEND_URL}/sub-admin/dashboard`,
       },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Sub-admin reminder email sent successfully",
     });
   }
 
@@ -2974,10 +2980,11 @@ export class userControllers {
 
     // If we have sub-organization details, get the actual asset and sub-asset names
     if (result.subAdminDetails.subAdmin?.subOrganizationId) {
-      const assetSubAssetNames = await SubOrganizationService.getAssetAndSubAssetNamesBySubOrg(
-        result.subAdminDetails.subAdmin.subOrganizationId
-      );
-      
+      const assetSubAssetNames =
+        await SubOrganizationService.getAssetAndSubAssetNamesBySubOrg(
+          result.subAdminDetails.subAdmin.subOrganizationId
+        );
+
       if (assetSubAssetNames) {
         assetName = assetSubAssetNames.assetName;
         subAssetName = assetSubAssetNames.subAssetName;
@@ -3587,10 +3594,11 @@ export class userControllers {
     }
 
     try {
-      const subOrganization = await SubOrganizationService.getSubOrgByNameAndOrgId(
-        name,
-        organizationId
-      );
+      const subOrganization =
+        await SubOrganizationService.getSubOrgByNameAndOrgId(
+          name,
+          organizationId
+        );
 
       if (!subOrganization) {
         throw createError("Sub-organization not found", 404);
@@ -3622,12 +3630,14 @@ export class userControllers {
     }
 
     try {
-      const assetInfo = await SubOrganizationService.getAssetAndSubAssetNamesBySubOrg(
-        subOrgId
-      );
+      const assetInfo =
+        await SubOrganizationService.getAssetAndSubAssetNamesBySubOrg(subOrgId);
 
       if (!assetInfo) {
-        throw createError("Asset information not found for this sub-organization", 404);
+        throw createError(
+          "Asset information not found for this sub-organization",
+          404
+        );
       }
 
       res.status(200).json({
@@ -3656,7 +3666,9 @@ export class userControllers {
     }
 
     try {
-      const organizationId = await OrganizationService.getOrganizationIdByName(name);
+      const organizationId = await OrganizationService.getOrganizationIdByName(
+        name
+      );
 
       if (!organizationId) {
         throw createError("Organization not found", 404);

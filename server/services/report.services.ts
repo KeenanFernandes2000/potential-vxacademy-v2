@@ -705,6 +705,44 @@ export const reportServices = {
   // Certificate Report Data - All frontliners with their certificate completion status
   getCertificateReportData: async () => {
     try {
+      // First, get the training area IDs for each certificate type
+      const trainingAreaMappings = await db
+        .select({
+          id: trainingAreas.id,
+          name: trainingAreas.name,
+        })
+        .from(trainingAreas);
+
+      // Map training area names to IDs for certificate queries
+      const getTrainingAreaId = (namePatterns: string[]) => {
+        const matchingArea = trainingAreaMappings.find((area) =>
+          namePatterns.some((pattern) =>
+            area.name.toLowerCase().includes(pattern.toLowerCase())
+          )
+        );
+        return matchingArea?.id || null;
+      };
+
+      const alMidhyafId = getTrainingAreaId(["al midhyaf", "midhyaf"]);
+      const adInformationId = getTrainingAreaId([
+        "ad information",
+        "information",
+      ]);
+      const softSkillsId = getTrainingAreaId([
+        "general vx soft skills",
+        "soft skills",
+        "soft",
+      ]);
+      const hardSkillsId = getTrainingAreaId([
+        "general vx hard skills",
+        "hard skills",
+        "hard",
+      ]);
+      const managerialId = getTrainingAreaId([
+        "managerial competencies",
+        "managerial",
+      ]);
+
       const [
         // Filter options
         assetOptions,
@@ -787,46 +825,51 @@ export const reportServices = {
             registrationDate: users.createdAt,
             lastLoginDate: users.lastLogin,
             // Certificate completion status - checking for passed assessments in each training area
-            alMidhyafCertificate: sql<boolean>`EXISTS (
+            alMidhyafCertificate: alMidhyafId
+              ? sql<boolean>`EXISTS (
             SELECT 1 FROM assessment_attempts aa
             INNER JOIN assessments a ON aa.assessment_id = a.id
-            INNER JOIN training_areas ta ON a.training_area_id = ta.id
             WHERE aa.user_id = ${users.id}
             AND aa.passed = true
-            AND LOWER(ta.name) LIKE '%midhyaf%'
-          )`,
-            adInformationCertificate: sql<boolean>`EXISTS (
+            AND a.training_area_id = ${alMidhyafId}
+          )`
+              : sql<boolean>`false`,
+            adInformationCertificate: adInformationId
+              ? sql<boolean>`EXISTS (
             SELECT 1 FROM assessment_attempts aa
             INNER JOIN assessments a ON aa.assessment_id = a.id
-            INNER JOIN training_areas ta ON a.training_area_id = ta.id
             WHERE aa.user_id = ${users.id}
             AND aa.passed = true
-            AND LOWER(ta.name) LIKE '%information%'
-          )`,
-            generalVXSoftSkillsCertificate: sql<boolean>`EXISTS (
+            AND a.training_area_id = ${adInformationId}
+          )`
+              : sql<boolean>`false`,
+            generalVXSoftSkillsCertificate: softSkillsId
+              ? sql<boolean>`EXISTS (
             SELECT 1 FROM assessment_attempts aa
             INNER JOIN assessments a ON aa.assessment_id = a.id
-            INNER JOIN training_areas ta ON a.training_area_id = ta.id
             WHERE aa.user_id = ${users.id}
             AND aa.passed = true
-            AND LOWER(ta.name) LIKE '%soft%'
-          )`,
-            generalVXHardSkillsCertificate: sql<boolean>`EXISTS (
+            AND a.training_area_id = ${softSkillsId}
+          )`
+              : sql<boolean>`false`,
+            generalVXHardSkillsCertificate: hardSkillsId
+              ? sql<boolean>`EXISTS (
             SELECT 1 FROM assessment_attempts aa
             INNER JOIN assessments a ON aa.assessment_id = a.id
-            INNER JOIN training_areas ta ON a.training_area_id = ta.id
             WHERE aa.user_id = ${users.id}
             AND aa.passed = true
-            AND LOWER(ta.name) LIKE '%hard%'
-          )`,
-            managerialCompetenciesCertificate: sql<boolean>`EXISTS (
+            AND a.training_area_id = ${hardSkillsId}
+          )`
+              : sql<boolean>`false`,
+            managerialCompetenciesCertificate: managerialId
+              ? sql<boolean>`EXISTS (
             SELECT 1 FROM assessment_attempts aa
             INNER JOIN assessments a ON aa.assessment_id = a.id
-            INNER JOIN training_areas ta ON a.training_area_id = ta.id
             WHERE aa.user_id = ${users.id}
             AND aa.passed = true
-            AND LOWER(ta.name) LIKE '%managerial%'
-          )`,
+            AND a.training_area_id = ${managerialId}
+          )`
+              : sql<boolean>`false`,
             // Overall progress calculation across all training areas
             overallProgress: sql<number>`COALESCE((
             SELECT AVG(CAST(utap.completion_percentage AS FLOAT))
