@@ -16,6 +16,7 @@ interface CourseCardProps {
   image?: string;
   courseId?: number; // Course ID for fetching course units
   onStart?: () => void;
+  isMobile?: boolean; // Add mobile prop for responsive styling
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({
@@ -27,6 +28,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   image,
   courseId,
   onStart,
+  isMobile = false,
 }) => {
   const navigate = useNavigate();
 
@@ -54,9 +56,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-sm bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden rounded-lg py-0 flex flex-col h-full group hover:border-gray-300">
+    <Card className={`w-full ${isMobile ? 'max-w-xs' : 'max-w-sm'} bg-white border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden rounded-lg py-0 flex flex-col h-full group hover:border-gray-300`}>
       {/* Course Image or Initials Fallback */}
-      <div className="relative w-full h-48 overflow-hidden">
+      <div className={`relative w-full ${isMobile ? 'h-32' : 'h-48'} overflow-hidden`}>
         {image && image !== "null" ? (
           <img
             src={image}
@@ -79,39 +81,39 @@ const CourseCard: React.FC<CourseCardProps> = ({
         )}
         {/* Duration overlay */}
         {duration && (
-          <div className="absolute top-3 right-3 bg-black/70 text-white px-3 py-1.5 flex items-center rounded-full backdrop-blur-sm">
-            <Clock className="w-3 h-3" />
-            <span className="ml-1.5 text-xs font-medium">{duration}</span>
+          <div className={`absolute top-3 right-3 bg-black/70 text-white ${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'} ${!isMobile ? 'md:px-2.5 md:py-1' : ''} flex items-center rounded-full backdrop-blur-sm`}>
+            <Clock className={`${isMobile ? 'w-2.5 h-2.5' : 'w-3 h-3'} ${!isMobile ? 'md:w-2.5 md:h-2.5' : ''}`} />
+            <span className={`${isMobile ? 'ml-1 text-[10px]' : 'ml-1.5 text-xs'} ${!isMobile ? 'md:ml-1 md:text-[10px]' : ''} font-medium`}>{duration}</span>
           </div>
         )}
       </div>
 
-      <CardContent className="px-6 py-4 flex-1 flex flex-col">
+      <CardContent className={`${isMobile ? 'px-3 py-1' : 'px-6 py-4'} flex-1 flex flex-col`}>
         {/* Course Title */}
-        <h3 className="text-xl font-bold text-[#2C2C2C] mb-3 break-words min-h-[3rem] flex items-start group-hover:text-dawn transition-colors duration-300">
+        <h3 className={`${isMobile ? 'text-sm' : 'text-xl'} ${!isMobile ? 'md:text-base' : ''} font-bold text-[#2C2C2C] ${isMobile ? 'mb-2' : 'mb-3'} break-words ${isMobile ? 'min-h-[2rem]' : 'min-h-[3rem]'} flex items-start group-hover:text-dawn transition-colors duration-300`}>
           {title}
         </h3>
 
         {/* Course Description */}
-        <p className="text-sm text-[#666666] leading-relaxed font-light line-clamp-3 h-16 overflow-hidden flex-1">
+        <p className={`${isMobile ? 'text-xs' : 'text-sm'} ${!isMobile ? 'md:text-xs' : ''} text-[#666666] leading-relaxed font-light line-clamp-3 ${isMobile ? 'h-12' : 'h-16'} overflow-hidden flex-1`}>
           {description}
         </p>
       </CardContent>
 
-      <CardFooter className="px-6 pb-6 mt-auto">
+      <CardFooter className={`${isMobile ? 'px-3 pb-3' : 'px-6 pb-6'} mt-auto`}>
         <div className="w-full">
           {/* Progress Section */}
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-sm font-medium text-[#2C2C2C]">
+          <div className={`flex justify-between items-center ${isMobile ? 'mb-2' : 'mb-3'}`}>
+            <span className={`${isMobile ? 'text-xs' : 'text-sm'} ${!isMobile ? 'md:text-xs' : ''} font-medium text-[#2C2C2C]`}>
               Course Progress
             </span>
-            <span className="text-sm text-[#666666] font-light">
+            <span className={`${isMobile ? 'text-xs' : 'text-sm'} ${!isMobile ? 'md:text-xs' : ''} text-[#666666] font-light`}>
               {Math.round(progress)}% Complete
             </span>
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+          <div className={`w-full bg-gray-200 rounded-full h-2 ${isMobile ? 'mb-2' : 'mb-4'}`}>
             <div
               className={`h-2 rounded-full transition-all duration-300 bg-dawn`}
               style={{ width: `${progress}%` }}
@@ -121,9 +123,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
           {/* Start/Continue Button */}
           <Button
             onClick={handleStart}
-            className="w-full bg-dawn hover:bg-[#B85A1A] text-white font-semibold py-3 px-4 shadow-sm transition-all duration-300 hover:scale-105 rounded-lg border border-dawn"
+            className={`w-full bg-dawn hover:bg-[#B85A1A] text-white font-semibold ${isMobile ? 'py-2 px-3 text-xs' : 'py-3 px-4'} ${!isMobile ? 'md:text-xs' : ''} shadow-sm transition-all duration-300 hover:scale-105 rounded-lg border border-dawn`}
           >
-            <Play className="w-4 h-4 mr-2" />
+            <Play className={`${isMobile ? 'w-3 h-3 mr-1' : 'w-4 h-4 mr-2'}`} />
             {progress === 0 ? "Start" : "Continue"}
           </Button>
         </div>

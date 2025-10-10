@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, Suspense } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import CourseCard from "@/components/CourseCard";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -118,6 +119,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
 
   // Get auth context for user ID and token
   const { user, token } = useAuth();
+  const isMobile = useIsMobile();
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const [messages, setMessages] = useState<Message[]>([]);
@@ -430,13 +432,13 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                           if (nestedData.content) {
                             fullResponse = nestedData.content;
                             
-                            setMessages((prev) =>
-                              prev.map((msg) =>
-                                msg.id === botMessageId
-                                  ? { ...msg, text: fullResponse }
-                                  : msg
-                              )
-                            );
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === botMessageId
+                ? { ...msg, text: fullResponse }
+                : msg
+            )
+          );
                           }
                           
                           // Handle final success with tool calls
@@ -541,7 +543,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
     return (
       <div className={`flex h-full bg-gray-100 dark:bg-gray-900 items-center justify-center ${className}`}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{borderColor: '#F77860'}}></div>
           <p className="text-gray-600 dark:text-gray-400">
             Loading chatbot configuration...
           </p>
@@ -624,30 +626,30 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
         <div className="flex-1 flex flex-col bg-gray-100 dark:bg-gray-900">
           <header className="sticky top-0 z-30 rounded-t-lg" style={{backgroundColor: 'rgb(247, 120, 96)'}}>
             <div className="px-2 sm:px-4 md:px-6 lg:px-8">
-              <div className="flex items-center justify-between h-16 lg:border-b border-gray-200 dark:border-gray-700/60">
-                <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center justify-between h-12 sm:h-16 md:h-14 lg:border-b border-gray-200 dark:border-gray-700/60">
+                <div className="flex items-center gap-1 sm:gap-3 md:gap-2">
                   {/* Show bot image if available, otherwise show bot icon */}
                   {botConfig?.imageName ? (
-                    <div className="w-10 h-10 sm:w-10 sm:h-10 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 rounded-full flex items-center justify-center">
                       <img
-                        src={`https://api.potential.com/static/mentors/${botConfig.imageName}`}
+                        src="https://api.potential.com/static/mentors/Nouf-VXAIConcierge-1758872636661-3.png"
                         alt={botConfig.name}
                         className="rounded-full object-cover"
                       />
                     </div>
                   ) : (
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center">
-                      <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <Bot className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 text-white" />
                     </div>
                   )}
 
                   <div>
-                    <h2 className="text-sm sm:text-lg font-semibold text-white">
+                    <h2 className="text-xs sm:text-lg md:text-sm font-semibold text-white">
                       {botConfig?.name || "AI Assistant"}
                     </h2>
                     <div className="flex items-center gap-2">
                       {!isTyping && <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>}
-                      <p className="text-xs text-white">
+                      <p className="text-[10px] sm:text-xs md:text-[10px] text-white">
                         {isTyping ? "⚡ Thinking..." : "Online"}
                       </p>
                     </div>
@@ -660,18 +662,18 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
           <div className="flex-1 overflow-y-auto" style={{backgroundColor: '#F5F0EB'}}>
             {messages.length > 0 ? (
               <div className="px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 w-full">
-                <div className="space-y-3 sm:space-y-4">
+                <div className="space-y-2 sm:space-y-4">
                   {messages.map((message, index) => (
                     <div key={message.id} className="w-full">
-                      <div
+                    <div
                         className={`flex gap-2 sm:gap-3 ${
-                          message.isUser ? "justify-end" : "justify-start"
-                        }`}
-                      >
+                        message.isUser ? "justify-end" : "justify-start"
+                      }`}
+                    >
                       {!message.isUser && (
                         <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{border: '1px solid #F77860'}}>
                           <img
-                            src={`https://api.potential.com/static/mentors/${botConfig?.imageName}`}
+                            src="https://api.potential.com/static/mentors/Nouf-VXAIConcierge-1758872636661-3.png"
                             alt={botConfig?.name}
                             className="w-full h-full rounded-full object-cover"
                           />
@@ -679,25 +681,25 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                       )}
 
                       <div
-                        className={`group max-w-[240px] min-[345px]:max-w-[270px] min-[400px]:max-w-[320px] min-[430px]:max-w-xl ${
+                        className={`group max-w-[200px] min-[345px]:max-w-[240px] min-[400px]:max-w-[280px] min-[430px]:max-w-[320px] sm:max-w-[320px] md:max-w-[350px] lg:max-w-xl ${
                           message.isUser ? "order-first" : ""
                         }`}
                       >
                         <div
-                          className={`relative px-3 py-2 sm:px-4 sm:py-3 rounded-2xl shadow-sm ${
+                          className={`relative px-2 py-1.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl shadow-sm ${
                             message.isUser
                               ? "text-white"
                               : "bg-transparent text-gray-900 dark:text-gray-100"
                           }`}
                           style={message.isUser ? {backgroundColor: '#F77860'} : {border: '2px solid #F77860'}}
                         >
-                          <div className="prose prose-sm max-w-none">
+                          <div className="prose prose-xs sm:prose-sm max-w-none">
                             {message.isUser ? (
-                              <p className="text-white m-0 leading-relaxed">
+                              <p className="text-white m-0 leading-relaxed text-xs sm:text-sm">
                                 {message.text}
                               </p>
                             ) : (
-                              <div className="text-gray-900 dark:text-gray-100 prose prose-sm max-w-none">
+                              <div className="text-gray-900 dark:text-gray-100 prose prose-xs sm:prose-sm max-w-none text-xs sm:text-sm">
                                 <ReactMarkdown
                                   remarkPlugins={[remarkGfm]}
                                   skipHtml={false}
@@ -803,7 +805,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                           )}
 
                           {!message.isStreaming && !message.isUser && (
-                            <div className="absolute left-full bottom-0 ml-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                            <div className="absolute left-full bottom-0 ml-2 opacity-100 sm:opacity-0 md:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                               <div className="flex flex-col gap-1">
                                 <button
                     onClick={() => copyMessage(message.text, message.id)}
@@ -822,7 +824,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
             </div>
 
                         <div
-                          className={`mt-1 text-xs ${
+                          className={`mt-1 text-[10px] sm:text-xs ${
                             message.isUser ? "text-right text-gray-500 dark:text-gray-400" : "text-left text-black"
                           }`}
                         >
@@ -831,15 +833,15 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                       </div>
 
                       {message.isUser && (
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: '#F5D5D0', border: '2px solid #F77860'}}>
-                          <User className="w-4 h-4" style={{color: '#F77860'}} />
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: '#F5D5D0', border: '1px solid #F77860'}}>
+                          <User className="w-3 h-3 sm:w-4 sm:h-4" style={{color: '#F77860'}} />
                         </div>
                       )}
                       </div>
                       
                       {/* Render course cards outside the message border */}
                       {!message.isUser && message.toolCalls && message.toolCalls.length > 0 && (
-                        <div className="w-full mt-4 pl-12">
+                        <div className="w-full mt-4 px-8">
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             {message.toolCalls
                               .filter((tc: ToolCall) => tc.name === 'display_course_card')
@@ -859,6 +861,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                                       progress={args.percentage || 0}
                                       image={args.image && args.image !== "No image" ? args.image : undefined}
                                       courseId={courseId}
+                                      isMobile={isMobile}
                                       onStart={() => {
                                         // Open in new tab when in chat
                                         if (courseId) {
@@ -900,7 +903,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
           {/* Ice Breaker Questions Bubbles */}
           {messages.length === 1 && getIceBreakerQuestions().length > 0 && (
             <div className="" style={{backgroundColor: '#F5F0EB'}}>
-              <div className="flex flex-wrap gap-2 justify-center max-w-4xl mx-auto">
+              <div className="flex flex-wrap gap-1 sm:gap-2 justify-center max-w-4xl mx-auto">
                 {getIceBreakerQuestions().map((question, index) => (
                   <button
                     key={index}
@@ -910,7 +913,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                         sendMessage(question);
                       }, 100);
                     }}
-                    className="px-4 py-2 text-sm font-medium rounded-lg hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer shadow-sm"
+                    className="px-2 py-1 sm:px-4 sm:py-2 md:px-3 md:py-1.5 text-xs sm:text-sm md:text-xs font-medium rounded-md sm:rounded-lg md:rounded-md hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer shadow-sm"
                     style={{
                       background: 'linear-gradient(135deg, rgb(246, 238, 229) 0%, rgb(237, 220, 203) 100%)',
                       color: '#F77860',
@@ -973,7 +976,7 @@ const SectionChat: React.FC<SectionChatProps> = ({ className = "", botId, pdfId 
                 handleSendMessage();
               }}
               disabled={!newMessage.trim()}
-              className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-white rounded-full transition-colors disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
+              className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-white rounded-full transition-colors disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
               style={{backgroundColor: '#F77860'}}
               title="Send message"
               type="button"
