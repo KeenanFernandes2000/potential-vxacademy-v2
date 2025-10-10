@@ -94,10 +94,7 @@ export const reportServices = {
       ] = await Promise.all([
         // Key Metrics
         // Total Users (All users in the platform)
-        db
-          .select({ count: count() })
-          .from(users)
-          .where(ne(users.userType, "admin")),
+        db.select({ count: count() }).from(users),
         // Total Frontliners (All registered frontliners)
         db.select({ count: count() }).from(normalUsers),
         // New Frontliners (Joined this month)
@@ -824,50 +821,55 @@ export const reportServices = {
             vxPoints: users.xp,
             registrationDate: users.createdAt,
             lastLoginDate: users.lastLogin,
-            // Certificate completion status - checking for passed assessments in each training area
+            // Certificate completion status - checking for issued certificates in each training area
             alMidhyafCertificate: alMidhyafId
               ? sql<boolean>`EXISTS (
-            SELECT 1 FROM assessment_attempts aa
-            INNER JOIN assessments a ON aa.assessment_id = a.id
-            WHERE aa.user_id = ${users.id}
-            AND aa.passed = true
-            AND a.training_area_id = ${alMidhyafId}
+            SELECT 1 FROM certificates c
+            INNER JOIN courses co ON c.course_id = co.id
+            INNER JOIN modules m ON co.module_id = m.id
+            WHERE c.user_id = ${users.id}
+            AND c.status = 'active'
+            AND m.training_area_id = ${alMidhyafId}
           )`
               : sql<boolean>`false`,
             adInformationCertificate: adInformationId
               ? sql<boolean>`EXISTS (
-            SELECT 1 FROM assessment_attempts aa
-            INNER JOIN assessments a ON aa.assessment_id = a.id
-            WHERE aa.user_id = ${users.id}
-            AND aa.passed = true
-            AND a.training_area_id = ${adInformationId}
+            SELECT 1 FROM certificates c
+            INNER JOIN courses co ON c.course_id = co.id
+            INNER JOIN modules m ON co.module_id = m.id
+            WHERE c.user_id = ${users.id}
+            AND c.status = 'active'
+            AND m.training_area_id = ${adInformationId}
           )`
               : sql<boolean>`false`,
             generalVXSoftSkillsCertificate: softSkillsId
               ? sql<boolean>`EXISTS (
-            SELECT 1 FROM assessment_attempts aa
-            INNER JOIN assessments a ON aa.assessment_id = a.id
-            WHERE aa.user_id = ${users.id}
-            AND aa.passed = true
-            AND a.training_area_id = ${softSkillsId}
+            SELECT 1 FROM certificates c
+            INNER JOIN courses co ON c.course_id = co.id
+            INNER JOIN modules m ON co.module_id = m.id
+            WHERE c.user_id = ${users.id}
+            AND c.status = 'active'
+            AND m.training_area_id = ${softSkillsId}
           )`
               : sql<boolean>`false`,
             generalVXHardSkillsCertificate: hardSkillsId
               ? sql<boolean>`EXISTS (
-            SELECT 1 FROM assessment_attempts aa
-            INNER JOIN assessments a ON aa.assessment_id = a.id
-            WHERE aa.user_id = ${users.id}
-            AND aa.passed = true
-            AND a.training_area_id = ${hardSkillsId}
+            SELECT 1 FROM certificates c
+            INNER JOIN courses co ON c.course_id = co.id
+            INNER JOIN modules m ON co.module_id = m.id
+            WHERE c.user_id = ${users.id}
+            AND c.status = 'active'
+            AND m.training_area_id = ${hardSkillsId}
           )`
               : sql<boolean>`false`,
             managerialCompetenciesCertificate: managerialId
               ? sql<boolean>`EXISTS (
-            SELECT 1 FROM assessment_attempts aa
-            INNER JOIN assessments a ON aa.assessment_id = a.id
-            WHERE aa.user_id = ${users.id}
-            AND aa.passed = true
-            AND a.training_area_id = ${managerialId}
+            SELECT 1 FROM certificates c
+            INNER JOIN courses co ON c.course_id = co.id
+            INNER JOIN modules m ON co.module_id = m.id
+            WHERE c.user_id = ${users.id}
+            AND c.status = 'active'
+            AND m.training_area_id = ${managerialId}
           )`
               : sql<boolean>`false`,
             // Overall progress calculation across all training areas
@@ -1050,10 +1052,7 @@ export const reportServices = {
           .orderBy(users.createdAt),
 
         // Total Users (All users in the platform)
-        db
-          .select({ count: count() })
-          .from(users)
-          .where(ne(users.userType, "admin")),
+        db.select({ count: count() }).from(users),
 
         // Total Frontliners (All registered frontliners - users with normal user data)
         db
@@ -1899,10 +1898,7 @@ export const reportServices = {
         averageProgress,
       ] = await Promise.all([
         // Total Users (All users excluding admins)
-        db
-          .select({ count: count() })
-          .from(users)
-          .where(ne(users.userType, "admin")),
+        db.select({ count: count() }).from(users),
 
         // Total Frontliners (All registered frontliners)
         db.select({ count: count() }).from(normalUsers),
