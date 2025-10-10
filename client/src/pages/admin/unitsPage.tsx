@@ -1025,7 +1025,7 @@ const UnitsPage = () => {
             </Label>
           </div>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 hidden">
           <Label htmlFor="xp_points">VX Points *</Label>
           <Input
             id="xp_points"
@@ -1321,7 +1321,7 @@ const UnitsPage = () => {
             </Label>
           </div>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 hidden">
           <Label htmlFor="edit_xp_points" className="text-[#2C2C2C]">
             VX Points *
           </Label>

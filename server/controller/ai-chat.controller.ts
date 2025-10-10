@@ -114,6 +114,7 @@ export class AIChatController {
                 userId: user.id,
                 message,
                 botId,
+                sessionId,
                 systemPrompt: botConfig.system,
                 botName: botConfig.name,
                 trainingContext,
@@ -205,7 +206,6 @@ export class AIChatController {
                 // Continue without context rather than failing
             }
 
-            console.log("trainingContext", trainingContext);
 
             // Send to AI backend with original system prompt
             // The trainingContext will be sent separately for the AI backend to handle

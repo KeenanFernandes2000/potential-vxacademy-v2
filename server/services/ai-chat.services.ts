@@ -6,6 +6,7 @@ export interface AIChatRequest {
     userId: number;
     message: string;
     botId: string;
+    sessionId?: string;
     systemPrompt: string;
     botName: string;
     trainingContext?: any;
@@ -80,7 +81,7 @@ export class AIChatService {
                 // Prepare JSON request body
                 const requestBody = {
                     message: request.message,
-                    sessionId: `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                    sessionId: request.sessionId || `session-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
                     systemPrompt: request.systemPrompt,
                     botName: request.botName,
                     trainingContext: request.trainingContext || null,
